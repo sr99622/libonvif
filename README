@@ -1,0 +1,171 @@
+LIBONVIF
+
+A client side implementation of the ONVIF specification.
+
+/*******************************************************************************
+*
+* copyright 2018 Stephen Rhodes
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+*******************************************************************************/
+
+                             INTRODUCTION
+
+libonvif is a multi platform library implementing the client side of the ONVIF
+specification for communicating with IP enabled compatible cameras.  It will
+compile with GNU cc on Linux, macosx, and mingw.  A separate version is made for
+Windows and is available in a zip download format, see libonvif on sourceforge
+for more information.
+
+An example program is included with libonvif that will discover compatible
+cameras on the local network and query each of them for their RSTP connection
+uri information.
+
+                         DEPENDENCY ON LIBXML2
+
+libonvif has a dependency on libxml2.  This means you will need to have libxml2
+installed on your machine and you will need to know the location of the libxml2
+include files for compilation.  Most systems come with libxml2 pre-
+installed.  You can check the availability of libxml2 on your system with the
+following command:
+
+    xml2-config --cflags
+
+This command should return with -I/usr/include/libxml2 or something similar.  If
+you receive this response, libxml2 is installed.  If the command is not
+recognized, then you will need to install libxml2.  An easy way to do this on
+Linux is to use the apt utility to install.  Make sure to get the -dev version
+by using the following command on Debian or Ubuntu:
+
+
+  sudo apt-get install libxml2-dev
+
+On macosx, the equivalent command is:
+
+  brew install libxml2-dev
+
+You can also install libxml2 from source.  Download the tar file from
+ftp://xmlsoft.org/libxml2/.  In the example given below, a particular version
+number for libxml2 is shown for illustration.  Your exact number may vary.  It
+is recommended that you turn off all dependencies in libxml2 and set the prefix
+to /usr with the following commands:
+
+  tar xvf libxml2-2.9.8.tar.gz
+  cd libxml2-2.9.8
+  ./configure --without-iconv --without-zlib --without-lzma --without-python \
+    --prefix=/usr
+  make
+  sudo make install
+
+            INSTALLATION OF LIBONVIF FOR LINUX AND MACOSX
+
+Compilation instructions for Linux and macosx are very similar.  It is
+recommended to install libonvif with the /usr prefix.
+
+  tar xvf libonvif-1.1.0
+  cd libonvif-1.1.0
+  ./configure --prefix=/usr
+  make
+  sudo make install
+
+To compile the example program:
+
+  cd example
+  gcc -o test_onvif test_onvif.c -I/usr/include -I/usr/include/libxml2 -lxml2 \
+    -lonvif
+
+To run the example
+
+  ./test_onvif
+
+                  INSTALLATION OF LIBONVIF FOR MINGW
+
+To cross compile libonvif for Windows using mingw, you will need to have the
+complete set of wine libraries installed on your machine.  This is a somewhat
+involved process, beyond the scope of this document. It is assumed you have
+installed wine correctly for both 32 and 64 bit.
+
+You will need to cross compile libxml2 in this scenario.  Use the following
+configure command.  Note that the instructions are given for building for the
+64 bit host windows system.  To build for 32 bit host windows, replace
+occurrences of x86_64 with i686.  As before, version numbers are shown for
+illustration, yours may be slightly different.
+
+   tar xvf libxml2-2.9.8.tar.gz
+   cd libxml2-2.9.8
+   ./configure --without-iconv --without-zlib --without-lzma --without-python \
+       --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32
+   make
+   sudo make install
+
+You can now compile libonvif with the following commands.
+
+  tar xvf libonvif-1.1.0.tar.gz
+  cd libonvif-1.1.0
+  ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32
+  make
+  sudo make install
+
+To compile the example:
+
+  cd example
+  x86_64-w64-mingw32-gcc -o test_onvif.exe test_onvif \
+      -I/usr/x86_64-w64-mingw32/include \
+      -I/usr/x86_64-w64-mingw32/include/libxml2 -lxml2 -lonvif
+
+At this point, you will need to find the proper dll's to link the runtime.
+Copy the two following files to the example directory
+
+    cp /usr/x86_64-w64-mingw32/bin/libxml2-2.dll .
+    cp /usr/x86_64-w64-mingw32/bin/libonvif-0.dll .
+
+To run the example
+
+    wine cmd
+    test_onvif
+
+                      NOTES ON THE EXAMPLE PROGRAM
+
+The purpose of the example program is to discover cameras on the network and
+obtain the RTSP uri string to initiate streaming.  This is the most commonly
+used Onvif function.  libonvif is a c library so you are required to manage the
+memory.  This is not too difficult as there are only two dat a structure that
+require memory allocation, OnvifSession and OnvifData.  OnvifSession
+encompasses global Onvif variables so you only need one per program.  You
+should call initializeSession prior to calling any Onvif functions and close
+the session when no longer needed.  You will need to free the OnvifSession
+structure as well at that time.
+
+OnvifData is a structure holding camera parameters and information, and you will
+need one of these each time you communicate with a camera.  The example program
+re-uses a single OnvifData structure each time it communicates with that
+camera, but you may want to allocate an OnvifData structure for each camera
+you find.  You should free the OnvifData structure when it is no longer needed
+to avoid memory leaks.
+
+The broadcast function of libonvif sends a UDP broadcast packet recognized by
+Onvif devices. Connected cameras will respond with a UDP packet reply which
+will be processed by libonvif which will return the number of cameras found.
+If you use this example program for a while, you will notice that sometimes a
+camera may not respond to the UDP broadcast all the time.  This is not unusual
+and will vary with network conditions and camera  variability.  It is common
+practice for broadcast functions to be repeated several times to give devices
+several chances to respond.  It is a good idea when doing this to increase the
+time interval between broadcasts.
+
+Once the camera has been found, the function prepareOnvifData will initialize
+the OnvifData structure with the parameters needed for successful communication.
+At this point, the OnvifData structure is ready for authentication against the
+camera and the username and password are collected from the terminal prompt.
+The function fillRTSP will get the RTSP uri string from the camera.  fillRTSP
+will return a non-zero integer in the case of communication error, and the
+error message can be found in the last_error field of OnvifData. 

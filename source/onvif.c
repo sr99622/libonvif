@@ -42,7 +42,7 @@
 #include "onvif.h"
 #include "sha1.h"
 #include "cencode.h"
-#include <stdint.h> 
+#include <stdint.h>
 
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
@@ -635,6 +635,7 @@ int getProfile(struct OnvifData *onvif_data) {
     addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->media_service, cmd, 4096);
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
+
         char temp_buf[128];
 
         xmlChar *xpath;
@@ -660,6 +661,12 @@ int getProfile(struct OnvifData *onvif_data) {
         if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
             onvif_data->gov_length = atoi(temp_buf);
         }
+
+        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration";
+		getNodeAttribute(reply, xpath, "token", onvif_data->videoEncoderConfigurationToken, 128);
+        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoSourceConfiguration//tt:SourceToken";
+		getXmlValue(reply, xpath, onvif_data->videoSourceConfigurationToken, 128);
+
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
         xmlFreeDoc(reply);
     }
@@ -1688,7 +1695,23 @@ void addUsernameDigestHeader(xmlNodePtr root, xmlNsPtr ns_env, char *user, char 
     time_buffer[time_buffer_length] = '\0';
     int millisec;
     struct timeval tv;
+#ifdef _WIN32
+    static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
+
+    GetSystemTime( &system_time );
+    SystemTimeToFileTime( &system_time, &file_time );
+    time =  ((uint64_t)file_time.dwLowDateTime )      ;
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    tv.tv_sec  = (long) ((time - EPOCH) / 10000000L);
+    tv.tv_usec = (long) (system_time.wMilliseconds * 1000);
+#else
     gettimeofday(&tv, NULL);
+#endif
     millisec = tv.tv_usec/1000.0;
     char milli_buf[16] = {0};
     sprintf(milli_buf, "%03dZ", millisec);
@@ -2413,23 +2436,3 @@ int fillRTSP(struct OnvifData *onvif_data) {
     }
     return result;
 }
-
-
-#ifdef _WIN32
-    int gettimeofday(struct timeval *tp, struct timezone *tzp) {
-        static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
-
-        SYSTEMTIME  system_time;
-        FILETIME    file_time;
-        uint64_t    time;
-
-        GetSystemTime( &system_time );
-        SystemTimeToFileTime( &system_time, &file_time );
-        time =  ((uint64_t)file_time.dwLowDateTime )      ;
-        time += ((uint64_t)file_time.dwHighDateTime) << 32;
-
-        tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
-        tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
-        return 0;
-    }
-#endif

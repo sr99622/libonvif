@@ -190,11 +190,6 @@ LIBRARY_API void prefix2mask(int prefix, char mask_buf[128]);
 LIBRARY_API int mask2prefix(char * mask_buf);
 LIBRARY_API void getIPAddress(char buf[128]);
 
-
-#ifdef _WIN32
-    int gettimeofday(struct timeval *tp, struct timezone *tzp);
-#endif
-
 #ifdef __MINGW32__
     int inet_pton(int af, const char *src, void *dst);
     const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);

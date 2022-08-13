@@ -1,0 +1,30 @@
+{% set name = "libonvif" %}
+{% set version = "1.2.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - cmake  # [win]
+    - make  # [unix]
+    - {{ compiler('c') }}
+    - libxml2
+  host:
+    - libxml2
+  run:
+    - libxml2
+
+test:
+  commands:
+    - echo test
+
+about:
+  summary: client side implementation of ONVIF

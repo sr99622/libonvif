@@ -3,7 +3,7 @@ libonvif
 
 A client side implementation of the ONVIF specification.
 
-INTRODUCTION
+Introduction
 ------------
 
 libonvif is a multi platform library implementing the client side of the ONVIF
@@ -16,18 +16,18 @@ An example program is included with libonvif that will discover compatible
 cameras on the local network and query each of them for their RSTP connection
 uri information.
 
-QUICK INSTALL WITH ANACONDA
+Quick Install With Anaconda
 ---------------------------
 
 The pre built version of the library can be installed with anaconda.  Following
-the installation here, you may proceed to compile test program below.
+the installation here, you may proceed to compile example program below.
 
 ```bash
 conda install -c sr99622 libonvif
 ```
 
-TO INSTALL FROM SOURCE FOLLOW DIRECTIONS BELOW
----------------------------------------------
+To Install From Source
+----------------------
 
 
 DEPENDENCY ON LIBXML2
@@ -72,7 +72,7 @@ cmake ..
 sudo make install
 ```
 
-COMPILE THE TEST PROGRAM
+Compile the Example Program
 ------------------------
 
 The test program may be now be compiled
@@ -92,7 +92,7 @@ Run the test program
 ```
 
 
-NOTES ON THE EXAMPLE PROGRAM
+Notes on the Example Program
 ----------------------------
 
 The purpose of the example program is to discover cameras on the network and

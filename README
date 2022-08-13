@@ -1,24 +1,10 @@
-LIBONVIF
+libonvif
+========
 
 A client side implementation of the ONVIF specification.
 
-/*******************************************************************************
-*
-* copyright 2018 Stephen Rhodes
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-*******************************************************************************/
-
-                             INTRODUCTION
+INTRODUCTION
+------------
 
 libonvif is a multi platform library implementing the client side of the ONVIF
 specification for communicating with IP enabled compatible cameras.  It will
@@ -30,7 +16,21 @@ An example program is included with libonvif that will discover compatible
 cameras on the local network and query each of them for their RSTP connection
 uri information.
 
-                         DEPENDENCY ON LIBXML2
+QUICK INSTALL WITH ANACONDA
+---------------------------
+
+The pre built version of the library can be installed with anaconda.  Following
+the installation here, you may proceed to compile test program below.
+
+```bash
+conda install -c sr99622 libonvif
+```
+
+TO INSTALL FROM SOURCE FOLLOW DIRECTIONS BELOW
+---------------------------------------------
+
+
+DEPENDENCY ON LIBXML2
 
 libonvif has a dependency on libxml2.  This means you will need to have libxml2
 installed on your machine and you will need to know the location of the libxml2
@@ -38,7 +38,9 @@ include files for compilation.  Most systems come with libxml2 pre-
 installed.  You can check the availability of libxml2 on your system with the
 following command:
 
-    xml2-config --cflags
+```bash
+xml2-config --cflags
+```
 
 This command should return with -I/usr/include/libxml2 or something similar.  If
 you receive this response, libxml2 is installed.  If the command is not
@@ -46,94 +48,52 @@ recognized, then you will need to install libxml2.  An easy way to do this on
 Linux is to use the apt utility to install.  Make sure to get the -dev version
 by using the following command on Debian or Ubuntu:
 
+```bash
+sudo apt-get install libxml2-dev
+```
 
-  sudo apt-get install libxml2-dev
+If you are working in a conda environment, the dependency for libxml2 may also be 
+satisfied using anaconda.
 
-On macosx, the equivalent command is:
+```bash
+conda install -c conda-forge libxml2
+```
 
-  brew install libxml2-dev
+COMPILE
 
-You can also install libxml2 from source.  Download the tar file from
-ftp://xmlsoft.org/libxml2/.  In the example given below, a particular version
-number for libxml2 is shown for illustration.  Your exact number may vary.  It
-is recommended that you turn off all dependencies in libxml2 and set the prefix
-to /usr with the following commands:
+The library is compiled using standard cmake procedure
 
-  tar xvf libxml2-2.9.8.tar.gz
-  cd libxml2-2.9.8
-  ./configure --without-iconv --without-zlib --without-lzma --without-python \
-    --prefix=/usr
-  make
-  sudo make install
+```bash
+git clone https://github.com/sr99622/libonvif.git
+cd libonvif
+mkdir build
+cd build
+cmake ..
+sudo make install
+```
 
-            INSTALLATION OF LIBONVIF FOR LINUX AND MACOSX
+COMPILE THE TEST PROGRAM
+------------------------
 
-Compilation instructions for Linux and macosx are very similar.  It is
-recommended to install libonvif with the /usr prefix.
+The test program may be now be compiled
 
-  tar xvf libonvif-1.1.0
-  cd libonvif-1.1.0
-  ./configure --prefix=/usr
-  make
-  sudo make install
+``bash
+cd libonvif/example
+mkdir build
+cd build
+cmake ..
+make
+```
 
-To compile the example program:
+Run the test program
 
-  cd example
-  gcc -o test_onvif test_onvif.c -I/usr/include -I/usr/include/libxml2 -lxml2 \
-    -lonvif
+```bash
+./test_onvif
+```
 
-To run the example
 
-  ./test_onvif
-
-                  INSTALLATION OF LIBONVIF FOR MINGW
-
-To cross compile libonvif for Windows using mingw, you will need to have the
-complete set of wine libraries installed on your machine.  This is a somewhat
-involved process, beyond the scope of this document. It is assumed you have
-installed wine correctly for both 32 and 64 bit.
-
-You will need to cross compile libxml2 in this scenario.  Use the following
-configure command.  Note that the instructions are given for building for the
-64 bit host windows system.  To build for 32 bit host windows, replace
-occurrences of x86_64 with i686.  As before, version numbers are shown for
-illustration, yours may be slightly different.
-
-   tar xvf libxml2-2.9.8.tar.gz
-   cd libxml2-2.9.8
-   ./configure --without-iconv --without-zlib --without-lzma --without-python \
-       --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32
-   make
-   sudo make install
-
-You can now compile libonvif with the following commands.
-
-  tar xvf libonvif-1.1.0.tar.gz
-  cd libonvif-1.1.0
-  ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32
-  make
-  sudo make install
-
-To compile the example:
-
-  cd example
-  x86_64-w64-mingw32-gcc -o test_onvif.exe test_onvif \
-      -I/usr/x86_64-w64-mingw32/include \
-      -I/usr/x86_64-w64-mingw32/include/libxml2 -lxml2 -lonvif
-
-At this point, you will need to find the proper dll's to link the runtime.
-Copy the two following files to the example directory
-
-    cp /usr/x86_64-w64-mingw32/bin/libxml2-2.dll .
-    cp /usr/x86_64-w64-mingw32/bin/libonvif-0.dll .
-
-To run the example
-
-    wine cmd
-    test_onvif
-
-                      NOTES ON THE EXAMPLE PROGRAM
+NOTES ON THE EXAMPLE PROGRAM
+----------------------------
 
 The purpose of the example program is to discover cameras on the network and
 obtain the RTSP uri string to initiate streaming.  This is the most commonly

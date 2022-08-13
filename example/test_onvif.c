@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <libonvif/onvif.h>
+#include <onvif.h>
 
 int number_of_cameras;
 

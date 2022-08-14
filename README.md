@@ -54,7 +54,7 @@ sudo apt-get install libxml2-dev
 
 Installing libxml2 on Windows is more difficult.  You will need to get the source
 code for libxml2 from https://github.com/GNOME/libxml2.  Upon completion of the 
-build for libxml2, you will need Adminstrator privileges to install the library.  
+build for libxml2, you will need Adminstrator privileges to install the library.
 You will also need to set the PATH environment variable to include the libxml2.dll 
 path.  The instructions below will build a stripped down version of libxml2 which
 is fine for onvif.  To get an administrator privileged command prompt, use the

@@ -117,7 +117,7 @@ Compile the Example Program
 
 Linux instructions for compiling the test program
 
-``bash
+```bash
 cd libonvif/example
 mkdir build
 cd build

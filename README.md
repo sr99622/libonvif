@@ -21,7 +21,8 @@ Quick Install With Anaconda
 ---------------------------
 
 The pre built version of the library can be installed with anaconda using the
-command shown below.
+command shown below.  The library installation includes the discover program
+which can be used to find the IP addresses of cameras on the network.
 
 ```bash
 conda install -c conda-forge -c sr99622 libonvif

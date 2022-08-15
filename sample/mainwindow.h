@@ -1,9 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "libxml/parser.h"
-#include "onvif.h"
-
 #include <QMainWindow>
 #include <QPushButton>
 #include <QLabel>

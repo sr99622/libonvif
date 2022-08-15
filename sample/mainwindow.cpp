@@ -1,7 +1,7 @@
 #include <iostream>
 #include "mainwindow.h"
 #include <QGridLayout>
-
+#include "onvif.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

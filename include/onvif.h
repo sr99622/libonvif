@@ -19,13 +19,14 @@
 #ifndef ONVIF_H
 #define ONVIF_H
 
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <libxml/parser.h>
-#include <libxml/xpath.h>
-#include <stdbool.h>
 #ifndef _WIN32
     #include <time.h>
 #endif

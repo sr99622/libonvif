@@ -4,10 +4,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
 SOURCES += \
     main.cpp \
     mainwindow.cpp
@@ -15,16 +11,13 @@ SOURCES += \
 HEADERS += \
     mainwindow.h
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
-
 unix:!macx: LIBS += -L/usr/local/lib/ -lonvif -lxml2
 
+win32: LIBS += -L'C:/Program Files (x86)/libonvif/lib/' -lonvif \
+               -L'C:/Program Files (x86)/libxml2/lib/' -llibxml2
+
 INCLUDEPATH += /usr/local/include \
-               /usr/include/libxml2
+               /usr/include/libxml2 \
+               'C:/Program Files (x86)/libonvif/include' \
+               'C:/Program Files (x86)/libxml2/include/libxml2'
 
-DEPENDPATH += $$PWD/../../../usr/local/include
-
-unix:!macx: PRE_TARGETDEPS += $$PWD/../../../usr/local/lib/libonvif.a

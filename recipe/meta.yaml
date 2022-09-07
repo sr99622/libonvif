@@ -13,14 +13,17 @@ build:
 
 requirements:
   build:
-    - cmake  # [win]
+    - {{ compiler('cxx') }}
+    - cmake
     - make  # [unix]
-    - {{ compiler('c') }}
-    - libxml2
   host:
-    - libxml2
+    - libxml2=2.10.2 # [win]
+    - libxml2 # [linux]
+    - qt
   run:
-    - libxml2
+    - libxml2=2.10.2 # [win]
+    - libxml2 # [linux]
+    - qt
 
 test:
   commands:

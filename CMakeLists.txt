@@ -71,6 +71,49 @@ target_include_directories(discover PUBLIC
     ${LIBXML2_INCLUDE_DIRS}
 )
 
+if (BUILD_GUI)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_AUTOUIC ON)
+    find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+    add_executable(onvif_exe
+        sample/admintab.cpp
+        sample/camera.cpp
+        sample/cameradialogtab.cpp
+        sample/cameralistmodel.cpp
+        sample/cameralistview.cpp
+        sample/camerapanel.cpp
+        sample/configtab.cpp
+        sample/discovery.cpp
+        sample/imagetab.cpp
+        sample/logindialog.cpp
+        sample/main.cpp
+        sample/mainwindow.cpp
+        sample/networktab.cpp
+        sample/onvifmanager.cpp
+        sample/ptztab.cpp
+        sample/videotab.cpp
+    )
+
+    set_target_properties(onvif_exe PROPERTIES
+        OUTPUT_NAME onvif
+        ARCHIVE_OUTPUT_DIRECTORY onvif_exe
+    )
+
+    target_link_libraries(onvif_exe PRIVATE
+        Qt5::Widgets
+        onvif_static
+        ${LIBXML2_LIBRARIES}
+    )
+
+    target_include_directories(onvif_exe PUBLIC
+        include
+        ${LIBXML2_INCLUDE_DIRS}
+    )
+
+    install(TARGETS onvif_exe DESTINATION bin)
+endif()
 
 install(TARGETS onvif DESTINATION bin)
 install(TARGETS discover DESTINATION bin)

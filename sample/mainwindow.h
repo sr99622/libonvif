@@ -6,6 +6,12 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QTextEdit>
+#include <QSettings>
+#include "camerapanel.h"
+#include <iostream>
+
+
+#define MW dynamic_cast<MainWindow*>(mainWindow)
 
 class MainWindow : public QMainWindow
 {
@@ -15,14 +21,14 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    QPushButton* btnTest;
-    QLineEdit* txtUsername;
-    QLineEdit* txtPassword;
-    QTextEdit* txtStatus;
-    QString strStatus;
+    void keyPressEvent(QKeyEvent* event) override;
+    void closeEvent(QCloseEvent* event) override;
+
+    CameraPanel* cameraPanel;
+    QSettings *settings;
 
 public slots:
-    void test();
+    void msg(QString);
 
 };
 #endif // MAINWINDOW_H

@@ -30,7 +30,7 @@ like video parameters and ptz functions.
 conda install -c conda-forge -c sr99622 libonvif
 ```
 
-The gui interface may be invoked using the onvif command.
+The gui interface may be invoked using the 'onvif' command.
 
 To Install From Source
 ----------------------

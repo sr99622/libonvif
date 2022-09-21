@@ -17,18 +17,24 @@ An example program is included with libonvif that will discover compatible
 cameras on the local network and query each of them for their RSTP connection
 uri information.
 
+Additionally, there is a comprehensive GUI sample program that includes the
+discovery functionality as well controls for adjusting camera parameters and
+PTZ operations.  The GUI sample is written in Qt and can be compiled with
+either cmake or qmake using Qt Creator.
+
 Quick Install With Anaconda
 ---------------------------
 
 The pre built version of the library can be installed with anaconda using the
 command shown below.  The library installation includes the discover program
 which can be used to find the IP addresses of cameras on the network.  It also
-includes a gui interface which can control several aspects of camera operation
-like video parameters and ptz functions.
+includes the gui interface.
 
 ```bash
 conda install -c conda-forge -c sr99622 libonvif
 ```
+
+The discovery program is invoked using the 'discovery' command.
 
 The gui interface may be invoked using the 'onvif' command.
 

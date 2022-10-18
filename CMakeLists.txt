@@ -71,6 +71,48 @@ target_include_directories(onvif-discover PUBLIC
     ${LIBXML2_INCLUDE_DIRS}
 )
 
+add_executable(onvif-getall
+    example/onvif-getall.c
+)
+
+target_link_libraries(onvif-getall PRIVATE
+    onvif_static
+    ${LIBXML2_LIBRARIES}
+)
+
+target_include_directories(onvif-getall PUBLIC
+    include
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+add_executable(onvif-time
+    example/onvif-time.c
+)
+
+target_link_libraries(onvif-time PRIVATE
+    onvif_static
+    ${LIBXML2_LIBRARIES}
+)
+
+target_include_directories(onvif-time PUBLIC
+    include
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+add_executable(onvif-util
+    example/onvif-util.c
+)
+
+target_link_libraries(onvif-util PRIVATE
+    onvif_static
+    ${LIBXML2_LIBRARIES}
+)
+
+target_include_directories(onvif-util PUBLIC
+    include
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
 if (BUILD_GUI)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
@@ -115,7 +157,10 @@ if (BUILD_GUI)
     install(TARGETS onvif_exe DESTINATION bin)
 endif()
 
-install(TARGETS onvif DESTINATION bin)
+install(TARGETS onvif DESTINATION lib)
 install(TARGETS onvif-discover DESTINATION bin)
+install(TARGETS onvif-getall DESTINATION bin)
+install(TARGETS onvif-time DESTINATION bin)
+install(TARGETS onvif-util DESTINATION bin)
 install(TARGETS onvif_static DESTINATION lib)
 install(FILES include/onvif.h DESTINATION include)

@@ -69,6 +69,13 @@ struct OnvifData {
     int multicast_ttl;
     bool autostart;
     char session_time_out_buf[128];
+	bool guaranteed_frame_rate;
+    char encoding[128];
+    int conf_width;
+    int conf_height;
+    int conf_frame_rate_limit;
+    int conf_encoding_interval;
+    int conf_bitrate_limit;
     /*network*/
     char networkInterfaceToken[128];
     char networkInterfaceName[128];
@@ -109,8 +116,16 @@ struct OnvifData {
     char stream_uri[1024];
     char camera_name[1024];
     char serial_number[128];
+    char host_name[1024];
     /*error*/
     char last_error[1024];
+	/*date/time*/
+	char datetimetype;
+	bool dst;
+	char timezone[128];
+	bool ntp_dhcp;
+	char ntp_type[128];
+	char ntp_addr[128];
 };
 
 struct OnvifSession {
@@ -124,7 +139,8 @@ LIBRARY_API void initializeSession(struct OnvifSession *onvif_session);
 LIBRARY_API void closeSession(struct OnvifSession *onvif_session);
 LIBRARY_API int broadcast(struct OnvifSession *onvif_session);
 LIBRARY_API void prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
-LIBRARY_API int fillRTSP(struct OnvifData *onvif_data);
+LIBRARY_API int fillRTSPn(struct OnvifData *onvif_data, int profileIndex);
+#define fillRTSP(a) fillRTSPn(a,0)
 LIBRARY_API void clearData(struct OnvifData *onvif_data);
 
 LIBRARY_API int getCapabilities(struct OnvifData *onvif_data);
@@ -136,6 +152,10 @@ LIBRARY_API int getNetworkDefaultGateway(struct OnvifData *onvif_data);
 LIBRARY_API int setNetworkDefaultGateway(struct OnvifData *onvif_data);
 LIBRARY_API int getDNS(struct OnvifData *onvif_data);
 LIBRARY_API int setDNS(struct OnvifData *onvif_data);
+LIBRARY_API int getNTP(struct OnvifData *onvif_data);
+LIBRARY_API int setNTP(struct OnvifData *onvif_data);
+LIBRARY_API int getHostname(struct OnvifData *onvif_data);
+LIBRARY_API int setHostname(struct OnvifData *onvif_data);
 
 LIBRARY_API int getVideoEncoderConfigurationOptions(struct OnvifData *onvif_data);
 LIBRARY_API int getVideoEncoderConfiguration(struct OnvifData *onvif_data);
@@ -153,7 +173,8 @@ LIBRARY_API int gotoPreset(char * arg, struct OnvifData *onvif_data);
 LIBRARY_API int setUser(char * new_password, struct OnvifData *onvif_data);
 LIBRARY_API int setSystemDateAndTime(struct OnvifData *onvif_data);
 LIBRARY_API int getTimeOffset(struct OnvifData *onvif_data);
-LIBRARY_API int getFirstProfileToken(struct OnvifData *onvif_data);
+LIBRARY_API int getProfileToken(struct OnvifData *onvif_data, int profileIndex);
+#define getFirstProfileToken(a) getProfileToken(a,0)
 LIBRARY_API int getStreamUri(struct OnvifData *onvif_data);
 LIBRARY_API int getDeviceInformation(struct OnvifData *onvif_data);
 LIBRARY_API int rebootCamera(struct OnvifData *onvif_data);
@@ -183,13 +204,16 @@ LIBRARY_API void extractOnvifService(char service[1024], bool post);
 LIBRARY_API void extractHost(char * xaddrs, char host[128]);
 LIBRARY_API int checkForXmlErrorMsg(xmlDocPtr doc, char error_msg[1024]);
 LIBRARY_API int getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_length);
-LIBRARY_API int getNodeAttribute (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char buf[], int buf_length);
+LIBRARY_API int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char buf[], int buf_length, int profileIndex);
+#define getNodeAttribute(doc,xpath,attribute,buf,buf_length) getNodeAttributen(doc,xpath,attribute,buf,buf_length,0)
 LIBRARY_API xmlXPathObjectPtr getNodeSet (xmlDocPtr doc, xmlChar *xpath);
 
 LIBRARY_API int setSocketOptions(int socket);
 LIBRARY_API void prefix2mask(int prefix, char mask_buf[128]);
 LIBRARY_API int mask2prefix(char * mask_buf);
 LIBRARY_API void getIPAddress(char buf[128]);
+
+LIBRARY_API void dumpConfigAll (struct OnvifData *onvif_data);
 
 #ifdef __MINGW32__
     int inet_pton(int af, const char *src, void *dst);

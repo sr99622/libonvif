@@ -57,16 +57,16 @@ target_include_directories(onvif PUBLIC
     $ENV{CONDA_PREFIX}/Library/include
 )
 
-add_executable(discover
-    example/discover.c
+add_executable(onvif-discover
+    example/onvif-discover.c
 )
 
-target_link_libraries(discover PRIVATE
+target_link_libraries(onvif-discover PRIVATE
     onvif_static
     ${LIBXML2_LIBRARIES}
 )
 
-target_include_directories(discover PUBLIC
+target_include_directories(onvif-discover PUBLIC
     include
     ${LIBXML2_INCLUDE_DIRS}
 )
@@ -116,6 +116,6 @@ if (BUILD_GUI)
 endif()
 
 install(TARGETS onvif DESTINATION bin)
-install(TARGETS discover DESTINATION bin)
+install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif_static DESTINATION lib)
 install(FILES include/onvif.h DESTINATION include)

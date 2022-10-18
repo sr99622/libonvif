@@ -15,7 +15,7 @@ int main ( int argc, char **argv )
     for (int i = 0; i < number_of_cameras; i++) {
         prepareOnvifData(i, onvif_session, onvif_data);
 
-        fprintf(stdout, "%s\n", onvif_data->camera_name);
+        fprintf(stdout, "%s [%s]\n", onvif_data->camera_name, onvif_data->xaddrs);
         fprintf(stdout, "enter username:");
         fgets(onvif_data->username, 128, stdin);
         fprintf(stdout, "enter password:");

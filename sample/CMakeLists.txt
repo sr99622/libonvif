@@ -1,13 +1,4 @@
 cmake_minimum_required(VERSION 3.17)
-set(win_path "C:/Program Files (x86)")
-
-if (WIN32)
-    set(xml_lib_name "libxml2_a")
-endif()
-
-if (UNIX)
-    set(xml_lib_name "xml2")
-endif()
 
 project(discover)
 
@@ -25,18 +16,16 @@ if (Qt5_FOUND)
     message("-- Found Qt")
 endif()
 
-#find_package(LibXml2)
+find_package(LibXml2)
 if (NOT LibXml2_FOUND)
     message("-- Looking for installation of libxml2")
     find_path(LIBXML2_INCLUDE_DIRS libxml/parser.h
         HINTS
             $ENV{CONDA_PREFIX}/Library/include/libxml2
-            ${win_path}/libxml2/include/libxml2
     )
-    find_library(LIBXML2_LIBRARIES NAMES ${xml_lib_name}
+    find_library(LIBXML2_LIBRARIES NAMES xml2
         HINTS
             $ENV{CONDA_PREFIX}/lib
-            ${win_path}/libxml2/lib
     )
     message("-- Found LIBXML2_INCLUDE_DIRS ${LIBXML2_INCLUDE_DIRS}")
     message("-- Found LIBXML2_LIBRARIES ${LIBXML2_LIBRARIES}")

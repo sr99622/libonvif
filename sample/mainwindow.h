@@ -10,7 +10,6 @@
 #include "camerapanel.h"
 #include <iostream>
 
-
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
 class MainWindow : public QMainWindow
@@ -26,6 +25,7 @@ public:
 
     CameraPanel* cameraPanel;
     QSettings *settings;
+
 
 public slots:
     void msg(QString);

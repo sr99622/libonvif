@@ -49,6 +49,7 @@ class CameraPanel : public QWidget
 
 public:
     CameraPanel(QMainWindow *parent);
+    ~CameraPanel();
     void refreshList();
     void saveUsername();
     void savePassword();
@@ -75,6 +76,7 @@ public:
     Discovery *discovery;
     LoginDialog *loginDialog = nullptr;
     QSettings *cameraNames;
+    OnvifSession *onvif_session;
 
     const QString usernameKey   = "CameraPanel/username";
     const QString passwordKey   = "CameraPanel/password";

@@ -87,13 +87,11 @@ void Discovery::discover()
         nb_loops = CP->configTab->broadcastRepeat->value();
 
     for (int k=0; k<nb_loops; k++) {
-        OnvifSession *onvif_session = (OnvifSession*)malloc(sizeof(OnvifSession));
+        OnvifSession* onvif_session = ((CameraPanel*)cameraPanel)->onvif_session;
         ConfigTab *configTab = CP->configTab;
 
         QString str = "Discovery started\n";
-        onvif_session->discovery_msg_id = k;
 
-        initializeSession(onvif_session);
         int number_of_cameras = broadcast(onvif_session);
         str.append(QString("libonvif found %1 cameras\n").arg(QString::number(number_of_cameras)));
         emit msg(str);
@@ -160,9 +158,7 @@ void Discovery::discover()
             }
         }
 
-        closeSession(onvif_session);
-        free(onvif_session);
-        thread->msleep(200);
+        thread->msleep((k+1) * 200);
     }
     stop();
 }

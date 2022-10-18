@@ -87,6 +87,8 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     configTab->autoDiscoveryClicked(configTab->autoDiscovery->isChecked());
 
     savedAutoCameraName = MW->settings->value(autoCameraKey, "").toString();
+    onvif_session = (OnvifSession*)malloc(sizeof(OnvifSession));
+    initializeSession(onvif_session);
     discovery = new Discovery(this);
     connect(discovery, SIGNAL(stopping()), this, SLOT(discoveryFinished()));
     cameraNames = new QSettings("Onvif", "Camera Names");
@@ -96,6 +98,12 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     if (configTab->autoDiscovery->isChecked()) {
         discovery->start();
     }
+}
+
+CameraPanel::~CameraPanel()
+{
+    closeSession(onvif_session);
+    free(onvif_session);
 }
 
 void CameraPanel::receiveOnvifData(OnvifData *onvif_data)

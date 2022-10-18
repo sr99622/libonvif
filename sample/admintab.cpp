@@ -48,7 +48,7 @@ AdminTab::AdminTab(QWidget *parent)
     checkEnableReset = new QCheckBox("Enable Reset");
 
     lblCameraName = new QLabel("Camera Name");
-    lblAdminPassword = new QLabel("Admin Password");
+    lblAdminPassword = new QLabel("Set admin Password");
 
     QGridLayout *layout = new QGridLayout();
     layout->addWidget(lblCameraName,        0, 0, 1, 1);

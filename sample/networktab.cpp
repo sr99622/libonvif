@@ -72,10 +72,13 @@ void NetworkTab::update()
     onvif_data->dhcp_enabled = checkDHCP->isChecked();
     QString ip_address = textIPAddress->text();
     strncpy(onvif_data->ip_address_buf, ip_address.toLatin1(), ip_address.length());
+    onvif_data->ip_address_buf[ip_address.length()] = '\0';
     QString default_gateway = textDefaultGateway->text();
     strncpy(onvif_data->default_gateway_buf, default_gateway.toLatin1(), default_gateway.length());
+    onvif_data->default_gateway_buf[default_gateway.length()] = '\0';
     QString dns = textDNS->text();
     strncpy(onvif_data->dns_buf, dns.toLatin1(), dns.length());
+    onvif_data->dns_buf[dns.length()] = '\0';
     onvif_data->prefix_length = mask2prefix(textSubnetMask->text().toLatin1().data());
 
     QThreadPool::globalInstance()->tryStart(updater);
@@ -169,4 +172,5 @@ void NetworkTab::onTextChanged(const QString &)
 void NetworkTab::doneUpdating()
 {
     fprintf(stderr, "done updating\n");
+    ((CameraPanel *)cameraPanel)->applyButton->setEnabled(false);
 }

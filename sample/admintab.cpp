@@ -25,6 +25,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QThreadPool>
+#include <iostream>
 
 AdminTab::AdminTab(QWidget *parent)
 {
@@ -84,6 +85,7 @@ void AdminTab::update()
     OnvifData *onvif_data = CP->camera->onvif_data;
     QString camera_name = textCameraName->text();
     strncpy(onvif_data->camera_name, camera_name.toLatin1(), camera_name.length());
+    onvif_data->camera_name[camera_name.length()] = '\0';
     setUser(textAdminPassword->text().toLatin1().data(), onvif_data);
     CP->applyButton->setEnabled(false);
     CP->refreshList();

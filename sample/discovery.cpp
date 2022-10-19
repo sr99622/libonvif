@@ -174,8 +174,10 @@ void Discovery::addCamera(OnvifData *onvif_data)
 
     QString key = onvif_data->serial_number;
     QString alias = cameraAlias.value(key);
-    if (alias.length() > 0)
+    if (alias.length() > 0) {
         strncpy(onvif_data->camera_name, alias.toLatin1().data(), alias.length());
+        onvif_data->camera_name[alias.length()] = '\0';
+    }
 
     emit found(onvif_data);
 

@@ -2293,7 +2293,7 @@ void getScopeField(char *scope, char *field_name, char cleaned[1024]) {
 void getCameraName(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
     xmlDocPtr xml_input = xmlParseMemory(onvif_session->buf[ordinal], onvif_session->len[ordinal]);
     for(int i=0; i<1024; i++)
-    onvif_data->camera_name[i] = '\0';
+        onvif_data->camera_name[i] = '\0';
 
     char scopes[8192];
     getXmlValue(xml_input, "//s:Body//d:ProbeMatches//d:ProbeMatch//d:Scopes", scopes, 8192);

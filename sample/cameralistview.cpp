@@ -92,6 +92,9 @@ Camera *CameraListView::getCurrentCamera()
 
 void CameraListView::refresh()
 {
+    for (int i = 0; i < model()->rowCount(); i++) {
+        Camera *camera = ((CameraListModel*)model())->getCameraAt(i);
+    }
     model()->emit dataChanged(QModelIndex(), QModelIndex());
 }
 

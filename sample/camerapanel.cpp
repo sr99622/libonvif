@@ -92,8 +92,9 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     discovery = new Discovery(this);
     connect(discovery, SIGNAL(stopping()), this, SLOT(discoveryFinished()));
     cameraNames = new QSettings("Onvif", "Camera Names");
-    foreach(QString key, cameraNames->allKeys())
+    foreach(QString key, cameraNames->allKeys()) {
         discovery->cameraAlias.insert(key, cameraNames->value(key).toString());
+    }
 
     if (configTab->autoDiscovery->isChecked()) {
         discovery->start();

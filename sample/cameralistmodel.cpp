@@ -47,6 +47,9 @@ bool CameraListModel::setData(const QModelIndex &index, const QVariant &value, i
     if (index.isValid() && role == Qt::EditRole) {
         Camera *camera = (Camera *)cameras[index.row()];
         strncpy(camera->onvif_data->camera_name, value.toString().toLatin1(), value.toString().length());
+        camera->onvif_data->camera_name[value.toString().length()] = '\0';
+        MW->cameraPanel->adminTab->textCameraName->setText(camera->onvif_data->camera_name);
+        MW->cameraPanel->cameraNames->setValue(camera->onvif_data->serial_number, camera->onvif_data->camera_name);
         return true;
     }
     else {

@@ -34,7 +34,7 @@ includes the gui interface.
 conda install -c conda-forge -c sr99622 libonvif
 ```
 
-The discovery program is invoked using the 'discovery' command.
+The discovery program is invoked using the 'onvif-discovery' command.
 
 The gui interface may be invoked using the 'onvif' command.
 
@@ -139,7 +139,7 @@ make
 Run the test program on Linux
 
 ```bash
-./discover
+./onvif-discover
 ```
 
 Windows instructions for compiling the test program
@@ -155,7 +155,7 @@ cmake --build . --config Release
 Run the test program on Windows
 
 ```bash
-Release\discover
+Release\onvif-discover
 ```
 
 

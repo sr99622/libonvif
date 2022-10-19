@@ -9,7 +9,7 @@ if (UNIX)
     set(xml_lib_name "xml2")
 endif()
 
-project(discover)
+project(onvif-discover)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -39,16 +39,16 @@ if (LibOnvif_FOUND)
     message("-- Found LIBONVIF_LIBRARIES ${LIBONVIF_LIBRARIES}")
 endif()
 
-add_executable(discover
-    discover.c
+add_executable(onvif-discover
+    onvif-discover.c
 )
 
-target_link_libraries(discover PRIVATE
+target_link_libraries(onvif-discover PRIVATE
     ${LIBONVIF_LIBRARIES}
     ${LIBXML2_LIBRARIES}
 )
 
-target_include_directories(discover PUBLIC
+target_include_directories(onvif-discover PUBLIC
     ${LIBONVIF_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
 )

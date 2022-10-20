@@ -1,9 +1,35 @@
+#*******************************************************************************
+# libonvif/CMakeLists.txt
+#
+# Copyright (c) 2020 Stephen Rhodes 
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#******************************************************************************/
+
 cmake_minimum_required(VERSION 3.17)
 
 project(libonvif)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+if(MSVC)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+    set(BUILD_SHARED_LIBS TRUE)
+endif()
 
 include(GNUInstallDirs)
 # set arch-specific include dir
@@ -45,21 +71,26 @@ target_include_directories(onvif_static PUBLIC
     $ENV{CONDA_PREFIX}/Library/include
 )
 
-add_library(onvif SHARED
+add_library(onvif_shared SHARED
     src/onvif.c
     src/cencode.c
     src/sha1.c
 )
 
-target_link_libraries(onvif PRIVATE
+set_target_properties(onvif_shared PROPERTIES
+    OUTPUT_NAME onvif
+    ARCHIVE_OUTPUT_DIRECTORY onvif_shared
+)
+
+target_link_libraries(onvif_shared PRIVATE
     ${LIBXML2_LIBRARIES}
 )
 
-set_target_properties(onvif PROPERTIES
+set_target_properties(onvif_shared PROPERTIES
     SOVERSION 0
 )
 
-target_include_directories(onvif PUBLIC
+target_include_directories(onvif_shared PUBLIC
     include
     ${LIBXML2_INCLUDE_DIRS}
     $ENV{CONDA_PREFIX}/Library/include
@@ -70,7 +101,7 @@ add_executable(onvif-discover
 )
 
 target_link_libraries(onvif-discover PRIVATE
-    onvif_static
+    onvif_shared
     ${LIBXML2_LIBRARIES}
 )
 
@@ -98,7 +129,7 @@ add_executable(onvif-time
 )
 
 target_link_libraries(onvif-time PRIVATE
-    onvif_static
+    onvif_shared
     ${LIBXML2_LIBRARIES}
 )
 
@@ -112,7 +143,7 @@ add_executable(onvif-util
 )
 
 target_link_libraries(onvif-util PRIVATE
-    onvif_static
+    onvif_shared
     ${LIBXML2_LIBRARIES}
 )
 
@@ -170,6 +201,6 @@ install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif-getall DESTINATION bin)
 install(TARGETS onvif-time DESTINATION bin)
 install(TARGETS onvif-util DESTINATION bin)
-install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+install(TARGETS onvif_shared DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")

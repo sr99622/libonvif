@@ -5,6 +5,10 @@ project(libonvif)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+include(GNUInstallDirs)
+# set arch-specific include dir
+set(CMAKE_INSTALL_INCLUDEDIR "include/${CMAKE_LIBRARY_ARCHITECTURE}")
+
 find_package(LibXml2)
 if (NOT LibXml2_FOUND)
     message("-- Looking for conda installation of libxml2")
@@ -49,6 +53,10 @@ add_library(onvif SHARED
 
 target_link_libraries(onvif PRIVATE
     ${LIBXML2_LIBRARIES}
+)
+
+set_target_properties(onvif PROPERTIES
+    SOVERSION 0
 )
 
 target_include_directories(onvif PUBLIC
@@ -157,10 +165,11 @@ if (BUILD_GUI)
     install(TARGETS onvif_exe DESTINATION bin)
 endif()
 
-install(TARGETS onvif DESTINATION lib)
 install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif-getall DESTINATION bin)
 install(TARGETS onvif-time DESTINATION bin)
 install(TARGETS onvif-util DESTINATION bin)
-install(TARGETS onvif_static DESTINATION lib)
-install(FILES include/onvif.h DESTINATION include)
+install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+install(TARGETS onvif-discover DESTINATION bin)
+install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")

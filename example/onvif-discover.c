@@ -25,14 +25,14 @@ int main ( int argc, char **argv )
         onvif_data->password[strcspn(onvif_data->password, "\r\n")] = 0;
 
         getDeviceInformation(onvif_data);
-		fprintf(stdout, "* Camera %d '%s' S/N:%s\n", i, onvif_data->camera_name, onvif_data->serial_number);
+        fprintf(stdout, "* Camera %d '%s' S/N:%s\n", i, onvif_data->camera_name, onvif_data->serial_number);
 
-		getTimeOffset(onvif_data);
-		fprintf(stdout, "Time offset %ld seconds, timezone is '%s', is%s dst, time %s\n",
-			onvif_data->time_offset,
-			onvif_data->timezone,
-			onvif_data->dst?"":" not",
-			onvif_data->datetimetype == 'M'?"set Manually":onvif_data->datetimetype == 'N'?"set via NTP":"setting unknown");
+        getTimeOffset(onvif_data);
+        fprintf(stdout, "Time offset %ld seconds, timezone is '%s', is%s dst, time %s\n",
+                onvif_data->time_offset,
+                onvif_data->timezone,
+                onvif_data->dst?"":" not",
+                onvif_data->datetimetype == 'M'?"set Manually":onvif_data->datetimetype == 'N'?"set via NTP":"setting unknown");
 
         int index = 0;
         while (true) {

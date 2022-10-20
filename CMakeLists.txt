@@ -93,34 +93,6 @@ target_include_directories(onvif-getall PUBLIC
     ${LIBXML2_INCLUDE_DIRS}
 )
 
-add_executable(onvif-time
-    example/onvif-time.c
-)
-
-target_link_libraries(onvif-time PRIVATE
-    onvif_static
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-time PUBLIC
-    include
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
-add_executable(onvif-util
-    example/onvif-util.c
-)
-
-target_link_libraries(onvif-util PRIVATE
-    onvif_static
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-util PUBLIC
-    include
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
 if (BUILD_GUI)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
@@ -167,8 +139,6 @@ endif()
 
 install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif-getall DESTINATION bin)
-install(TARGETS onvif-time DESTINATION bin)
-install(TARGETS onvif-util DESTINATION bin)
 install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")

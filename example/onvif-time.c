@@ -1,20 +1,20 @@
 #include <stdio.h>
 #include <string.h>
-#include <getopt.h>
+#include "getopt.h"
 #include "onvif.h"
 
 #define DEFAULT_USERNAME    "admin"
 #define DEFAULT_PASSWORD    "admin"
 
 static struct option longopts[] = {
-             { "user",      required_argument,	NULL,	'u'},
-             { "password",      required_argument,	NULL,	'p'},
-             { "all",      no_argument,	NULL,	'a'},
-             { "set",      no_argument,	NULL,	's'},
-             { "local",      no_argument,	NULL,	'l'},
-             { "ntp",      required_argument,	NULL,	'n'},
-             { "manual",      required_argument,	NULL,	'm'},
-             { NULL,         0,                      NULL,           0 }
+             { "user",      required_argument,	NULL,   'u'},
+             { "password",  required_argument,	NULL,   'p'},
+             { "all",       no_argument,        NULL,   'a'},
+             { "set",       no_argument,        NULL,   's'},
+             { "local",     no_argument,        NULL,   'l'},
+             { "ntp",       required_argument,  NULL,   'n'},
+             { "manual",    required_argument,  NULL,   'm'},
+             { NULL,        0,                  NULL,    0 }
      };
 
 static const char *username = DEFAULT_USERNAME;

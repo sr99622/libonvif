@@ -172,4 +172,5 @@ install(TARGETS onvif-util DESTINATION bin)
 install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
-install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(FILES include/onvif.h include/getopt.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+

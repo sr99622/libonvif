@@ -52,3 +52,45 @@ target_include_directories(onvif-discover PUBLIC
     ${LIBONVIF_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
 )
+
+add_executable(onvif-getall
+    onvif-getall.c
+)
+
+target_link_libraries(onvif-getall PRIVATE
+    ${LIBONVIF_LIBRARIES}
+    ${LIBXML2_LIBRARIES}
+)
+
+target_include_directories(onvif-getall PUBLIC
+    ${LIBONVIF_INCLUDE_DIRS}
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+add_executable(onvif-time
+    onvif-time.c
+)
+
+target_link_libraries(onvif-time PRIVATE
+    ${LIBONVIF_LIBRARIES}
+    ${LIBXML2_LIBRARIES}
+)
+
+target_include_directories(onvif-time PUBLIC
+    ${LIBONVIF_INCLUDE_DIRS}
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+add_executable(onvif-util
+    onvif-util.c
+)
+
+target_link_libraries(onvif-util PRIVATE
+    ${LIBONVIF_LIBRARIES}
+    ${LIBXML2_LIBRARIES}
+)
+
+target_include_directories(onvif-util PUBLIC
+    ${LIBONVIF_INCLUDE_DIRS}
+    ${LIBXML2_INCLUDE_DIRS}
+)

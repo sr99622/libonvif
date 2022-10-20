@@ -45,21 +45,21 @@ target_include_directories(onvif_static PUBLIC
     $ENV{CONDA_PREFIX}/Library/include
 )
 
-add_library(onvif SHARED
+add_library(onvif_shared SHARED
     src/onvif.c
     src/cencode.c
     src/sha1.c
 )
 
-target_link_libraries(onvif PRIVATE
+target_link_libraries(onvif_shared PRIVATE
     ${LIBXML2_LIBRARIES}
 )
 
-set_target_properties(onvif PROPERTIES
+set_target_properties(onvif_shared PROPERTIES
     SOVERSION 0
 )
 
-target_include_directories(onvif PUBLIC
+target_include_directories(onvif_shared PUBLIC
     include
     ${LIBXML2_INCLUDE_DIRS}
     $ENV{CONDA_PREFIX}/Library/include
@@ -70,7 +70,7 @@ add_executable(onvif-discover
 )
 
 target_link_libraries(onvif-discover PRIVATE
-    onvif_static
+    onvif_shared
     ${LIBXML2_LIBRARIES}
 )
 
@@ -84,7 +84,7 @@ add_executable(onvif-getall
 )
 
 target_link_libraries(onvif-getall PRIVATE
-    onvif_static
+    onvif_shared
     ${LIBXML2_LIBRARIES}
 )
 
@@ -154,7 +154,7 @@ if (BUILD_GUI)
 
     target_link_libraries(onvif_exe PRIVATE
         Qt5::Widgets
-        onvif_static
+        onvif_shared
         ${LIBXML2_LIBRARIES}
     )
 
@@ -170,6 +170,6 @@ install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif-getall DESTINATION bin)
 install(TARGETS onvif-time DESTINATION bin)
 install(TARGETS onvif-util DESTINATION bin)
-install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+install(TARGETS onvif_shared DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")

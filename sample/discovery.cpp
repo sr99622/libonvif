@@ -121,7 +121,8 @@ void Discovery::discover()
                         QString error_msg = onvif_data->last_error;
                         if (error_msg.contains("ter:NotAuthorized") || error_msg.contains("Unauthorized")) {
                             memset(&credential, 0, sizeof(credential));
-                            strncpy(credential.camera_name, onvif_data->camera_name, strlen(onvif_data->camera_name));
+                            strncpy(credential.camera_name, onvif_data->camera_name,
+                                    sizeof(credential.camera_name)-1);
                             emit login(&credential);
 
                             emit msg("starting login");
@@ -130,8 +131,12 @@ void Discovery::discover()
                             mutex.unlock();
 
                             if (credential.accept_requested) {
-                                strncpy(onvif_data->username, credential.username, strlen(credential.username));
-                                strncpy(onvif_data->password, credential.password, strlen(credential.password));
+                                strncpy(onvif_data->username, credential.username,
+                                        sizeof(onvif_data->username));
+                                onvif_data->username[sizeof(onvif_data->username)-1]=0;
+                                strncpy(onvif_data->password, credential.password,
+                                        sizeof(onvif_data->password));
+                                onvif_data->username[sizeof(onvif_data->password)-1]=0;
 
                                 if (fillRTSP(onvif_data) == 0) {
                                     loggedIn = true;

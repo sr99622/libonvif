@@ -144,9 +144,9 @@ void AdminTab::launchBrowserClicked()
     OnvifData *onvif_data = CP->camera->onvif_data;
     char host[128];
     extractHost(onvif_data->xaddrs, host);
-    char target[128];
-    strncpy(target, "start http://", 13);
-    strncat(target, host, strlen(host));
+    char target[sizeof(host)+13];
+    strncpy(target, "start http://", 14);
+    strncat(target, host, sizeof(target) - 14);
     system(target);
 }
 

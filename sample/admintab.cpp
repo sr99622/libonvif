@@ -24,6 +24,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMessageBox>
+#include <QProcess>
 #include <QThreadPool>
 #include <iostream>
 
@@ -144,10 +145,14 @@ void AdminTab::launchBrowserClicked()
     OnvifData *onvif_data = CP->camera->onvif_data;
     char host[128];
     extractHost(onvif_data->xaddrs, host);
-    char target[128];
-    strncpy(target, "start http://", 13);
-    strncat(target, host, strlen(host));
-    system(target);
+    QProcess process;
+#ifdef _WIN32
+    QString cmd("start");
+#else /* not _WIN32 */
+    QString cmd("x-www-browser");
+#endif /* not _WIN32 */
+    QStringList args = { QString("http://") + host};
+    process.start(cmd, args);
 }
 
 void AdminTab::enableRebootChecked()

@@ -78,7 +78,7 @@ static void showHelp()
 			  << "  Once logged into the camera you can view data using the 'get' command followed by the data requested\n"
 			  << "  The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used\n\n"
 			  << "    Data Retrieval Commands (start with get)\n\n"
-			  << "      get rtsp \n"
+			  << "      get rtsp 'pass'(optional) (n)\n"
 			  << "      get capabilities\n"
 			  << "      get time\n"
 			  << "      get profiles\n"
@@ -117,6 +117,14 @@ std::string cat(char* arg1, char* arg2)
 	return result;
 }
 
+std::string uri_with_pass(OnvifData* onvif_data)
+{
+	std::string uri(onvif_data->stream_uri);
+	std::stringstream ss;
+	ss << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
+	return ss.str();
+}
+
 void show(const std::vector<std::string>& args)
 {
 	std::cout << "args size: " << args.size() << std::endl;
@@ -131,11 +139,13 @@ void profileCheck(OnvifData* onvif_data, const std::vector<std::string>& args)
 	if (args.size() > 1) {
 		index = std::stoi(args[1]);
 		if (getProfileToken(onvif_data, index)) throw std::exception(cat("get profile token - ", onvif_data->last_error).data());
+		if (strlen(onvif_data->profileToken) == 0) throw std::exception(cat("invalid profile token - ", (char*)std::to_string(index).c_str()).data());
 		std::cout << "  Profile set to " << onvif_data->profileToken << "\n" << std::endl;
 	}
 	else {
 		if (!strcmp(onvif_data->profileToken, "")) {
 			if (getProfileToken(onvif_data, index)) throw std::exception(cat("get profile token - ", onvif_data->last_error).data());
+			if (strlen(onvif_data->profileToken) == 0) throw std::exception(cat("invalid profile token - ", (char*)std::to_string(index).c_str()).data());
 			std::cout << "  Profile set to " << onvif_data->profileToken << "\n" << std::endl;
 		}
 		else {
@@ -240,9 +250,20 @@ int main(int argc, char **argv)
 				args.erase(args.begin());
 
 				if (args[0] == "rtsp") {
+					bool add_pass = false;
+					if (args.size() > 1) {
+						if (args[1] == "pass") {
+							args.erase(args.begin());
+							add_pass = true;
+						}
+					}
 					profileCheck(onvif_data, args);
 					if (getStreamUri(onvif_data)) throw std::exception(cat("get stream uri - ", onvif_data->last_error).data());
-					std::cout << "  RTSP " << onvif_data->stream_uri << "\n" << std::endl;
+					std::string uri(onvif_data->stream_uri);
+					if (add_pass) {
+						uri = uri_with_pass(onvif_data);
+					}
+					std::cout << "  " << uri << "\n" << std::endl;
 				}
 				else if (args[0] == "capabilities") {
 					std::cout << "  event_service:   " << onvif_data->event_service << "\n";
@@ -417,7 +438,6 @@ int main(int argc, char **argv)
 					}
 				}
 				else if (args[0] == "resolution") {
-					std::cout << "resolution" << std::endl;
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
@@ -571,7 +591,6 @@ int main(int argc, char **argv)
 					}
 				}
 				else if (args[0] == "password") {
-					std::cout << "password" << std::endl;
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
@@ -604,7 +623,6 @@ int main(int argc, char **argv)
 				}
 			}
 			else if (args[0] == "sync_time") {
-				std::cout << "sync_time" << std::endl;
 				if (args.size() > 1) {
 					args.erase(args.begin());
 					profileCheck(onvif_data, args);
@@ -620,6 +638,16 @@ int main(int argc, char **argv)
 					std::cout << "  Camera date and time has been synchronized without regard to camera timezone\n" << std::endl;
 				}
 			}
+			else if (args[0] == "view") {
+				std::cout << "view" << std::endl;
+				profileCheck(onvif_data, args);
+				if (getStreamUri(onvif_data)) throw std::exception(cat("get stream uri - ", onvif_data->last_error).data());
+#ifdef _WIN32
+				std::stringstream ss;
+				ss << "start ffplay \"" << uri_with_pass(onvif_data) << "\"";
+				std::system(ss.str().c_str());
+#endif				
+			} 
 			else { 
 				if (strcmp(kybd_buf, "quit"))
 					std::cout << " Unrecognized command, use onvif-util -h to see help\n" << std::endl;

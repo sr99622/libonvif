@@ -138,21 +138,21 @@ void profileCheck(OnvifData* onvif_data, const std::vector<std::string>& args)
 	int index = 0;
 	if (args.size() > 1) {
 		index = std::stoi(args[1]);
-		if (getProfileToken(onvif_data, index)) throw std::exception(cat("get profile token - ", onvif_data->last_error).data());
-		if (strlen(onvif_data->profileToken) == 0) throw std::exception(cat("invalid profile token - ", (char*)std::to_string(index).c_str()).data());
+		if (getProfileToken(onvif_data, index)) throw std::runtime_error(cat("get profile token - ", onvif_data->last_error).data());
+		if (strlen(onvif_data->profileToken) == 0) throw std::runtime_error(cat("invalid profile token - ", (char*)std::to_string(index).c_str()).data());
 		std::cout << "  Profile set to " << onvif_data->profileToken << "\n" << std::endl;
 	}
 	else {
 		if (!strcmp(onvif_data->profileToken, "")) {
-			if (getProfileToken(onvif_data, index)) throw std::exception(cat("get profile token - ", onvif_data->last_error).data());
-			if (strlen(onvif_data->profileToken) == 0) throw std::exception(cat("invalid profile token - ", (char*)std::to_string(index).c_str()).data());
+			if (getProfileToken(onvif_data, index)) throw std::runtime_error(cat("get profile token - ", onvif_data->last_error).data());
+			if (strlen(onvif_data->profileToken) == 0) throw std::runtime_error(cat("invalid profile token - ", (char*)std::to_string(index).c_str()).data());
 			std::cout << "  Profile set to " << onvif_data->profileToken << "\n" << std::endl;
 		}
 		else {
 			std::cout << std::endl;
 		}
 	}
-	if (getProfile(onvif_data)) throw std::exception(cat("get profile - ", onvif_data->last_error).data());
+	if (getProfile(onvif_data)) throw std::runtime_error(cat("get profile - ", onvif_data->last_error).data());
 }
 
 int main(int argc, char **argv)
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 						}
 					}
 					profileCheck(onvif_data, args);
-					if (getStreamUri(onvif_data)) throw std::exception(cat("get stream uri - ", onvif_data->last_error).data());
+					if (getStreamUri(onvif_data)) throw std::runtime_error(cat("get stream uri - ", onvif_data->last_error).data());
 					std::string uri(onvif_data->stream_uri);
 					if (add_pass) {
 						uri = uri_with_pass(onvif_data);
@@ -276,7 +276,7 @@ int main(int argc, char **argv)
 					bool looking = true;
 					while (looking) {
 						memset(onvif_data->profileToken, 0, 128);
-						if (getProfileToken(onvif_data, index)) throw std::exception(cat("get profile token - ", onvif_data->last_error).data());
+						if (getProfileToken(onvif_data, index)) throw std::runtime_error(cat("get profile token - ", onvif_data->last_error).data());
 						if (strlen(onvif_data->profileToken) == 0) 
 							looking = false;
 						else
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
 					std::cout << "  Bitrate:    " << onvif_data->bitrate << "\n" << std::endl;
 				}
 				else if (args[0] == "time") {
-					if (getTimeOffset(onvif_data)) throw std::exception(cat("get time offset - ", onvif_data->last_error).data());
+					if (getTimeOffset(onvif_data)) throw std::runtime_error(cat("get time offset - ", onvif_data->last_error).data());
 					std::cout << "  Time Offset: " << onvif_data->time_offset << " seconds" << "\n";
 					std::cout << "  Timezone:    " << onvif_data->timezone << "\n";
 					std::cout << "  DST:         " << (onvif_data->dst ? "Yes" : "No") << "\n" << std::endl;
@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 					if (args[1] == "options") {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if(getVideoEncoderConfigurationOptions(onvif_data)) throw std::exception(cat("get video encoder configuration options - ", onvif_data->last_error).data());
+						if(getVideoEncoderConfigurationOptions(onvif_data)) throw std::runtime_error(cat("get video encoder configuration options - ", onvif_data->last_error).data());
 						int size = 0;
 						bool found_size = false;
 						while (!found_size) {
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
 					}
 					else {
 						profileCheck(onvif_data, args);
-						if(getVideoEncoderConfigurationOptions(onvif_data)) throw std::exception(cat("get video encoder configuration options - ", onvif_data->last_error).data());
+						if(getVideoEncoderConfigurationOptions(onvif_data)) throw std::runtime_error(cat("get video encoder configuration options - ", onvif_data->last_error).data());
 						std::cout << "  Resolution: " << onvif_data->width << " x " << onvif_data->height << "\n";
 						std::cout << "  Frame Rate: " << onvif_data->frame_rate << "\n";
 						std::cout << "  Gov Length: " << onvif_data->gov_length << "\n";
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
 					if (args[1] == "options") {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getOptions(onvif_data)) throw std::exception(cat("get options - ", onvif_data->last_error).data());
+						if (getOptions(onvif_data)) throw std::runtime_error(cat("get options - ", onvif_data->last_error).data());
 						std::cout << "  Min Brightness: " << onvif_data->brightness_min << "\n";
 						std::cout << "  Max Brightness: " << onvif_data->brightness_max << "\n";
 						std::cout << "  Min ColorSaturation: " << onvif_data->saturation_min << "\n";
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
 					}
 					else {
 						profileCheck(onvif_data, args);
-						if (getImagingSettings(onvif_data)) throw std::exception(cat("get imaging settings - ", onvif_data->last_error).data());
+						if (getImagingSettings(onvif_data)) throw std::runtime_error(cat("get imaging settings - ", onvif_data->last_error).data());
 
 						std::cout << "  Brightness: " << onvif_data->brightness << "\n";
 						std::cout << "  Contrast:   " << onvif_data->contrast << "\n";
@@ -366,9 +366,9 @@ int main(int argc, char **argv)
 				}
 				else if (args[0] == "network") {
 					profileCheck(onvif_data, args);
-					if (getNetworkInterfaces(onvif_data)) throw std::exception(cat("get network interfaces - ", onvif_data->last_error).data());
-					if (getNetworkDefaultGateway(onvif_data)) throw std::exception(cat("get network default gateway - ", onvif_data->last_error).data());
-					if (getDNS(onvif_data)) throw std::exception(cat("get DNS - ", onvif_data->last_error).data());
+					if (getNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("get network interfaces - ", onvif_data->last_error).data());
+					if (getNetworkDefaultGateway(onvif_data)) throw std::runtime_error(cat("get network default gateway - ", onvif_data->last_error).data());
+					if (getDNS(onvif_data)) throw std::runtime_error(cat("get DNS - ", onvif_data->last_error).data());
 
 					std::cout << "  IP Address: " << onvif_data->ip_address_buf << "\n";
 					std::cout << "  Gateway:    " << onvif_data->default_gateway_buf << "\n";
@@ -385,10 +385,10 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getImagingSettings(onvif_data)) throw std::exception(cat("get imaging settings - ", onvif_data->last_error).data());
+						if (getImagingSettings(onvif_data)) throw std::runtime_error(cat("get imaging settings - ", onvif_data->last_error).data());
 						int value = stoi(args[0]);
 						onvif_data->brightness = value;
-						if (setImagingSettings(onvif_data)) throw std::exception(cat("set brightness - ", onvif_data->last_error).data());
+						if (setImagingSettings(onvif_data)) throw std::runtime_error(cat("set brightness - ", onvif_data->last_error).data());
 						std::cout << "  Brightness was set to " << value << "\n" << std::endl;
 					}
 					else {
@@ -399,10 +399,10 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getImagingSettings(onvif_data)) throw std::exception(cat("get imaging settings - ", onvif_data->last_error).data());
+						if (getImagingSettings(onvif_data)) throw std::runtime_error(cat("get imaging settings - ", onvif_data->last_error).data());
 						int value = stoi(args[0]);
 						onvif_data->contrast = value;
-						if (setImagingSettings(onvif_data)) throw std::exception(cat("set contrast - ", onvif_data->last_error).data());
+						if (setImagingSettings(onvif_data)) throw std::runtime_error(cat("set contrast - ", onvif_data->last_error).data());
 						std::cout << "  Contrast was set to " << value << "\n" << std::endl;
 					}
 					else {
@@ -413,10 +413,10 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getImagingSettings(onvif_data)) throw std::exception(cat("get imaging settings - ", onvif_data->last_error).data());
+						if (getImagingSettings(onvif_data)) throw std::runtime_error(cat("get imaging settings - ", onvif_data->last_error).data());
 						int value = stoi(args[0]);
 						onvif_data->saturation = value;
-						if (setImagingSettings(onvif_data)) throw std::exception(cat("set saturation - ", onvif_data->last_error).data());
+						if (setImagingSettings(onvif_data)) throw std::runtime_error(cat("set saturation - ", onvif_data->last_error).data());
 						std::cout << "  Saturation was set to " << value << "\n" << std::endl;
 					}
 					else {
@@ -427,10 +427,10 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getImagingSettings(onvif_data)) throw std::exception(cat("get imaging settings - ", onvif_data->last_error).data());
+						if (getImagingSettings(onvif_data)) throw std::runtime_error(cat("get imaging settings - ", onvif_data->last_error).data());
 						int value = stoi(args[0]);
 						onvif_data->sharpness = value;
-						if (setImagingSettings(onvif_data)) throw std::exception(cat("set sharpness - ", onvif_data->last_error).data());
+						if (setImagingSettings(onvif_data)) throw std::runtime_error(cat("set sharpness - ", onvif_data->last_error).data());
 						std::cout << "  Sharpness was set to " << value << "\n" << std::endl;
 					}
 					else {
@@ -444,10 +444,10 @@ int main(int argc, char **argv)
 						std::string delim = "x";
 						std::size_t found = args[0].find(delim);
 						if (found != std::string::npos) {
-							if(getVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("get video encoder configuration - ", onvif_data->last_error).data());
+							if(getVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("get video encoder configuration - ", onvif_data->last_error).data());
 							onvif_data->width = stoi(args[0].substr(0, found));
 							onvif_data->height = stoi(args[0].substr(found+1));
-							if (setVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("set video encoder configuration - ", onvif_data->last_error).data());
+							if (setVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("set video encoder configuration - ", onvif_data->last_error).data());
 							std::cout << "  Resolution was set to " << onvif_data->width << " x " << onvif_data->height << "\n" << std::endl;
 						}
 						else {
@@ -459,10 +459,10 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if(getVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("get video encoder configuration - ", onvif_data->last_error).data());
+						if(getVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("get video encoder configuration - ", onvif_data->last_error).data());
 						int value = stoi(args[0]);
 						onvif_data->gov_length = value;
-						if (setVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("set video encoder configuration - ", onvif_data->last_error).data());
+						if (setVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("set video encoder configuration - ", onvif_data->last_error).data());
 						std::cout << "  Gov Length was set to " << value << "\n" << std::endl;
 					}
 					else {
@@ -473,10 +473,10 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if(getVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("get video encoder configuration - ", onvif_data->last_error).data());
+						if(getVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("get video encoder configuration - ", onvif_data->last_error).data());
 						int value = stoi(args[0]);
 						onvif_data->frame_rate = value;
-						if (setVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("set video encoder configuration - ", onvif_data->last_error).data());
+						if (setVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("set video encoder configuration - ", onvif_data->last_error).data());
 						std::cout << "  Frame Rate was set to " << value << "\n" << std::endl;
 					}
 					else {
@@ -487,10 +487,10 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if(getVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("get video encoder configuration - ", onvif_data->last_error).data());
+						if(getVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("get video encoder configuration - ", onvif_data->last_error).data());
 						int value = stoi(args[0]);
 						onvif_data->bitrate = value;
-						if (setVideoEncoderConfiguration(onvif_data)) throw std::exception(cat("set video encoder configuration - ", onvif_data->last_error).data());
+						if (setVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("set video encoder configuration - ", onvif_data->last_error).data());
 						std::cout << "  Bitrate was set to " << value << "\n" << std::endl;
 					}
 					else {
@@ -502,13 +502,13 @@ int main(int argc, char **argv)
 						args.erase(args.begin());
 						if (args[0] == "on") {
 							profileCheck(onvif_data, args);
-							if (getNetworkInterfaces(onvif_data)) throw std::exception(cat("get network interfaces - ", onvif_data->last_error).data());
+							if (getNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("get network interfaces - ", onvif_data->last_error).data());
 							if (onvif_data->dhcp_enabled) {
 								std::cout << "  DHCP is already enabled\n" << std::endl;
 							}
 							else {
 								onvif_data->dhcp_enabled = true;
-								if (setNetworkInterfaces(onvif_data)) throw std::exception(cat("set network interfaces - ", onvif_data->last_error).data());
+								if (setNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("set network interfaces - ", onvif_data->last_error).data());
 								std::cout << "  DHCP was enabled successfully\n\n"
 										  << "  Camera may or may not reboot depending on settings\n"
 										  << "  Session is being terminated.\n" << std::endl;
@@ -517,13 +517,13 @@ int main(int argc, char **argv)
 						}
 						else if (args[0] == "off") {
 							profileCheck(onvif_data, args);
-							if (getNetworkInterfaces(onvif_data)) throw std::exception(cat("get network interfaces - ", onvif_data->last_error).data());
+							if (getNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("get network interfaces - ", onvif_data->last_error).data());
 							if (!onvif_data->dhcp_enabled) {
 								std::cout << "  DHCP is already disabled\n" << std::endl;
 							}
 							else {
 								onvif_data->dhcp_enabled = false;
-								if (setNetworkInterfaces(onvif_data)) throw std::exception(cat("set network interfaces - ", onvif_data->last_error).data());
+								if (setNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("set network interfaces - ", onvif_data->last_error).data());
 								std::cout << "  DHCP disabled\n" << std::endl;
 							}
 						}
@@ -539,13 +539,13 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getNetworkInterfaces(onvif_data)) throw std::exception(cat("get network interfaces - ", onvif_data->last_error).data());
+						if (getNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("get network interfaces - ", onvif_data->last_error).data());
 						if (onvif_data->dhcp_enabled) {
 							std::cout << "  Camera DHCP is enabled, IP address may not be set manually\n" << std::endl;
 						}
 						else {
 							strcpy(onvif_data->ip_address_buf, args[0].c_str());
-							if (setNetworkInterfaces(onvif_data)) throw std::exception(cat("set network interfaces - ", onvif_data->last_error).data());
+							if (setNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("set network interfaces - ", onvif_data->last_error).data());
 							std::cout << "  IP Address has been changed, session will need to be restarted\n" << std::endl;
 							exit(0);
 						}
@@ -558,13 +558,13 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getNetworkDefaultGateway(onvif_data)) throw std::exception(cat("get network default gateway - ", onvif_data->last_error).data());
+						if (getNetworkDefaultGateway(onvif_data)) throw std::runtime_error(cat("get network default gateway - ", onvif_data->last_error).data());
 						if (onvif_data->dhcp_enabled) {
 							std::cout << "  Camera DHCP is enabled, default gateway may not be set manually\n" << std::endl;
 						}
 						else {
 							strcpy(onvif_data->default_gateway_buf, args[0].c_str());
-							if (setNetworkDefaultGateway(onvif_data)) throw std::exception(cat("set default gateway - ", onvif_data->last_error).data());
+							if (setNetworkDefaultGateway(onvif_data)) throw std::runtime_error(cat("set default gateway - ", onvif_data->last_error).data());
 							std::cout << "  Default gateway has been changed\n" << std::endl;
 						}
 					}
@@ -576,13 +576,13 @@ int main(int argc, char **argv)
 					if (args.size() > 1) {
 						args.erase(args.begin());
 						profileCheck(onvif_data, args);
-						if (getDNS(onvif_data)) throw std::exception(cat("get DNS - ", onvif_data->last_error).data());
+						if (getDNS(onvif_data)) throw std::runtime_error(cat("get DNS - ", onvif_data->last_error).data());
 						if (onvif_data->dhcp_enabled) {
 							std::cout << "  Camera DHCP is enabled, DNS may not be set manually\n" << std::endl;
 						}
 						else {
 							strcpy(onvif_data->dns_buf, args[0].c_str());
-							if (setDNS(onvif_data)) throw std::exception(cat("set DNS - ", onvif_data->last_error).data());
+							if (setDNS(onvif_data)) throw std::runtime_error(cat("set DNS - ", onvif_data->last_error).data());
 							std::cout << "  DNS has been changed\n" << std::endl;
 						}
 					}
@@ -596,7 +596,7 @@ int main(int argc, char **argv)
 						profileCheck(onvif_data, args);
 						char buf[128] = {0};
 						strcpy(buf, args[0].c_str());
-						if (setUser(buf, onvif_data)) throw std::exception(cat("set user - ", onvif_data->last_error).data());
+						if (setUser(buf, onvif_data)) throw std::runtime_error(cat("set user - ", onvif_data->last_error).data());
 						std::cout << "  Admin password has been reset\n" << std::endl;
 					}
 					else {
@@ -614,7 +614,7 @@ int main(int argc, char **argv)
 				kybd_buf[strcspn(kybd_buf, "\r\n")] = 0;
 				std::string reply(kybd_buf);
 				if (reply == "yes") {
-					if (rebootCamera(onvif_data)) throw std::exception(cat("reboot camera - ", onvif_data->last_error).data());
+					if (rebootCamera(onvif_data)) throw std::runtime_error(cat("reboot camera - ", onvif_data->last_error).data());
 					std::cout << "  Camera is rebooting...\n" 
 					          << "  Session will be terminated" << std::endl;
 				}
@@ -628,20 +628,20 @@ int main(int argc, char **argv)
 					profileCheck(onvif_data, args);
 					if (args[0] == "zone") {
 						profileCheck(onvif_data, args);
-						if (setSystemDateAndTimeUsingTimezone(onvif_data)) throw std::exception(cat("set system date and time using timezone - ", onvif_data->last_error).data());
+						if (setSystemDateAndTimeUsingTimezone(onvif_data)) throw std::runtime_error(cat("set system date and time using timezone - ", onvif_data->last_error).data());
 						std::cout << "  Camera date and time has been synchronized using the camera timezone\n" << std::endl;
 					}
 				}
 				else {
 					profileCheck(onvif_data, args);
-					if (setSystemDateAndTime(onvif_data)) throw std::exception(cat("set system date and time - ", onvif_data->last_error).data());
+					if (setSystemDateAndTime(onvif_data)) throw std::runtime_error(cat("set system date and time - ", onvif_data->last_error).data());
 					std::cout << "  Camera date and time has been synchronized without regard to camera timezone\n" << std::endl;
 				}
 			}
 			else if (args[0] == "view") {
 				std::cout << "view" << std::endl;
 				profileCheck(onvif_data, args);
-				if (getStreamUri(onvif_data)) throw std::exception(cat("get stream uri - ", onvif_data->last_error).data());
+				if (getStreamUri(onvif_data)) throw std::runtime_error(cat("get stream uri - ", onvif_data->last_error).data());
 #ifdef _WIN32
 				std::stringstream ss;
 				ss << "start ffplay \"" << uri_with_pass(onvif_data) << "\"";
@@ -653,7 +653,7 @@ int main(int argc, char **argv)
 					std::cout << " Unrecognized command, use onvif-util -h to see help\n" << std::endl;
 			}
 		}
-		catch (std::exception& e) {
+		catch (std::runtime_error& e) {
 			std::cout << "  ERROR: " << e.what() << "\n" << std::endl;
 		}
 	}
@@ -662,7 +662,7 @@ int main(int argc, char **argv)
 /*
 else if (args[0] == "video") {
 	profileCheck(onvif_data, args);
-	if (getVideoEncoderConfigurationOptions(onvif_data)) throw std::exception(cat("get video encoder configuration options - ", onvif_data->last_error).data());
+	if (getVideoEncoderConfigurationOptions(onvif_data)) throw std::runtime_error(cat("get video encoder configuration options - ", onvif_data->last_error).data());
 	std::cout << "  Name: " << onvif_data->video_encoder_name_buf << "\n";
 	std::cout << "  UseCount: " << onvif_data->use_count << "\n";
 	std::cout << "  GuaranteedFrameRate: " << (onvif_data->guaranteed_frame_rate?"true":"false") << "\n";

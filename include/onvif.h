@@ -172,6 +172,7 @@ LIBRARY_API int gotoPreset(char * arg, struct OnvifData *onvif_data);
 
 LIBRARY_API int setUser(char * new_password, struct OnvifData *onvif_data);
 LIBRARY_API int setSystemDateAndTime(struct OnvifData *onvif_data);
+LIBRARY_API int setSystemDateAndTimeUsingTimezone(struct OnvifData *onvif_data);
 LIBRARY_API int getTimeOffset(struct OnvifData *onvif_data);
 LIBRARY_API int getProfileToken(struct OnvifData *onvif_data, int profileIndex);
 #define getFirstProfileToken(a) getProfileToken(a,0)

@@ -422,9 +422,9 @@ int getHostname(struct OnvifData *onvif_data) {
     addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->device_service, cmd, 4096);
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
-	xmlChar *xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:FromDHCP";
-	xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:Name";
-	getXmlValue(reply, xpath, onvif_data->host_name, 128);
+        xmlChar *xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:FromDHCP";
+        xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:Name";
+        getXmlValue(reply, xpath, onvif_data->host_name, 128);
     } else {
         result = -1;
         strcpy(onvif_data->last_error, "No XML reply");
@@ -445,12 +445,12 @@ int setHostname(struct OnvifData *onvif_data) {
     addUsernameDigestHeader(root, ns_env, onvif_data->username, onvif_data->password, onvif_data->time_offset);
     xmlNodePtr body = xmlNewTextChild(root, ns_env, BAD_CAST "Body", NULL);
     if (onvif_data->host_name[0]) {
-	xmlNodePtr setHostname = xmlNewTextChild(body, ns_tds, BAD_CAST "SetHostname", NULL);
-	xmlNewTextChild(setHostname, ns_tds, BAD_CAST "Name", BAD_CAST onvif_data->host_name);
-	/* Do I also need to set FromDHCP to false ? */
+        xmlNodePtr setHostname = xmlNewTextChild(body, ns_tds, BAD_CAST "SetHostname", NULL);
+        xmlNewTextChild(setHostname, ns_tds, BAD_CAST "Name", BAD_CAST onvif_data->host_name);
+        /* Do I also need to set FromDHCP to false ? */
     } else {
-	xmlNodePtr setHostname = xmlNewTextChild(body, ns_tds, BAD_CAST "SetHostnameFromDHCP", NULL);
-	xmlNewTextChild(setHostname, ns_tds, BAD_CAST "FromDHCP", BAD_CAST "true");
+        xmlNodePtr setHostname = xmlNewTextChild(body, ns_tds, BAD_CAST "SetHostnameFromDHCP", NULL);
+        xmlNewTextChild(setHostname, ns_tds, BAD_CAST "FromDHCP", BAD_CAST "true");
     }
 
     char cmd[4096] = {0};
@@ -830,7 +830,7 @@ int getProfile(struct OnvifData *onvif_data) {
         if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
             onvif_data->bitrate = atoi(temp_buf);
         } else {
-            printf("NO BITRATE FOUND\n");
+            onvif_data->bitrate = 0;
         }
         xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration//tt:H264//tt:GovLength";
         if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
@@ -1144,6 +1144,66 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
     int result = 0;
     time_t rawtime;
     time(&rawtime);
+    struct tm *UTCTime = localtime(&rawtime);
+    char dst_flag_buf[128];
+    if (UTCTime->tm_isdst == 1)
+        strcpy(dst_flag_buf, "true");
+    else
+        strcpy(dst_flag_buf, "false");
+    char hour_buf[128];
+    char minute_buf[128];
+    char second_buf[128];
+    char year_buf[128];
+    char month_buf[128];
+    char day_buf[128];
+    sprintf(hour_buf, "%d", UTCTime->tm_hour);
+    sprintf(minute_buf, "%d", UTCTime->tm_min);
+    sprintf(second_buf, "%d", UTCTime->tm_sec);
+    sprintf(year_buf, "%d", UTCTime->tm_year + 1900);
+    sprintf(month_buf, "%d", UTCTime->tm_mon + 1);
+    sprintf(day_buf, "%d", UTCTime->tm_mday);
+
+    xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
+    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);
+    xmlDocSetRootElement(doc, root);
+    xmlNsPtr ns_env = xmlNewNs(root, BAD_CAST "http://www.w3.org/2003/05/soap-envelope", BAD_CAST "SOAP-ENV");
+    xmlNsPtr ns_tds = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/device/wsdl", BAD_CAST "tds");
+    xmlNsPtr ns_tt = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/schema", BAD_CAST "tt");
+    xmlSetNs(root, ns_env);
+    addUsernameDigestHeader(root, ns_env, onvif_data->username, onvif_data->password, onvif_data->time_offset);
+    xmlNodePtr body = xmlNewTextChild(root, ns_env, BAD_CAST "Body", NULL);
+    xmlNodePtr setSystemDateAndTime = xmlNewTextChild(body, ns_tds, BAD_CAST "SetSystemDateAndTime", NULL);
+    xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "DateTimeType", BAD_CAST "Manual");
+    xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "DaylightSavings", BAD_CAST dst_flag_buf);
+    xmlNodePtr timeZone = xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "TimeZone", NULL);
+    xmlNewTextChild(timeZone, ns_tt, BAD_CAST "TZ", BAD_CAST "UTC0");
+    xmlNodePtr utcDateTime = xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "UTCDateTime", NULL);
+    xmlNodePtr cameraTime = xmlNewTextChild(utcDateTime, ns_tt, BAD_CAST "Time", NULL);
+    xmlNewTextChild(cameraTime, ns_tt, BAD_CAST "Hour", BAD_CAST hour_buf);
+    xmlNewTextChild(cameraTime, ns_tt, BAD_CAST "Minute", BAD_CAST minute_buf);
+    xmlNewTextChild(cameraTime, ns_tt, BAD_CAST "Second", BAD_CAST second_buf);
+    xmlNodePtr cameraDate = xmlNewTextChild(utcDateTime, ns_tt, BAD_CAST "Date", NULL);
+    xmlNewTextChild(cameraDate, ns_tt, BAD_CAST "Year", BAD_CAST year_buf);
+    xmlNewTextChild(cameraDate, ns_tt, BAD_CAST "Month", BAD_CAST month_buf);
+    xmlNewTextChild(cameraDate, ns_tt, BAD_CAST "Day", BAD_CAST day_buf);
+    char cmd[4096] = {0};
+    addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->device_service, cmd, 4096);
+    xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
+    if (reply != NULL) {
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        xmlFreeDoc(reply);
+    }
+    else {
+        result = -1;
+        strcpy(onvif_data->last_error, "No XML reply");
+    }
+    return result;
+}
+
+int setSystemDateAndTimeUsingTimezone(struct OnvifData *onvif_data) {
+    int result = 0;
+    time_t rawtime;
+    time(&rawtime);
 	bool special = false;
     struct tm *UTCTime = localtime(&rawtime);
     char dst_flag_buf[128];
@@ -1156,7 +1216,7 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
     } else {
         if (!onvif_data->timezone[0]) {
 #ifndef _WIN32
-            /* work out a timezone to use on the camera */
+            // work out a timezone to use on the camera 
             int h = -(UTCTime->tm_gmtoff/3600);
             int m = (UTCTime->tm_gmtoff + 3600 * h)/60;
             if (m)
@@ -1175,7 +1235,7 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
         UTCTime = gmtime(&rawtime);
     }
     if (!onvif_data->datetimetype)
-        onvif_data->datetimetype = 'M'; /* manual */
+        onvif_data->datetimetype = 'M'; // manual 
     char hour_buf[128];
     char minute_buf[128];
     char second_buf[128];
@@ -1219,11 +1279,11 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
         xmlFreeDoc(reply);
         if (result == 0 && onvif_data->datetimetype == 'N') {
-            /* switch back to NTP after we have nudged it to correct */
+            // switch back to NTP after we have nudged it to correct 
             time_t newtime;
             time(&newtime);
             if (newtime != rawtime) {
-                /* save a little effort if we are within a second of the previous check */
+                // save a little effort if we are within a second of the previous check 
                 if (special)
                     UTCTime = localtime(&newtime);
                 else
@@ -1249,7 +1309,7 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
             xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "DaylightSavings", BAD_CAST dst_flag_buf);
             xmlNodePtr timeZone = xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "TimeZone", NULL);
             xmlNewTextChild(timeZone, ns_tt, BAD_CAST "TZ", BAD_CAST onvif_data->timezone);
-            /* Need to include date/time even though the specs say it should be ignored */
+            // Need to include date/time even though the specs say it should be ignored 
             xmlNodePtr utcDateTime = xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "UTCDateTime", NULL);
             xmlNodePtr cameraTime = xmlNewTextChild(utcDateTime, ns_tt, BAD_CAST "Time", NULL);
             xmlNewTextChild(cameraTime, ns_tt, BAD_CAST "Hour", BAD_CAST hour_buf);

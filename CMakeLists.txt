@@ -139,7 +139,7 @@ target_include_directories(onvif-time PUBLIC
 )
 
 add_executable(onvif-util
-    example/onvif-util.c
+    example/onvif-util.cpp
 )
 
 target_link_libraries(onvif-util PRIVATE
@@ -151,7 +151,6 @@ target_include_directories(onvif-util PUBLIC
     include
     ${LIBXML2_INCLUDE_DIRS}
 )
-
 
 if (BUILD_GUI)
     set(CMAKE_AUTOMOC ON)

@@ -145,6 +145,10 @@ void AdminTab::launchBrowserClicked()
     OnvifData *onvif_data = CP->camera->onvif_data;
     char host[128];
     extractHost(onvif_data->xaddrs, host);
+//    char target[sizeof(host)+13];
+//    strncpy(target, "start http://", 14);
+//    strncat(target, host, sizeof(target) - 14);
+//    system(target);
     QProcess process;
 #ifdef _WIN32
     QString cmd("start");

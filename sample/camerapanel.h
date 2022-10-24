@@ -64,6 +64,7 @@ public:
     QTabWidget *tabWidget;
     QPushButton *applyButton;
     QPushButton *discoverButton;
+    QPushButton *viewButton;
     VideoTab *videoTab;
     ImageTab *imageTab;
     NetworkTab *networkTab;
@@ -100,6 +101,7 @@ public slots:
     void showLoginDialog(Credential*);
     void applyButtonClicked();
     void discoverButtonClicked();
+    void viewButtonClicked();
     void discoveryFinished();
 
 };

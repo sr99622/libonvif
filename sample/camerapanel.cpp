@@ -19,6 +19,7 @@
 *
 *******************************************************************************/
 
+#include <sstream>
 #include "camerapanel.h"
 #include "mainwindow.h"
 #include <QGridLayout>
@@ -48,9 +49,12 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));
     discoverButton = new QPushButton("Discover", this);
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
+    viewButton = new QPushButton("View", this);
+    connect(viewButton, SIGNAL(clicked()), this, SLOT(viewButtonClicked()));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
     buttonBox->addButton(discoverButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(viewButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(applyButton, QDialogButtonBox::ActionRole);
     buttonBox->setMaximumHeight(60);
 
@@ -72,6 +76,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     ptzTab->setActive(false);
     adminTab->setActive(false);
     applyButton->setEnabled(false);
+    viewButton->setEnabled(false);
 
     connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
 
@@ -117,6 +122,23 @@ void CameraPanel::discoverButtonClicked()
     discovery->start();
 }
 
+void CameraPanel::viewButtonClicked()
+{
+    std::stringstream ss_uri;
+    OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
+	std::string uri(onvif_data->stream_uri);
+	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
+    uri = ss_uri.str();
+    
+    std::stringstream ss;
+#ifdef _WIN32
+	ss << "start ffplay \"" << uri << "\"";
+#else
+	ss << "ffplay \"" << uri << "\"";
+#endif				
+	std::system(ss.str().c_str());
+}
+
 void CameraPanel::showLoginDialog(Credential *credential)
 {
     if (loginDialog == nullptr)
@@ -156,6 +178,7 @@ void CameraPanel::fillData()
     networkTab->setActive(false);
     adminTab->setActive(false);
     applyButton->setEnabled(false);
+    viewButton->setEnabled(false);
     QThreadPool::globalInstance()->tryStart(filler);
 }
 
@@ -173,6 +196,7 @@ void CameraPanel::showData()
     ptzTab->setActive(camera->hasPTZ());
     camera->onvif_data_read = true;
     applyButton->setEnabled(false);   
+    viewButton->setEnabled(true);
 }
 
 void CameraPanel::saveUsername()

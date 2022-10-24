@@ -103,7 +103,7 @@ target_include_directories(onvif-time PUBLIC
 )
 
 add_executable(onvif-util
-    onvif-util.c
+    onvif-util.cpp
 )
 
 target_link_libraries(onvif-util PRIVATE

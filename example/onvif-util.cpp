@@ -103,6 +103,7 @@ static void showHelp()
 			  << "      set dhcp value(required) - Accepted settings are 'on' and off'\n"
 			  << "      set password  value(required)\n\n"
 			  << "    Maintenance Commands\n\n"
+			  << "      view (n) - View the camera output using ffplay (this assmumes you have ffplay installed in the path"
 			  << "      sync_time 'zone'(optional) - Sync the camera time to the computer.  Optionally adjusts based on camera time zone\n"
 			  << "      reboot\n\n"
 			  << "    To Exit Camera Session\n\n"
@@ -645,6 +646,10 @@ int main(int argc, char **argv)
 #ifdef _WIN32
 				std::stringstream ss;
 				ss << "start ffplay \"" << uri_with_pass(onvif_data) << "\"";
+				std::system(ss.str().c_str());
+#else
+				std::stringstream ss;
+				ss << "ffplay \"" << uri_with_pass(onvif_data) << "\"";
 				std::system(ss.str().c_str());
 #endif				
 			} 

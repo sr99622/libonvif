@@ -133,8 +133,8 @@ void CameraPanel::viewButtonClicked()
 
     std::string player(configTab->player->text().toLatin1().data());
     
-    QString cmd(player.c_str());
-    QStringList args = { QString(uri.c_str())};
+    QString cmd(QString(player.c_str()));
+    QStringList args = { QString(uri.c_str()) };
     process.start(cmd, args);
 }
 

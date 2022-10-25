@@ -147,9 +147,9 @@ void AdminTab::launchBrowserClicked()
     extractHost(onvif_data->xaddrs, host);
 #ifdef _WIN32
     QString cmd("\"C:\\Program Files\\Internet Explorer\\iexplore.exe\"");
-#else /* not _WIN32 */
-    QString cmd("x-www-browser");
-#endif /* not _WIN32 */
+#else
+    QString cmd("xdg-open");
+#endif 
     QStringList args = { QString("http://") + host};
     process.start(cmd, args);
 }

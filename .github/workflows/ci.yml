@@ -43,7 +43,7 @@ jobs:
         # our build system to determine the version from tags
         fetch-depth: 0
 
-    - name: Build source
+    - name: Install build dependencies
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -51,6 +51,13 @@ jobs:
         set -x
         #eatmydata apt --yes --quiet build-dep --indep-only .
         eatmydata apt --yes --quiet install cmake libxml2-dev qtbase5-dev
+
+    - name: Build source
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        set -e
+        set -x
         mkdir builddir && cd builddir
         eatmydata cmake -DBUILD_GUI=1 ..
         eatmydata make

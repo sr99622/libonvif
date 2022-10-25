@@ -220,7 +220,9 @@ License
 
  getopt-win.h (originally getopt.h) Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>
  and Copyright (c) 2000 The NetBSD Foundation, Inc.
+ 
  cencode.h, cencode.c in Public Domain by Chris Venter : chris.venter[anti-spam]gmail.com 
+ 
  sha1.h, sha1.c in Public Domain by By Steve Reid <steve@edmweb.com>
 
 >

@@ -138,8 +138,12 @@ void CameraPanel::viewButtonClicked()
 	ss << "start " << player << " \"" << uri << "\"";
 #else
 	ss << player << " \"" << uri << "\"";
+    QString cmd(player.c_str());
+    QStringList args = { QString(uri.c_str())};
+    //QProcess process;
+    process.start(cmd, args);
 #endif				
-	std::system(ss.str().c_str());
+	//std::system(ss.str().c_str());
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)

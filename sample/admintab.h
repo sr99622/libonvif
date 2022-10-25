@@ -56,7 +56,7 @@ public:
     Resetter *resetter;
     Timesetter *timesetter;
 
-    QProcess *process;
+    QProcess process;
 
     void update() override;
     void clear() override;

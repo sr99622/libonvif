@@ -153,14 +153,13 @@ void AdminTab::launchBrowserClicked()
     
     //QString cmd("start");
 #else /* not _WIN32 */
-    //QProcess process;
-    //QString cmd("x-www-browser");
-    //QStringList args = { QString("http://") + host};
-    //process.start(cmd, args);
-    char target[sizeof(host)+13];
-    strncpy(target, "xdg-open http://", 14);
-    strncat(target, host, sizeof(target) - 14);
-    system(target);
+    QString cmd("x-www-browser");
+    QStringList args = { QString("http://") + host};
+    process.start(cmd, args);
+    //char target[sizeof(host)+13];
+    //strncpy(target, "xdg-open http://", 14);
+    //strncat(target, host, sizeof(target) - 14);
+    //system(target);
 #endif /* not _WIN32 */
 }
 

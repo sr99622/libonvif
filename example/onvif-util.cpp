@@ -668,7 +668,7 @@ int main(int argc, char **argv)
 					std::cout << " Unrecognized command, use onvif-util -h to see help\n" << std::endl;
 			}
 		}
-		catch (std::runtime_error& e) {
+		catch (std::exception& e) {
 			std::cout << "  ERROR: " << e.what() << "\n" << std::endl;
 		}
 	}

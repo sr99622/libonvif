@@ -199,8 +199,10 @@ will return a non-zero integer in the case of communication error, and the
 error message can be found in the last_error field of OnvifData. 
 
 
-<!--->
- Copyright (c) 2022 Stephen Rhodes 
+License
+-------
+
+ Copyright (c) 2018, 2020, 2022 Stephen Rhodes 
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -215,4 +217,9 @@ error message can be found in the last_error field of OnvifData.
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc.,
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+ getopt-win.h (originally getopt.h) Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>
+ and Copyright (c) 2000 The NetBSD Foundation, Inc.
+ cencode.h, cencode.c in Public Domain by Chris Venter : chris.venter[anti-spam]gmail.com 
+ sha1.h, sha1.c in Public Domain by By Steve Reid <steve@edmweb.com>
 

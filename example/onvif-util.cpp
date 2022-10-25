@@ -46,6 +46,11 @@ static struct option longopts[] = {
 static const char *username;
 static const char *password;
 
+static void usage()
+{
+	std::cout << "Usage: onvif-util [-ah] [-u <user>] [-p <password>] [command]" << std::endl;
+}
+
 static void showAll()
 {
 	std::cout << "Looking for cameras on the network..." << std::endl;
@@ -175,6 +180,7 @@ int main(int argc, char **argv)
 				showAll();
 				exit(0);
 			case 'h':
+				usage();
 				showHelp();
 				exit(0);
 			case 0:
@@ -190,6 +196,7 @@ int main(int argc, char **argv)
     argv += optind;
 
 	if (argc < 1) {
+		usage();
 		std::cout << "NO ARGS" << std::endl;
 		exit(1);
 	}

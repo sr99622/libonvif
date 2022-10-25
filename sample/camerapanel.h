@@ -53,6 +53,7 @@ public:
     void refreshList();
     void saveUsername();
     void savePassword();
+    void savePlayer();
     void saveAutoDiscovery();
     void saveMultiBroadcast();
     void saveNetIntf(const QString& name);
@@ -81,6 +82,7 @@ public:
 
     const QString usernameKey   = "CameraPanel/username";
     const QString passwordKey   = "CameraPanel/password";
+    const QString playerKey     = "CameraPanel/player";
     const QString autoDiscKey   = "CameraPanel/autoDiscovery";
     const QString multiBroadKey = "CameraPanel/multiBroadcast";
     const QString broadRepKey   = "CameraPanel/brodacastRepeat";

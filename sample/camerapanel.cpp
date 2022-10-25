@@ -86,6 +86,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     configTab->commonUsername->setText(MW->settings->value(usernameKey, "").toString());
     configTab->commonPassword->setText(MW->settings->value(passwordKey, "").toString());
+    configTab->player->setText(MW->settings->value(playerKey, "ffplay").toString());
     configTab->autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
     configTab->multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
     configTab->broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
@@ -129,12 +130,14 @@ void CameraPanel::viewButtonClicked()
 	std::string uri(onvif_data->stream_uri);
 	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
     uri = ss_uri.str();
+
+    std::string player(configTab->player->text().toLatin1().data());
     
     std::stringstream ss;
 #ifdef _WIN32
-	ss << "start ffplay \"" << uri << "\"";
+	ss << "start " << player << " \"" << uri << "\"";
 #else
-	ss << "ffplay \"" << uri << "\"";
+	ss << player << " \"" << uri << "\"";
 #endif				
 	std::system(ss.str().c_str());
 }
@@ -207,6 +210,11 @@ void CameraPanel::saveUsername()
 void CameraPanel::savePassword()
 {
     MW->settings->setValue(passwordKey, configTab->commonPassword->text());
+}
+
+void CameraPanel::savePlayer()
+{
+    MW->settings->setValue(playerKey, configTab->player->text());
 }
 
 void CameraPanel::saveAutoDiscovery()

@@ -29,6 +29,7 @@
 #include <QPushButton>
 #include <QCheckBox>
 #include <QLabel>
+#include <QProcess>
 
 class AdminTab : public CameraDialogTab
 {
@@ -54,6 +55,8 @@ public:
     Rebooter *rebooter;
     Resetter *resetter;
     Timesetter *timesetter;
+
+    QProcess *process;
 
     void update() override;
     void clear() override;

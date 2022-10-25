@@ -150,6 +150,7 @@ void AdminTab::launchBrowserClicked()
     strncpy(target, "start http://", 14);
     strncat(target, host, sizeof(target) - 14);
     system(target);
+    
     //QString cmd("start");
 #else /* not _WIN32 */
     //QProcess process;

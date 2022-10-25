@@ -105,6 +105,7 @@ static void showHelp()
 			  << "    Maintenance Commands\n\n"
 			  << "      help\n"
 			  << "      view (n) - View the camera output using ffplay (this assmumes you have ffplay installed in the path\n"
+			  << "      view player (n) - View the camera output with user specified player e.g. view vlc\n"
 			  << "      sync_time 'zone'(optional) - Sync the camera time to the computer.  Optionally adjusts based on camera time zone\n"
 			  << "      reboot\n\n"
 			  << "    To Exit Camera Session\n\n"
@@ -641,13 +642,21 @@ int main(int argc, char **argv)
 				}
 			}
 			else if (args[0] == "view") {
-				profileCheck(onvif_data, args);
+				std::string player("ffplay");
+				if (args.size() > 1) {
+					args.erase(args.begin());
+					profileCheck(onvif_data, args);
+					player = args[0];
+				}
+				else {
+					profileCheck(onvif_data, args);
+				}
 				if (getStreamUri(onvif_data)) throw std::runtime_error(cat("get stream uri - ", onvif_data->last_error));
 				std::stringstream ss;
 #ifdef _WIN32
-				ss << "start ffplay \"" << uri_with_pass(onvif_data) << "\"";
+				ss << "start " << player << " \"" << uri_with_pass(onvif_data) << "\"";
 #else
-				ss << "ffplay \"" << uri_with_pass(onvif_data) << "\"";
+				ss << player << " \"" << uri_with_pass(onvif_data) << "\"";
 #endif				
 				std::system(ss.str().c_str());
 			} 

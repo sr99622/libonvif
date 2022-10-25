@@ -1,3 +1,24 @@
+#*******************************************************************************
+# libonvif/README.md
+#
+# Copyright (c) 2022 Stephen Rhodes 
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#******************************************************************************/
+
 libonvif
 ========
 
@@ -10,7 +31,7 @@ libonvif is a multi platform library implementing the client side of the ONVIF
 specification for communicating with IP enabled compatible cameras.  It will
 compile on Linux and Windows.
 
-libonvif may be install with pre-built binaries using anaconda, or may be
+libonvif may be installed with pre-built binaries using anaconda, or may be
 compiled from source.
 
 An example program is included with libonvif that will discover compatible

@@ -83,7 +83,7 @@ static void showHelp()
 			  << "  Once logged into the camera you can view data using the 'get' command followed by the data requested\n"
 			  << "  The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used\n\n"
 			  << "    Data Retrieval Commands (start with get)\n\n"
-			  << "      get rtsp 'pass'(optional) (n)\n"
+			  << "      get rtsp 'pass'(optional) (n)\n - Get rtsp uri for camera, with optional password credential"
 			  << "      get capabilities\n"
 			  << "      get time\n"
 			  << "      get profiles\n"

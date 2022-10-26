@@ -131,10 +131,23 @@ void CameraPanel::viewButtonClicked()
 	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
     uri = ss_uri.str();
 
+    std::string argument;
+    std::vector<std::string> arguments;
     std::string player(configTab->player->text().toLatin1().data());
+    std::stringstream ss(player);
+    while (ss >> argument)
+        arguments.push_back(argument);
+    arguments.push_back(uri);
     
-    QString cmd(QString(player.c_str()));
-    QStringList args = { QString(uri.c_str()) };
+    QString cmd(QString(arguments[0].c_str()));
+    arguments.erase(arguments.begin());
+
+    QStringList args;
+    while (arguments.size() > 0) {
+        args.push_back(arguments[0].c_str());
+        arguments.erase(arguments.begin());
+    }
+
     process.start(cmd, args);
 }
 

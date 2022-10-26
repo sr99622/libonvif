@@ -57,7 +57,7 @@ add_library(onvif_static STATIC
 )
 
 set_target_properties(onvif_static PROPERTIES
-    OUTPUT_NAME onvif
+    OUTPUT_NAME onvif_static
     ARCHIVE_OUTPUT_DIRECTORY onvif_static
 )
 
@@ -200,7 +200,14 @@ install(TARGETS onvif-discover DESTINATION bin)
 install(TARGETS onvif-getall DESTINATION bin)
 install(TARGETS onvif-time DESTINATION bin)
 install(TARGETS onvif-util DESTINATION bin)
-install(TARGETS onvif_shared DESTINATION bin)
-install(TARGETS onvif_shared DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+if (MSVC)
+    install(TARGETS onvif_shared 
+                    LIBRARY DESTINATION lib
+                    ARCHIVE DESTINATION lib
+                    RUNTIME DESTINATION bin
+                    COMPONENT library)
+else()
+    install(TARGETS onvif_shared DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+endif()
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")

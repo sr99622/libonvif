@@ -32,7 +32,7 @@ ConfigTab::ConfigTab(QWidget *parent)
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
     player = new QLineEdit("ffplay");
-    player->setMaximumWidth(100);
+    //player->setMaximumWidth(100);
     QLabel *lbl03 = new QLabel("Player");
     broadcastRepeat = new QSpinBox();
     broadcastRepeat->setRange(2, 5);
@@ -46,8 +46,6 @@ ConfigTab::ConfigTab(QWidget *parent)
 
     QGridLayout *layout = new QGridLayout();
     layout->addWidget(autoDiscovery,       1, 0, 1, 1);
-    layout->addWidget(lbl03,               1, 1, 1, 1);
-    layout->addWidget(player,              1, 2, 1, 1);
     layout->addWidget(multiBroadcast,      2, 0, 1, 1);
     layout->addWidget(lbl00,               2, 1, 1 ,1);
     layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
@@ -55,6 +53,8 @@ ConfigTab::ConfigTab(QWidget *parent)
     layout->addWidget(commonUsername,      3, 1, 1, 1);
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
+    layout->addWidget(lbl03,               5, 0, 1, 1);
+    layout->addWidget(player,              5, 1, 1, 4);
     setLayout(layout);
 
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));

@@ -166,7 +166,6 @@ void profileCheck(OnvifData* onvif_data, const std::vector<std::string>& args)
 int main(int argc, char **argv)
 {
 	int ch;
-	char *arg0 = argv[0];
 
 	while ((ch = getopt_long(argc, argv, "u:p:ah", longopts, NULL)) != -1) {
 		switch (ch) {
@@ -187,7 +186,7 @@ int main(int argc, char **argv)
 				std::cout << "test 0:" << optarg << std::endl;
 				break;
 			default:
-				std::cout << "test default" << optarg << std::endl;
+				usage();
 				exit(1);
 		}
 	}
@@ -197,7 +196,6 @@ int main(int argc, char **argv)
 
 	if (argc < 1) {
 		usage();
-		std::cout << "NO ARGS" << std::endl;
 		exit(1);
 	}
 
@@ -245,7 +243,7 @@ int main(int argc, char **argv)
 		fgets(kybd_buf, 128, stdin);
 		kybd_buf[strcspn(kybd_buf, "\r\n")] = 0;
 
-		std::string cmd = std::string(kybd_buf);
+		std::string cmd(kybd_buf);
 		if (cmd.length() == 0)
 			continue;
 		std::string arg;

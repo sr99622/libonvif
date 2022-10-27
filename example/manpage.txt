@@ -143,7 +143,7 @@ EXAMPLES
 
 SEE ALSO 
 
-  There is a gui version of this program included with the libonvif package which will implement most of the same commands. It may be invoke using the 'onvif' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
+  There is a gui version of this program included with the libonvif package which will implement most of the same commands. It may be invoked using the 'onvif' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
 
 NOTES
 
@@ -151,4 +151,4 @@ NOTES
 
   If the camera DNS setting is properly onvif compliant, the IP address may be reliably set using onvif-util. Some cameras may not respond to the DNS setting requested by onvif-util due to non compliance. Note that the camera may reboot automatically under some conditions if the DNS setting is changed from off to on.
 
-  Video settings are reliable. The Admin Password setting is reliable, as well as the reboot command. If there is an issue with a particular setting, it is recommended to connect to the camera with a web browser, at most cameras will have a web interface that will allow you to make the changes reliably. The gui version has a button on the Admin tab that will launch the web browser with the camera ip address automatically.
+  Video settings are reliable. The Admin Password setting is reliable, as well as sync_time and the reboot command. If there is an issue with a particular setting, it is recommended to connect to the camera using the browser command, as most cameras will have a web interface that will allow you to make the changes reliably. The gui version has a button on the Admin tab that will launch the web browser with the camera ip address automatically.

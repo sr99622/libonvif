@@ -148,7 +148,8 @@ void CameraPanel::viewButtonClicked()
         arguments.erase(arguments.begin());
     }
 
-    process.start(cmd, args);
+    QProcess* process = new QProcess();
+    process->start(cmd, args);
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)

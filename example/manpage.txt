@@ -22,8 +22,14 @@ DESCRIPTION
     -p, --password
         set the password for the camera login
 
+    To view all cameras on the network:
+    onvif-util -a
+
     To login to a particular camera:
     onvif-util -u username -p password ip_address
+
+    To login to a camera with safe mode disabled:
+    onvif-util -s -u username -p password ip_address
 
     Once logged into the camera you can view data using the 'get' command followed by the data requested. The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used
 
@@ -59,9 +65,13 @@ DESCRIPTION
         Maintenance Commands
 
         help
+        safe - set safe mode on.  Viewer and browser are disabled
+        unsafe - set safe mode off.  Viewer and browser are enabled
+        browser - Use browser to access camera configurations
         view (n) - View the camera output using ffplay (ffplay must be installed in the path)
         view player (n) - View the camera output with user specified player e.g. view vlc
         sync_time 'zone'(optional) - Sync the camera time to the computer
+        dump - Full set of raw data from camera configuration
         reboot
 
         To Exit Camera Session

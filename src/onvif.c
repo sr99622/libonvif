@@ -341,7 +341,7 @@ int getNTP(struct OnvifData *onvif_data) {
 			else if (strcmp(onvif_data->ntp_type,"IPv4") == 0)
 				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPFromDHCP//tt:IPv6Address";
 			else
-				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPFromDHCP//tt:DNSName";
+				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPFromDHCP//tt:DNSname";
 			getXmlValue(reply, xpath, onvif_data->ntp_addr, 128);
 		} else {
 			onvif_data->ntp_dhcp = false;
@@ -352,7 +352,7 @@ int getNTP(struct OnvifData *onvif_data) {
 			else if (strcmp(onvif_data->ntp_type,"IPv4") == 0)
 				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPManual//tt:IPv6Address";
 			else
-				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPManual//tt:DNSName";
+				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPManual//tt:DNSname";
 			getXmlValue(reply, xpath, onvif_data->ntp_addr, 128);
 		}
     } else {
@@ -2781,8 +2781,10 @@ void dumpXmlNode (xmlDocPtr doc, xmlNodePtr cur_node, char *prefix) {
             name = (char *)(cur_node->name);
             value = (const char *)xmlNodeListGetString(doc, cur_node->xmlChildrenNode, 1);
             if (value) {
+                printf("");
                 printf("%s%s=%s\n", prefix ? prefix : "", name, value);
             } else {
+                printf("");
                 sprintf(new_prefix, "%s%s.", prefix ? prefix : "", name);
                 for (prop = cur_node->properties; prop; prop = prop->next) {
                     if (prop->children && prop->children->content) {

@@ -96,56 +96,21 @@ target_include_directories(onvif_shared PUBLIC
     $ENV{CONDA_PREFIX}/Library/include
 )
 
-add_executable(onvif-discover
-    example/onvif-discover.c
-)
-
-target_link_libraries(onvif-discover PRIVATE
-    onvif_shared
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-discover PUBLIC
-    include
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
-add_executable(onvif-getall
-    example/onvif-getall.c
-)
-
-target_link_libraries(onvif-getall PRIVATE
-    onvif_static
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-getall PUBLIC
-    include
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
-add_executable(onvif-time
-    example/onvif-time.c
-)
-
-target_link_libraries(onvif-time PRIVATE
-    onvif_shared
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-time PUBLIC
-    include
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
 add_executable(onvif-util
     example/onvif-util.cpp
 )
 
-target_link_libraries(onvif-util PRIVATE
-    onvif_shared
-    ${LIBXML2_LIBRARIES}
-)
+if (MSVC)
+    target_link_libraries(onvif-util PRIVATE
+        onvif_static
+        ${LIBXML2_LIBRARIES}
+    )
+else()
+    target_link_libraries(onvif-util PRIVATE
+        onvif_shared
+        ${LIBXML2_LIBRARIES}
+    )
+endif()
 
 target_include_directories(onvif-util PUBLIC
     include
@@ -196,9 +161,6 @@ if (BUILD_GUI)
     install(TARGETS onvif_exe DESTINATION bin)
 endif()
 
-install(TARGETS onvif-discover DESTINATION bin)
-install(TARGETS onvif-getall DESTINATION bin)
-install(TARGETS onvif-time DESTINATION bin)
 install(TARGETS onvif-util DESTINATION bin)
 if (MSVC)
     install(TARGETS onvif_shared 

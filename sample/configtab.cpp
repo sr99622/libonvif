@@ -32,7 +32,6 @@ ConfigTab::ConfigTab(QWidget *parent)
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
     player = new QLineEdit("ffplay");
-    //player->setMaximumWidth(100);
     QLabel *lbl03 = new QLabel("Player");
     broadcastRepeat = new QSpinBox();
     broadcastRepeat->setRange(2, 5);

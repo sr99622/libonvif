@@ -2,6 +2,7 @@
 * onvif-util.c
 *
 * Copyright (c) 2022 Stephen Rhodes 
+* Code contributions by Brian D Scott and Petter Reinholdtsen
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -39,6 +40,7 @@ static struct option longopts[] = {
              { "user",       required_argument, NULL,      'u'},
              { "password",   required_argument, NULL,      'p'},
              { "all",        no_argument,       NULL,      'a'},
+			 { "safe_off",   no_argument,       NULL,      's'},
              { "help",       required_argument, NULL,      'h'},
              { NULL,         0,                 NULL,       0 }
      };
@@ -48,7 +50,7 @@ static const char *password;
 
 static void usage()
 {
-	std::cout << "Usage: onvif-util [-ah] [-u <user>] [-p <password>] [command]" << std::endl;
+	std::cout << "Usage: onvif-util [-ahs] [-u <user>] [-p <password>] [command]" << std::endl;
 }
 
 static void showAll()
@@ -76,14 +78,22 @@ static void showAll()
 static void showHelp()
 {
 	std::cout << "\n  onvif-util help\n\n"
+			  << "  Usage: onvif-util [-ahs] [-u <user>] [-p <password>] [command]\n\n"
+			  << "    options\n"
+			  << "      -a  poll all cameras on network and reply with host name\n"
+			  << "      -u  username\n"
+			  << "      -p  password\n"
+			  << "      -s  safe mode off, enable applications for viewer and browser to run\n\n"
 			  << "  To view all cameras on the network:\n"
 			  << "  onvif-util -a\n\n"
 			  << "  To login to a particular camera:\n"
 			  << "  onvif-util -u username -p password ip_address\n\n"
-			  << "  Once logged into the camera you can view data using the 'get' command followed by the data requested\n"
-			  << "  The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used\n\n"
+			  << "  To login to a camera with safe mode disabled:\n"
+			  << "  onvif-util -s -u username -p password ip_address\n\n"
+			  << "  Once logged into the camera you can view data using the 'get' command followed by the data requested.\n"
+			  << "  The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used.\n\n"
 			  << "    Data Retrieval Commands (start with get)\n\n"
-			  << "      get rtsp 'pass'(optional) (n)\n - Get rtsp uri for camera, with optional password credential"
+			  << "      get rtsp 'pass'(optional) (n) - Get rtsp uri for camera, with optional password credential\n"
 			  << "      get capabilities\n"
 			  << "      get time\n"
 			  << "      get profiles\n"
@@ -109,8 +119,12 @@ static void showHelp()
 			  << "      set password  value(required)\n\n"
 			  << "    Maintenance Commands\n\n"
 			  << "      help\n"
+			  << "      safe - set safe mode on.  Viewer and browser are disabled\n"
+			  << "      unsafe - set safe mode off.  Viewer and browser are enabled\n"
+			  << "      browser - Use browser to access camera configurations\n"
 			  << "      view (n) - View the camera output using ffplay (this assmumes you have ffplay installed in the path\n"
 			  << "      view player (n) - View the camera output with user specified player e.g. view vlc\n"
+			  << "      dump - Full set of raw data from camera configuration\n"
 			  << "      sync_time 'zone'(optional) - Sync the camera time to the computer.  Optionally adjusts based on camera time zone\n"
 			  << "      reboot\n\n"
 			  << "    To Exit Camera Session\n\n"
@@ -165,9 +179,10 @@ void profileCheck(OnvifData* onvif_data, const std::vector<std::string>& args)
 
 int main(int argc, char **argv)
 {
-	int ch;
+	bool safe_mode = true;
 
-	while ((ch = getopt_long(argc, argv, "u:p:ah", longopts, NULL)) != -1) {
+	int ch;
+	while ((ch = getopt_long(argc, argv, "u:p:ahs", longopts, NULL)) != -1) {
 		switch (ch) {
             case 'u':
 				username = optarg;
@@ -182,8 +197,11 @@ int main(int argc, char **argv)
 				usage();
 				showHelp();
 				exit(0);
+			case 's':
+				safe_mode = false;
+				break;
 			case 0:
-				std::cout << "test 0:" << optarg << std::endl;
+				std::cout << optarg << std::endl;
 				break;
 			default:
 				usage();
@@ -305,7 +323,13 @@ int main(int argc, char **argv)
 					if (getTimeOffset(onvif_data)) throw std::runtime_error(cat("get time offset - ", onvif_data->last_error));
 					std::cout << "  Time Offset: " << onvif_data->time_offset << " seconds" << "\n";
 					std::cout << "  Timezone:    " << onvif_data->timezone << "\n";
-					std::cout << "  DST:         " << (onvif_data->dst ? "Yes" : "No") << "\n" << std::endl;
+					std::cout << "  DST:         " << (onvif_data->dst ? "Yes" : "No") << "\n";
+					std::cout << "  Time Set By: " << ((onvif_data->datetimetype == 'M') ? "Manual" : "NTP") << "\n";
+					if (onvif_data->datetimetype != 'M') {
+						if (getNTP(onvif_data)) throw std::runtime_error(cat("get NTP - ", onvif_data->last_error));
+						std::cout << "  NTP Server:  " << onvif_data->ntp_addr << "\n";
+					}
+					std::cout << std::endl;
 				}
 				else if (args[0] == "video") {
 
@@ -646,7 +670,23 @@ int main(int argc, char **argv)
 					std::cout << "  Camera date and time has been synchronized without regard to camera timezone\n" << std::endl;
 				}
 			}
+			else if (args[0] == "dump") {
+				dumpConfigAll (onvif_data);
+				std::cout << std::endl;
+			}
+			else if (args[0] == "safe") {
+				safe_mode = true;
+				std::cout << "  Safe mode is on\n" << std::endl;
+			}
+			else if (args[0] == "unsafe") {
+				safe_mode = false;
+				std::cout << "  Safe mode has been turned off, run only known safe apps and cameras\n" << std::endl;
+			}
 			else if (args[0] == "view") {
+				if (safe_mode) {
+					std::cout << "  SAFE MODE ON, use 'unsafe' command to disable safe mode, or -s option from command line\n" << std::endl;
+					continue;
+				}
 				std::string player("ffplay");
 				if (args.size() > 1) {
 					args.erase(args.begin());
@@ -665,6 +705,21 @@ int main(int argc, char **argv)
 #endif				
 				std::system(ss.str().c_str());
 			} 
+			else if (args[0] == "browser") {
+				if (safe_mode) {
+					std::cout << "  SAFE MODE ON, use 'unsafe' command to disable safe mode, or -s option from command line\n" << std::endl;
+					continue;
+				}
+				profileCheck(onvif_data, args);
+				if (getNetworkInterfaces(onvif_data)) throw std::runtime_error(cat("get network interfaces - ", onvif_data->last_error));
+				std::stringstream ss;
+#ifdef _WIN32
+				ss << "start http://" << onvif_data->ip_address_buf;
+#else
+				ss << "xdg-open http://" << onvif_data->ip_address_buf;
+#endif
+				std::system(ss.str().c_str());
+			}
 			else if (args[0] == "help") {
 				showHelp();
 			}
@@ -680,28 +735,32 @@ int main(int argc, char **argv)
 }
 
 /*
-else if (args[0] == "video") {
-	profileCheck(onvif_data, args);
-	if (getVideoEncoderConfigurationOptions(onvif_data)) throw std::runtime_error(cat("get video encoder configuration options - ", onvif_data->last_error));
-	std::cout << "  Name: " << onvif_data->video_encoder_name_buf << "\n";
-	std::cout << "  UseCount: " << onvif_data->use_count << "\n";
-	std::cout << "  GuaranteedFrameRate: " << (onvif_data->guaranteed_frame_rate?"true":"false") << "\n";
-	std::cout << "  Encoding: " << onvif_data->encoding << "\n";
-	std::cout << "  Resolution:Width: " << onvif_data->conf_width << "\n";
-	std::cout << "  Resolution:Height: " << onvif_data->conf_height << "\n";
-	std::cout << "  Quality: " << onvif_data->quality << "\n";
-	std::cout << "  RateControl:FrameRateLimit: " << onvif_data->conf_frame_rate_limit << "\n";
-	std::cout << "  RateControl:EncodingInterval: " << onvif_data->conf_encoding_interval << "\n";
-	std::cout << "  RateControl:BitrateLimit: " << onvif_data->conf_bitrate_limit << "\n";
-	std::cout << "  H264Profile: " << onvif_data->h264_profile_buf << "\n";
-	std::cout << "  Multicast:AddressType: " << onvif_data->multicast_address_type_buf << "\n";
-	if (strcmp(onvif_data->multicast_address_type_buf,"IPv6") == 0)
-		std::cout << "  Multicast:IPv6Address: " << onvif_data->multicast_address_buf << "\n";
-	else
-		std::cout << "  Multicast:IPv4Address: " << onvif_data->multicast_address_buf << "\n";
-	std::cout << "  Multicast:Port: " << onvif_data->multicast_port << "\n";
-	std::cout << "  Multicast:TTL: " << onvif_data->multicast_ttl << "\n";
-	std::cout << "  Multicast:AutoStart: " << (onvif_data->autostart?"true":"false") << "\n";
-	std::cout << "  SessionTimeout: " << onvif_data->session_time_out_buf << "\n" << std::endl;
+else if (args[0] == "ntp") {
+	if (args.size() > 1) {
+		args.erase(args.begin());
+		if (args[0] == "manual") {
+			profileCheck(onvif_data, args);
+			if (getHostname(onvif_data)) throw std::runtime_error(cat("get host name - ", onvif_data->last_error));
+			if (getTimeOffset(onvif_data)) throw std::runtime_error(cat("get time offset - ", onvif_data->last_error));
+			onvif_data->datetimetype = 'M';
+			if (setSystemDateAndTime(onvif_data)) throw std::runtime_error(cat("set NTP - ", onvif_data->last_error));
+			std::cout << "  NTP set to manual\n" << std::endl;
+		}
+		else {
+			std::cout << "DHCP NTP" << std::endl;
+			profileCheck(onvif_data, args);
+			if (getHostname(onvif_data)) throw std::runtime_error(cat("get host name - ", onvif_data->last_error));
+			if (getTimeOffset(onvif_data)) throw std::runtime_error(cat("get time offset - ", onvif_data->last_error));
+			onvif_data->datetimetype = 'N';
+			onvif_data->ntp_dhcp = false;
+			strcpy(onvif_data->ntp_addr, "192.168.1.1");
+			strcpy(onvif_data->ntp_type, "IPv4");
+			if (setSystemDateAndTime(onvif_data)) throw std::runtime_error(cat("set NTP - ", onvif_data->last_error));
+			if (setNTP(onvif_data)) throw std::runtime_error(cat("set ntp - ", onvif_data->last_error));
+		}
+	}
+	else {
+		std::cout << "  Missing value for NTP\n" << std::endl;
+	}
 }
 */

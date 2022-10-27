@@ -60,48 +60,6 @@ if (LibOnvif_FOUND)
     message("-- Found LIBONVIF_LIBRARIES ${LIBONVIF_LIBRARIES}")
 endif()
 
-add_executable(onvif-discover
-    onvif-discover.c
-)
-
-target_link_libraries(onvif-discover PRIVATE
-    ${LIBONVIF_LIBRARIES}
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-discover PUBLIC
-    ${LIBONVIF_INCLUDE_DIRS}
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
-add_executable(onvif-getall
-    onvif-getall.c
-)
-
-target_link_libraries(onvif-getall PRIVATE
-    ${LIBONVIF_LIBRARIES}
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-getall PUBLIC
-    ${LIBONVIF_INCLUDE_DIRS}
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
-add_executable(onvif-time
-    onvif-time.c
-)
-
-target_link_libraries(onvif-time PRIVATE
-    ${LIBONVIF_LIBRARIES}
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif-time PUBLIC
-    ${LIBONVIF_INCLUDE_DIRS}
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
 add_executable(onvif-util
     onvif-util.cpp
 )

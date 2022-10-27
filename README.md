@@ -124,10 +124,10 @@ cmake --install .
 set PATH=%PATH%;"C:\Program Files (x86)\libonvif\bin"
 ```
 
-Compile the Example Program
+Compile the Utility Program
 ---------------------------
 
-Linux instructions for compiling the test program
+Linux instructions for compiling the utility program
 
 ```bash
 cd libonvif/example
@@ -140,10 +140,10 @@ make
 Run the test program on Linux
 
 ```bash
-./onvif-discover
+./onvif-util -a
 ```
 
-Windows instructions for compiling the test program
+Windows instructions for compiling the utility program
 
 ```bash
 cd libonvif\example
@@ -156,48 +156,161 @@ cmake --build . --config Release
 Run the test program on Windows
 
 ```bash
-Release\onvif-discover
+Release\onvif-util -a
 ```
 
+Utility Program Commands 
 
-Notes on the Example Program
-----------------------------
+SYNOPSIS
 
-The purpose of the example program is to discover cameras on the network and
-obtain the RTSP uri string to initiate streaming.  This is the most commonly
-used Onvif function.  libonvif is a c library so you are required to manage the
-memory.  This is not too difficult as there are only two data structures that
-require memory allocation, OnvifSession and OnvifData.  OnvifSession
-encompasses global Onvif variables so you only need one per program.  You
-should call initializeSession prior to calling any Onvif functions and close
-the session when no longer needed.  You will need to free the OnvifSession
-structure as well at that time.
+    onvif-util [-ah] [-u <user>] [-p <password>] [host_ip_address]
 
-OnvifData is a structure holding camera parameters and information, and you will
-need one of these each time you communicate with a camera.  The example program
-re-uses a single OnvifData structure each time it communicates with that
-camera, but you may want to allocate an OnvifData structure for each camera
-you find.  You should free the OnvifData structure when it is no longer needed
-to avoid memory leaks.
+DESCRIPTION
 
-The broadcast function of libonvif sends a UDP broadcast packet recognized by
-Onvif devices. Connected cameras will respond with a UDP packet reply which
-will be processed by libonvif which will return the number of cameras found.
-If you use this example program for a while, you will notice that sometimes a
-camera may not respond to the UDP broadcast all the time.  This is not unusual
-and will vary with network conditions and camera  variability.  It is common
-practice for broadcast functions to be repeated several times to give devices
-several chances to respond.  It is a good idea when doing this to increase the
-time interval between broadcasts.
+    View and set parameters on onvif compatible IP cameras. The command may be used to find and identify cameras, and then to create an interactive session that can be used to query and set camera properties. 
 
-Once the camera has been found, the function prepareOnvifData will initialize
-the OnvifData structure with the parameters needed for successful communication.
-At this point, the OnvifData structure is ready for authentication against the
-camera and the username and password are collected from the terminal prompt.
-The function fillRTSP will get the RTSP uri string from the camera.  fillRTSP
-will return a non-zero integer in the case of communication error, and the
-error message can be found in the last_error field of OnvifData. 
+    -a, --all
+        show all cameras on the network
 
+    -h, --help
+        show the help for this command
+
+    -u, --user 
+        set the username for the camera login
+
+    -p, --password
+        set the password for the camera login
+
+    To view all cameras on the network:
+    onvif-util -a
+
+    To login to a particular camera:
+    onvif-util -u username -p password ip_address
+
+    To login to a camera with safe mode disabled:
+    onvif-util -s -u username -p password ip_address
+
+    Once logged into the camera you can view data using the 'get' command followed by the data requested. The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used
+
+        Data Retrieval Commands (start with get)
+
+        get rtsp 'pass'(optional) (n) - Get rtsp uri for camera, with optional password credential
+        get capabilities
+        get time
+        get profiles
+        get profile (n)
+        get video (n)
+        get video options (n)
+        get imaging
+        get imaging options
+        get network
+
+        Parameter Setting Commands (start with set)
+
+        set resolution (n) - Resolution setting in the format widthxheight, must match option
+        set framerate (n)
+        set gov_length (n)
+        set bitrate (n)
+        set bightness value(required)
+        set contrast value(required)
+        set saturation value(required)
+        set sharpness value(required)
+        set ip_address value(required)
+        set default_gateway value(required)
+        set dns value(required)
+        set dhcp value(required) - Accepted settings are 'on' and off'
+        set password value(required)
+
+        Maintenance Commands
+
+        help
+        safe - set safe mode on.  Viewer and browser are disabled
+        unsafe - set safe mode off.  Viewer and browser are enabled
+        browser - Use browser to access camera configurations
+        view (n) - View the camera output using ffplay (ffplay must be installed in the path)
+        view player (n) - View the camera output with user specified player e.g. view vlc
+        sync_time 'zone'(optional) - Sync the camera time to the computer
+        dump - Full set of raw data from camera configuration
+        reboot
+
+        To Exit Camera Session
+
+        quit
+
+EXAMPLES
+
+    A typical session would begin by finding the cameras on the network
+
+    > onvif-util -a
+
+      Looking for cameras on the network...
+      Found 8 cameras
+      192.168.1.18 localhost(TV TV-IP319PI)
+      192.168.1.7 (IPC-BO IPC-122)
+      192.168.1.14 IPC(Dahua IPC-HDW4631C-A)
+      192.168.1.6 IPC(Amcrest IP2M-841EB)
+      192.168.1.12 (AXIS M1065-LW)
+      192.168.1.12 (AXIS M1065-LW)
+      192.168.1.2 IPC(Amcrest IP3M-HX2W)
+      192.168.1.11 R2(IPC-model)
+
+    To start a session with a camera, use the login credentials
+
+    > onvif-util -u admin -p admin123 192.168.1.12
+
+      found host: 192.168.1.12
+      successfully connected to host
+        name:   AXIS M1065-LW
+        serial: ACCC8E99C915
+
+    Get current settings for video
+
+    > get video
+
+      Profile set to profile_1_h264
+
+      Resolution: 1920 x 1080
+      Frame Rate: 25
+      Gov Length: 30
+      Bit Rate:   4096
+
+    Get available video settings
+
+    > get video options
+
+      Available Resolutions
+        1920 x 1080
+        1280 x 720
+        640 x 480
+        320 x 240
+      Min Gov Length: 1
+      Max Gov Length: 32767
+      Min Frame Rate: 1
+      Max Frame Rate: 30
+      Min Bit Rate: 1
+      Max Bit Rate: 2147483647
+
+    Set video resolution
+
+    > set resolution 1280x720
+
+      Resolution was set to 1280 x 720
+
+    Exit session
+
+    > quit
+
+SEE ALSO 
+
+  There is a gui version of this program included with the libonvif package which will implement most of the same commands. It may be invoke using the 'onvif' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
+
+NOTES
+
+  Camera compliance with the onvif standard is often incomplete and in some cases incorrect. Success with the onvif-util may be limited in many cases. Cameras made by Hikvision will have the greatest level of compatibility with onvif-util. Cameras made by Dahua will have a close degree of compatability with some notable exceptions regarding gateway and DNS settings. Time settings may not be reliable in some cases. If the time is set without the zone flag, the time appearing in the camera feed will be synced to the computer time. If the time zone flag is used, the displayed time may be set to an offset from the computer time based on the timezone setting of the camera.
+
+  If the camera DNS setting is properly onvif compliant, the IP address may be reliably set using onvif-util. Some cameras may not respond to the DNS setting requested by onvif-util due to non compliance. Note that the camera may reboot automatically under some conditions if the DNS setting is changed from off to on.
+
+  Video settings are reliable. The Admin Password setting is reliable, as well as the reboot command. If there is an issue with a particular setting, it is recommended to connect to the camera with a web browser, at most cameras will have a web interface that will allow you to make the changes reliably. The gui version has a button on the Admin tab that will launch the web browser with the camera ip address automatically.
 
 License
 -------

@@ -143,7 +143,7 @@ if (BUILD_GUI)
     )
 
     set_target_properties(onvif_exe PROPERTIES
-        OUTPUT_NAME onvif
+        OUTPUT_NAME onvif-camadmin
         ARCHIVE_OUTPUT_DIRECTORY onvif_exe
     )
 

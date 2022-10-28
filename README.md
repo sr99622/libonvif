@@ -14,14 +14,16 @@ compile on Linux and Windows.
 libonvif may be installed with pre-built binaries using anaconda, or may be
 compiled from source.
 
-An example program is included with libonvif that will discover compatible
-cameras on the local network and query each of them for their RSTP connection
-uri information.
+An example program is included with libonvif that can be used as a maintenance
+tool and will discover compatible cameras on the local network and may be used 
+to query each of them for device configuration such as RSTP connection uri 
+information or video settings.
 
 Additionally, there is a comprehensive GUI sample program that includes the
 discovery functionality as well controls for adjusting camera parameters and
 PTZ operations.  The GUI sample is written in Qt and can be compiled with
-either cmake or qmake using Qt Creator.
+either cmake or qmake using Qt Creator.  Note that the GUI program uses ffplay
+to display camera output.
 
 Quick Install With Anaconda
 ---------------------------
@@ -35,9 +37,9 @@ includes the gui interface.
 conda install -c conda-forge -c sr99622 libonvif
 ```
 
-The discovery program is invoked using the 'onvif-discovery' command.
+The utility program is invoked using the 'onvif-util' command.
 
-The gui interface may be invoked using the 'onvif' command.
+The GUI interface may be invoked using the 'onvif-camadmin' command.
 
 To Install From Source
 ----------------------
@@ -163,7 +165,7 @@ Utility Program Commands
 
 SYNOPSIS
 
-    onvif-util [-ah] [-u <user>] [-p <password>] [host_ip_address]
+    onvif-util [-ahs] [-u <user>] [-p <password>] [host_ip_address]
 
 DESCRIPTION
 
@@ -302,7 +304,7 @@ EXAMPLES
 
 SEE ALSO 
 
-  There is a gui version of this program included with the libonvif package which will implement most of the same commands. It may be invoke using the 'onvif' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
+  There is a GUI version of this program included with the libonvif package which will implement most of the same commands. It may be invoke using the 'onvif-camadmin' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
 
 NOTES
 

@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(discover)
+project(onvif-camadmin)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -63,7 +63,7 @@ if (NOT Iconv_FOUND)
     message("--Could not find Iconv. If you are using libxml2 compiled without iconv, this message may be ignored")
 endif()
 
-add_executable(onvif
+add_executable(onvif-camadmin
     admintab.cpp
     camera.cpp
     cameradialogtab.cpp
@@ -82,14 +82,14 @@ add_executable(onvif
     videotab.cpp
 )
 
-target_link_libraries(onvif PRIVATE
+target_link_libraries(onvif-camadmin PRIVATE
     Qt5::Widgets
     ${LIBONVIF_LIBRARIES}
     ${LIBXML2_LIBRARIES}
     ${Iconv_LIBRARY}
 )
 
-target_include_directories(onvif PUBLIC
+target_include_directories(onvif-camadmin PUBLIC
     ${LIBONVIF_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
     ${Iconv_INCLUDE_DIR}

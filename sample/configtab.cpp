@@ -32,8 +32,6 @@ ConfigTab::ConfigTab(QWidget *parent)
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
     player = new QLineEdit("ffplay");
-    playButton = new QPushButton("...");
-    playButton->setMaximumWidth(40);
     QLabel *lbl03 = new QLabel("Player");
     broadcastRepeat = new QSpinBox();
     broadcastRepeat->setRange(2, 5);
@@ -46,55 +44,24 @@ ConfigTab::ConfigTab(QWidget *parent)
     QLabel *lbl02 = new QLabel("Common Password");
 
     QGridLayout *layout = new QGridLayout();
-    layout->addWidget(autoDiscovery,       1, 0, 1, 2);
-    layout->addWidget(multiBroadcast,      2, 0, 1, 2);
-    layout->addWidget(lbl00,               2, 2, 1 ,1);
-    layout->addWidget(broadcastRepeat,     2, 3, 1, 1);
-    layout->addWidget(lbl01,               3, 0, 1, 2);
-    layout->addWidget(commonUsername,      3, 2, 1, 1);
-    layout->addWidget(lbl02,               4, 0, 1, 2);
-    layout->addWidget(commonPassword,      4, 2, 1, 1);
-    layout->addWidget(playButton,          5, 0, 1, 1);
-    layout->addWidget(lbl03,               5, 1, 1, 1);
-    layout->addWidget(player,              5, 2, 1, 4);
+    layout->addWidget(autoDiscovery,       1, 0, 1, 1);
+    layout->addWidget(multiBroadcast,      2, 0, 1, 1);
+    layout->addWidget(lbl00,               2, 1, 1 ,1);
+    layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
+    layout->addWidget(lbl01,               3, 0, 1, 1);
+    layout->addWidget(commonUsername,      3, 1, 1, 1);
+    layout->addWidget(lbl02,               4, 0, 1, 1);
+    layout->addWidget(commonPassword,      4, 1, 1, 1);
+    layout->addWidget(lbl03,               5, 0, 1, 1);
+    layout->addWidget(player,              5, 1, 1, 4);
     setLayout(layout);
 
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
     connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
     connect(player, SIGNAL(editingFinished()), this, SLOT(playerUpdated()));
-    connect(playButton, SIGNAL(clicked()), this, SLOT(playButtonClicked()));
     connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
     connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
     connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
-}
-
-void ConfigTab::playButtonClicked()
-{
-    std::stringstream ss_uri;
-    OnvifData* onvif_data = CP->cameraList->getCurrentCamera()->onvif_data;
-	std::string uri(onvif_data->stream_uri);
-	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
-    uri = ss_uri.str();
-
-    std::string argument;
-    std::vector<std::string> arguments;
-    std::string player(CP->configTab->player->text().toLatin1().data());
-    std::stringstream ss(player);
-    while (ss >> argument)
-        arguments.push_back(argument);
-    arguments.push_back(uri);
-    
-    QString cmd(QString(arguments[0].c_str()));
-    arguments.erase(arguments.begin());
-
-    QStringList args;
-    while (arguments.size() > 0) {
-        args.push_back(arguments[0].c_str());
-        arguments.erase(arguments.begin());
-    }
-
-    QProcess* process = new QProcess();
-    process->start(cmd, args);
 }
 
 void ConfigTab::autoDiscoveryClicked(bool checked)

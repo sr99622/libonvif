@@ -51,27 +51,19 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
     viewButton = new QPushButton("View", this);
     connect(viewButton, SIGNAL(clicked()), this, SLOT(viewButtonClicked()));
-    stopButton = new QPushButton("Stop", this);
-    connect(stopButton, SIGNAL(clicked()), this, SLOT(stopButtonClicked()));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
     buttonBox->addButton(discoverButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(viewButton, QDialogButtonBox::ActionRole);
-    buttonBox->addButton(stopButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(applyButton, QDialogButtonBox::ActionRole);
     buttonBox->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
 
-    displayLabel = new QLabel();
-    displayLabel->setMinimumWidth(640);
-    displayLabel->setMinimumHeight(480);
-
     QGridLayout *layout = new QGridLayout();
-    layout->addWidget(displayLabel, 0, 0, 3, 1);
-    layout->addWidget(cameraList,   0, 1, 1, 1);
-    layout->addWidget(tabWidget,    1, 1, 1, 1);
-    layout->addWidget(buttonBox,    2, 1, 1, 1);
+    layout->addWidget(cameraList,   0, 0, 1, 1);
+    layout->addWidget(tabWidget,    1, 0, 1, 1);
+    layout->addWidget(buttonBox,    2, 0, 1, 1);
     layout->setColumnStretch(0, 10);
     setLayout(layout);
 
@@ -131,43 +123,32 @@ void CameraPanel::discoverButtonClicked()
     discovery->start();
 }
 
-void CameraPanel::stopButtonClicked()
-{
-    stopButton->setEnabled(false);
-    viewButton->setEnabled(true);
-    if (process) {
-        process->key_event(SDLK_ESCAPE);
-    }
-}
-
 void CameraPanel::viewButtonClicked()
 {
-    stopButton->setEnabled(true);
-    viewButton->setEnabled(false);
-
     std::stringstream ss_uri;
     OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
 	std::string uri(onvif_data->stream_uri);
 	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
     uri = ss_uri.str();
 
-    process = new avio::Process();
-    avio::Reader reader(uri.c_str());
-    std::cout << "duration: " << reader.duration() << std::endl;
-    reader.set_video_out("vpq_reader");
+    std::string argument;
+    std::vector<std::string> arguments;
+    std::string player(configTab->player->text().toLatin1().data());
+    std::stringstream ss(player);
+    while (ss >> argument)
+        arguments.push_back(argument);
+    arguments.push_back(uri);
+    
+    QString cmd(QString(arguments[0].c_str()));
+    arguments.erase(arguments.begin());
 
-    avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO);
-    videoDecoder.set_video_in(reader.video_out());
-    videoDecoder.set_video_out("vfq_decoder");
+    QStringList args;
+    while (arguments.size() > 0) {
+        args.push_back(arguments[0].c_str());
+        arguments.erase(arguments.begin());
+    }
 
-    avio::Display display(reader);
-    display.setHWnd(displayLabel->winId());
-    display.set_video_in(videoDecoder.video_out());
-
-    process->add_reader(reader);
-    process->add_decoder(videoDecoder);
-    process->add_display(display);
-    process->run();
+    process.start(cmd, args);
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)
@@ -210,7 +191,6 @@ void CameraPanel::fillData()
     adminTab->setActive(false);
     applyButton->setEnabled(false);
     viewButton->setEnabled(false);
-    stopButton->setEnabled(false);
     QThreadPool::globalInstance()->tryStart(filler);
 }
 
@@ -229,7 +209,6 @@ void CameraPanel::showData()
     camera->onvif_data_read = true;
     applyButton->setEnabled(false);   
     viewButton->setEnabled(true);
-    stopButton->setEnabled(false);
 }
 
 void CameraPanel::saveUsername()
@@ -282,34 +261,3 @@ void CameraPanel::refreshList()
     cameraList->refresh();
 }
 
-
-
-
-
-/*
-    std::stringstream ss_uri;
-    OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
-	std::string uri(onvif_data->stream_uri);
-	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
-    uri = ss_uri.str();
-
-    std::string argument;
-    std::vector<std::string> arguments;
-    std::string player(configTab->player->text().toLatin1().data());
-    std::stringstream ss(player);
-    while (ss >> argument)
-        arguments.push_back(argument);
-    arguments.push_back(uri);
-    
-    QString cmd(QString(arguments[0].c_str()));
-    arguments.erase(arguments.begin());
-
-    QStringList args;
-    while (arguments.size() > 0) {
-        args.push_back(arguments[0].c_str());
-        arguments.erase(arguments.begin());
-    }
-
-    QProcess* process = new QProcess();
-    process->start(cmd, args);
-*/

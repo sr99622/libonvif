@@ -57,17 +57,15 @@ MainWindow::~MainWindow()
 
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {
-    //if (event->key() == Qt::Key_Escape) {
-    //    close();
-    //}
+    if (event->key() == Qt::Key_Escape) {
+        close();
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     Q_UNUSED(event);
     settings->setValue("geometry", geometry());
-    if (cameraPanel->process)
-        cameraPanel->process->key_event(SDLK_ESCAPE);
 }
 
 void MainWindow::msg(QString str)

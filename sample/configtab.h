@@ -45,6 +45,7 @@ public:
     QSpinBox *broadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
+    QPushButton *playButton;
     QLineEdit* player;
 
 signals:
@@ -57,6 +58,7 @@ public slots:
     void autoDiscoveryClicked(bool);
     void multiBroadcastClicked(bool);
     void broadcastRepeatChanged(int);
+    void playButtonClicked();
 
 };
 

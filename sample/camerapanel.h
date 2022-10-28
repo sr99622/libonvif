@@ -33,10 +33,12 @@
 #include "cameralistview.h"
 #include "discovery.h"
 #include "logindialog.h"
+#include "avio.h"
 
 #include <QObject>
 #include <QDialog>
 #include <QTabWidget>
+#include <QLabel>
 #include <QPushButton>
 #include <QMainWindow>
 #include <QSettings>
@@ -66,6 +68,7 @@ public:
     QPushButton *applyButton;
     QPushButton *discoverButton;
     QPushButton *viewButton;
+    QPushButton *stopButton;
     VideoTab *videoTab;
     ImageTab *imageTab;
     NetworkTab *networkTab;
@@ -79,6 +82,7 @@ public:
     LoginDialog *loginDialog = nullptr;
     QSettings *cameraNames;
     OnvifSession *onvif_session;
+    QLabel *displayLabel;
 
     const QString usernameKey   = "CameraPanel/username";
     const QString passwordKey   = "CameraPanel/password";
@@ -93,6 +97,8 @@ public:
     QString savedAutoCameraName;
     bool autoCameraFound;
 
+    avio::Process* process = nullptr;
+
 signals:
     void msg(QString str);
 
@@ -104,6 +110,7 @@ public slots:
     void applyButtonClicked();
     void discoverButtonClicked();
     void viewButtonClicked();
+    void stopButtonClicked();
     void discoveryFinished();
 
 };

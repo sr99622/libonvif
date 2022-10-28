@@ -181,11 +181,11 @@ There is NO WARRANTY, to the extent permitted by law.
 
 .SH SEE ALSO 
 
-There is a gui version of this program included with the libonvif package which will implement most of the same commands. It may be invoked using the 'onvif' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
+There is a GUI version of this program included with the libonvif package which will implement most of the same commands. It may be invoked using the 'onvif' command. The GUI has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
 .SH NOTES
 
 Camera compliance with the onvif standard is often incomplete and in some cases incorrect. Success with the \fBonvif-util\fP may be limited in many cases. Cameras made by Hikvision will have the greatest level of compatibility with \fBonvif-util\fP. Cameras made by Dahua will have a close degree of compatability with some notable exceptions regarding gateway and DNS settings. Time settings may not be reliable in some cases. If the time is set without the zone flag, the time appearing in the camera feed will be synced to the computer time. If the time zone flag is used, the displayed time may be set to an offset from the computer time based on the timezone setting of the camera.
 .PP
 If the camera DNS setting is properly onvif compliant, the IP address may be reliably set using \fBonvif-util\fP. Some cameras may not respond to the DNS setting requested by \fBonvif-util\fP due to non compliance. Note that the camera may reboot automatically under some conditions if the DNS setting is changed from off to on.
 .PP
-Video settings are reliable. The Admin Password setting is reliable, as well as sync_time and the reboot command. If there is an issue with a particular setting, it is recommended to connect to the camera using the browser command, as most cameras will have a web interface that will allow you to make the changes reliably. The gui version has a button on the Admin tab that will launch the web browser with the camera ip address automatically.
+Video settings are reliable. The Admin Password setting is reliable, as well as sync_time and the reboot command. If there is an issue with a particular setting, it is recommended to connect to the camera using the browser command, as most cameras will have a web interface that will allow you to make the changes reliably. The GUI version has a button on the Admin tab that will launch the web browser with the camera ip address automatically.

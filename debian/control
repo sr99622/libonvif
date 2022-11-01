@@ -1,0 +1,41 @@
+Source: libonvif
+Priority: optional
+Maintainer: Petter Reinholdtsen <pere@debian.org>
+Build-Depends: debhelper-compat (= 13)
+ , cmake
+ , libxml2-dev
+Standards-Version: 4.5.1
+Section: libs
+Homepage: https://github.com/sr99622/libonvif/
+#Vcs-Browser: https://salsa.debian.org/debian/libonvif
+#Vcs-Git: https://salsa.debian.org/debian/libonvif.git
+Rules-Requires-Root: no
+
+Package: libonvif-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libonvif0 (= ${binary:Version}), ${misc:Depends}
+Description: ONVIF IP camera client library
+ Implementing the client side of the ONVIF specification for communicating
+ with IP enabled compatible cameras.
+
+Package: libonvif0
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ONVIF IP camera client library
+ Implementing the client side of the ONVIF specification for communicating
+ with IP enabled compatible cameras.
+
+Package: onvif-tools
+Section: utils
+Architecture: any
+Multi-Arch: foreign
+Depends: ${shlibs:Depends}, ${misc:Depends}
+ , libonvif0
+Description: ONVIF IP camera command line and GUI tools
+ The command line tool discover will find compatible cameras on the local
+ network and query each of them for their RSTP connection.
+ .
+ The GUI tool onvif allow configuration of detected cameras.

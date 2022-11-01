@@ -1,0 +1,27 @@
+Index: libonvif/.github/workflows/ci.yml
+===================================================================
+--- libonvif.orig/.github/workflows/ci.yml	2022-10-25 07:40:07.698589101 +0200
++++ libonvif/.github/workflows/ci.yml	2022-10-25 07:52:51.520099859 +0200
+@@ -54,3 +54,22 @@
+         mkdir builddir && cd builddir
+         eatmydata cmake -DBUILD_GUI=1 ..
+         eatmydata make
++        cd .. && eatmydata rm -rf builddir
++    - name: Fetch upstream tarball and build Debian package
++      env:
++        DEBIAN_FRONTEND: noninteractive
++      run: |
++        set -e
++        set -x
++        eatmydata apt --yes --quiet build-dep --indep-only .
++        eatmydata apt --yes --quiet install libdpkg-perl libgit-wrapper-perl liblist-compare-perl libstring-shellquote-perl libtry-tiny-perl
++        eatmydata git-deborig --version=1.2.0
++        eatmydata debuild -us -uc
++        eatmydata make
++    - name: Install Debian package
++      env:
++        DEBIAN_FRONTEND: noninteractive
++      run: |
++        set -e
++        set -x
++        eatmydata apt --yes --quiet install ./*.deb

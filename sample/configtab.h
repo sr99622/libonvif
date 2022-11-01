@@ -45,7 +45,7 @@ public:
     QSpinBox *broadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
-    QLineEdit* player;
+    //QLineEdit* player;
 
 signals:
     void msg(const QString&);
@@ -53,7 +53,7 @@ signals:
 public slots:
     void usernameUpdated();
     void passwordUpdated();
-    void playerUpdated();
+    //void playerUpdated();
     void autoDiscoveryClicked(bool);
     void multiBroadcastClicked(bool);
     void broadcastRepeatChanged(int);

@@ -31,8 +31,8 @@ ConfigTab::ConfigTab(QWidget *parent)
 
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
-    player = new QLineEdit("ffplay");
-    QLabel *lbl03 = new QLabel("Player");
+    //player = new QLineEdit("ffplay");
+    //QLabel *lbl03 = new QLabel("Player");
     broadcastRepeat = new QSpinBox();
     broadcastRepeat->setRange(2, 5);
     QLabel *lbl00 = new QLabel("Broadcast Repeat");
@@ -52,13 +52,13 @@ ConfigTab::ConfigTab(QWidget *parent)
     layout->addWidget(commonUsername,      3, 1, 1, 1);
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
-    layout->addWidget(lbl03,               5, 0, 1, 1);
-    layout->addWidget(player,              5, 1, 1, 4);
+    //layout->addWidget(lbl03,               5, 0, 1, 1);
+    //layout->addWidget(player,              5, 1, 1, 4);
     setLayout(layout);
 
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
     connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
-    connect(player, SIGNAL(editingFinished()), this, SLOT(playerUpdated()));
+    //connect(player, SIGNAL(editingFinished()), this, SLOT(playerUpdated()));
     connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
     connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
     connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
@@ -100,7 +100,9 @@ void ConfigTab::passwordUpdated()
     CP->savePassword();
 }
 
+/*
 void ConfigTab::playerUpdated()
 {
     CP->savePlayer();
 }
+*/

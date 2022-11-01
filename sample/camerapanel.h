@@ -40,6 +40,7 @@
 #include <QPushButton>
 #include <QMainWindow>
 #include <QSettings>
+#include <QtAV>
 
 #define CP dynamic_cast<CameraPanel*>(cameraPanel)
 
@@ -53,7 +54,7 @@ public:
     void refreshList();
     void saveUsername();
     void savePassword();
-    void savePlayer();
+    //void savePlayer();
     void saveAutoDiscovery();
     void saveMultiBroadcast();
     void saveNetIntf(const QString& name);
@@ -65,7 +66,7 @@ public:
     QTabWidget *tabWidget;
     QPushButton *applyButton;
     QPushButton *discoverButton;
-    QPushButton *viewButton;
+    //QPushButton *viewButton;
     VideoTab *videoTab;
     ImageTab *imageTab;
     NetworkTab *networkTab;
@@ -79,6 +80,9 @@ public:
     LoginDialog *loginDialog = nullptr;
     QSettings *cameraNames;
     OnvifSession *onvif_session;
+
+    QtAV::VideoOutput *m_vo;
+    QtAV::AVPlayer *m_player;
 
     const QString usernameKey   = "CameraPanel/username";
     const QString passwordKey   = "CameraPanel/password";

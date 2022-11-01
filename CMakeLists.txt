@@ -26,6 +26,8 @@ project(libonvif)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     set(BUILD_SHARED_LIBS TRUE)
@@ -122,6 +124,7 @@ if (BUILD_GUI)
     set(CMAKE_AUTORCC ON)
     set(CMAKE_AUTOUIC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
+    find_package(QtAV REQUIRED)
 
     add_executable(onvif_exe
         sample/admintab.cpp
@@ -151,11 +154,13 @@ if (BUILD_GUI)
         Qt5::Widgets
         onvif_static
         ${LIBXML2_LIBRARIES}
+        ${QTAVWIDGETS_LIBRARIES}
     )
 
     target_include_directories(onvif_exe PUBLIC
         include
         ${LIBXML2_INCLUDE_DIRS}
+        ${QTAVWIDGETS_INCLUDE_DIRS}
     )
 
     install(TARGETS onvif_exe DESTINATION bin)

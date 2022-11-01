@@ -44,26 +44,32 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     configTab = new ConfigTab(this);
     tabWidget->addTab(configTab, "Config");
     tabWidget->setMaximumHeight(220);
+    tabWidget->setMinimumWidth(440);
 
     applyButton = new QPushButton(tr("Apply"), this);
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));
     discoverButton = new QPushButton("Discover", this);
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
-    viewButton = new QPushButton("View", this);
-    connect(viewButton, SIGNAL(clicked()), this, SLOT(viewButtonClicked()));
+    //viewButton = new QPushButton("View", this);
+    //connect(viewButton, SIGNAL(clicked()), this, SLOT(viewButtonClicked()));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
     buttonBox->addButton(discoverButton, QDialogButtonBox::ActionRole);
-    buttonBox->addButton(viewButton, QDialogButtonBox::ActionRole);
+    //buttonBox->addButton(viewButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(applyButton, QDialogButtonBox::ActionRole);
     buttonBox->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
 
+    m_player = new QtAV::AVPlayer(this);
+    m_vo = new QtAV::VideoOutput(this);
+    m_player->setRenderer(m_vo);
+
     QGridLayout *layout = new QGridLayout();
-    layout->addWidget(cameraList,   0, 0, 1, 1);
-    layout->addWidget(tabWidget,    1, 0, 1, 1);
-    layout->addWidget(buttonBox,    2, 0, 1, 1);
+    layout->addWidget(m_vo->widget(), 0, 0, 3, 1);
+    layout->addWidget(cameraList,     0, 1, 1, 1);
+    layout->addWidget(tabWidget,      1, 1, 1, 1);
+    layout->addWidget(buttonBox,      2, 1, 1, 1);
     layout->setColumnStretch(0, 10);
     setLayout(layout);
 
@@ -76,7 +82,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     ptzTab->setActive(false);
     adminTab->setActive(false);
     applyButton->setEnabled(false);
-    viewButton->setEnabled(false);
+    //viewButton->setEnabled(false);
 
     connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
 
@@ -86,7 +92,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     configTab->commonUsername->setText(MW->settings->value(usernameKey, "").toString());
     configTab->commonPassword->setText(MW->settings->value(passwordKey, "").toString());
-    configTab->player->setText(MW->settings->value(playerKey, "ffplay").toString());
+    //configTab->player->setText(MW->settings->value(playerKey, "ffplay").toString());
     configTab->autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
     configTab->multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
     configTab->broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
@@ -130,25 +136,7 @@ void CameraPanel::viewButtonClicked()
 	std::string uri(onvif_data->stream_uri);
 	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
     uri = ss_uri.str();
-
-    std::string argument;
-    std::vector<std::string> arguments;
-    std::string player(configTab->player->text().toLatin1().data());
-    std::stringstream ss(player);
-    while (ss >> argument)
-        arguments.push_back(argument);
-    arguments.push_back(uri);
-    
-    QString cmd(QString(arguments[0].c_str()));
-    arguments.erase(arguments.begin());
-
-    QStringList args;
-    while (arguments.size() > 0) {
-        args.push_back(arguments[0].c_str());
-        arguments.erase(arguments.begin());
-    }
-
-    process.start(cmd, args);
+    m_player->play(uri.c_str());
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)
@@ -190,7 +178,7 @@ void CameraPanel::fillData()
     networkTab->setActive(false);
     adminTab->setActive(false);
     applyButton->setEnabled(false);
-    viewButton->setEnabled(false);
+    //viewButton->setEnabled(false);
     QThreadPool::globalInstance()->tryStart(filler);
 }
 
@@ -208,7 +196,7 @@ void CameraPanel::showData()
     ptzTab->setActive(camera->hasPTZ());
     camera->onvif_data_read = true;
     applyButton->setEnabled(false);   
-    viewButton->setEnabled(true);
+    //viewButton->setEnabled(true);
 }
 
 void CameraPanel::saveUsername()
@@ -221,10 +209,12 @@ void CameraPanel::savePassword()
     MW->settings->setValue(passwordKey, configTab->commonPassword->text());
 }
 
+/*
 void CameraPanel::savePlayer()
 {
     MW->settings->setValue(playerKey, configTab->player->text());
 }
+*/
 
 void CameraPanel::saveAutoDiscovery()
 {

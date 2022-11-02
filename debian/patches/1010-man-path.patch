@@ -30,5 +30,5 @@ Last-Update: 2022-10-28
  endif()
  install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
  install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
--INSTALL(FILES example/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
-+INSTALL(FILES example/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
+-INSTALL(FILES onvif-util/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
++INSTALL(FILES onvif-util/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)

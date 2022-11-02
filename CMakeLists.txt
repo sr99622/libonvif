@@ -98,12 +98,75 @@ target_include_directories(onvif_shared PUBLIC
     $ENV{CONDA_PREFIX}/Library/include
 )
 
-add_subdirectory(onvif-util)
+add_executable(onvif-util
+    onvif-util/onvif-util.cpp
+)
 
-if (BUILD_GUI)
-    add_subdirectory(onvif-camadmin)
+if (MSVC)
+    target_link_libraries(onvif-util PRIVATE
+        onvif_static
+        ${LIBXML2_LIBRARIES}
+    )
+else()
+    target_link_libraries(onvif-util PRIVATE
+        onvif_shared
+        ${LIBXML2_LIBRARIES}
+    )
 endif()
 
+target_include_directories(onvif-util PUBLIC
+    include
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+if (BUILD_GUI)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_AUTOUIC ON)
+    find_package(Qt5 COMPONENTS Widgets REQUIRED)
+    find_package(QtAV REQUIRED)
+
+    add_executable(onvif_exe
+        onvif-camadmin/admintab.cpp
+        onvif-camadmin/camera.cpp
+        onvif-camadmin/cameradialogtab.cpp
+        onvif-camadmin/cameralistmodel.cpp
+        onvif-camadmin/cameralistview.cpp
+        onvif-camadmin/camerapanel.cpp
+        onvif-camadmin/configtab.cpp
+        onvif-camadmin/discovery.cpp
+        onvif-camadmin/imagetab.cpp
+        onvif-camadmin/logindialog.cpp
+        onvif-camadmin/main.cpp
+        onvif-camadmin/mainwindow.cpp
+        onvif-camadmin/networktab.cpp
+        onvif-camadmin/onvifmanager.cpp
+        onvif-camadmin/ptztab.cpp
+        onvif-camadmin/videotab.cpp
+    )
+
+    set_target_properties(onvif_exe PROPERTIES
+        OUTPUT_NAME onvif-camadmin
+        ARCHIVE_OUTPUT_DIRECTORY onvif_exe
+    )
+
+    target_link_libraries(onvif_exe PRIVATE
+        Qt5::Widgets
+        onvif_static
+        ${LIBXML2_LIBRARIES}
+        ${QTAVWIDGETS_LIBRARIES}
+    )
+
+    target_include_directories(onvif_exe PUBLIC
+        include
+        ${LIBXML2_INCLUDE_DIRS}
+        ${QTAVWIDGETS_INCLUDE_DIRS}
+    )
+
+    install(TARGETS onvif_exe DESTINATION bin)
+endif()
+
+install(TARGETS onvif-util DESTINATION bin)
 if (MSVC)
     install(TARGETS onvif_shared 
                     LIBRARY DESTINATION lib
@@ -116,4 +179,3 @@ endif()
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 INSTALL(FILES onvif-util/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
-INSTALL(FILES onvif-camadmin/onvif-camadmin.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)

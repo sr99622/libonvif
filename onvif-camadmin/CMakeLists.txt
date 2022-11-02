@@ -37,6 +37,8 @@ if (Qt5_FOUND)
     message("-- Found Qt")
 endif()
 
+find_package(QtAV REQUIRED)
+
 find_package(LibXml2)
 if (NOT LibXml2_FOUND)
     message("-- Looking for installation of libxml2")
@@ -84,12 +86,14 @@ add_executable(onvif-camadmin
 
 target_link_libraries(onvif-camadmin PRIVATE
     Qt5::Widgets
+    ${QTAVWIDGETS_LIBRARIES}
     ${LIBONVIF_LIBRARIES}
     ${LIBXML2_LIBRARIES}
     ${Iconv_LIBRARY}
 )
 
 target_include_directories(onvif-camadmin PUBLIC
+    ${QTAVWIDGETS_INCLUDE_DIRS}
     ${LIBONVIF_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
     ${Iconv_INCLUDE_DIR}

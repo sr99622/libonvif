@@ -99,7 +99,7 @@ target_include_directories(onvif_shared PUBLIC
 )
 
 add_executable(onvif-util
-    example/onvif-util.cpp
+    onvif-util/onvif-util.cpp
 )
 
 if (MSVC)
@@ -127,22 +127,22 @@ if (BUILD_GUI)
     find_package(QtAV REQUIRED)
 
     add_executable(onvif_exe
-        sample/admintab.cpp
-        sample/camera.cpp
-        sample/cameradialogtab.cpp
-        sample/cameralistmodel.cpp
-        sample/cameralistview.cpp
-        sample/camerapanel.cpp
-        sample/configtab.cpp
-        sample/discovery.cpp
-        sample/imagetab.cpp
-        sample/logindialog.cpp
-        sample/main.cpp
-        sample/mainwindow.cpp
-        sample/networktab.cpp
-        sample/onvifmanager.cpp
-        sample/ptztab.cpp
-        sample/videotab.cpp
+        onvif-camadmin/admintab.cpp
+        onvif-camadmin/camera.cpp
+        onvif-camadmin/cameradialogtab.cpp
+        onvif-camadmin/cameralistmodel.cpp
+        onvif-camadmin/cameralistview.cpp
+        onvif-camadmin/camerapanel.cpp
+        onvif-camadmin/configtab.cpp
+        onvif-camadmin/discovery.cpp
+        onvif-camadmin/imagetab.cpp
+        onvif-camadmin/logindialog.cpp
+        onvif-camadmin/main.cpp
+        onvif-camadmin/mainwindow.cpp
+        onvif-camadmin/networktab.cpp
+        onvif-camadmin/onvifmanager.cpp
+        onvif-camadmin/ptztab.cpp
+        onvif-camadmin/videotab.cpp
     )
 
     set_target_properties(onvif_exe PROPERTIES
@@ -178,4 +178,5 @@ else()
 endif()
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-INSTALL(FILES example/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+INSTALL(FILES onvif-util/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+INSTALL(FILES onvif-camadmin/onvif-camadmin.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)

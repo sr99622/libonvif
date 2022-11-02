@@ -54,7 +54,6 @@ public:
     void refreshList();
     void saveUsername();
     void savePassword();
-    //void savePlayer();
     void saveAutoDiscovery();
     void saveMultiBroadcast();
     void saveNetIntf(const QString& name);
@@ -66,7 +65,6 @@ public:
     QTabWidget *tabWidget;
     QPushButton *applyButton;
     QPushButton *discoverButton;
-    //QPushButton *viewButton;
     VideoTab *videoTab;
     ImageTab *imageTab;
     NetworkTab *networkTab;

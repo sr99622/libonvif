@@ -73,3 +73,5 @@ target_include_directories(onvif-util PUBLIC
     ${LIBONVIF_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
 )
+
+install(TARGETS onvif-util DESTINATION bin)

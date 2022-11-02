@@ -55,15 +55,6 @@ MainWindow::~MainWindow()
 {
 }
 
-/*
-void MainWindow::keyPressEvent(QKeyEvent* event)
-{
-    if (event->key() == Qt::Key_Escape) {
-        close();
-    }
-}
-*/
-
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     Q_UNUSED(event);

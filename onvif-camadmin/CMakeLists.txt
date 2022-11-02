@@ -84,6 +84,11 @@ add_executable(onvif-camadmin
     videotab.cpp
 )
 
+set_target_properties(onvif-camadmin PROPERTIES
+    OUTPUT_NAME onvif-camadmin
+    ARCHIVE_OUTPUT_DIRECTORY onvif-camadmin
+)
+
 target_link_libraries(onvif-camadmin PRIVATE
     Qt5::Widgets
     ${QTAVWIDGETS_LIBRARIES}
@@ -99,3 +104,4 @@ target_include_directories(onvif-camadmin PUBLIC
     ${Iconv_INCLUDE_DIR}
 )
 
+install(TARGETS onvif-camadmin DESTINATION bin)

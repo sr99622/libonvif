@@ -50,12 +50,9 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));
     discoverButton = new QPushButton("Discover", this);
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
-    //viewButton = new QPushButton("View", this);
-    //connect(viewButton, SIGNAL(clicked()), this, SLOT(viewButtonClicked()));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
     buttonBox->addButton(discoverButton, QDialogButtonBox::ActionRole);
-    //buttonBox->addButton(viewButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(applyButton, QDialogButtonBox::ActionRole);
     buttonBox->setMaximumHeight(60);
 
@@ -82,7 +79,6 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     ptzTab->setActive(false);
     adminTab->setActive(false);
     applyButton->setEnabled(false);
-    //viewButton->setEnabled(false);
 
     connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
 
@@ -92,7 +88,6 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     configTab->commonUsername->setText(MW->settings->value(usernameKey, "").toString());
     configTab->commonPassword->setText(MW->settings->value(passwordKey, "").toString());
-    //configTab->player->setText(MW->settings->value(playerKey, "ffplay").toString());
     configTab->autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
     configTab->multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
     configTab->broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
@@ -178,7 +173,6 @@ void CameraPanel::fillData()
     networkTab->setActive(false);
     adminTab->setActive(false);
     applyButton->setEnabled(false);
-    //viewButton->setEnabled(false);
     QThreadPool::globalInstance()->tryStart(filler);
 }
 
@@ -196,7 +190,6 @@ void CameraPanel::showData()
     ptzTab->setActive(camera->hasPTZ());
     camera->onvif_data_read = true;
     applyButton->setEnabled(false);   
-    //viewButton->setEnabled(true);
 }
 
 void CameraPanel::saveUsername()
@@ -208,13 +201,6 @@ void CameraPanel::savePassword()
 {
     MW->settings->setValue(passwordKey, configTab->commonPassword->text());
 }
-
-/*
-void CameraPanel::savePlayer()
-{
-    MW->settings->setValue(playerKey, configTab->player->text());
-}
-*/
 
 void CameraPanel::saveAutoDiscovery()
 {

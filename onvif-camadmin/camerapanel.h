@@ -40,7 +40,10 @@
 #include <QPushButton>
 #include <QMainWindow>
 #include <QSettings>
+
+#ifndef _WIN32
 #include <QtAV>
+#endif
 
 #define CP dynamic_cast<CameraPanel*>(cameraPanel)
 
@@ -79,8 +82,10 @@ public:
     QSettings *cameraNames;
     OnvifSession *onvif_session;
 
+#ifndef _WIN32
     QtAV::VideoOutput *m_vo;
     QtAV::AVPlayer *m_player;
+#endif
 
     const QString usernameKey   = "CameraPanel/username";
     const QString passwordKey   = "CameraPanel/password";

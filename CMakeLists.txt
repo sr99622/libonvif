@@ -115,7 +115,9 @@ target_include_directories(onvif-util PUBLIC
 if (BUILD_GUI)
     set(CMAKE_AUTOMOC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
-    find_package(QtAV REQUIRED)
+    if (LUNIX)
+        find_package(QtAV REQUIRED)
+    endif()
 
     add_executable(onvif_exe
         onvif-camadmin/admintab.cpp
@@ -145,13 +147,17 @@ if (BUILD_GUI)
         Qt5::Widgets
         onvif_static
         ${LIBXML2_LIBRARIES}
-        ${QTAVWIDGETS_LIBRARIES}
+        #if (LINUX)
+        #    ${QTAVWIDGETS_LIBRARIES}
+        #endif()
     )
 
     target_include_directories(onvif_exe PUBLIC
         include
         ${LIBXML2_INCLUDE_DIRS}
-        ${QTAVWIDGETS_INCLUDE_DIRS}
+        #if (LINUX)
+        #    ${QTAVWIDGETS_INCLUDE_DIRS}
+        #endif()
     )
 
     install(TARGETS onvif_exe DESTINATION bin)

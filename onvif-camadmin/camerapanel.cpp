@@ -25,6 +25,8 @@
 #include <QGridLayout>
 #include <QThreadPool>
 #include <QDialogButtonBox>
+#include <QGuiApplication>
+#include <QScreen>
 
 CameraPanel::CameraPanel(QMainWindow *parent)
 {
@@ -43,7 +45,11 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     tabWidget->addTab(adminTab, "Admin");
     configTab = new ConfigTab(this);
     tabWidget->addTab(configTab, "Config");
-    tabWidget->setMaximumHeight(220);
+    QList<QScreen*> screens = QGuiApplication::screens();
+    QSize screenSize = screens[0]->size();
+    std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
+
+    tabWidget->setMaximumHeight(screenSize.height() * 0.2);
     tabWidget->setMinimumWidth(440);
 
     applyButton = new QPushButton(tr("Apply"), this);
@@ -58,17 +64,25 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     cameraList = new CameraListView(mainWindow);
 
+#ifndef _WIN32
     m_player = new QtAV::AVPlayer(this);
     m_vo = new QtAV::VideoOutput(this);
     m_player->setRenderer(m_vo);
     m_vo->widget()->setMinimumWidth(400);
+#endif
 
     QGridLayout *layout = new QGridLayout();
+#ifndef _WIN32
     layout->addWidget(m_vo->widget(), 0, 0, 3, 1);
     layout->addWidget(cameraList,     0, 1, 1, 1);
     layout->addWidget(tabWidget,      1, 1, 1, 1);
     layout->addWidget(buttonBox,      2, 1, 1, 1);
     layout->setColumnStretch(0, 10);
+#else
+    layout->addWidget(cameraList,     0, 0, 1, 0);
+    layout->addWidget(tabWidget,      1, 0, 1, 1);
+    layout->addWidget(buttonBox,      2, 0, 1, 1);
+#endif
     setLayout(layout);
 
     filler = new Filler(this);
@@ -127,12 +141,14 @@ void CameraPanel::discoverButtonClicked()
 
 void CameraPanel::viewButtonClicked()
 {
+#ifndef _WIN32
     std::stringstream ss_uri;
     OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
 	std::string uri(onvif_data->stream_uri);
 	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
     uri = ss_uri.str();
     m_player->play(uri.c_str());
+#endif
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)

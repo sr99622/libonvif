@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
         int x = (screenSize.width() - width()) / 2;
         int y = (screenSize.height() - height()) / 2;
         move(x, y);
+        std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
     }
 }
 

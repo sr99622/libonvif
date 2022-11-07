@@ -61,6 +61,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     m_player = new QtAV::AVPlayer(this);
     m_vo = new QtAV::VideoOutput(this);
     m_player->setRenderer(m_vo);
+    m_vo->widget()->setMinimumWidth(400);
 
     QGridLayout *layout = new QGridLayout();
     layout->addWidget(m_vo->widget(), 0, 0, 3, 1);

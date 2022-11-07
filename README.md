@@ -342,17 +342,21 @@ DESCRIPTION
 
     Admin:
 
-        Camera Name  - Sets the application display name of the camera based on the camera mfgr and serial number.
+        Camera Name  - Sets the application display name of the camera based on the camera mfgr 
+          and serial number.
         Set admin Password - Can be used to change the password for the camera.
         Sync Time - Will reset the camera's current time without regard to time zone.
         Browser - Will launch a browser session with the camera for advanced maintenance.
         Enable Reboot - Will enable the reboot button for use.
-        Enable Reset - Will enable the reset button for use.  Use with caution, all camera settings will be reset.
+        Enable Reset - Will enable the reset button for use.  Use with caution, all camera 
+          settings will be reset.
 
     Config:
 
-        Auto Discovery - When checked, the application will automatcally start discovery upon launch, otherwise use the Discover button.
-        Multi Broadcast - When checked will repeat the broadcast message the number of times in the Broadcast Repeate spin box.
+        Auto Discovery - When checked, the application will automatcally start discovery upon launch, 
+          otherwise use the Discover button.
+        Multi Broadcast - When checked will repeat the broadcast message the number of times in the 
+          Broadcast Repeate spin box.
         Common Username - Default username used during discover.
         Common Password - Default password used during discover.
 
@@ -374,17 +378,20 @@ SEE ALSO
 
 NOTES
 
-    Camera compliance with the onvif standard is often incomplete and in some cases incorrect. Success with 
-    the onvif-util may be limited in many cases. Cameras made by Hikvision will have the greatest level of 
-    compatibility with onvif-util. Cameras made by Dahua will have a close degree of compatability with 
-    some notable exceptions regarding gateway and DNS settings. Time settings may not be reliable in some 
-    cases. If the time is set without the zone flag, the time appearing in the camera feed will be synced 
-    to the computer time. If the time zone flag is used, the displayed time may be set to an offset from the 
-    computer time based on the timezone setting of the camera.
+    Camera compliance with the onvif standard is often incomplete and in some cases 
+    incorrect. Success with the onvif-util may be limited in many cases. Cameras 
+    made by Hikvision will have the greatest level of compatibility with onvif-util. 
+    Cameras made by Dahua will have a close degree of compatability with some notable 
+    exceptions regarding gateway and DNS settings. Time settings may not be reliable 
+    in some cases. If the time is set without the zone flag, the time appearing in 
+    the camera feed will be synced to the computer time. If the time zone flag is used, 
+    the displayed time may be set to an offset from the computer time based on the 
+    timezone setting of the camera.
 
-    If the camera DNS setting is properly onvif compliant, the IP address may be reliably set. Some cameras 
-    may not respond to the DNS setting requested by onvif-camadmin due to non compliance. Note that the 
-    camera may reboot automatically under some conditions if the DNS setting is changed from off to on.  
+    If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
+    set. Some cameras may not respond to the DNS setting requested by onvif-camadmin due 
+    to non compliance. Note that the camera may reboot automatically under some conditions 
+    if the DNS setting is changed from off to on.  
 
     Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
     command. If there is an issue with a particular setting, it is recommended to connect to 

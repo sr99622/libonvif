@@ -362,19 +362,21 @@ DESCRIPTION
 
 EXAMPLES
 
-    To change the video resolution of a camera output, Double click on the camera name in the list.  
-    The camera video output should display in the viewer.  Select the Video tab and use the drop down box 
-    labelled Resolution.  Upon changing the selection, the Apply button will be enabled.  Click the apply 
-    button to make the change.  The stream will stop and may be re-started by double clicking on the camera name.
+    To change the video resolution of a camera output, Double click on the camera name in 
+    the list.  The camera video output should display in the viewer.  Select the Video tab 
+    and use the drop down box labelled Resolution.  Upon changing the selection, the Apply 
+    button will be enabled.  Click the apply button to make the change.  The stream will 
+    stop and may be re-started by double clicking on the camera name.
 
-    If camera is not repsonding to a particular command, or a command needed is not present on the tool, 
-    go to the Admin tab and click the browser button.  This will launch the browser using the camera 
-    IP address.  Log into the camera and settings should be avialable in native format for the camera configuration.
+    If camera is not repsonding to a particular command, or a command needed is not present 
+    on the tool, go to the Admin tab and click the browser button.  This will launch the 
+    browser using the camera IP address.  Log into the camera and settings should be 
+    avialable in native format for the camera configuration.
 
 SEE ALSO 
 
-    There is a command line version of this program included with the libonvif package which will implement 
-    most of the same commands. It may be invoked using the 'onvif-util' command.
+    There is a command line version of this program included with the libonvif package which 
+    will implement most of the same commands. It may be invoked using the 'onvif-util' command.
 
 NOTES
 

@@ -11,11 +11,31 @@ Standards-Version: 4.5.1
 Homepage: https://github.com/sr99622/libonvif
 Rules-Requires-Root: no
 
-Package: libonvif
+Package: libonvif0
 Section: utils
 Architecture: any
-Multi-Arch: no
+Multi-Arch: same
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: ONVIF IP camera client library
  Implementing the client side of the ONVIF specification for communicating
  with IP enabled compatible cameras.
+
+Package: libonvif-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libonvif0 (= ${binary:Version}), ${misc:Depends}
+Description: ONVIF IP camera client library
+ Implementing the client side of the ONVIF specification for communicating
+ with IP enabled compatible cameras.
+ 
+Package: onvif-tools
+Section: utils
+Architecture: any
+Multi-Arch: foreign
+Depends: ${shlibs:Depends}, ${misc:Depends}
+ , libonvif0
+Description: ONVIF IP camera command line and GUI tools
+ The command line tool discover will find compatible cameras on the local
+ network and query each of them for their RSTP connection.
+ The GUI tool onvif allow configuration of detected cameras.

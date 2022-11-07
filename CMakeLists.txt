@@ -102,65 +102,60 @@ add_executable(onvif-util
     onvif-util/onvif-util.cpp
 )
 
-if (MSVC)
-    target_link_libraries(onvif-util PRIVATE
-        onvif_static
-        ${LIBXML2_LIBRARIES}
-    )
-else()
-    target_link_libraries(onvif-util PRIVATE
-        onvif_shared
-        ${LIBXML2_LIBRARIES}
-    )
-endif()
+target_link_libraries(onvif-util PRIVATE
+    onvif_shared
+    ${LIBXML2_LIBRARIES}
+)
 
 target_include_directories(onvif-util PUBLIC
     include
     ${LIBXML2_INCLUDE_DIRS}
 )
 
-set(CMAKE_AUTOMOC ON)
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
-find_package(QtAV REQUIRED)
+if (BUILD_GUI)
+    set(CMAKE_AUTOMOC ON)
+    find_package(Qt5 COMPONENTS Widgets REQUIRED)
+    find_package(QtAV REQUIRED)
 
-add_executable(onvif_exe
-    onvif-camadmin/admintab.cpp
-    onvif-camadmin/camera.cpp
-    onvif-camadmin/cameradialogtab.cpp
-    onvif-camadmin/cameralistmodel.cpp
-    onvif-camadmin/cameralistview.cpp
-    onvif-camadmin/camerapanel.cpp
-    onvif-camadmin/configtab.cpp
-    onvif-camadmin/discovery.cpp
-    onvif-camadmin/imagetab.cpp
-    onvif-camadmin/logindialog.cpp
-    onvif-camadmin/main.cpp
-    onvif-camadmin/mainwindow.cpp
-    onvif-camadmin/networktab.cpp
-    onvif-camadmin/onvifmanager.cpp
-    onvif-camadmin/ptztab.cpp
-    onvif-camadmin/videotab.cpp
-)
+    add_executable(onvif_exe
+        onvif-camadmin/admintab.cpp
+        onvif-camadmin/camera.cpp
+        onvif-camadmin/cameradialogtab.cpp
+        onvif-camadmin/cameralistmodel.cpp
+        onvif-camadmin/cameralistview.cpp
+        onvif-camadmin/camerapanel.cpp
+        onvif-camadmin/configtab.cpp
+        onvif-camadmin/discovery.cpp
+        onvif-camadmin/imagetab.cpp
+        onvif-camadmin/logindialog.cpp
+        onvif-camadmin/main.cpp
+        onvif-camadmin/mainwindow.cpp
+        onvif-camadmin/networktab.cpp
+        onvif-camadmin/onvifmanager.cpp
+        onvif-camadmin/ptztab.cpp
+        onvif-camadmin/videotab.cpp
+    )
 
-set_target_properties(onvif_exe PROPERTIES
-    OUTPUT_NAME onvif-camadmin
-    ARCHIVE_OUTPUT_DIRECTORY onvif_exe
-)
+    set_target_properties(onvif_exe PROPERTIES
+        OUTPUT_NAME onvif-camadmin
+        ARCHIVE_OUTPUT_DIRECTORY onvif_exe
+    )
 
-target_link_libraries(onvif_exe PRIVATE
-    Qt5::Widgets
-    onvif_static
-    ${LIBXML2_LIBRARIES}
-    ${QTAVWIDGETS_LIBRARIES}
-)
+    target_link_libraries(onvif_exe PRIVATE
+        Qt5::Widgets
+        onvif_static
+        ${LIBXML2_LIBRARIES}
+        ${QTAVWIDGETS_LIBRARIES}
+    )
 
-target_include_directories(onvif_exe PUBLIC
-    include
-    ${LIBXML2_INCLUDE_DIRS}
-    ${QTAVWIDGETS_INCLUDE_DIRS}
-)
+    target_include_directories(onvif_exe PUBLIC
+        include
+        ${LIBXML2_INCLUDE_DIRS}
+        ${QTAVWIDGETS_INCLUDE_DIRS}
+    )
 
-install(TARGETS onvif_exe DESTINATION bin)
+    install(TARGETS onvif_exe DESTINATION bin)
+endif()
 
 message("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
 message("CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}")

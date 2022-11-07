@@ -144,7 +144,9 @@ SYNOPSIS
 
 DESCRIPTION
 
-    View and set parameters on onvif compatible IP cameras. The command may be used to find and identify cameras, and then to create an interactive session that can be used to query and set camera properties. 
+    View and set parameters on onvif compatible IP cameras. The command may be used to 
+    find and identify cameras, and then to create an interactive session that can be 
+    used to query and set camera properties. 
 
     -a, --all
         show all cameras on the network
@@ -167,7 +169,9 @@ DESCRIPTION
     To login to a camera with safe mode disabled:
     onvif-util -s -u username -p password ip_address
 
-    Once logged into the camera you can view data using the 'get' command followed by the data requested. The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used
+    Once logged into the camera you can view data using the 'get' command followed by 
+    the data requested. The (n) indicates an optional profile index to apply the setting, 
+    otherwise the current profile is used
 
         Data Retrieval Commands (start with get)
 
@@ -279,15 +283,31 @@ EXAMPLES
 
 SEE ALSO 
 
-  There is a GUI version of this program included with the libonvif package which will implement most of the same commands. It may be invoke using the 'onvif-camadmin' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
+  There is a GUI version of this program included with the libonvif package which will 
+  implement most of the same commands. It may be invoke using the 'onvif-camadmin' 
+  command. 
 
 NOTES
 
-  Camera compliance with the onvif standard is often incomplete and in some cases incorrect. Success with the onvif-util may be limited in many cases. Cameras made by Hikvision will have the greatest level of compatibility with onvif-util. Cameras made by Dahua will have a close degree of compatability with some notable exceptions regarding gateway and DNS settings. Time settings may not be reliable in some cases. If the time is set without the zone flag, the time appearing in the camera feed will be synced to the computer time. If the time zone flag is used, the displayed time may be set to an offset from the computer time based on the timezone setting of the camera.
+  Camera compliance with the onvif standard is often incomplete and in some cases 
+  incorrect. Success with the onvif-util may be limited in many cases. Cameras made by 
+  Hikvision will have the greatest level of compatibility with onvif-util. Cameras made 
+  by Dahua will have a close degree of compatability with some notable exceptions regarding 
+  gateway and DNS settings. Time settings may not be reliable in some cases. If the time is 
+  set without the zone flag, the time appearing in the camera feed will be synced to the 
+  computer time. If the time zone flag is used, the displayed time may be set to an offset 
+  from the computer time based on the timezone setting of the camera.
 
-  If the camera DNS setting is properly onvif compliant, the IP address may be reliably set using onvif-util. Some cameras may not respond to the DNS setting requested by onvif-util due to non compliance. Note that the camera may reboot automatically under some conditions if the DNS setting is changed from off to on.
+  If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
+  set using onvif-util. Some cameras may not respond to the DNS setting requested by onvif-util 
+  due to non compliance. Note that the camera may reboot automatically under some conditions if 
+  the DNS setting is changed from off to on.
 
-  Video settings are reliable. The Admin Password setting is reliable, as well as the reboot command. If there is an issue with a particular setting, it is recommended to connect to the camera with a web browser, at most cameras will have a web interface that will allow you to make the changes reliably. The gui version has a button on the Admin tab that will launch the web browser with the camera ip address automatically.
+  Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
+  command. If there is an issue with a particular setting, it is recommended to connect to 
+  the camera with a web browser, at most cameras will have a web interface that will allow you 
+  to make the changes reliably. The gui version has a button on the Admin tab that will launch 
+  the web browser with the camera ip address automatically.
 
 License
 -------

@@ -115,7 +115,7 @@ target_include_directories(onvif-util PUBLIC
 if (BUILD_GUI)
     set(CMAKE_AUTOMOC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
-    if (LUNIX)
+    if (UNIX)
         find_package(QtAV REQUIRED)
     endif()
 
@@ -147,17 +147,13 @@ if (BUILD_GUI)
         Qt5::Widgets
         onvif_static
         ${LIBXML2_LIBRARIES}
-        #if (LINUX)
-        #    ${QTAVWIDGETS_LIBRARIES}
-        #endif()
+        ${QTAVWIDGETS_LIBRARIES}
     )
 
     target_include_directories(onvif_exe PUBLIC
         include
         ${LIBXML2_INCLUDE_DIRS}
-        #if (LINUX)
-        #    ${QTAVWIDGETS_INCLUDE_DIRS}
-        #endif()
+        ${QTAVWIDGETS_INCLUDE_DIRS}
     )
 
     install(TARGETS onvif_exe DESTINATION bin)

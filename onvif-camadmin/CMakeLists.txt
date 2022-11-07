@@ -37,7 +37,9 @@ if (Qt5_FOUND)
     message("-- Found Qt")
 endif()
 
-find_package(QtAV REQUIRED)
+if (UNIX)
+    find_package(QtAV REQUIRED)
+endif()
 
 find_package(LibXml2)
 if (NOT LibXml2_FOUND)

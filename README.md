@@ -11,10 +11,7 @@ libonvif is a multi platform library implementing the client side of the ONVIF
 specification for communicating with IP enabled compatible cameras.  It will
 compile on Linux and Windows.
 
-libonvif may be installed with pre-built binaries using anaconda, or may be
-compiled from source.
-
-An example program is included with libonvif that can be used as a maintenance
+An utility program is included with libonvif that can be used as a maintenance
 tool and will discover compatible cameras on the local network and may be used 
 to query each of them for device configuration such as RSTP connection uri 
 information or video settings.
@@ -22,20 +19,8 @@ information or video settings.
 Additionally, there is a comprehensive GUI sample program that includes the
 discovery functionality as well controls for adjusting camera parameters and
 PTZ operations.  The GUI sample is written in Qt and can be compiled with
-either cmake or qmake using Qt Creator.  Note that the GUI program uses ffplay
-to display camera output.
-
-Quick Install With Anaconda
----------------------------
-
-The pre built version of the library can be installed with anaconda using the
-command shown below.  The library installation includes the discover program
-which can be used to find the IP addresses of cameras on the network.  It also
-includes the gui interface.
-
-```bash
-conda install -c conda-forge -c sr99622 libonvif
-```
+either cmake or qmake using Qt Creator.  On Linux, the GUI has a viewer pane 
+that will display camera output.  
 
 The utility program is invoked using the 'onvif-util' command.
 
@@ -98,6 +83,18 @@ conda install -c conda-forge libxml2
 
 COMPILE
 
+The utils program is built by default.  To build the gui program, you will need to have
+Qt development libraries installed on the host machine.    The Linux GUI comes with a 
+viewer based on QtAV.On Linux, these can be installed using the commands.
+
+```bash
+sudo apt install qtbase5-dev
+sudo apt install ibqtav-dev
+```
+
+The Windows version does not have the viewer, but will require that Qt is installed.  The
+GUI will be built if the cmake flag -DBUILD_GUI=ON is included.
+
 The library is compiled using standard cmake procedure
 
 On Linux, the commands are as follows
@@ -107,7 +104,8 @@ git clone https://github.com/sr99622/libonvif.git
 cd libonvif
 mkdir build
 cd build
-cmake ..
+cmake ..     *(or optionally to build the GUI)*  cmake -DBUILD_GUI=ON ..
+make
 sudo make install
 ```
 
@@ -120,39 +118,16 @@ git clone https://github.com/sr99622/libonvif.git
 cd libonvif
 mkdir build
 cd build
-cmake ..
+cmake ..     *(or optionally to build the GUI)*  cmake -DBUILD_GUI=ON ..
 cmake --build . --config Release
 cmake --install .
 set PATH=%PATH%;"C:\Program Files (x86)\libonvif\bin"
-```
-
-Compile the Utility Program
----------------------------
-
-Linux instructions for compiling the utility program
-
-```bash
-cd libonvif/example
-mkdir build
-cd build
-cmake ..
-make
 ```
 
 Run the test program on Linux
 
 ```bash
 ./onvif-util -a
-```
-
-Windows instructions for compiling the utility program
-
-```bash
-cd libonvif\example
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
 ```
 
 Run the test program on Windows

@@ -89,7 +89,7 @@ target_link_libraries(onvif_shared PRIVATE
 )
 
 set_target_properties(onvif_shared PROPERTIES
-    SOVERSION 0
+    SOVERSION 1
 )
 
 target_include_directories(onvif_shared PUBLIC

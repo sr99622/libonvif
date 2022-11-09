@@ -40,7 +40,7 @@ execute_process(
 find_path(QTAV_INCLUDE_DIR NAMES QtAV.h
     HINTS ${QT_INSTALL_HEADERS}
     PATH_SUFFIXES QtAV
-)
+)git con
 find_path(QTAVWIDGETS_INCLUDE_DIR NAMES QtAVWidgets.h
     HINTS ${QT_INSTALL_HEADERS}
     PATH_SUFFIXES QtAVWidgets

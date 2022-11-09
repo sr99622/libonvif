@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     settings = new QSettings("libonvif", "onvif");
     cameraPanel = new CameraPanel(this);
-    setMinimumWidth(600);
+    setMinimumWidth(840);
 
     QWidget* layoutPanel = new QWidget();
     QGridLayout* layout = new QGridLayout();

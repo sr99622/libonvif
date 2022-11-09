@@ -89,7 +89,7 @@ viewer based on QtAV.On Linux, these can be installed using the commands.
 
 ```bash
 sudo apt install qtbase5-dev
-sudo apt install ibqtav-dev
+sudo apt install libqtav-dev
 ```
 
 The Windows version does not have the viewer, but will require that Qt is installed.  The

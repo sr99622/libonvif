@@ -50,7 +50,7 @@ jobs:
         set -e
         set -x
         #eatmydata apt --yes --quiet build-dep --indep-only .
-        eatmydata apt --yes --quiet install cmake libxml2-dev qtbase5-dev
+        eatmydata apt --yes --quiet install cmake libxml2-dev qtbase5-dev libqtav
 
     - name: Build source
       env:

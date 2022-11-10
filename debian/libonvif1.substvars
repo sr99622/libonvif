@@ -1,3 +1,0 @@
-shlibs:Depends=libc6 (>= 2.14), libxml2 (>= 2.9.0)
-misc:Depends=
-misc:Pre-Depends=

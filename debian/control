@@ -2,11 +2,13 @@ Source: libonvif
 Priority: optional
 Maintainer: Stephen Rhodes <sr99622@gmail.com>
 Build-Depends: debhelper-compat (= 13)
+ , cmake
+ , libxml2-dev
 Standards-Version: 4.6.0
 Section: libs
-Homepage: https://github.com/sr99622/libonvif.git
-#Vcs-Browser: https://salsa.debian.org/debian/libonvif
-#Vcs-Git: https://salsa.debian.org/debian/libonvif.git
+Homepage: https://github.com/sr99622/libonvif/
+Vcs-Browser: https://github.com/sr99622/libonvif/
+Vcs-Git: https://github.com/sr99622/libonvif.git
 Rules-Requires-Root: no
 
 Package: libonvif-dev

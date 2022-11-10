@@ -52,13 +52,24 @@ jobs:
         #eatmydata apt --yes --quiet build-dep --indep-only .
         eatmydata apt --yes --quiet install cmake libxml2-dev qtbase5-dev
 
-    - name: Build source
+    - name: Build console client
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
         set -e
         set -x
-        mkdir builddir && cd builddir
-        #eatmydata cmake -DBUILD_GUI=1 ..
+        mkdir builddir-cli && cd builddir-cli
         eatmydata cmake ..
-        eatmydata make
+        eatmydata make onvif-util
+
+    - name: Build GUI client
+      continue-on-error: true
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        set -e
+        set -x
+        mkdir -p builddir-gui && cd builddir-gui
+        eatmydata apt --yes --quiet install libqtav-dev
+        eatmydata cmake -DBUILD_GUI=1 ..
+        eatmydata make onvif_exe

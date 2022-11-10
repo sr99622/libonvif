@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     settings = new QSettings("libonvif", "onvif");
     cameraPanel = new CameraPanel(this);
-    setMinimumWidth(600);
+    setMinimumWidth(840);
 
     QWidget* layoutPanel = new QWidget();
     QGridLayout* layout = new QGridLayout();
@@ -48,18 +48,12 @@ MainWindow::MainWindow(QWidget *parent)
         int x = (screenSize.width() - width()) / 2;
         int y = (screenSize.height() - height()) / 2;
         move(x, y);
+        std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
     }
 }
 
 MainWindow::~MainWindow()
 {
-}
-
-void MainWindow::keyPressEvent(QKeyEvent* event)
-{
-    if (event->key() == Qt::Key_Escape) {
-        close();
-    }
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)

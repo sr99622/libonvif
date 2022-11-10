@@ -26,6 +26,8 @@ project(libonvif)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     set(BUILD_SHARED_LIBS TRUE)
@@ -87,7 +89,7 @@ target_link_libraries(onvif_shared PRIVATE
 )
 
 set_target_properties(onvif_shared PROPERTIES
-    SOVERSION 0
+    SOVERSION 1
 )
 
 target_include_directories(onvif_shared PUBLIC
@@ -97,20 +99,13 @@ target_include_directories(onvif_shared PUBLIC
 )
 
 add_executable(onvif-util
-    example/onvif-util.cpp
+    onvif-util/onvif-util.cpp
 )
 
-if (MSVC)
-    target_link_libraries(onvif-util PRIVATE
-        onvif_static
-        ${LIBXML2_LIBRARIES}
-    )
-else()
-    target_link_libraries(onvif-util PRIVATE
-        onvif_shared
-        ${LIBXML2_LIBRARIES}
-    )
-endif()
+target_link_libraries(onvif-util PRIVATE
+    onvif_shared
+    ${LIBXML2_LIBRARIES}
+)
 
 target_include_directories(onvif-util PUBLIC
     include
@@ -119,27 +114,28 @@ target_include_directories(onvif-util PUBLIC
 
 if (BUILD_GUI)
     set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTORCC ON)
-    set(CMAKE_AUTOUIC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
+    if (UNIX)
+        find_package(QtAV REQUIRED)
+    endif()
 
     add_executable(onvif_exe
-        sample/admintab.cpp
-        sample/camera.cpp
-        sample/cameradialogtab.cpp
-        sample/cameralistmodel.cpp
-        sample/cameralistview.cpp
-        sample/camerapanel.cpp
-        sample/configtab.cpp
-        sample/discovery.cpp
-        sample/imagetab.cpp
-        sample/logindialog.cpp
-        sample/main.cpp
-        sample/mainwindow.cpp
-        sample/networktab.cpp
-        sample/onvifmanager.cpp
-        sample/ptztab.cpp
-        sample/videotab.cpp
+        onvif-camadmin/admintab.cpp
+        onvif-camadmin/camera.cpp
+        onvif-camadmin/cameradialogtab.cpp
+        onvif-camadmin/cameralistmodel.cpp
+        onvif-camadmin/cameralistview.cpp
+        onvif-camadmin/camerapanel.cpp
+        onvif-camadmin/configtab.cpp
+        onvif-camadmin/discovery.cpp
+        onvif-camadmin/imagetab.cpp
+        onvif-camadmin/logindialog.cpp
+        onvif-camadmin/main.cpp
+        onvif-camadmin/mainwindow.cpp
+        onvif-camadmin/networktab.cpp
+        onvif-camadmin/onvifmanager.cpp
+        onvif-camadmin/ptztab.cpp
+        onvif-camadmin/videotab.cpp
     )
 
     set_target_properties(onvif_exe PROPERTIES
@@ -151,15 +147,21 @@ if (BUILD_GUI)
         Qt5::Widgets
         onvif_static
         ${LIBXML2_LIBRARIES}
+        ${QTAVWIDGETS_LIBRARIES}
     )
 
     target_include_directories(onvif_exe PUBLIC
         include
         ${LIBXML2_INCLUDE_DIRS}
+        ${QTAVWIDGETS_INCLUDE_DIRS}
     )
 
     install(TARGETS onvif_exe DESTINATION bin)
 endif()
+
+message("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
+message("CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}")
+message("CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}")
 
 install(TARGETS onvif-util DESTINATION bin)
 if (MSVC)
@@ -173,4 +175,5 @@ else()
 endif()
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-INSTALL(FILES example/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+INSTALL(FILES onvif-util/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
+INSTALL(FILES onvif-camadmin/onvif-camadmin.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)

@@ -11,10 +11,7 @@ libonvif is a multi platform library implementing the client side of the ONVIF
 specification for communicating with IP enabled compatible cameras.  It will
 compile on Linux and Windows.
 
-libonvif may be installed with pre-built binaries using anaconda, or may be
-compiled from source.
-
-An example program is included with libonvif that can be used as a maintenance
+An utility program is included with libonvif that can be used as a maintenance
 tool and will discover compatible cameras on the local network and may be used 
 to query each of them for device configuration such as RSTP connection uri 
 information or video settings.
@@ -22,20 +19,8 @@ information or video settings.
 Additionally, there is a comprehensive GUI sample program that includes the
 discovery functionality as well controls for adjusting camera parameters and
 PTZ operations.  The GUI sample is written in Qt and can be compiled with
-either cmake or qmake using Qt Creator.  Note that the GUI program uses ffplay
-to display camera output.
-
-Quick Install With Anaconda
----------------------------
-
-The pre built version of the library can be installed with anaconda using the
-command shown below.  The library installation includes the discover program
-which can be used to find the IP addresses of cameras on the network.  It also
-includes the gui interface.
-
-```bash
-conda install -c conda-forge -c sr99622 libonvif
-```
+either cmake or qmake using Qt Creator.  On Linux, the GUI has a viewer pane 
+that will display camera output.  
 
 The utility program is invoked using the 'onvif-util' command.
 
@@ -98,6 +83,18 @@ conda install -c conda-forge libxml2
 
 COMPILE
 
+The utils program is built by default.  To build the gui program, you will need to have
+Qt development libraries installed on the host machine.    The Linux GUI comes with a 
+viewer based on QtAV.On Linux, these can be installed using the commands.
+
+```bash
+sudo apt install qtbase5-dev
+sudo apt install libqtav-dev
+```
+
+The Windows version does not have the viewer, but will require that Qt is installed.  The
+GUI will be built if the cmake flag -DBUILD_GUI=ON is included.
+
 The library is compiled using standard cmake procedure
 
 On Linux, the commands are as follows
@@ -107,7 +104,8 @@ git clone https://github.com/sr99622/libonvif.git
 cd libonvif
 mkdir build
 cd build
-cmake ..
+cmake ..     *(or optionally to build the GUI)*  cmake -DBUILD_GUI=ON ..
+make
 sudo make install
 ```
 
@@ -120,39 +118,16 @@ git clone https://github.com/sr99622/libonvif.git
 cd libonvif
 mkdir build
 cd build
-cmake ..
+cmake ..     *(or optionally to build the GUI)*  cmake -DBUILD_GUI=ON ..
 cmake --build . --config Release
 cmake --install .
 set PATH=%PATH%;"C:\Program Files (x86)\libonvif\bin"
-```
-
-Compile the Utility Program
----------------------------
-
-Linux instructions for compiling the utility program
-
-```bash
-cd libonvif/example
-mkdir build
-cd build
-cmake ..
-make
 ```
 
 Run the test program on Linux
 
 ```bash
 ./onvif-util -a
-```
-
-Windows instructions for compiling the utility program
-
-```bash
-cd libonvif\example
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
 ```
 
 Run the test program on Windows
@@ -169,7 +144,9 @@ SYNOPSIS
 
 DESCRIPTION
 
-    View and set parameters on onvif compatible IP cameras. The command may be used to find and identify cameras, and then to create an interactive session that can be used to query and set camera properties. 
+    View and set parameters on onvif compatible IP cameras. The command may be used to 
+    find and identify cameras, and then to create an interactive session that can be 
+    used to query and set camera properties. 
 
     -a, --all
         show all cameras on the network
@@ -192,7 +169,9 @@ DESCRIPTION
     To login to a camera with safe mode disabled:
     onvif-util -s -u username -p password ip_address
 
-    Once logged into the camera you can view data using the 'get' command followed by the data requested. The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used
+    Once logged into the camera you can view data using the 'get' command followed by 
+    the data requested. The (n) indicates an optional profile index to apply the setting, 
+    otherwise the current profile is used
 
         Data Retrieval Commands (start with get)
 
@@ -304,15 +283,123 @@ EXAMPLES
 
 SEE ALSO 
 
-  There is a GUI version of this program included with the libonvif package which will implement most of the same commands. It may be invoke using the 'onvif-camadmin' command. The gui has the ability to view camera video output using a player such as ffplay, provided that the player executable is installed in the computer path.
+  There is a GUI version of this program included with the libonvif package which will 
+  implement most of the same commands. It may be invoke using the 'onvif-camadmin' 
+  command.
+
+
+
+NAME 
+
+    onvif-camadmin
+
+SYNOPSIS
+
+    onvif-camadmin
+
+DESCRIPTION
+
+    GUI program to view and set parameters on onvif compatible IP cameras. Double clidcking 
+    the camera name in the list will display the camera video output. 
+
+    Camera parameters are available on the tabs on the lower right side of the application. 
+    Once a parameter has been changed, the Apply button will be enabled, which can be used 
+    to commit the change to the camera.  It may be necessary to re-start the video output 
+    stream in order to see the changes.
+
+    Video:
+
+        Resolution  - The drop down box is used to select the setting.
+        Frame Rate  - The number of frames per second in the video output.
+        Gov Length  - This is the distance between key frames in the stream.
+        Bitrate     - The maxmimum number of bits per second to transmit.
+
+    Image:
+
+        All values are set using the sliders
+
+        Brightness
+        Saturation
+        Contrast
+        Sharpness
+
+    Network:
+
+        If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other 
+        network settings may be completed manually.
+
+        IP Address
+        Subnet Mask
+        Gateway
+        Primary DNS
+
+    PTZ:
+
+        Settings pertain to preset selections or current camera position.  The arrow keys, Zoom In 
+        and Zoom out control the postion and zoom. The numbered buttons on the left correspond to 
+        preset positions.  The blank text box may be used to address presets numbered higher than 5.
+        To set a preset, position the camera, then check Set Preset, then click the numbered preset button.
+
+    Admin:
+
+        Camera Name  - Sets the application display name of the camera based on the camera mfgr 
+          and serial number.
+        Set admin Password - Can be used to change the password for the camera.
+        Sync Time - Will reset the camera's current time without regard to time zone.
+        Browser - Will launch a browser session with the camera for advanced maintenance.
+        Enable Reboot - Will enable the reboot button for use.
+        Enable Reset - Will enable the reset button for use.  Use with caution, all camera 
+          settings will be reset.
+
+    Config:
+
+        Auto Discovery - When checked, the application will automatcally start discovery upon launch, 
+          otherwise use the Discover button.
+        Multi Broadcast - When checked will repeat the broadcast message the number of times in the 
+          Broadcast Repeate spin box.
+        Common Username - Default username used during discover.
+        Common Password - Default password used during discover.
+
+EXAMPLES
+
+    To change the video resolution of a camera output, Double click on the camera name in 
+    the list.  The camera video output should display in the viewer.  Select the Video tab 
+    and use the drop down box labelled Resolution.  Upon changing the selection, the Apply 
+    button will be enabled.  Click the apply button to make the change.  The stream will 
+    stop and may be re-started by double clicking on the camera name.
+
+    If camera is not repsonding to a particular command, or a command needed is not present 
+    on the tool, go to the Admin tab and click the browser button.  This will launch the 
+    browser using the camera IP address.  Log into the camera and settings should be 
+    avialable in native format for the camera configuration.
+
+SEE ALSO 
+
+    There is a command line version of this program included with the libonvif package which 
+    will implement most of the same commands. It may be invoked using the 'onvif-util' command.
 
 NOTES
 
-  Camera compliance with the onvif standard is often incomplete and in some cases incorrect. Success with the onvif-util may be limited in many cases. Cameras made by Hikvision will have the greatest level of compatibility with onvif-util. Cameras made by Dahua will have a close degree of compatability with some notable exceptions regarding gateway and DNS settings. Time settings may not be reliable in some cases. If the time is set without the zone flag, the time appearing in the camera feed will be synced to the computer time. If the time zone flag is used, the displayed time may be set to an offset from the computer time based on the timezone setting of the camera.
+    Camera compliance with the onvif standard is often incomplete and in some cases 
+    incorrect. Success with the onvif-util may be limited in many cases. Cameras 
+    made by Hikvision will have the greatest level of compatibility with onvif-util. 
+    Cameras made by Dahua will have a close degree of compatability with some notable 
+    exceptions regarding gateway and DNS settings. Time settings may not be reliable 
+    in some cases. If the time is set without the zone flag, the time appearing in 
+    the camera feed will be synced to the computer time. If the time zone flag is used, 
+    the displayed time may be set to an offset from the computer time based on the 
+    timezone setting of the camera.
 
-  If the camera DNS setting is properly onvif compliant, the IP address may be reliably set using onvif-util. Some cameras may not respond to the DNS setting requested by onvif-util due to non compliance. Note that the camera may reboot automatically under some conditions if the DNS setting is changed from off to on.
+    If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
+    set. Some cameras may not respond to the DNS setting requested by onvif-camadmin due 
+    to non compliance. Note that the camera may reboot automatically under some conditions 
+    if the DNS setting is changed from off to on.  
 
-  Video settings are reliable. The Admin Password setting is reliable, as well as the reboot command. If there is an issue with a particular setting, it is recommended to connect to the camera with a web browser, at most cameras will have a web interface that will allow you to make the changes reliably. The gui version has a button on the Admin tab that will launch the web browser with the camera ip address automatically.
+    Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
+    command. If there is an issue with a particular setting, it is recommended to connect to 
+    the camera with a web browser, at most cameras will have a web interface that will allow you 
+    to make the changes reliably. The gui version has a button on the Admin tab that will launch 
+    the web browser with the camera ip address automatically.
 
 License
 -------

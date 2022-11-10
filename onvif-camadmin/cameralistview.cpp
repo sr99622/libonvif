@@ -35,6 +35,7 @@ CameraListView::CameraListView(QMainWindow *parent)
 void CameraListView::mouseDoubleClickEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
+    MW->cameraPanel->viewButtonClicked();
 }
 
 QModelIndex CameraListView::previousIndex() const

@@ -60,4 +60,5 @@ jobs:
         set -x
         mkdir builddir && cd builddir
         #eatmydata cmake -DBUILD_GUI=1 ..
+        eatmydata cmake ..
         eatmydata make

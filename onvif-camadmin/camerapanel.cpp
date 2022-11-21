@@ -64,25 +64,13 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     cameraList = new CameraListView(mainWindow);
 
-#ifndef _WIN32
-    m_player = new QtAV::AVPlayer(this);
-    m_vo = new QtAV::VideoOutput(this);
-    m_player->setRenderer(m_vo);
-    m_vo->widget()->setMinimumWidth(400);
-#endif
-
     QGridLayout *layout = new QGridLayout();
-#ifndef _WIN32
-    layout->addWidget(m_vo->widget(), 0, 0, 3, 1);
-    layout->addWidget(cameraList,     0, 1, 1, 1);
-    layout->addWidget(tabWidget,      1, 1, 1, 1);
-    layout->addWidget(buttonBox,      2, 1, 1, 1);
-    layout->setColumnStretch(0, 10);
-#else
-    layout->addWidget(cameraList,     0, 0, 1, 0);
+
+    layout->addWidget(cameraList,     0, 0, 1, 1);
     layout->addWidget(tabWidget,      1, 0, 1, 1);
     layout->addWidget(buttonBox,      2, 0, 1, 1);
-#endif
+    layout->setColumnStretch(0, 10);
+
     setLayout(layout);
 
     filler = new Filler(this);
@@ -141,14 +129,16 @@ void CameraPanel::discoverButtonClicked()
 
 void CameraPanel::viewButtonClicked()
 {
-#ifndef _WIN32
     std::stringstream ss_uri;
     OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
 	std::string uri(onvif_data->stream_uri);
 	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
     uri = ss_uri.str();
-    m_player->play(uri.c_str());
-#endif
+    std::cout << uri << std::endl;
+    char buf[256];
+    strcpy(buf, uri.c_str());
+    MW->glWidget->play(buf);
+    
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)

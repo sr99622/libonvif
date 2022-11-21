@@ -29,7 +29,9 @@
 #include <QTextEdit>
 #include <QSettings>
 #include "camerapanel.h"
+#include "sliderpanel.h"
 #include <iostream>
+#include "avio.h"
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
@@ -44,7 +46,10 @@ public:
     void closeEvent(QCloseEvent* event) override;
 
     CameraPanel* cameraPanel;
+    SliderPanel* sliderPanel;
     QSettings *settings;
+
+    avio::GLWidget* glWidget;
 
 
 public slots:

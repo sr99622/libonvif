@@ -115,6 +115,9 @@ target_include_directories(onvif-util PUBLIC
 if (BUILD_GUI)
     set(CMAKE_AUTOMOC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
+    find_package(Avio REQUIRED)
+    find_package(SDL2 REQUIRED)
+    find_package(FFmpeg REQUIRED)
     if (UNIX)
         find_package(QtAV REQUIRED)
     endif()
@@ -136,6 +139,8 @@ if (BUILD_GUI)
         onvif-camadmin/onvifmanager.cpp
         onvif-camadmin/ptztab.cpp
         onvif-camadmin/videotab.cpp
+        onvif-camadmin/window.cpp
+        onvif-camadmin/sliderpanel.cpp
     )
 
     set_target_properties(onvif_exe PROPERTIES
@@ -148,12 +153,16 @@ if (BUILD_GUI)
         onvif_static
         ${LIBXML2_LIBRARIES}
         ${QTAVWIDGETS_LIBRARIES}
+        ${FFMPEG_LIBRARIES}
+        ${AVIO_LIBRARY}
+        SDL2::SDL2
     )
 
     target_include_directories(onvif_exe PUBLIC
         include
         ${LIBXML2_INCLUDE_DIRS}
         ${QTAVWIDGETS_INCLUDE_DIRS}
+        ${AVIO_INCLUDE_DIR}
     )
 
     install(TARGETS onvif_exe DESTINATION bin)

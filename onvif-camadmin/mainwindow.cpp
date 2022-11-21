@@ -33,7 +33,6 @@ MainWindow::MainWindow(QWidget *parent)
     glWidget = new avio::GLWidget();
 
     cameraPanel = new CameraPanel(this);
-    sliderPanel = new SliderPanel(this);
     setMinimumWidth(840);
 
     QWidget* layoutPanel = new QWidget();
@@ -41,7 +40,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     layout->addWidget(glWidget,        0, 0, 2, 1);
     layout->addWidget(cameraPanel,     0, 1, 1, 1);
-    layout->addWidget(sliderPanel,     1, 1, 1, 1);
     layout->setColumnStretch(0, 10);
     layoutPanel->setLayout(layout);
     setCentralWidget(layoutPanel);

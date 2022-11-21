@@ -62,6 +62,7 @@ public:
 
     Camera *camera;
     QTabWidget *tabWidget;
+    QSlider* volumeSlider;
     QPushButton *applyButton;
     QPushButton *discoverButton;
     VideoTab *videoTab;
@@ -87,6 +88,7 @@ public:
     const QString netIntfKey    = "CameraPanel/networkInterface";
     const QString autoLoadKey   = "CameraPanel/autoLoad";
     const QString autoCameraKey = "CameraPanel/autoCamera";
+    const QString volumeKey     = "CameraPanel/volume";
 
     QString savedAutoCameraName;
     bool autoCameraFound;
@@ -105,6 +107,8 @@ public slots:
     void discoverButtonClicked();
     void viewButtonClicked();
     void discoveryFinished();
+    void adjustVolume(int);
+    void streamStarting();
 
 };
 

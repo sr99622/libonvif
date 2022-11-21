@@ -139,8 +139,6 @@ if (BUILD_GUI)
         onvif-camadmin/onvifmanager.cpp
         onvif-camadmin/ptztab.cpp
         onvif-camadmin/videotab.cpp
-        onvif-camadmin/window.cpp
-        onvif-camadmin/sliderpanel.cpp
     )
 
     set_target_properties(onvif_exe PROPERTIES

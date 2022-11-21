@@ -29,7 +29,6 @@
 #include <QTextEdit>
 #include <QSettings>
 #include "camerapanel.h"
-#include "sliderpanel.h"
 #include <iostream>
 #include "avio.h"
 
@@ -46,9 +45,7 @@ public:
     void closeEvent(QCloseEvent* event) override;
 
     CameraPanel* cameraPanel;
-    SliderPanel* sliderPanel;
     QSettings *settings;
-
     avio::GLWidget* glWidget;
 
 

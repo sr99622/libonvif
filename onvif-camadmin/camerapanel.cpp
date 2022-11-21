@@ -57,10 +57,16 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     discoverButton = new QPushButton("Discover", this);
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
 
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
-    buttonBox->addButton(discoverButton, QDialogButtonBox::ActionRole);
-    buttonBox->addButton(applyButton, QDialogButtonBox::ActionRole);
-    buttonBox->setMaximumHeight(60);
+    volumeSlider = new QSlider(Qt::Horizontal, this);
+    volumeSlider->setValue(MW->settings->value(volumeKey, 100).toInt());
+    connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustVolume(int)));
+    QWidget *controlPanel = new QWidget(this);
+    QGridLayout* controlLayout = new QGridLayout(controlPanel);
+    controlLayout->addWidget(new QLabel("Volume"), 0, 0, 1, 1);
+    controlLayout->addWidget(volumeSlider,         0, 1, 1, 1);
+    controlLayout->addWidget(discoverButton,    0, 2, 1, 1);
+    controlLayout->addWidget(applyButton,       0, 3, 1 ,1);
+    controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
 
@@ -68,7 +74,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     layout->addWidget(cameraList,     0, 0, 1, 1);
     layout->addWidget(tabWidget,      1, 0, 1, 1);
-    layout->addWidget(buttonBox,      2, 0, 1, 1);
+    layout->addWidget(controlPanel,   2, 0, 1, 1);
     layout->setColumnStretch(0, 10);
 
     setLayout(layout);
@@ -84,6 +90,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     applyButton->setEnabled(false);
 
     connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
+    connect(MW->glWidget, SIGNAL(starting()), this, SLOT(streamStarting()));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -138,7 +145,7 @@ void CameraPanel::viewButtonClicked()
     char buf[256];
     strcpy(buf, uri.c_str());
     MW->glWidget->play(buf);
-    
+    std::cout << "playing" << std::endl;
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)
@@ -244,3 +251,18 @@ void CameraPanel::refreshList()
     cameraList->refresh();
 }
 
+void CameraPanel::adjustVolume(int value)
+{
+    if (MW->glWidget->process) {
+        MW->glWidget->process->display->volume = (float)value / 100.0f;        
+    }
+    MW->settings->setValue(volumeKey, value);
+}
+
+void CameraPanel::streamStarting()
+{
+    std::cout << "stream starting " << std::endl;
+    if (MW->glWidget->process) {
+        MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
+    }
+}

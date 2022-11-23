@@ -137,7 +137,6 @@ Release\onvif-util -a
 ```
 
 To use utility in Docker
-----------------------
 
 Build image
 
@@ -153,6 +152,7 @@ docker run --rm -it --name=lib-onvif-util --network host libonvif:latest
 
 
 Utility Program Commands 
+----------------------
 
 SYNOPSIS
 

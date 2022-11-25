@@ -118,9 +118,6 @@ if (BUILD_GUI)
     find_package(Avio REQUIRED)
     find_package(SDL2 REQUIRED)
     find_package(FFmpeg REQUIRED)
-    if (UNIX)
-        find_package(QtAV REQUIRED)
-    endif()
 
     add_executable(onvif_exe
         onvif-camadmin/admintab.cpp

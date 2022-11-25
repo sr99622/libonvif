@@ -142,8 +142,10 @@ void CameraPanel::viewButtonClicked()
 	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
     uri = ss_uri.str();
     std::cout << uri << std::endl;
-    char buf[256];
-    strcpy(buf, uri.c_str());
+    //char buf[256];
+    //strcpy(buf, uri.c_str());
+    memset(buf, 0, 256);
+    strcpy(buf, ss_uri.str().c_str());
     MW->glWidget->play(buf);
     std::cout << "playing" << std::endl;
 }
@@ -253,16 +255,16 @@ void CameraPanel::refreshList()
 
 void CameraPanel::adjustVolume(int value)
 {
-    if (MW->glWidget->process) {
-        MW->glWidget->process->display->volume = (float)value / 100.0f;        
-    }
-    MW->settings->setValue(volumeKey, value);
+    //if (MW->glWidget->process) {
+    //    MW->glWidget->process->display->volume = (float)value / 100.0f;        
+    //}
+    //MW->settings->setValue(volumeKey, value);
 }
 
 void CameraPanel::streamStarting()
 {
-    std::cout << "stream starting " << std::endl;
-    if (MW->glWidget->process) {
-        MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
-    }
+    //std::cout << "stream starting " << std::endl;
+    //if (MW->glWidget->process) {
+    //    MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
+    //}
 }

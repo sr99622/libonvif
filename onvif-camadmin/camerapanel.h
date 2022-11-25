@@ -93,6 +93,9 @@ public:
     QString savedAutoCameraName;
     bool autoCameraFound;
 
+    std::string uri;
+    char buf[256];
+
     QProcess process;
 
 signals:

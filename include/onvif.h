@@ -100,10 +100,10 @@ struct OnvifData {
     int sharpness;
     /*service*/
     char device_service[1024];
-    char media_service[128];
-    char imaging_service[128];
-    char ptz_service[128];
-    char event_service[128];
+    char media_service[1024];
+    char imaging_service[1024];
+    char ptz_service[1024];
+    char event_service[1024];
     /*event*/
     char subscription_reference[128];
     int event_listen_port;

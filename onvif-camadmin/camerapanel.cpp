@@ -147,7 +147,6 @@ void CameraPanel::viewButtonClicked()
     memset(buf, 0, 256);
     strcpy(buf, ss_uri.str().c_str());
     MW->glWidget->play(buf);
-    std::cout << "playing" << std::endl;
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)

@@ -40,7 +40,6 @@ void CameraListView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void CameraListView::keyPressEvent(QKeyEvent *event)
 {
-    std::cout << "fuck you asshole" << std::endl;
     if (event->key() == Qt::Key_Return)
         MW->cameraPanel->viewButtonClicked();
     QListView::keyPressEvent(event);

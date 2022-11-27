@@ -45,11 +45,6 @@ add_library(onvif_static STATIC
     libonvif/src/sha1.c
 )
 
-set_target_properties(onvif_static PROPERTIES
-    OUTPUT_NAME onvif_static
-    ARCHIVE_OUTPUT_DIRECTORY onvif_static
-)
-
 target_link_libraries(onvif_static PRIVATE
     ${LIBXML2_LIBRARIES}
 )
@@ -59,26 +54,26 @@ target_include_directories(onvif_static PUBLIC
     ${LIBXML2_INCLUDE_DIRS}
 )
 
-add_library(onvif_shared SHARED
+add_library(onvif SHARED
     libonvif/src/onvif.c
     libonvif/src/cencode.c
     libonvif/src/sha1.c
 )
 
-set_target_properties(onvif_shared PROPERTIES
+set_target_properties(onvif PROPERTIES
     OUTPUT_NAME onvif
-    ARCHIVE_OUTPUT_DIRECTORY onvif_shared
+    ARCHIVE_OUTPUT_DIRECTORY onvif
 )
 
-target_link_libraries(onvif_shared PRIVATE
+target_link_libraries(onvif PRIVATE
     ${LIBXML2_LIBRARIES}
 )
 
-set_target_properties(onvif_shared PROPERTIES
+set_target_properties(onvif PROPERTIES
     SOVERSION 1
 )
 
-target_include_directories(onvif_shared PUBLIC
+target_include_directories(onvif PUBLIC
     libonvif/include
     ${LIBXML2_INCLUDE_DIRS}
 )
@@ -88,7 +83,7 @@ add_executable(onvif-util
 )
 
 target_link_libraries(onvif-util PRIVATE
-    onvif_shared
+    onvif
     ${LIBXML2_LIBRARIES}
 )
 
@@ -99,28 +94,71 @@ target_include_directories(onvif-util PUBLIC
 
 if (BUILD_GUI)
 
+    set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
     set(CMAKE_AUTOMOC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
-    find_package(Avio REQUIRED)
     find_package(SDL2 REQUIRED)
     find_package(FFmpeg REQUIRED)
 
+    set(CMAKE_AUTOMOC ON)
     set(MOC_INCLUDES
-        onvif-gui/include/admintab.h
-        onvif-gui/include/camera.h
-        onvif-gui/include/cameradialogtab.h
-        onvif-gui/include/cameralistmodel.h
-        onvif-gui/include/cameralistview.h
-        onvif-gui/include/camerapanel.h
-        onvif-gui/include/configtab.h
-        onvif-gui/include/discovery.h
-        onvif-gui/include/imagetab.h
-        onvif-gui/include/logindialog.h
-        onvif-gui/include/mainwindow.h
-        onvif-gui/include/networktab.h
-        onvif-gui/include/onvifmanager.h
-        onvif-gui/include/ptztab.h
-        onvif-gui/include/videotab.h
+    )
+    
+    add_library(avio SHARED 
+        libavio/src/Reader.cpp
+        libavio/src/Exception.cpp
+        libavio/src/Event.cpp
+        libavio/src/Frame.cpp
+        libavio/src/Decoder.cpp
+        libavio/src/Filter.cpp
+        libavio/src/Clock.cpp
+        libavio/src/Display.cpp
+        libavio/src/Encoder.cpp
+        libavio/src/Writer.cpp
+        libavio/src/Pipe.cpp
+        libavio/src/GLWidget.cpp
+        libavio/include/GLWidget.h
+    )
+                    
+    target_link_libraries(avio PRIVATE 
+        SDL2::SDL2
+        Qt5::Widgets
+        ${FFMPEG_LIBRARIES}
+    )
+    
+    target_include_directories(avio PUBLIC
+        libavio/include
+        ${FFMPEG_INCLUDE_DIRS}
+    )
+    
+    if (MSVC)
+        install(TARGETS avio
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            COMPONENT library
+        )
+    else()
+        install(TARGETS avio DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+    endif()
+
+    install(FILES 
+        libavio/include/avio.h 
+        libavio/include/Clock.h
+        libavio/include/Decoder.h
+        libavio/include/Display.h
+        libavio/include/Encoder.h
+        libavio/include/Event.h
+        libavio/include/Exception.h
+        libavio/include/Filter.h
+        libavio/include/Frame.h
+        libavio/include/Pipe.h
+        libavio/include/Queue.h
+        libavio/include/Reader.h
+        libavio/include/Writer.h
+        libavio/include/GLWidget.h
+        
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     )
 
     add_executable(onvif-gui
@@ -140,28 +178,37 @@ if (BUILD_GUI)
         onvif-gui/src/onvifmanager.cpp
         onvif-gui/src/ptztab.cpp
         onvif-gui/src/videotab.cpp
-        ${MOC_INCLUDES}
-    )
-
-    set_target_properties(onvif-gui PROPERTIES
-        OUTPUT_NAME onvif-gui
-        ARCHIVE_OUTPUT_DIRECTORY onvif-gui
+        onvif-gui/include/admintab.h
+        onvif-gui/include/camera.h
+        onvif-gui/include/cameradialogtab.h
+        onvif-gui/include/cameralistmodel.h
+        onvif-gui/include/cameralistview.h
+        onvif-gui/include/camerapanel.h
+        onvif-gui/include/configtab.h
+        onvif-gui/include/discovery.h
+        onvif-gui/include/imagetab.h
+        onvif-gui/include/logindialog.h
+        onvif-gui/include/mainwindow.h
+        onvif-gui/include/networktab.h
+        onvif-gui/include/onvifmanager.h
+        onvif-gui/include/ptztab.h
+        onvif-gui/include/videotab.h
     )
 
     target_link_libraries(onvif-gui PRIVATE
         Qt5::Widgets
-        onvif_shared
+        onvif
+        avio
         ${LIBXML2_LIBRARIES}
         ${FFMPEG_LIBRARIES}
-        ${AVIO_LIBRARY}
         SDL2::SDL2
     )
 
     target_include_directories(onvif-gui PUBLIC
         libonvif/include
+        libavio/include
         onvif-gui/include
         ${LIBXML2_INCLUDE_DIRS}
-        ${AVIO_INCLUDE_DIR}
     )
 
     install(TARGETS onvif-gui DESTINATION bin)
@@ -170,13 +217,14 @@ endif()
 
 install(TARGETS onvif-util DESTINATION bin)
 if (MSVC)
-    install(TARGETS onvif_shared 
-                    LIBRARY DESTINATION lib
-                    ARCHIVE DESTINATION lib
-                    RUNTIME DESTINATION bin
-                    COMPONENT library)
+    install(TARGETS onvif 
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        COMPONENT library
+    )
 else()
-    install(TARGETS onvif_shared DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+    install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 endif()
 
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")

@@ -1,5 +1,5 @@
 #*******************************************************************************
-# libonvif/onvif-camadmin/CMakeLists.txt
+# libonvif/onvif-gui/CMakeLists.txt
 #
 # Copyright (c) 2020 Stephen Rhodes 
 #
@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(onvif-camadmin)
+project(onvif-gui)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -55,7 +55,7 @@ set(MOC_INCLUDES
     include/videotab.h
 )
 
-add_executable(onvif-camadmin
+add_executable(onvif-gui
     src/admintab.cpp
     src/camera.cpp
     src/cameradialogtab.cpp
@@ -75,12 +75,12 @@ add_executable(onvif-camadmin
     ${MOC_INCLUDES}
 )
 
-set_target_properties(onvif-camadmin PROPERTIES
-    OUTPUT_NAME onvif-camadmin
-    ARCHIVE_OUTPUT_DIRECTORY onvif-camadmin
+set_target_properties(onvif-gui PROPERTIES
+    OUTPUT_NAME onvif-gui
+    ARCHIVE_OUTPUT_DIRECTORY onvif-gui
 )
 
-target_link_libraries(onvif-camadmin PRIVATE
+target_link_libraries(onvif-gui PRIVATE
     Qt5::Widgets
     SDL2::SDL2
     ${FFMPEG_LIBRARIES}
@@ -89,11 +89,11 @@ target_link_libraries(onvif-camadmin PRIVATE
     ${LIBXML2_LIBRARIES}
 )
 
-target_include_directories(onvif-camadmin PUBLIC
+target_include_directories(onvif-gui PUBLIC
     include
     ${LIBONVIF_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
     ${AVIO_INCLUDE_DIR}
 )
 
-install(TARGETS onvif-camadmin DESTINATION bin)
+install(TARGETS onvif-gui DESTINATION bin)

@@ -24,7 +24,7 @@ that will display camera output.
 
 The utility program is invoked using the 'onvif-util' command.
 
-The GUI interface may be invoked using the 'onvif-camadmin' command.
+The GUI interface may be invoked using the 'onvif-gui' command.
 
 To Install From Source
 ----------------------
@@ -284,18 +284,18 @@ EXAMPLES
 SEE ALSO 
 
   There is a GUI version of this program included with the libonvif package which will 
-  implement most of the same commands. It may be invoke using the 'onvif-camadmin' 
+  implement most of the same commands. It may be invoke using the 'onvif-gui' 
   command.
 
 
 
 NAME 
 
-    onvif-camadmin
+    onvif-gui
 
 SYNOPSIS
 
-    onvif-camadmin
+    onvif-gui
 
 DESCRIPTION
 
@@ -391,7 +391,7 @@ NOTES
     timezone setting of the camera.
 
     If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
-    set. Some cameras may not respond to the DNS setting requested by onvif-camadmin due 
+    set. Some cameras may not respond to the DNS setting requested by onvif-gui due 
     to non compliance. Note that the camera may reboot automatically under some conditions 
     if the DNS setting is changed from off to on.  
 

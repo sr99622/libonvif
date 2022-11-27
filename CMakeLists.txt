@@ -40,9 +40,9 @@ set(CMAKE_INSTALL_INCLUDEDIR "include/${CMAKE_LIBRARY_ARCHITECTURE}")
 find_package(LibXml2 REQUIRED)
 
 add_library(onvif_static STATIC 
-    src/onvif.c
-    src/cencode.c
-    src/sha1.c
+    libonvif/src/onvif.c
+    libonvif/src/cencode.c
+    libonvif/src/sha1.c
 )
 
 set_target_properties(onvif_static PROPERTIES
@@ -55,14 +55,14 @@ target_link_libraries(onvif_static PRIVATE
 )
 
 target_include_directories(onvif_static PUBLIC
-    include
+    libonvif/include
     ${LIBXML2_INCLUDE_DIRS}
 )
 
 add_library(onvif_shared SHARED
-    src/onvif.c
-    src/cencode.c
-    src/sha1.c
+    libonvif/src/onvif.c
+    libonvif/src/cencode.c
+    libonvif/src/sha1.c
 )
 
 set_target_properties(onvif_shared PROPERTIES
@@ -79,7 +79,7 @@ set_target_properties(onvif_shared PROPERTIES
 )
 
 target_include_directories(onvif_shared PUBLIC
-    include
+    libonvif/include
     ${LIBXML2_INCLUDE_DIRS}
 )
 
@@ -93,7 +93,7 @@ target_link_libraries(onvif-util PRIVATE
 )
 
 target_include_directories(onvif-util PUBLIC
-    include
+    libonvif/include
     ${LIBXML2_INCLUDE_DIRS}
 )
 
@@ -150,7 +150,7 @@ if (BUILD_GUI)
 
     target_link_libraries(onvif-gui PRIVATE
         Qt5::Widgets
-        onvif_static
+        onvif_shared
         ${LIBXML2_LIBRARIES}
         ${FFMPEG_LIBRARIES}
         ${AVIO_LIBRARY}
@@ -158,7 +158,7 @@ if (BUILD_GUI)
     )
 
     target_include_directories(onvif-gui PUBLIC
-        include
+        libonvif/include
         onvif-gui/include
         ${LIBXML2_INCLUDE_DIRS}
         ${AVIO_INCLUDE_DIR}
@@ -180,6 +180,6 @@ else()
 endif()
 
 install(TARGETS onvif_static DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
-install(FILES include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(FILES libonvif/include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 INSTALL(FILES onvif-util/docs/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
 INSTALL(FILES onvif-gui/docs/onvif-gui.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)

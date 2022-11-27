@@ -1,5 +1,5 @@
 #*******************************************************************************
-# libonvif/sample/CMakeLists.txt
+# libonvif/onvif-camadmin/CMakeLists.txt
 #
 # Copyright (c) 2020 Stephen Rhodes 
 #
@@ -27,63 +27,52 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
-if (Qt5_FOUND)
-    message("-- Found Qt")
-endif()
+find_package(LibXml2 REQUIRED)
+find_package(LibOnvif REQUIRED)
+find_package(Avio REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(FFmpeg REQUIRED)
 
-if (UNIX)
-    find_package(QtAV REQUIRED)
-endif()
-
-find_package(LibXml2)
-if (NOT LibXml2_FOUND)
-    message("-- Looking for installation of libxml2")
-    find_path(LIBXML2_INCLUDE_DIRS libxml/parser.h
-        HINTS
-            $ENV{CONDA_PREFIX}/Library/include/libxml2
-    )
-    find_library(LIBXML2_LIBRARIES NAMES xml2
-        HINTS
-            $ENV{CONDA_PREFIX}/lib
-    )
-    message("-- Found LIBXML2_INCLUDE_DIRS ${LIBXML2_INCLUDE_DIRS}")
-    message("-- Found LIBXML2_LIBRARIES ${LIBXML2_LIBRARIES}")
-endif()
-
-find_package(LibOnvif)
-if (LibOnvif_FOUND)
-    message("-- Found LIBONVIF_INCLUDE_DIRS ${LIBONVIF_INCLUDE_DIRS}")
-    message("-- Found LIBONVIF_LIBRARIES ${LIBONVIF_LIBRARIES}")
-endif()
-
-find_package(Iconv)
-if (NOT Iconv_FOUND)
-    message("--Could not find Iconv. If you are using libxml2 compiled without iconv, this message may be ignored")
-endif()
+set(MOC_INCLUDES
+    include/admintab.h
+    include/camera.h
+    include/cameradialogtab.h
+    include/cameralistmodel.h
+    include/cameralistview.h
+    include/camerapanel.h
+    include/configtab.h
+    include/discovery.h
+    include/imagetab.h
+    include/logindialog.h
+    include/mainwindow.h
+    include/networktab.h
+    include/onvifmanager.h
+    include/ptztab.h
+    include/videotab.h
+)
 
 add_executable(onvif-camadmin
-    admintab.cpp
-    camera.cpp
-    cameradialogtab.cpp
-    cameralistmodel.cpp
-    cameralistview.cpp
-    camerapanel.cpp
-    configtab.cpp
-    discovery.cpp
-    imagetab.cpp
-    logindialog.cpp
-    main.cpp
-    mainwindow.cpp
-    networktab.cpp
-    onvifmanager.cpp
-    ptztab.cpp
-    videotab.cpp
+    src/admintab.cpp
+    src/camera.cpp
+    src/cameradialogtab.cpp
+    src/cameralistmodel.cpp
+    src/cameralistview.cpp
+    src/camerapanel.cpp
+    src/configtab.cpp
+    src/discovery.cpp
+    src/imagetab.cpp
+    src/logindialog.cpp
+    src/main.cpp
+    src/mainwindow.cpp
+    src/networktab.cpp
+    src/onvifmanager.cpp
+    src/ptztab.cpp
+    src/videotab.cpp
+    ${MOC_INCLUDES}
 )
 
 set_target_properties(onvif-camadmin PROPERTIES
@@ -93,17 +82,18 @@ set_target_properties(onvif-camadmin PROPERTIES
 
 target_link_libraries(onvif-camadmin PRIVATE
     Qt5::Widgets
-    ${QTAVWIDGETS_LIBRARIES}
+    SDL2::SDL2
+    ${FFMPEG_LIBRARIES}
+    ${AVIO_LIBRARY}
     ${LIBONVIF_LIBRARIES}
     ${LIBXML2_LIBRARIES}
-    ${Iconv_LIBRARY}
 )
 
 target_include_directories(onvif-camadmin PUBLIC
-    ${QTAVWIDGETS_INCLUDE_DIRS}
+    include
     ${LIBONVIF_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
-    ${Iconv_INCLUDE_DIR}
+    ${AVIO_INCLUDE_DIR}
 )
 
 install(TARGETS onvif-camadmin DESTINATION bin)

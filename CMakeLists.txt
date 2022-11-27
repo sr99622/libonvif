@@ -113,29 +113,51 @@ target_include_directories(onvif-util PUBLIC
 )
 
 if (BUILD_GUI)
+    add_subdirectory(onvif-camadmin)
+
+#[[
     set(CMAKE_AUTOMOC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
     find_package(Avio REQUIRED)
     find_package(SDL2 REQUIRED)
     find_package(FFmpeg REQUIRED)
 
+    set(MOC_INCLUDES
+        onvif-camadmin/include/admintab.h
+        onvif-camadmin/include/camera.h
+        onvif-camadmin/include/cameradialogtab.h
+        onvif-camadmin/include/cameralistmodel.h
+        onvif-camadmin/include/cameralistview.h
+        onvif-camadmin/include/camerapanel.h
+        onvif-camadmin/include/configtab.h
+        onvif-camadmin/include/discovery.h
+        onvif-camadmin/include/imagetab.h
+        onvif-camadmin/include/logindialog.h
+        onvif-camadmin/include/mainwindow.h
+        onvif-camadmin/include/networktab.h
+        onvif-camadmin/include/onvifmanager.h
+        onvif-camadmin/include/ptztab.h
+        onvif-camadmin/include/videotab.h
+    )
+
     add_executable(onvif_exe
-        onvif-camadmin/admintab.cpp
-        onvif-camadmin/camera.cpp
-        onvif-camadmin/cameradialogtab.cpp
-        onvif-camadmin/cameralistmodel.cpp
-        onvif-camadmin/cameralistview.cpp
-        onvif-camadmin/camerapanel.cpp
-        onvif-camadmin/configtab.cpp
-        onvif-camadmin/discovery.cpp
-        onvif-camadmin/imagetab.cpp
-        onvif-camadmin/logindialog.cpp
-        onvif-camadmin/main.cpp
-        onvif-camadmin/mainwindow.cpp
-        onvif-camadmin/networktab.cpp
-        onvif-camadmin/onvifmanager.cpp
-        onvif-camadmin/ptztab.cpp
-        onvif-camadmin/videotab.cpp
+        onvif-camadmin/src/admintab.cpp
+        onvif-camadmin/src/camera.cpp
+        onvif-camadmin/src/cameradialogtab.cpp
+        onvif-camadmin/src/cameralistmodel.cpp
+        onvif-camadmin/src/cameralistview.cpp
+        onvif-camadmin/src/camerapanel.cpp
+        onvif-camadmin/src/configtab.cpp
+        onvif-camadmin/src/discovery.cpp
+        onvif-camadmin/src/imagetab.cpp
+        onvif-camadmin/src/logindialog.cpp
+        onvif-camadmin/src/main.cpp
+        onvif-camadmin/src/mainwindow.cpp
+        onvif-camadmin/src/networktab.cpp
+        onvif-camadmin/src/onvifmanager.cpp
+        onvif-camadmin/src/ptztab.cpp
+        onvif-camadmin/src/videotab.cpp
+        ${MOC_INCLUDES}
     )
 
     set_target_properties(onvif_exe PROPERTIES
@@ -147,7 +169,6 @@ if (BUILD_GUI)
         Qt5::Widgets
         onvif_static
         ${LIBXML2_LIBRARIES}
-        ${QTAVWIDGETS_LIBRARIES}
         ${FFMPEG_LIBRARIES}
         ${AVIO_LIBRARY}
         SDL2::SDL2
@@ -155,12 +176,15 @@ if (BUILD_GUI)
 
     target_include_directories(onvif_exe PUBLIC
         include
+        onvif-camadmin/include
         ${LIBXML2_INCLUDE_DIRS}
-        ${QTAVWIDGETS_INCLUDE_DIRS}
         ${AVIO_INCLUDE_DIR}
     )
 
     install(TARGETS onvif_exe DESTINATION bin)
+
+]]
+
 endif()
 
 message("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")

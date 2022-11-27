@@ -93,6 +93,7 @@ public:
     QString savedAutoCameraName;
     bool autoCameraFound;
 
+    QString currentStreamingCameraName;
     std::string uri;
     char buf[256];
 

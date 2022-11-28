@@ -158,6 +158,7 @@ if (BUILD_GUI)
         ${LIBXML2_LIBRARIES}
         ${FFMPEG_LIBRARIES}
         SDL2::SDL2
+        pthread
     )
 
     target_include_directories(onvif-gui PUBLIC

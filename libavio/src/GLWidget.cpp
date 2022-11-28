@@ -224,15 +224,7 @@ void GLWidget::poll()
                     if (fmt != QImage::Format_RGB888)
                         img = img.convertToFormat(QImage::Format_RGB888);
                     
-                    if (texture) {
-                        if (texture->isStorageAllocated())
-                            QString dummy = "allocated";
-                    }
-
-                    //std::cout << "problem code here" << std::endl;
                     texture->setData(QOpenGLTexture::RGB, QOpenGLTexture::UInt8, (const void*)img.bits());
-                    //std::cout << "this is where it dies" << std::endl;
-
                     update();
                 }
                 else {

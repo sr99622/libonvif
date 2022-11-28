@@ -4,6 +4,9 @@ Maintainer: Stephen Rhodes <sr99622@gmail.com>
 Build-Depends: debhelper-compat (= 13)
  , cmake
  , libxml2-dev
+ , libavcodec-dev
+ , libavdevice-dev
+ , libsdl2-dev
 Standards-Version: 4.6.0
 Section: libs
 Homepage: https://github.com/sr99622/libonvif/
@@ -34,8 +37,9 @@ Architecture: any
 Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
  , libonvif1
- , libqtav1
- , libqtavwidgets1
+ , libavcodec58
+ , libavdevice58
+ , libsdl2-2.0-0
 Description: ONVIF IP camera command line and GUI tools
  The command line tool discover will find compatible cameras on the local
  network and query each of them for their RSTP connection.

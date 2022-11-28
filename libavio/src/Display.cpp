@@ -244,7 +244,9 @@ bool Display::display()
     while (true)
     {
         if (glWidget) {
-            glWidget->connecting = false;
+            if (glWidget->connecting) {
+                glWidget->connecting = false;
+            }
             if (!glWidget->running) {
                 playing = false;
                 break;

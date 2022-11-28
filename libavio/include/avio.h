@@ -459,13 +459,13 @@ public:
 
             display->init();
 
+            if (glWidget)
+                glWidget->emit timerStart();
+
             while (display->display()) {}
 
             if (glWidget)
                 glWidget->emit timerStop();
-
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(200ms);
 
             if (writer) {
                 while (!display->audio_eof)

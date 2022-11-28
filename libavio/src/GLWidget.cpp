@@ -214,21 +214,20 @@ void GLWidget::setFormat(QImage::Format arg)
 
 void GLWidget::poll()
 {
-    std::unique_lock<std::mutex> lock(mutex);
+    if (!running)
+        return;
+
     if (vfq_in) {
         try {
             if (vfq_in->size() > 0) {
                 vfq_in->pop(f);
                 if (f.isValid()) {
-                    QImage img(f.m_frame->data[0], texture->width(), texture->height(), fmt);
-                    if (fmt != QImage::Format_RGB888)
-                        img = img.convertToFormat(QImage::Format_RGB888);
-                    
-                    texture->setData(QOpenGLTexture::RGB, QOpenGLTexture::UInt8, (const void*)img.bits());
-                    update();
+                    if (f.m_frame->width == texture->width() && f.m_frame->height == texture->height()) {
+                        QImage img(f.m_frame->data[0], texture->width(), texture->height(), fmt);
+                        texture->setData(QOpenGLTexture::RGB, QOpenGLTexture::UInt8, (const void*)img.bits());
+                    }
                 }
-                else {
-                }
+                update();
             }
         }
         catch (const QueueClosedException& e) { }
@@ -316,7 +315,6 @@ void GLWidget::start(void * parent, const char* uri)
         process.add_widget(widget);
 
         widget->running = true;
-        widget->emit timerStart();
         process.run();
 
         if (audioDecoder)

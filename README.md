@@ -444,4 +444,8 @@ License
  
  sha1.h, sha1.c in Public Domain by By Steve Reid <steve@edmweb.com>
 
+ FindFFmpeg.cmake Copyright (c) 2006 Matthias Kretz <kretz@kde.org>, 
+ 2008 Alexander Neundorf <neundorf@kde.org>, 2011 Michael Jansen <kde@michael-jansen.biz>
+License: BSD-3-Clause
+
 >

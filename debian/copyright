@@ -5,13 +5,12 @@ Source: https://github.com/sr99622/libonvif/
 
 
 Files: *
-Copyright: 2018-2022 Stephen Rhodes
+Copyright: 2018-2022 Stephen Rhodes <sr99622@gmail.com>
 License: GPL-2+
 
 
 Files: libavio/*
-       cmake/FindAvio.cmake
-Copyright: 2022 Stephen Rhodes
+Copyright: 2022 Stephen Rhodes <sr99622@gmail.com>
 License: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ limitations under the License.
 
 Files: include/cencode.h
        src/cencode.c
-Copyright: 2005,2010 Chris
+Copyright: 2005,2010 Chris Venter <chris.venter@gmail.com>
 License: public-domain1
  Copyright-Only Dedication (based on United States law) or Public
  Domain Certification

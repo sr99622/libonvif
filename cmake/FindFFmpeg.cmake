@@ -4,7 +4,7 @@
 # Copyright (c) 2008, Alexander Neundorf, <neundorf@kde.org>
 # Copyright (c) 2011, Michael Jansen, <kde@michael-jansen.biz>
 #
-# Licensed under the BSD License
+# Licensed under the 3-Clause BSD License
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions

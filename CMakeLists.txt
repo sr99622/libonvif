@@ -60,10 +60,10 @@ add_library(onvif SHARED
     libonvif/src/sha1.c
 )
 
-set_target_properties(onvif PROPERTIES
-    OUTPUT_NAME onvif
-    ARCHIVE_OUTPUT_DIRECTORY onvif
-)
+#set_target_properties(onvif PROPERTIES
+#    OUTPUT_NAME onvif
+#    ARCHIVE_OUTPUT_DIRECTORY onvif
+#)
 
 target_link_libraries(onvif PRIVATE
     ${LIBXML2_LIBRARIES}
@@ -100,10 +100,6 @@ if (BUILD_GUI)
     find_package(SDL2 REQUIRED)
     find_package(FFmpeg REQUIRED)
 
-    set(CMAKE_AUTOMOC ON)
-    set(MOC_INCLUDES
-    )
-    
     add_executable(onvif-gui
         onvif-gui/src/admintab.cpp
         onvif-gui/src/camera.cpp
@@ -152,14 +148,25 @@ if (BUILD_GUI)
         libavio/include/GLWidget.h
     )
 
-    target_link_libraries(onvif-gui PRIVATE
-        Qt5::Widgets
-        onvif
-        ${LIBXML2_LIBRARIES}
-        ${FFMPEG_LIBRARIES}
-        SDL2::SDL2
-        pthread
-    )
+    if (MSVC) 
+        target_link_libraries(onvif-gui PRIVATE
+            Qt5::Widgets
+            onvif
+            ${LIBXML2_LIBRARIES}
+            ${FFMPEG_LIBRARIES}
+            SDL2::SDL2
+        )
+    else()
+        target_link_libraries(onvif-gui PRIVATE
+            Qt5::Widgets
+            onvif
+            ${LIBXML2_LIBRARIES}
+            ${FFMPEG_LIBRARIES}
+            SDL2::SDL2
+            pthread
+        )
+    endif()
+
 
     target_include_directories(onvif-gui PUBLIC
         libonvif/include

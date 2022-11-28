@@ -224,6 +224,11 @@ void GLWidget::poll()
                     if (fmt != QImage::Format_RGB888)
                         img = img.convertToFormat(QImage::Format_RGB888);
                     
+                    if (texture) {
+                        if (texture->isStorageAllocated())
+                            QString dummy = "allocated";
+                    }
+
                     //std::cout << "problem code here" << std::endl;
                     texture->setData(QOpenGLTexture::RGB, QOpenGLTexture::UInt8, (const void*)img.bits());
                     //std::cout << "this is where it dies" << std::endl;
@@ -245,11 +250,19 @@ void GLWidget::play(const char* uri)
 {
     using namespace std::chrono_literals;
     try {
+
+        if (connecting) {
+            std::cout << "currently connecting to another stream, please wait" << std::endl;
+            return;
+        }
+        
         stop();
 
         while (process) {
             std::this_thread::sleep_for(1ms);
         }
+
+        connecting = true;
 
         std::thread process_thread(start, this, uri);
         process_thread.detach();

@@ -75,6 +75,7 @@ public:
     long media_duration = 0;
     long media_start_time = 0;
     bool running = false;
+    bool connecting = false;
 
     avio::Process* process = nullptr;
 

@@ -137,6 +137,7 @@ void CameraPanel::discoverButtonClicked()
 void CameraPanel::viewButtonClicked()
 {
     currentStreamingCameraName = cameraList->getCurrentCamera()->getCameraName();
+    std::cout << "attempting to connnect to " << currentStreamingCameraName.toLatin1().data() << std::endl;
     std::stringstream ss_uri;
     OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
 	std::string uri(onvif_data->stream_uri);

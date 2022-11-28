@@ -104,63 +104,6 @@ if (BUILD_GUI)
     set(MOC_INCLUDES
     )
     
-    add_library(avio SHARED 
-        libavio/src/Reader.cpp
-        libavio/src/Exception.cpp
-        libavio/src/Event.cpp
-        libavio/src/Frame.cpp
-        libavio/src/Decoder.cpp
-        libavio/src/Filter.cpp
-        libavio/src/Clock.cpp
-        libavio/src/Display.cpp
-        libavio/src/Encoder.cpp
-        libavio/src/Writer.cpp
-        libavio/src/Pipe.cpp
-        libavio/src/GLWidget.cpp
-        libavio/include/GLWidget.h
-    )
-                    
-    target_link_libraries(avio PRIVATE 
-        SDL2::SDL2
-        Qt5::Widgets
-        ${FFMPEG_LIBRARIES}
-    )
-    
-    target_include_directories(avio PUBLIC
-        libavio/include
-        ${FFMPEG_INCLUDE_DIRS}
-    )
-    
-    if (MSVC)
-        install(TARGETS avio
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
-            COMPONENT library
-        )
-    else()
-        install(TARGETS avio DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
-    endif()
-
-    install(FILES 
-        libavio/include/avio.h 
-        libavio/include/Clock.h
-        libavio/include/Decoder.h
-        libavio/include/Display.h
-        libavio/include/Encoder.h
-        libavio/include/Event.h
-        libavio/include/Exception.h
-        libavio/include/Filter.h
-        libavio/include/Frame.h
-        libavio/include/Pipe.h
-        libavio/include/Queue.h
-        libavio/include/Reader.h
-        libavio/include/Writer.h
-        libavio/include/GLWidget.h
-        
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    )
-
     add_executable(onvif-gui
         onvif-gui/src/admintab.cpp
         onvif-gui/src/camera.cpp
@@ -193,12 +136,25 @@ if (BUILD_GUI)
         onvif-gui/include/onvifmanager.h
         onvif-gui/include/ptztab.h
         onvif-gui/include/videotab.h
+
+        libavio/src/Reader.cpp
+        libavio/src/Exception.cpp
+        libavio/src/Event.cpp
+        libavio/src/Frame.cpp
+        libavio/src/Decoder.cpp
+        libavio/src/Filter.cpp
+        libavio/src/Clock.cpp
+        libavio/src/Display.cpp
+        libavio/src/Encoder.cpp
+        libavio/src/Writer.cpp
+        libavio/src/Pipe.cpp
+        libavio/src/GLWidget.cpp
+        libavio/include/GLWidget.h
     )
 
     target_link_libraries(onvif-gui PRIVATE
         Qt5::Widgets
         onvif
-        avio
         ${LIBXML2_LIBRARIES}
         ${FFMPEG_LIBRARIES}
         SDL2::SDL2

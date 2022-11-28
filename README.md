@@ -84,12 +84,14 @@ conda install -c conda-forge libxml2
 COMPILE
 
 The utils program is built by default.  To build the gui program, you will need to have
-Qt development libraries installed on the host machine.    The Linux GUI comes with a 
-viewer based on QtAV.On Linux, these can be installed using the commands.
+Qt development libraries installed on the host machine.    Additionally, the ffmpeg and
+sdl2 libraries are required.
 
 ```bash
 sudo apt install qtbase5-dev
-sudo apt install libqtav-dev
+sudo apt install libavcodec-dev
+sudo apt install libavdevice-dev
+sudo apt install libsdl2-dev
 ```
 
 The Windows version does not have the viewer, but will require that Qt is installed.  The

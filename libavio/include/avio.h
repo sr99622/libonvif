@@ -139,6 +139,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     }
     catch (const QueueClosedException& e) {}
     catch (const Exception& e) { std::cout << " reader failed: " << e.what() << std::endl; }
+    std::cout << "reader done" << std::endl;
 }
 
 static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* frame_q) 
@@ -157,6 +158,7 @@ static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* fram
     }
     catch (const QueueClosedException& e) { }
     catch (const Exception& e) { std::cout << decoder->strMediaType << " decoder failed: " << e.what() << std::endl; }
+    std::cout << "decoder done" << std::endl;
 }
 
 static void filter(Filter* filter, Queue<Frame>* q_in, Queue<Frame>* q_out)
@@ -174,6 +176,7 @@ static void filter(Filter* filter, Queue<Frame>* q_in, Queue<Frame>* q_out)
         filter->frame_out_q->push(Frame(nullptr));
     }
     catch (const QueueClosedException& e) {}
+    std::cout << "filter done" << std::endl;
 }
 
 static void write(Writer* writer, Encoder* encoder)
@@ -464,6 +467,8 @@ public:
 
             while (display->display()) {}
 
+std::cout << "display done 1" << std::endl;
+
             if (glWidget)
                 glWidget->emit timerStop();
 
@@ -479,8 +484,10 @@ public:
             audioDecoder = nullptr;
             display = nullptr;
            
+std::cout << "display done 2" << std::endl;
         }
 
+std::cout << "display done 3" << std::endl;
         for (PKT_Q_MAP::iterator q = pkt_queues.begin(); q != pkt_queues.end(); ++q) {
             if (q->second) {
                 while (q->second->size() > 0) {
@@ -491,6 +498,7 @@ public:
             }
         }
 
+std::cout << "display done 4" << std::endl;
         for (FRAME_Q_MAP::iterator q = frame_queues.begin(); q != frame_queues.end(); ++q) {
             if (q->second) {
                 while (q->second->size() > 0) {
@@ -501,21 +509,30 @@ public:
             }
         }
 
+std::cout << "display done 5a" << std::endl;
         for (int i = 0; i < ops.size(); i++) {
+            if (!ops[i]->joinable())
+                std::cout << "not joinable" << std::endl;
+std::cout << "display done 5b" << std::endl;
             ops[i]->join();
+std::cout << "display done 5c" << std::endl;
             delete ops[i];
+std::cout << "display done 5d" << std::endl;
         }
 
+std::cout << "display done 6" << std::endl;
         for (PKT_Q_MAP::iterator q = pkt_queues.begin(); q != pkt_queues.end(); ++q) {
             if (q->second)
                 delete q->second;
         }
 
+std::cout << "display done 7" << std::endl;
         for (FRAME_Q_MAP::iterator q = frame_queues.begin(); q != frame_queues.end(); ++q) {
             if (q->second)
                 delete q->second;
         }
 
+std::cout << "KAPUT" << std::endl;
     }
 
 };

@@ -25,6 +25,7 @@
 
 #define VERTEX_ATTRIBUTE 0
 #define TEXCOORD_ATTRIBUTE 1
+#define MAX_TIMEOUT 10000
 
 namespace avio
 {
@@ -222,12 +223,20 @@ void GLWidget::poll()
             if (vfq_in->size() > 0) {
                 vfq_in->pop(f);
                 if (f.isValid()) {
+                    count = 0;
                     if (f.m_frame->width == texture->width() && f.m_frame->height == texture->height()) {
                         QImage img(f.m_frame->data[0], texture->width(), texture->height(), fmt);
                         texture->setData(QOpenGLTexture::RGB, QOpenGLTexture::UInt8, (const void*)img.bits());
                     }
                 }
                 update();
+            }
+            else {
+                count++;
+                if (count > MAX_TIMEOUT) {
+                    emit cameraTimeout();
+                    count = 0;
+                }
             }
         }
         catch (const QueueClosedException& e) { }
@@ -239,21 +248,12 @@ void GLWidget::poll()
 
 void GLWidget::play(const char* uri)
 {
-    using namespace std::chrono_literals;
     try {
-
-        if (connecting) {
-            std::cout << "currently connecting to another stream, please wait" << std::endl;
-            return;
-        }
-        
         stop();
 
         while (process) {
-            std::this_thread::sleep_for(1ms);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-
-        connecting = true;
 
         std::thread process_thread(start, this, uri);
         process_thread.detach();
@@ -266,6 +266,22 @@ void GLWidget::play(const char* uri)
 void GLWidget::stop()
 {
     running = false;
+}
+
+void GLWidget::abort()
+{
+    running = false;
+    if (process) {
+
+        if (process->reader) {
+            std::string vpq_name = process->reader->vpq_name;
+            std::cout << "reader vpq_name: " << vpq_name << std::endl;
+            if (!vpq_name.empty()) {
+                avio::Queue<AVPacket*>* vpq = process->pkt_queues[vpq_name];
+                vpq->push(NULL);
+            }
+        }
+    }
 }
 
 void GLWidget::start(void * parent, const char* uri)
@@ -316,6 +332,7 @@ void GLWidget::start(void * parent, const char* uri)
 
         widget->running = true;
         process.run();
+        std::cout << "here" << std::endl;
 
         if (audioDecoder)
             delete audioDecoder;

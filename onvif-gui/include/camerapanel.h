@@ -94,6 +94,7 @@ public:
     bool autoCameraFound;
 
     QString currentStreamingCameraName;
+    bool connecting = false;
     std::string uri;
     char buf[256];
 
@@ -113,6 +114,7 @@ public slots:
     void discoveryFinished();
     void adjustVolume(int);
     void streamStarting();
+    void cameraTimeout();
 
 };
 

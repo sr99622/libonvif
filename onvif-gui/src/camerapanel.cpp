@@ -116,6 +116,8 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     if (configTab->autoDiscovery->isChecked()) {
         discovery->start();
     }
+
+    connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
 }
 
 CameraPanel::~CameraPanel()
@@ -136,17 +138,23 @@ void CameraPanel::discoverButtonClicked()
 
 void CameraPanel::viewButtonClicked()
 {
-    currentStreamingCameraName = cameraList->getCurrentCamera()->getCameraName();
-    std::cout << "attempting to connnect to " << currentStreamingCameraName.toLatin1().data() << std::endl;
-    std::stringstream ss_uri;
-    OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
-	std::string uri(onvif_data->stream_uri);
-	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
-    uri = ss_uri.str();
-    memset(buf, 0, 256);
-    strcpy(buf, ss_uri.str().c_str());
-    MW->glWidget->play(buf);
-    MW->setWindowTitle("connecting to " + currentStreamingCameraName);
+    if (connecting) {
+        std::cout << "currently attempting to connect to " << currentStreamingCameraName.toLatin1().data() << std::endl;
+    }
+    else {
+        currentStreamingCameraName = cameraList->getCurrentCamera()->getCameraName();
+        std::cout << "attempting to connnect to " << currentStreamingCameraName.toLatin1().data() << std::endl;
+        std::stringstream ss_uri;
+        OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
+        std::string uri(onvif_data->stream_uri);
+        ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
+        uri = ss_uri.str();
+        memset(buf, 0, 256);
+        strcpy(buf, ss_uri.str().c_str());
+        connecting = true;
+        MW->glWidget->play(buf);
+        MW->setWindowTitle("connecting to " + currentStreamingCameraName);
+    }
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)
@@ -263,8 +271,15 @@ void CameraPanel::adjustVolume(int value)
 void CameraPanel::streamStarting()
 {
     std::cout << "stream starting " << std::endl;
+    connecting = false;
     if (MW->glWidget->process) {
         MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
     }
     MW->setWindowTitle("Streaming from " + currentStreamingCameraName);
+}
+
+void CameraPanel::cameraTimeout()
+{
+    std::cout << "cameraTimeout" << std::endl;
+    MW->glWidget->abort();
 }

@@ -181,7 +181,7 @@ PlayState Display::getEvents(std::vector<SDL_Event>* events)
 
     for (int i = 0; i < events->size(); i++) {
         SDL_Event event = events->at(i);
-        if (event.type == SDL_QUIT) 
+        if (event.type == SDL_QUIT)
             state = PlayState::QUIT;
         else if (event.type == SDL_KEYDOWN) {
             if (event.key.keysym.sym == SDLK_ESCAPE) {
@@ -244,9 +244,9 @@ bool Display::display()
     while (true)
     {
         if (glWidget) {
-            if (glWidget->connecting) {
-                glWidget->connecting = false;
-            }
+            //if (glWidget->connecting) {
+            //    glWidget->connecting = false;
+            //}
             if (!glWidget->running) {
                 playing = false;
                 break;

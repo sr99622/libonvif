@@ -27,12 +27,20 @@ extern "C"
 #include "Reader.h"
 #include "Decoder.h"
 
+static int int_call(void *ctx)
+{
+    std::cout << "fuck me" << std::endl;
+}
+
 namespace avio {
 
 Reader::Reader(const char* filename)
 {
     std::cout << "Reader opening " << filename << std::endl;
-    ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, NULL), CmdTag::AOI);
+    AVDictionary* opts = NULL;
+    av_dict_set(&opts, "stimeout", "1500000", 0);
+    ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
+    av_dict_free(&opts);
     ex.ck(avformat_find_stream_info(fmt_ctx, NULL), CmdTag::AFSI);
 
     video_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
@@ -55,6 +63,7 @@ Reader::~Reader()
 
 AVPacket* Reader::read()
 {
+    std::cout << "read start" << std::endl;
     if (closed)
         return NULL;
 
@@ -72,6 +81,7 @@ AVPacket* Reader::read()
         av_packet_free(&pkt);
         closed = true;
     }
+    std::cout << "read end" << std::endl;
 
     return pkt;
 }

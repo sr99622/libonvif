@@ -52,6 +52,7 @@ public:
     void updateAspectRatio();
     void play(const char* uri);
     void stop();
+    void abort();
 
     static void start(void * parent, const char* uri);
 
@@ -75,13 +76,13 @@ public:
     long media_duration = 0;
     long media_start_time = 0;
     bool running = false;
-    bool connecting = false;
 
     avio::Process* process = nullptr;
 
 signals:
     void timerStart();
     void timerStop();
+    void cameraTimeout();
 
 public slots:
     void poll();

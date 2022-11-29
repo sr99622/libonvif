@@ -462,6 +462,8 @@ License
 
  FindFFmpeg.cmake Copyright (c) 2006 Matthias Kretz <kretz@kde.org>, 
  2008 Alexander Neundorf <neundorf@kde.org>, 2011 Michael Jansen <kde@michael-jansen.biz>
-License: BSD-3-Clause
+ License: BSD-3-Clause
+
+ docker/Dockerfile Copyright (c) 2022 Vladislav Visarro
 
 >

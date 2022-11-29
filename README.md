@@ -24,7 +24,7 @@ that will display camera output.
 
 The utility program is invoked using the 'onvif-util' command.
 
-The GUI interface may be invoked using the 'onvif-camadmin' command.
+The GUI interface may be invoked using the 'onvif-gui' command.
 
 To Install From Source
 ----------------------
@@ -83,17 +83,24 @@ conda install -c conda-forge libxml2
 
 COMPILE
 
-The utils program is built by default.  To build the gui program, you will need to have
-Qt development libraries installed on the host machine.    The Linux GUI comes with a 
-viewer based on QtAV.On Linux, these can be installed using the commands.
+The utils program is built by default.  To build the GUI program, you will need to have
+Qt development libraries installed on the host machine.    Additionally, the ffmpeg and
+sdl2 libraries are required.  Use the cmake flag -DBUILD_GUI=ON to build the GUI.
 
 ```bash
 sudo apt install qtbase5-dev
-sudo apt install libqtav-dev
+sudo apt install libavcodec-dev
+sudo apt install libavdevice-dev
+sudo apt install libsdl2-dev
 ```
 
-The Windows version does not have the viewer, but will require that Qt is installed.  The
-GUI will be built if the cmake flag -DBUILD_GUI=ON is included.
+The Windows version requires these libraries as well.  The recommended way to get them
+is to use conda with the conda-forge channel.  Qt5 is installed by default on conda.
+
+```bash
+conda install -c conda-forge ffmpeg
+conda install -c conda-forge sdl2
+```
 
 The library is compiled using standard cmake procedure
 
@@ -300,18 +307,18 @@ EXAMPLES
 SEE ALSO 
 
   There is a GUI version of this program included with the libonvif package which will 
-  implement most of the same commands. It may be invoke using the 'onvif-camadmin' 
+  implement most of the same commands. It may be invoke using the 'onvif-gui' 
   command.
 
 
 
 NAME 
 
-    onvif-camadmin
+    onvif-gui
 
 SYNOPSIS
 
-    onvif-camadmin
+    onvif-gui
 
 DESCRIPTION
 
@@ -407,7 +414,7 @@ NOTES
     timezone setting of the camera.
 
     If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
-    set. Some cameras may not respond to the DNS setting requested by onvif-camadmin due 
+    set. Some cameras may not respond to the DNS setting requested by onvif-gui due 
     to non compliance. Note that the camera may reboot automatically under some conditions 
     if the DNS setting is changed from off to on.  
 
@@ -421,6 +428,8 @@ License
 -------
 
  Copyright (c) 2018, 2020, 2022 Stephen Rhodes 
+
+ License: GPL-2+
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -436,11 +445,170 @@ License
  with this program; if not, write to the Free Software Foundation, Inc.,
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
- getopt-win.h (originally getopt.h) Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>
- and Copyright (c) 2000 The NetBSD Foundation, Inc.
- 
+----------
+
+ libavio Copyright (c) 2022 Stephen Rhodes
+
+ License: Apache
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+----------
+
+ getopt-win.h (originally getopt.h) Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com> and Copyright (c) 2000 The NetBSD Foundation, Inc.
+
+ License: BSD-2-Clause-NETBSD
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND
+ CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+----------
+
  cencode.h, cencode.c in Public Domain by Chris Venter : chris.venter[anti-spam]gmail.com 
+
+ License: public-domain1
+
+ Copyright-Only Dedication (based on United States law) or Public
+ Domain Certification
  
+ The person or persons who have associated work with this document
+ (the "Dedicator" or "Certifier") hereby either (a) certifies that, to
+ the best of his knowledge, the work of authorship identified is in
+ the public domain of the country from which the work is published, or
+ (b) hereby dedicates whatever copyright the dedicators holds in the
+ work of authorship identified below (the "Work") to the public
+ domain. A certifier, moreover, dedicates any copyright interest he
+ may have in the associated work, and for these purposes, is described
+ as a "dedicator" below.
+ 
+ A certifier has taken reasonable steps to verify the copyright status
+ of this work. Certifier recognizes that his good faith efforts may
+ not shield him from liability if in fact the work certified is not in
+ the public domain.
+ 
+ Dedicator makes this dedication for the benefit of the public at
+ large and to the detriment of the Dedicator's heirs and
+ successors. Dedicator intends this dedication to be an overt act of
+ relinquishment in perpetuity of all present and future rights under
+ copyright law, whether vested or contingent, in the Work. Dedicator
+ understands that such relinquishment of all rights includes the
+ relinquishment of all rights to enforce (by lawsuit or otherwise)
+ those copyrights in the Work.
+ 
+ Dedicator recognizes that, once placed in the public domain, the Work
+ may be freely reproduced, distributed, transmitted, used, modified,
+ built upon, or otherwise exploited by anyone for any purpose,
+ commercial or non-commercial, and in any way, including by methods
+ that have not yet been invented or conceived.
+
+----------
+
  sha1.h, sha1.c in Public Domain by By Steve Reid <steve@edmweb.com>
 
->
+ License: public-domain2
+ 
+ 100% Public Domain.
+
+----------
+
+ FindFFmpeg.cmake Copyright (c) 2006 Matthias Kretz <kretz@kde.org>, 
+ 2008 Alexander Neundorf <neundorf@kde.org>, 2011 Michael Jansen <kde@michael-jansen.biz>
+
+ License: BSD-3-Clause
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 
+ 1. Redistributions of source code must retain the copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. Neither the name of the copyright holder nor the names of its 
+    contributors may be used to endorse or promote products derived from 
+    this software without specific prior written permission.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----------
+
+ debian folder
+ Copyright: 2022 Petter Reinholdtsen <pere@debian.org>
+ 
+ License: GPL-2+
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+----------
+
+ docker/Dockerfile Copyright (c) 2022 Vladislav Visarro
+
+ License: GPL-2+
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+

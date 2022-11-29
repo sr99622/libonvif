@@ -2781,10 +2781,8 @@ void dumpXmlNode (xmlDocPtr doc, xmlNodePtr cur_node, char *prefix) {
             name = (char *)(cur_node->name);
             value = (const char *)xmlNodeListGetString(doc, cur_node->xmlChildrenNode, 1);
             if (value) {
-                printf("");
                 printf("%s%s=%s\n", prefix ? prefix : "", name, value);
             } else {
-                printf("");
                 sprintf(new_prefix, "%s%s.", prefix ? prefix : "", name);
                 for (prop = cur_node->properties; prop; prop = prop->next) {
                     if (prop->children && prop->children->content) {

@@ -30,6 +30,7 @@
 #include <QSettings>
 #include "camerapanel.h"
 #include <iostream>
+#include "avio.h"
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
@@ -45,6 +46,7 @@ public:
 
     CameraPanel* cameraPanel;
     QSettings *settings;
+    avio::GLWidget* glWidget;
 
 
 public slots:

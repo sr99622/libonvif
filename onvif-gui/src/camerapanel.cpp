@@ -26,6 +26,7 @@
 #include <QThreadPool>
 #include <QDialogButtonBox>
 #include <QGuiApplication>
+#include <QMessageBox>
 #include <QScreen>
 
 CameraPanel::CameraPanel(QMainWindow *parent)
@@ -57,32 +58,26 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     discoverButton = new QPushButton("Discover", this);
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
 
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
-    buttonBox->addButton(discoverButton, QDialogButtonBox::ActionRole);
-    buttonBox->addButton(applyButton, QDialogButtonBox::ActionRole);
-    buttonBox->setMaximumHeight(60);
+    volumeSlider = new QSlider(Qt::Horizontal, this);
+    volumeSlider->setValue(MW->settings->value(volumeKey, 100).toInt());
+    connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustVolume(int)));
+    QWidget *controlPanel = new QWidget(this);
+    QGridLayout* controlLayout = new QGridLayout(controlPanel);
+    controlLayout->addWidget(new QLabel("Volume"), 0, 0, 1, 1);
+    controlLayout->addWidget(volumeSlider,         0, 1, 1, 1);
+    controlLayout->addWidget(discoverButton,    0, 2, 1, 1);
+    controlLayout->addWidget(applyButton,       0, 3, 1 ,1);
+    controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
 
-#ifndef _WIN32
-    m_player = new QtAV::AVPlayer(this);
-    m_vo = new QtAV::VideoOutput(this);
-    m_player->setRenderer(m_vo);
-    m_vo->widget()->setMinimumWidth(400);
-#endif
-
     QGridLayout *layout = new QGridLayout();
-#ifndef _WIN32
-    layout->addWidget(m_vo->widget(), 0, 0, 3, 1);
-    layout->addWidget(cameraList,     0, 1, 1, 1);
-    layout->addWidget(tabWidget,      1, 1, 1, 1);
-    layout->addWidget(buttonBox,      2, 1, 1, 1);
-    layout->setColumnStretch(0, 10);
-#else
-    layout->addWidget(cameraList,     0, 0, 1, 0);
+
+    layout->addWidget(cameraList,     0, 0, 1, 1);
     layout->addWidget(tabWidget,      1, 0, 1, 1);
-    layout->addWidget(buttonBox,      2, 0, 1, 1);
-#endif
+    layout->addWidget(controlPanel,   2, 0, 1, 1);
+    layout->setColumnStretch(0, 10);
+
     setLayout(layout);
 
     filler = new Filler(this);
@@ -96,6 +91,9 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     applyButton->setEnabled(false);
 
     connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
+    connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
+    connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
+    connect(MW->glWidget, SIGNAL(connectFailed()), this, SLOT(connectFailed()));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -141,14 +139,23 @@ void CameraPanel::discoverButtonClicked()
 
 void CameraPanel::viewButtonClicked()
 {
-#ifndef _WIN32
-    std::stringstream ss_uri;
-    OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
-	std::string uri(onvif_data->stream_uri);
-	ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
-    uri = ss_uri.str();
-    m_player->play(uri.c_str());
-#endif
+    if (connecting) {
+        std::cout << "currently attempting to connect to " << currentStreamingCameraName.toLatin1().data() << " please wait" << std::endl;
+    }
+    else {
+        currentStreamingCameraName = cameraList->getCurrentCamera()->getCameraName();
+        std::cout << "attempting to connnect to " << currentStreamingCameraName.toLatin1().data() << std::endl;
+        std::stringstream ss_uri;
+        OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
+        std::string uri(onvif_data->stream_uri);
+        ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
+        uri = ss_uri.str();
+        memset(buf, 0, 256);
+        strcpy(buf, ss_uri.str().c_str());
+        connecting = true;
+        MW->glWidget->play(buf);
+        MW->setWindowTitle("connecting to " + currentStreamingCameraName);
+    }
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)
@@ -254,3 +261,35 @@ void CameraPanel::refreshList()
     cameraList->refresh();
 }
 
+void CameraPanel::adjustVolume(int value)
+{
+    if (MW->glWidget->process) {
+        MW->glWidget->process->display->volume = (float)value / 100.0f;        
+    }
+    MW->settings->setValue(volumeKey, value);
+}
+
+void CameraPanel::streamStarting()
+{
+    std::cout << "stream starting " << std::endl;
+    connecting = false;
+    if (MW->glWidget->process) {
+        MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
+    }
+    MW->setWindowTitle("Streaming from " + currentStreamingCameraName);
+}
+
+void CameraPanel::cameraTimeout()
+{
+    QMessageBox msgBox;
+    msgBox.setText("Camera has timed out");
+    msgBox.exec();
+}
+
+void CameraPanel::connectFailed()
+{
+    connecting = false;
+    QMessageBox msgBox;
+    msgBox.setText("Camera connection failed");
+    msgBox.exec();
+}

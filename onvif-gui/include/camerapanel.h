@@ -41,10 +41,6 @@
 #include <QMainWindow>
 #include <QSettings>
 
-#ifndef _WIN32
-#include <QtAV>
-#endif
-
 #define CP dynamic_cast<CameraPanel*>(cameraPanel)
 
 class CameraPanel : public QWidget
@@ -66,6 +62,7 @@ public:
 
     Camera *camera;
     QTabWidget *tabWidget;
+    QSlider* volumeSlider;
     QPushButton *applyButton;
     QPushButton *discoverButton;
     VideoTab *videoTab;
@@ -82,11 +79,6 @@ public:
     QSettings *cameraNames;
     OnvifSession *onvif_session;
 
-#ifndef _WIN32
-    QtAV::VideoOutput *m_vo;
-    QtAV::AVPlayer *m_player;
-#endif
-
     const QString usernameKey   = "CameraPanel/username";
     const QString passwordKey   = "CameraPanel/password";
     const QString playerKey     = "CameraPanel/player";
@@ -96,9 +88,15 @@ public:
     const QString netIntfKey    = "CameraPanel/networkInterface";
     const QString autoLoadKey   = "CameraPanel/autoLoad";
     const QString autoCameraKey = "CameraPanel/autoCamera";
+    const QString volumeKey     = "CameraPanel/volume";
 
     QString savedAutoCameraName;
     bool autoCameraFound;
+
+    QString currentStreamingCameraName;
+    bool connecting = false;
+    std::string uri;
+    char buf[256];
 
     QProcess process;
 
@@ -114,6 +112,10 @@ public slots:
     void discoverButtonClicked();
     void viewButtonClicked();
     void discoveryFinished();
+    void adjustVolume(int);
+    void streamStarting();
+    void cameraTimeout();
+    void connectFailed();
 
 };
 

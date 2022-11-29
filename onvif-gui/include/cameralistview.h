@@ -41,6 +41,7 @@ public:
     QModelIndex nextIndex() const;
 
     void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
     QMainWindow *mainWindow;
     CameraListModel *cameraListModel;

@@ -1,10 +1,10 @@
 NAME 
 
-    onvif-camadmin - query and adjust onvif compatible cameras
+    onvif-gui - query and adjust onvif compatible cameras
 
 SYNOPSIS
 
-    onvif-camadmin
+    onvif-gui
 
 DESCRIPTION
 
@@ -85,4 +85,4 @@ NOTES
 
     Camera compliance with the onvif standard is often incomplete and in some cases incorrect. Success with the onvif-util may be limited in many cases. Cameras made by Hikvision will have the greatest level of compatibility with onvif-util. Cameras made by Dahua will have a close degree of compatability with some notable exceptions regarding gateway and DNS settings. Time settings may not be reliable in some cases. If the time is set without the zone flag, the time appearing in the camera feed will be synced to the computer time. If the time zone flag is used, the displayed time may be set to an offset from the computer time based on the timezone setting of the camera.
 
-    If the camera DNS setting is properly onvif compliant, the IP address may be reliably set. Some cameras may not respond to the DNS setting requested by onvif-camadmin due to non compliance. Note that the camera may reboot automatically under some conditions if the DNS setting is changed from off to on.
+    If the camera DNS setting is properly onvif compliant, the IP address may be reliably set. Some cameras may not respond to the DNS setting requested by onvif-gui due to non compliance. Note that the camera may reboot automatically under some conditions if the DNS setting is changed from off to on.

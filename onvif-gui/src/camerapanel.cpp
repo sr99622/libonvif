@@ -26,6 +26,7 @@
 #include <QThreadPool>
 #include <QDialogButtonBox>
 #include <QGuiApplication>
+#include <QMessageBox>
 #include <QScreen>
 
 CameraPanel::CameraPanel(QMainWindow *parent)
@@ -91,6 +92,8 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
     connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
+    connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
+    connect(MW->glWidget, SIGNAL(connectFailed()), this, SLOT(connectFailed()));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -116,8 +119,6 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     if (configTab->autoDiscovery->isChecked()) {
         discovery->start();
     }
-
-    connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
 }
 
 CameraPanel::~CameraPanel()
@@ -139,7 +140,7 @@ void CameraPanel::discoverButtonClicked()
 void CameraPanel::viewButtonClicked()
 {
     if (connecting) {
-        std::cout << "currently attempting to connect to " << currentStreamingCameraName.toLatin1().data() << std::endl;
+        std::cout << "currently attempting to connect to " << currentStreamingCameraName.toLatin1().data() << " please wait" << std::endl;
     }
     else {
         currentStreamingCameraName = cameraList->getCurrentCamera()->getCameraName();
@@ -280,6 +281,15 @@ void CameraPanel::streamStarting()
 
 void CameraPanel::cameraTimeout()
 {
-    std::cout << "cameraTimeout" << std::endl;
-    MW->glWidget->abort();
+    QMessageBox msgBox;
+    msgBox.setText("Camera has timed out");
+    msgBox.exec();
+}
+
+void CameraPanel::connectFailed()
+{
+    connecting = false;
+    QMessageBox msgBox;
+    msgBox.setText("Camera connection failed");
+    msgBox.exec();
 }

@@ -52,7 +52,6 @@ public:
     void updateAspectRatio();
     void play(const char* uri);
     void stop();
-    void abort();
 
     static void start(void * parent, const char* uri);
 
@@ -83,6 +82,7 @@ signals:
     void timerStart();
     void timerStop();
     void cameraTimeout();
+    void connectFailed();
 
 public slots:
     void poll();

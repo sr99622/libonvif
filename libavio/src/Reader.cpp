@@ -23,13 +23,26 @@ extern "C"
 }
 
 #include <filesystem>
+#include <time.h>
 
 #include "Reader.h"
 #include "Decoder.h"
+#include "Display.h"
 
-static int int_call(void *ctx)
+#define MAX_TIMEOUT 10
+
+
+time_t timeout_start = time(NULL);
+
+static int interrupt_callback(void *ctx)
 {
-    std::cout << "fuck me" << std::endl;
+    avio::Reader* reader = (avio::Reader*)ctx;
+    time_t diff = time(NULL) - timeout_start;
+
+    if (diff > MAX_TIMEOUT) {
+        return 1;
+    }
+    return 0;
 }
 
 namespace avio {
@@ -38,9 +51,14 @@ Reader::Reader(const char* filename)
 {
     std::cout << "Reader opening " << filename << std::endl;
     AVDictionary* opts = NULL;
-    av_dict_set(&opts, "stimeout", "1500000", 0);
+    av_dict_set(&opts, "stimeout", "10000000", 0);
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
     av_dict_free(&opts);
+    timeout_start = time(NULL);
+
+    AVIOInterruptCB cb = { interrupt_callback, this };
+    fmt_ctx->interrupt_callback = cb;
+
     ex.ck(avformat_find_stream_info(fmt_ctx, NULL), CmdTag::AFSI);
 
     video_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
@@ -63,7 +81,6 @@ Reader::~Reader()
 
 AVPacket* Reader::read()
 {
-    std::cout << "read start" << std::endl;
     if (closed)
         return NULL;
 
@@ -72,16 +89,26 @@ AVPacket* Reader::read()
 
     try {
         if (!fmt_ctx) throw Exception("fmt_ctx null");
+        timeout_start = time(NULL);
         ex.ck(ret = av_read_frame(fmt_ctx, pkt), CmdTag::ARF);
+        timeout_start = time(NULL);
     }
     catch (const Exception& e) {
-        if (ret != AVERROR_EOF)
+        if (ret != AVERROR_EOF) {
             ex.msg(e.what(), MsgPriority::CRITICAL, "Reader::read exception: ");
+            if (ret == AVERROR_EXIT) {
+                std::cout << "Camera connection timed out"  << std::endl;
+                if (display) {
+                    if (((Display*)display)->glWidget) {
+                        ((Display*)display)->glWidget->emit cameraTimeout();
+                    }
+                }
+            }
+        }
 
         av_packet_free(&pkt);
         closed = true;
     }
-    std::cout << "read end" << std::endl;
 
     return pkt;
 }

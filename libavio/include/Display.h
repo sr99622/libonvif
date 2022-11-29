@@ -53,7 +53,7 @@ class Display
 {
 
 public:
-    Display(Reader& reader) : reader(&reader) { }
+    Display(Reader& reader) : reader(&reader) { reader.display = this; }
     ~Display();
 
     void init();

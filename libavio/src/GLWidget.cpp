@@ -25,7 +25,6 @@
 
 #define VERTEX_ATTRIBUTE 0
 #define TEXCOORD_ATTRIBUTE 1
-#define MAX_TIMEOUT 10000
 
 namespace avio
 {
@@ -231,13 +230,6 @@ void GLWidget::poll()
                 }
                 update();
             }
-            else {
-                count++;
-                if (count > MAX_TIMEOUT) {
-                    emit cameraTimeout();
-                    count = 0;
-                }
-            }
         }
         catch (const QueueClosedException& e) { }
         catch (const std::runtime_error& e) {
@@ -266,22 +258,6 @@ void GLWidget::play(const char* uri)
 void GLWidget::stop()
 {
     running = false;
-}
-
-void GLWidget::abort()
-{
-    running = false;
-    if (process) {
-
-        if (process->reader) {
-            std::string vpq_name = process->reader->vpq_name;
-            std::cout << "reader vpq_name: " << vpq_name << std::endl;
-            if (!vpq_name.empty()) {
-                avio::Queue<AVPacket*>* vpq = process->pkt_queues[vpq_name];
-                vpq->push(NULL);
-            }
-        }
-    }
 }
 
 void GLWidget::start(void * parent, const char* uri)
@@ -332,16 +308,18 @@ void GLWidget::start(void * parent, const char* uri)
 
         widget->running = true;
         process.run();
-        std::cout << "here" << std::endl;
 
         if (audioDecoder)
             delete audioDecoder;
 
-        widget->process = nullptr;
     }
     catch (const Exception& e) {
         std::cout << "GLWidget process error: " << e.what() << std::endl;
+        widget->process->cleanup();
+        widget->emit connectFailed();
     }
+
+    widget->process = nullptr;
 }
 
 }

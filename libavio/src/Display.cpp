@@ -289,7 +289,6 @@ bool Display::display()
             if (vfq_in) {
                 vfq_in->pop(f);
                 if (!f.isValid()) {
-                    std::cout << "display recvd null eof" << std::endl;
                     playing = false;
                     break;
                 }

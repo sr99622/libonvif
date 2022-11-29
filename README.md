@@ -138,7 +138,23 @@ Run the test program on Windows
 Release\onvif-util -a
 ```
 
+To use utility in Docker
+
+Build image
+
+```bash
+docker build -t libonvif:latest -f docker/Dockerfile .
+```
+
+Run container
+
+```bash
+docker run --rm -it --name=lib-onvif-util --network host libonvif:latest
+```
+
+
 Utility Program Commands 
+----------------------
 
 SYNOPSIS
 

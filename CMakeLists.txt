@@ -28,7 +28,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-if(MSVC)
+if(WIN32)
+    add_compile_options("/EHsc")
+    find_package(Iconv REQUIRED)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     set(BUILD_SHARED_LIBS TRUE)
 endif()
@@ -49,21 +51,24 @@ target_link_libraries(onvif_static PRIVATE
     ${LIBXML2_LIBRARIES}
 )
 
-target_include_directories(onvif_static PUBLIC
-    libonvif/include
-    ${LIBXML2_INCLUDE_DIRS}
-)
+if (WIN32)
+    target_include_directories(onvif_static PUBLIC
+        libonvif/include
+        ${Iconv_INCLUDE_DIRS}
+        ${LIBXML2_INCLUDE_DIRS}
+    )
+else()
+    target_include_directories(onvif_static PUBLIC
+        libonvif/include
+        ${LIBXML2_INCLUDE_DIRS}
+    )
+endif()
 
 add_library(onvif SHARED
     libonvif/src/onvif.c
     libonvif/src/cencode.c
     libonvif/src/sha1.c
 )
-
-#set_target_properties(onvif PROPERTIES
-#    OUTPUT_NAME onvif
-#    ARCHIVE_OUTPUT_DIRECTORY onvif
-#)
 
 target_link_libraries(onvif PRIVATE
     ${LIBXML2_LIBRARIES}
@@ -73,10 +78,18 @@ set_target_properties(onvif PROPERTIES
     SOVERSION 1
 )
 
-target_include_directories(onvif PUBLIC
-    libonvif/include
-    ${LIBXML2_INCLUDE_DIRS}
-)
+if (WIN32)
+    target_include_directories(onvif PUBLIC
+        libonvif/include
+        ${Iconv_INCLUDE_DIRS}
+        ${LIBXML2_INCLUDE_DIRS}
+    )
+else()
+    target_include_directories(onvif PUBLIC
+        libonvif/include
+        ${LIBXML2_INCLUDE_DIRS}
+    )
+endif()
 
 add_executable(onvif-util
     onvif-util/src/onvif-util.cpp
@@ -148,7 +161,7 @@ if (BUILD_GUI)
         libavio/include/GLWidget.h
     )
 
-    if (MSVC) 
+    if (WIN32) 
         target_link_libraries(onvif-gui PRIVATE
             Qt5::Widgets
             onvif
@@ -180,7 +193,7 @@ if (BUILD_GUI)
 endif()
 
 install(TARGETS onvif-util DESTINATION bin)
-if (MSVC)
+if (WIN32)
     install(TARGETS onvif 
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

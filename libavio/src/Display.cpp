@@ -433,7 +433,8 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
 {
     Display* d = (Display*)userdata;
     memset(audio_buffer, 0, len);
-    uint8_t temp[len] = {0};
+    uint8_t* temp = (uint8_t*)malloc(len);
+    memset(temp, 0, len);
     Frame f;
 
     if (d->paused)
@@ -492,6 +493,8 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
         }
     }
     catch (const QueueClosedException& e) { }
+
+    free(temp);
 }
 
 bool Display::isPaused()

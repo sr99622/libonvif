@@ -83,9 +83,9 @@ conda install -c conda-forge libxml2
 
 COMPILE
 
-The utils program is built by default.  To build the gui program, you will need to have
+The utils program is built by default.  To build the GUI program, you will need to have
 Qt development libraries installed on the host machine.    Additionally, the ffmpeg and
-sdl2 libraries are required.
+sdl2 libraries are required.  Use the cmake flag -DBUILD_GUI=ON to build the GUI.
 
 ```bash
 sudo apt install qtbase5-dev
@@ -94,8 +94,13 @@ sudo apt install libavdevice-dev
 sudo apt install libsdl2-dev
 ```
 
-The Windows version does not have the viewer, but will require that Qt is installed.  The
-GUI will be built if the cmake flag -DBUILD_GUI=ON is included.
+The Windows version requires these libraries as well.  The recommended way to get them
+is to use conda with the conda-forge channel.  Qt5 is installed by default on conda.
+
+```bash
+conda install -c conda-forge ffmpeg
+conda install -c conda-forge sdl2
+```
 
 The library is compiled using standard cmake procedure
 

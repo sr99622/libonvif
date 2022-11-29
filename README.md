@@ -423,6 +423,7 @@ License
 -------
 
  Copyright (c) 2018, 2020, 2022 Stephen Rhodes 
+ 
  License: GPL-2+
 
  This program is free software; you can redistribute it and/or modify
@@ -442,6 +443,7 @@ License
 ----------
 
  libavio Copyright (c) 2022 Stephen Rhodes
+
  License: Apache
 
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -458,8 +460,8 @@ License
 
 ----------
 
- getopt-win.h (originally getopt.h) Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>
- and Copyright (c) 2000 The NetBSD Foundation, Inc.
+ getopt-win.h (originally getopt.h) Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com> and Copyright (c) 2000 The NetBSD Foundation, Inc.
+
  License: BSD-2-Clause-NETBSD
 
  Redistribution and use in source and binary forms, with or without
@@ -491,6 +493,7 @@ License
  cencode.h, cencode.c in Public Domain by Chris Venter : chris.venter[anti-spam]gmail.com 
 
  License: public-domain1
+
  Copyright-Only Dedication (based on United States law) or Public
  Domain Certification
  
@@ -527,6 +530,7 @@ License
 ----------
 
  sha1.h, sha1.c in Public Domain by By Steve Reid <steve@edmweb.com>
+
  License: public-domain2
  
  100% Public Domain.
@@ -535,6 +539,7 @@ License
 
  FindFFmpeg.cmake Copyright (c) 2006 Matthias Kretz <kretz@kde.org>, 
  2008 Alexander Neundorf <neundorf@kde.org>, 2011 Michael Jansen <kde@michael-jansen.biz>
+
  License: BSD-3-Clause
 
  Redistribution and use in source and binary forms, with or without

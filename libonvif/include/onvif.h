@@ -38,7 +38,7 @@ extern "C" {
 #ifdef LIBONVIFDLL_EXPORTS
     #define LIBRARY_API __declspec(dllexport)
 #else
-    #define LIBRARY_API
+    #define LIBRARY_API extern
 #endif
 
 static const int PAN_TILT_STOP = 0;

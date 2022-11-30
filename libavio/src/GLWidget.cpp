@@ -179,6 +179,7 @@ void GLWidget::updateAspectRatio()
             float ratio = imageAspect / widgetAspect;
             aspect = pow(ratio, -0.5);
             zoom = (ratio > 1.0 ? pow(ratio, 0.5) : pow(ratio, -0.5));
+            texture->bind();
         }
     }
 }

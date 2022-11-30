@@ -28,7 +28,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    setWindowTitle("onvif-gui version 1.4.0");
+    setWindowTitle("onvif-gui version 1.4.1");
     settings = new QSettings("libonvif", "onvif");
 
     glWidget = new avio::GLWidget();

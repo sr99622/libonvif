@@ -44,11 +44,8 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     tabWidget->addTab(ptzTab, "PTZ");
     adminTab = new AdminTab(this);
     tabWidget->addTab(adminTab, "Admin");
-    configTab = new ConfigTab(this);
-    tabWidget->addTab(configTab, "Config");
     QList<QScreen*> screens = QGuiApplication::screens();
     QSize screenSize = screens[0]->size();
-    std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
 
     tabWidget->setMaximumHeight(screenSize.height() * 0.2);
     tabWidget->setMinimumWidth(440);
@@ -65,8 +62,8 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     QGridLayout* controlLayout = new QGridLayout(controlPanel);
     controlLayout->addWidget(new QLabel("Volume"), 0, 0, 1, 1);
     controlLayout->addWidget(volumeSlider,         0, 1, 1, 1);
-    controlLayout->addWidget(discoverButton,    0, 2, 1, 1);
-    controlLayout->addWidget(applyButton,       0, 3, 1 ,1);
+    controlLayout->addWidget(discoverButton,       0, 2, 1, 1);
+    controlLayout->addWidget(applyButton,          0, 3, 1 ,1);
     controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
@@ -99,24 +96,16 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
     connect(cameraListModel, SIGNAL(getCameraData()), this, SLOT(fillData()));
 
-    configTab->commonUsername->setText(MW->settings->value(usernameKey, "").toString());
-    configTab->commonPassword->setText(MW->settings->value(passwordKey, "").toString());
-    configTab->autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
-    configTab->multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
-    configTab->broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
-    configTab->autoDiscoveryClicked(configTab->autoDiscovery->isChecked());
-
-    savedAutoCameraName = MW->settings->value(autoCameraKey, "").toString();
     onvif_session = (OnvifSession*)malloc(sizeof(OnvifSession));
     initializeSession(onvif_session);
-    discovery = new Discovery(this);
+    discovery = new Discovery(this, MW->settingsPanel);
     connect(discovery, SIGNAL(stopping()), this, SLOT(discoveryFinished()));
     cameraNames = new QSettings("Onvif", "Camera Names");
     foreach(QString key, cameraNames->allKeys()) {
         discovery->cameraAlias.insert(key, cameraNames->value(key).toString());
     }
 
-    if (configTab->autoDiscovery->isChecked()) {
+    if (MW->settingsPanel->autoDiscovery->isChecked()) {
         discovery->start();
     }
 }
@@ -214,41 +203,6 @@ void CameraPanel::showData()
     ptzTab->setActive(camera->hasPTZ());
     camera->onvif_data_read = true;
     applyButton->setEnabled(false);   
-}
-
-void CameraPanel::saveUsername()
-{
-    MW->settings->setValue(usernameKey, configTab->commonUsername->text());
-}
-
-void CameraPanel::savePassword()
-{
-    MW->settings->setValue(passwordKey, configTab->commonPassword->text());
-}
-
-void CameraPanel::saveAutoDiscovery()
-{
-    MW->settings->setValue(autoDiscKey, configTab->autoDiscovery->isChecked());
-}
-
-void CameraPanel::saveMultiBroadcast()
-{
-    MW->settings->setValue(multiBroadKey, configTab->multiBroadcast->isChecked());
-}
-
-void CameraPanel::saveBroadcastRepeat(int value)
-{
-    MW->settings->setValue(broadRepKey, value);
-}
-
-void CameraPanel::saveNetIntf(const QString& name)
-{
-    MW->settings->setValue(netIntfKey, name);
-}
-
-void CameraPanel::autoLoadClicked(bool checked)
-{
-    MW->settings->setValue(autoLoadKey, checked);
 }
 
 void CameraPanel::discoveryFinished()

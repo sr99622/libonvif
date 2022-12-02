@@ -28,7 +28,10 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QSettings>
+#include <QTabWidget>
+
 #include "camerapanel.h"
+#include "settingspanel.h"
 #include <iostream>
 #include "avio.h"
 
@@ -45,6 +48,8 @@ public:
     void closeEvent(QCloseEvent* event) override;
 
     CameraPanel* cameraPanel;
+    SettingsPanel* settingsPanel;
+    QTabWidget* tabWidget;
     QSettings *settings;
     avio::GLWidget* glWidget;
 

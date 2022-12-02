@@ -19,14 +19,88 @@
 *
 *******************************************************************************/
 
+#include <QLabel>
+#include <QGridLayout>
+
 #include "settingspanel.h"
+#include "mainwindow.h"
 
 SettingsPanel::SettingsPanel(QMainWindow* parent)
 {
     mainWindow = parent;
+
+    autoDiscovery = new QCheckBox("Auto Discovery");
+    multiBroadcast = new QCheckBox("Multi Broadcast");
+    broadcastRepeat = new QSpinBox();
+    broadcastRepeat->setRange(2, 5);
+    QLabel *lbl00 = new QLabel("Broadcast Repeat");
+    commonUsername = new QLineEdit();
+    commonUsername->setMaximumWidth(100);
+    QLabel *lbl01 = new QLabel("Common Username");
+    commonPassword = new QLineEdit();
+    commonPassword->setMaximumWidth(100);
+    QLabel *lbl02 = new QLabel("Common Password");
+
+    QGridLayout *layout = new QGridLayout();
+    layout->addWidget(autoDiscovery,       1, 0, 1, 1);
+    layout->addWidget(multiBroadcast,      2, 0, 1, 1);
+    layout->addWidget(lbl00,               2, 1, 1 ,1);
+    layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
+    layout->addWidget(lbl01,               3, 0, 1, 1);
+    layout->addWidget(commonUsername,      3, 1, 1, 1);
+    layout->addWidget(lbl02,               4, 0, 1, 1);
+    layout->addWidget(commonPassword,      4, 1, 1, 1);
+    setLayout(layout);
+
+    commonUsername->setText(MW->settings->value(usernameKey, "").toString());
+    commonPassword->setText(MW->settings->value(passwordKey, "").toString());
+    autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
+    multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
+    broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
+    autoDiscoveryClicked(autoDiscovery->isChecked());
+
+
+    connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
+    connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
+    connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
+    connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
+    connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
 }
 
-SettingsPanel::~SettingsPanel()
+void SettingsPanel::autoDiscoveryClicked(bool checked)
 {
-    
+    if (checked) {
+        multiBroadcast->setEnabled(true);
+        broadcastRepeat->setEnabled(true);
+    }
+    else {
+        multiBroadcast->setEnabled(false);
+        broadcastRepeat->setEnabled(false);
+        multiBroadcast->setChecked(false);
+    }
+
+    MW->settings->setValue(autoDiscKey, autoDiscovery->isChecked());
+    MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
 }
+
+void SettingsPanel::multiBroadcastClicked(bool checked)
+{
+    Q_UNUSED(checked);
+    MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
+}
+
+void SettingsPanel::broadcastRepeatChanged(int value)
+{
+    MW->settings->setValue(broadRepKey, value);
+}
+
+void SettingsPanel::usernameUpdated()
+{
+    MW->settings->setValue(usernameKey, commonUsername->text());
+}
+
+void SettingsPanel::passwordUpdated()
+{
+    MW->settings->setValue(passwordKey, commonPassword->text());
+}
+

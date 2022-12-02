@@ -22,10 +22,9 @@
 #include "discovery.h"
 #include "camerapanel.h"
 
-Discovery::Discovery(QWidget *parent)
+Discovery::Discovery(QWidget *cameraPanel, SettingsPanel* settingsPanel) 
+    : cameraPanel(cameraPanel), settingsPanel(settingsPanel)
 {
-    cameraPanel = parent;
-
     thread = new QThread;
     moveToThread(thread);
 
@@ -83,12 +82,11 @@ void Discovery::run()
 void Discovery::discover()
 {
     int nb_loops = 1;
-    if (CP->configTab->multiBroadcast->isChecked())
-        nb_loops = CP->configTab->broadcastRepeat->value();
+    if (settingsPanel->multiBroadcast->isChecked())
+        nb_loops = settingsPanel->broadcastRepeat->value();
 
     for (int k=0; k<nb_loops; k++) {
         OnvifSession* onvif_session = ((CameraPanel*)cameraPanel)->onvif_session;
-        ConfigTab *configTab = CP->configTab;
 
         QString str = "Discovery started\n";
 
@@ -102,8 +100,8 @@ void Discovery::discover()
                 memset(onvif_data, 0, sizeof(OnvifData));
                 prepareOnvifData(i, onvif_session, onvif_data);
                 emit msg(QString("Connecting to camera %1 at %2").arg(onvif_data->camera_name, onvif_data->xaddrs));
-                QString username = configTab->commonUsername->text();
-                QString password = configTab->commonPassword->text();
+                QString username = settingsPanel->commonUsername->text();
+                QString password = settingsPanel->commonPassword->text();
                 strncpy(onvif_data->username, username.toLatin1(), username.length());
                 strncpy(onvif_data->password, password.toLatin1(), password.length());
 

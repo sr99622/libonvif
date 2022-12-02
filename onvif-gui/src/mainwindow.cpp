@@ -28,19 +28,23 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    setWindowTitle("onvif-gui version 1.4.1");
+    setWindowTitle("onvif-gui version 1.4.1-dev");
     settings = new QSettings("libonvif", "onvif");
 
     glWidget = new avio::GLWidget();
 
+    settingsPanel = new SettingsPanel(this);
     cameraPanel = new CameraPanel(this);
+    tabWidget= new QTabWidget();
+    tabWidget->addTab(cameraPanel, "Cameras");
+    tabWidget->addTab(settingsPanel, "Settings");
     setMinimumWidth(840);
 
     QWidget* layoutPanel = new QWidget();
     QGridLayout* layout = new QGridLayout();
 
-    layout->addWidget(glWidget,        0, 0, 2, 1);
-    layout->addWidget(cameraPanel,     0, 1, 1, 1);
+    layout->addWidget(glWidget,      0, 0, 2, 1);
+    layout->addWidget(tabWidget,     0, 1, 1, 1);
     layout->setColumnStretch(0, 10);
     layoutPanel->setLayout(layout);
     setCentralWidget(layoutPanel);
@@ -50,7 +54,6 @@ MainWindow::MainWindow(QWidget *parent)
     int x = (screenSize.width() - width()) / 2;
     int y = (screenSize.height() - height()) / 2;
     move(x, y);
-    std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
 
     QRect savedGeometry = settings->value("geometry").toRect();
     if (savedGeometry.isValid()) {
@@ -62,7 +65,6 @@ MainWindow::MainWindow(QWidget *parent)
         int x = (screenSize.width() - width()) / 2;
         int y = (screenSize.height() - height()) / 2;
         move(x, y);
-        std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
     }
 }
 

@@ -27,7 +27,6 @@
 #include "networktab.h"
 #include "ptztab.h"
 #include "admintab.h"
-#include "configtab.h"
 #include "onvifmanager.h"
 #include "camera.h"
 #include "cameralistview.h"
@@ -70,7 +69,6 @@ public:
     NetworkTab *networkTab;
     PTZTab *ptzTab;
     AdminTab *adminTab;
-    ConfigTab *configTab;
     QMainWindow *mainWindow;
     Filler *filler;
     CameraListView *cameraList;
@@ -79,19 +77,7 @@ public:
     QSettings *cameraNames;
     OnvifSession *onvif_session;
 
-    const QString usernameKey   = "CameraPanel/username";
-    const QString passwordKey   = "CameraPanel/password";
-    const QString playerKey     = "CameraPanel/player";
-    const QString autoDiscKey   = "CameraPanel/autoDiscovery";
-    const QString multiBroadKey = "CameraPanel/multiBroadcast";
-    const QString broadRepKey   = "CameraPanel/brodacastRepeat";
-    const QString netIntfKey    = "CameraPanel/networkInterface";
-    const QString autoLoadKey   = "CameraPanel/autoLoad";
-    const QString autoCameraKey = "CameraPanel/autoCamera";
     const QString volumeKey     = "CameraPanel/volume";
-
-    QString savedAutoCameraName;
-    bool autoCameraFound;
 
     QString currentStreamingCameraName;
     bool connecting = false;

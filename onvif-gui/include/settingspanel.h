@@ -22,6 +22,12 @@
 #ifndef SETTINGSPANEL_H
 #define SETTINGSPANEL_H
 
+#include <QComboBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QLabel>
+#include <QSpinBox>
 #include <QMainWindow>
 
 class SettingsPanel : public QWidget
@@ -30,9 +36,34 @@ class SettingsPanel : public QWidget
 
 public:
     SettingsPanel(QMainWindow *parent);
-    ~SettingsPanel();
 
-    void *mainWindow;
+    QMainWindow *mainWindow;
+    QCheckBox *autoDiscovery;
+    QCheckBox *multiBroadcast;
+    QSpinBox *broadcastRepeat;
+    QLineEdit *commonUsername;
+    QLineEdit *commonPassword;
+
+    const QString usernameKey   = "SettingsPanel/username";
+    const QString passwordKey   = "SettingsPanel/password";
+    const QString playerKey     = "SettingsPanel/player";
+    const QString autoDiscKey   = "SettingsPanel/autoDiscovery";
+    const QString multiBroadKey = "SettingsPanel/multiBroadcast";
+    const QString broadRepKey   = "SettingsPanel/brodacastRepeat";
+    const QString netIntfKey    = "SettingsPanel/networkInterface";
+    const QString autoLoadKey   = "SettingsPanel/autoLoad";
+    const QString autoCameraKey = "SettingsPanel/autoCamera";
+
+
+signals:
+    void msg(const QString&);
+
+public slots:
+    void usernameUpdated();
+    void passwordUpdated();
+    void autoDiscoveryClicked(bool);
+    void multiBroadcastClicked(bool);
+    void broadcastRepeatChanged(int);
 
 };
 

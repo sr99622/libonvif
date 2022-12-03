@@ -28,6 +28,7 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QSettings>
+#include <QSplitter>
 #include <QTabWidget>
 
 #include "camerapanel.h"
@@ -50,12 +51,16 @@ public:
     CameraPanel* cameraPanel;
     SettingsPanel* settingsPanel;
     QTabWidget* tabWidget;
-    QSettings *settings;
+    QSettings* settings;
     avio::GLWidget* glWidget;
+    QSplitter* split;
+
+    const QString splitKey = "MainWindow/splitKey";
 
 
 public slots:
     void msg(QString);
+    void onSplitterMoved(int pos, int index);
 
 };
 #endif // MAINWINDOW_H

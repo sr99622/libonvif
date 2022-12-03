@@ -25,6 +25,7 @@
 #include <QApplication>
 #include <QScreen>
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -41,12 +42,15 @@ MainWindow::MainWindow(QWidget *parent)
     setMinimumWidth(840);
 
     QWidget* layoutPanel = new QWidget();
-    QGridLayout* layout = new QGridLayout();
+    QGridLayout* layout = new QGridLayout(layoutPanel);
 
-    layout->addWidget(glWidget,      0, 0, 2, 1);
-    layout->addWidget(tabWidget,     0, 1, 1, 1);
-    layout->setColumnStretch(0, 10);
-    layoutPanel->setLayout(layout);
+    split = new QSplitter;
+    split->addWidget(glWidget);
+    split->addWidget(tabWidget);
+    split->restoreState(settings->value(splitKey).toByteArray());
+    connect(split, SIGNAL(splitterMoved(int, int)), this, SLOT(onSplitterMoved(int, int)));
+
+    layout->addWidget(split,  0, 0, 1, 1);
     setCentralWidget(layoutPanel);
 
     QList<QScreen*> screens = QGuiApplication::screens();
@@ -70,15 +74,25 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+
 }
 
-void MainWindow::closeEvent(QCloseEvent* event)
+void MainWindow::closeEvent(QCloseEvent* e)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(e);
     settings->setValue("geometry", geometry());
+    SDL_Event event;
+    event.type = SDL_QUIT;
+    SDL_PushEvent(&event);
+
 }
 
 void MainWindow::msg(QString str)
 {
     std::cout << (const char*)str.toLatin1() << std::endl;
+}
+
+void MainWindow::onSplitterMoved(int pos, int index)
+{
+    settings->setValue(splitKey, split->saveState());
 }

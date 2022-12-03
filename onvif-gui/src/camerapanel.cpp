@@ -48,7 +48,6 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     QSize screenSize = screens[0]->size();
 
     tabWidget->setMaximumHeight(screenSize.height() * 0.2);
-    tabWidget->setMinimumWidth(440);
 
     applyButton = new QPushButton(tr("Apply"), this);
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));

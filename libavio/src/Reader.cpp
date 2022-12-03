@@ -39,7 +39,7 @@ static int interrupt_callback(void *ctx)
     avio::Reader* reader = (avio::Reader*)ctx;
     time_t diff = time(NULL) - timeout_start;
 
-    if (diff > MAX_TIMEOUT) {
+    if (diff > MAX_TIMEOUT || reader->request_break) {
         return 1;
     }
     return 0;

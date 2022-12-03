@@ -59,7 +59,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
     autoDiscoveryClicked(autoDiscovery->isChecked());
 
-
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
     connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
     connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));

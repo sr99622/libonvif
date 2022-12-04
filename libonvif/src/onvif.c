@@ -2341,6 +2341,7 @@ void getIPAddress(char buf[128]) {
                             char addr_buf[128];
                             sprintf(addr_buf, "%d.%d.%d.%d", INT_TO_ADDR(addr));
                             if (strcmp(addr_buf, "127.0.0.1") != 0) {
+                                printf("-----------------------------------------------%s\n", addr_buf);
                                 strcpy(buf, addr_buf);
                             }
                         }

@@ -90,10 +90,13 @@ void Discovery::discover()
         OnvifSession* onvif_session = ((CameraPanel*)cameraPanel)->onvif_session;
 
         QString str = "Discovery started\n";
+
+        /*
         char buffer[1024];
         settingsPanel->getCurrentlySelectedIP(buffer);
         str.append(QString("currently selected IP for broadcast - %1\n").arg(buffer));
         strcpy(onvif_session->preferred_network_address, buffer);
+        */
 
         int number_of_cameras = broadcast(onvif_session);
         str.append(QString("libonvif found %1 cameras\n").arg(QString::number(number_of_cameras)));

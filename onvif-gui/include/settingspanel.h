@@ -36,8 +36,8 @@ class SettingsPanel : public QWidget
 
 public:
     SettingsPanel(QMainWindow *parent);
-    void getActiveNetworkInterfaces();
-    void getCurrentlySelectedIP(char *buffer);
+    //void getActiveNetworkInterfaces();
+    //void getCurrentlySelectedIP(char *buffer);
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
@@ -45,7 +45,7 @@ public:
     QSpinBox *broadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
-    QComboBox *networkInterfaces;
+    //QComboBox *networkInterfaces;
 
     const QString usernameKey   = "SettingsPanel/username";
     const QString passwordKey   = "SettingsPanel/password";
@@ -53,7 +53,7 @@ public:
     const QString autoDiscKey   = "SettingsPanel/autoDiscovery";
     const QString multiBroadKey = "SettingsPanel/multiBroadcast";
     const QString broadRepKey   = "SettingsPanel/brodacastRepeat";
-    const QString netIntfKey    = "SettingsPanel/networkInterface";
+    //const QString netIntfKey    = "SettingsPanel/networkInterface";
     const QString autoLoadKey   = "SettingsPanel/autoLoad";
     const QString autoCameraKey = "SettingsPanel/autoCamera";
 
@@ -67,7 +67,7 @@ public slots:
     void autoDiscoveryClicked(bool);
     void multiBroadcastClicked(bool);
     void broadcastRepeatChanged(int);
-    void netIntfChanged(const QString&);
+    //void netIntfChanged(const QString&);
 
 };
 

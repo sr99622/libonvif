@@ -242,6 +242,9 @@ void CameraPanel::cameraTimeout()
 void CameraPanel::connectFailed(const QString& str)
 {
     connecting = false;
+    QString title = "connection failed - ";
+    title += currentStreamingCameraName;
+    MW->setWindowTitle(title);
     QMessageBox msgBox;
     msgBox.setText(str);
     msgBox.exec();

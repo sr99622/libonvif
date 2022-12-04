@@ -21,6 +21,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <iostream>
+#include <sstream>
 #include "avio.h"
 
 #define VERTEX_ATTRIBUTE 0
@@ -315,7 +316,9 @@ void GLWidget::start(void * parent, const char* uri)
 
     }
     catch (const Exception& e) {
-        std::cout << "GLWidget process error: " << e.what() << std::endl;
+        std::stringstream str;
+        str << "GLWidget process error: " << e.what() << "\n";
+        widget->emit msg(str.str().c_str());
         widget->process->cleanup();
         widget->emit connectFailed();
     }

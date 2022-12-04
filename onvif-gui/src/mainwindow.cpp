@@ -33,12 +33,15 @@ MainWindow::MainWindow(QWidget *parent)
     settings = new QSettings("libonvif", "onvif");
 
     glWidget = new avio::GLWidget();
+    connect(glWidget, SIGNAL(msg(const QString&)), this, SLOT(msg(const QString&)));
 
     settingsPanel = new SettingsPanel(this);
     cameraPanel = new CameraPanel(this);
+    messagePanel = new MessagePanel(this);
     tabWidget= new QTabWidget();
     tabWidget->addTab(cameraPanel, "Cameras");
     tabWidget->addTab(settingsPanel, "Settings");
+    tabWidget->addTab(messagePanel, "Messages");
     setMinimumWidth(840);
 
     QWidget* layoutPanel = new QWidget();
@@ -90,6 +93,7 @@ void MainWindow::closeEvent(QCloseEvent* e)
 void MainWindow::msg(const QString& str)
 {
     std::cout << str.toLatin1().data() << std::endl;
+    messagePanel->msg->append(str);
 }
 
 void MainWindow::onSplitterMoved(int pos, int index)

@@ -125,6 +125,7 @@ if (BUILD_GUI)
         onvif-gui/src/logindialog.cpp
         onvif-gui/src/main.cpp
         onvif-gui/src/mainwindow.cpp
+        onvif-gui/src/messagepanel.cpp
         onvif-gui/src/networktab.cpp
         onvif-gui/src/onvifmanager.cpp
         onvif-gui/src/ptztab.cpp
@@ -140,6 +141,7 @@ if (BUILD_GUI)
         onvif-gui/include/imagetab.h
         onvif-gui/include/logindialog.h
         onvif-gui/include/mainwindow.h
+        onvif-gui/include/messagepanel.h
         onvif-gui/include/networktab.h
         onvif-gui/include/onvifmanager.h
         onvif-gui/include/ptztab.h

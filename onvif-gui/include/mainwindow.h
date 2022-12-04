@@ -33,6 +33,7 @@
 
 #include "camerapanel.h"
 #include "settingspanel.h"
+#include "messagepanel.h"
 #include <iostream>
 #include "avio.h"
 
@@ -50,6 +51,7 @@ public:
 
     CameraPanel* cameraPanel;
     SettingsPanel* settingsPanel;
+    MessagePanel* messagePanel;
     QTabWidget* tabWidget;
     QSettings* settings;
     avio::GLWidget* glWidget;

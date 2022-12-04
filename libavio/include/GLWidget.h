@@ -83,6 +83,7 @@ signals:
     void timerStop();
     void cameraTimeout();
     void connectFailed();
+    void msg(const QString&);
 
 public slots:
     void poll();

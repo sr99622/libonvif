@@ -59,7 +59,7 @@ public:
 
 
 public slots:
-    void msg(QString);
+    void msg(const QString&);
     void onSplitterMoved(int pos, int index);
 
 };

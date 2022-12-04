@@ -71,6 +71,10 @@ Reader::Reader(const char* filename)
 
     std::filesystem::path path = filename;
     extension = path.extension().string();
+
+    if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
+
+    std::cout << "video codec: " << str_video_codec() << std::endl;
     std::cout << "Reader successfully opened " << std::endl;
 }
 

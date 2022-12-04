@@ -56,7 +56,7 @@ static void usage()
 static void showAll()
 {
 	std::cout << "Looking for cameras on the network..." << std::endl;
-	struct OnvifSession *onvif_session = (struct OnvifSession*)malloc(sizeof(struct OnvifSession));
+	struct OnvifSession *onvif_session = (struct OnvifSession*)calloc(sizeof(struct OnvifSession), 1);
     struct OnvifData *onvif_data = (struct OnvifData*)malloc(sizeof(struct OnvifData));
 	initializeSession(onvif_session);
 	int n = broadcast(onvif_session);
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 
 	char *wanted = argv++[0];
 
-	struct OnvifSession *onvif_session = (struct OnvifSession*)malloc(sizeof(struct OnvifSession));
+	struct OnvifSession *onvif_session = (struct OnvifSession*)calloc(sizeof(struct OnvifSession), 1);
 	struct OnvifData *onvif_data = (struct OnvifData*)malloc(sizeof(struct OnvifData));
 	initializeSession(onvif_session);
 	int n = broadcast(onvif_session);

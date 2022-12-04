@@ -86,7 +86,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     adminTab->setActive(false);
     applyButton->setEnabled(false);
 
-    connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
+    connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
     connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
     connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
     connect(MW->glWidget, SIGNAL(connectFailed()), this, SLOT(connectFailed()));
@@ -95,7 +95,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
     connect(cameraListModel, SIGNAL(getCameraData()), this, SLOT(fillData()));
 
-    onvif_session = (OnvifSession*)malloc(sizeof(OnvifSession));
+    onvif_session = (OnvifSession*)calloc(sizeof(OnvifSession), 1);
     initializeSession(onvif_session);
     discovery = new Discovery(this, MW->settingsPanel);
     connect(discovery, SIGNAL(stopping()), this, SLOT(discoveryFinished()));

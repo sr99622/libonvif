@@ -133,6 +133,7 @@ struct OnvifSession {
     int len[128];
     char uuid[47];
     int discovery_msg_id;
+    char preferred_network_address[16];
 };
 
 LIBRARY_API void initializeSession(struct OnvifSession *onvif_session);

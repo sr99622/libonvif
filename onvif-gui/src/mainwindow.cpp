@@ -87,9 +87,9 @@ void MainWindow::closeEvent(QCloseEvent* e)
 
 }
 
-void MainWindow::msg(QString str)
+void MainWindow::msg(const QString& str)
 {
-    std::cout << (const char*)str.toLatin1() << std::endl;
+    std::cout << str.toLatin1().data() << std::endl;
 }
 
 void MainWindow::onSplitterMoved(int pos, int index)

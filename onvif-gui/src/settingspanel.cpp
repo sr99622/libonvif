@@ -19,6 +19,12 @@
 *
 *******************************************************************************/
 
+#ifdef _WIN32
+#include <WS2tcpip.h>
+#include <iphlpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
+#endif
+
 #include <QLabel>
 #include <QGridLayout>
 
@@ -28,7 +34,11 @@
 SettingsPanel::SettingsPanel(QMainWindow* parent)
 {
     mainWindow = parent;
+    connect(this, SIGNAL(msg(const QString&)), MW, SLOT(msg(const QString&)));
 
+    networkInterfaces = new QComboBox();
+    networkInterfaces->setMaximumWidth(180);
+    QLabel *lbl03 = new QLabel("Select Network Interface");
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
     broadcastRepeat = new QSpinBox();
@@ -42,6 +52,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     QLabel *lbl02 = new QLabel("Common Password");
 
     QGridLayout *layout = new QGridLayout();
+    layout->addWidget(lbl03,               0, 0, 1, 1);
+    layout->addWidget(networkInterfaces,   0, 1, 1, 1);
     layout->addWidget(autoDiscovery,       1, 0, 1, 1);
     layout->addWidget(multiBroadcast,      2, 0, 1, 1);
     layout->addWidget(lbl00,               2, 1, 1 ,1);
@@ -52,6 +64,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(commonPassword,      4, 1, 1, 1);
     setLayout(layout);
 
+    getActiveNetworkInterfaces();
+
     commonUsername->setText(MW->settings->value(usernameKey, "").toString());
     commonPassword->setText(MW->settings->value(passwordKey, "").toString());
     autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
@@ -59,11 +73,18 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
     autoDiscoveryClicked(autoDiscovery->isChecked());
 
+    QString netIntf = MW->settings->value(netIntfKey, "").toString();
+    if (netIntf.length() > 0)
+        networkInterfaces->setCurrentText(netIntf);
+
+
+
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
     connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
     connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
     connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
     connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
+    connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -103,3 +124,61 @@ void SettingsPanel::passwordUpdated()
     MW->settings->setValue(passwordKey, commonPassword->text());
 }
 
+void SettingsPanel::netIntfChanged(const QString& arg)
+{
+    MW->settings->setValue(netIntfKey, arg);
+}
+
+void SettingsPanel::getActiveNetworkInterfaces()
+{
+#ifdef _WIN32
+    PIP_ADAPTER_INFO pAdapterInfo;
+    PIP_ADAPTER_INFO pAdapter = NULL;
+    DWORD dwRetVal = 0;
+    //UINT i;
+
+    ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+    pAdapterInfo = (IP_ADAPTER_INFO *) malloc(sizeof (IP_ADAPTER_INFO));
+    if (pAdapterInfo == NULL) {
+        emit msg("Error allocating memory needed to call GetAdaptersinfo");
+        return;
+    }
+
+    if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+        free(pAdapterInfo);
+        pAdapterInfo = (IP_ADAPTER_INFO *) malloc(ulOutBufLen);
+        if (pAdapterInfo == NULL) {
+            emit msg("Error allocating memory needed to call GetAdaptersinfo");
+            return;
+        }
+    }
+
+    if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+        pAdapter = pAdapterInfo;
+        while (pAdapter) {
+            if (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0")) {
+                char interface_info[1024];
+                sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
+                emit msg(QString("Network interface info %1").arg(interface_info));
+                networkInterfaces->addItem(QString(interface_info));
+            }
+            pAdapter = pAdapter->Next;
+        }
+    } else {
+        emit msg(QString("GetAdaptersInfo failed with error: %1").arg(dwRetVal));
+    }
+    if (pAdapterInfo)
+        free(pAdapterInfo);
+#endif
+}
+
+void SettingsPanel::getCurrentlySelectedIP(char *buffer)
+{
+    QString selected = networkInterfaces->currentText();
+    int index = selected.indexOf(" - ");
+    int i = 0;
+    for (i = 0; i < index; i++) {
+        buffer[i] = selected.toLatin1().data()[i];
+    }
+    buffer[i] = '\0';
+}

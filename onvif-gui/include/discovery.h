@@ -69,7 +69,7 @@ signals:
     void stopping();
     void found(OnvifData *onvif_data);
     void login(Credential*);
-    void msg(QString);
+    void msg(const QString&);
 
 public slots:
     void run();

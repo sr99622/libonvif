@@ -49,7 +49,7 @@ namespace avio {
 
 Reader::Reader(const char* filename)
 {
-    std::cout << "Reader opening " << filename << std::endl;
+    //std::cout << "Reader opening " << filename << std::endl;
     AVDictionary* opts = NULL;
     av_dict_set(&opts, "stimeout", "10000000", 0);
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);

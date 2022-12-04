@@ -270,8 +270,8 @@ void GLWidget::start(void * parent, const char* uri)
         widget->process = &process;
 
         avio::Reader reader(uri);
-        reader.apq_max_size = 100;
-        reader.vpq_max_size = 100;
+        if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
+        if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
         widget->tex_width = reader.width();
         widget->tex_height = reader.height();
         reader.set_video_out("vpq_reader");

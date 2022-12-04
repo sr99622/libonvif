@@ -141,6 +141,14 @@ void CameraPanel::viewButtonClicked()
         memset(buf, 0, 256);
         strcpy(buf, ss_uri.str().c_str());
         connecting = true;
+        if (MW->settingsPanel->lowLatency->isChecked()) {
+            MW->glWidget->vpq_size = 1;
+            MW->glWidget->apq_size = 1;
+        }
+        else {
+            MW->glWidget->vpq_size = 100;
+            MW->glWidget->apq_size = 100;
+        }
         MW->glWidget->play(buf);
         MW->setWindowTitle("connecting to " + currentStreamingCameraName);
     }

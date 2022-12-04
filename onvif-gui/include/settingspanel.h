@@ -45,6 +45,7 @@ public:
     QSpinBox *broadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
+    QCheckBox *lowLatency;
     //QComboBox *networkInterfaces;
 
     const QString usernameKey   = "SettingsPanel/username";
@@ -53,9 +54,8 @@ public:
     const QString autoDiscKey   = "SettingsPanel/autoDiscovery";
     const QString multiBroadKey = "SettingsPanel/multiBroadcast";
     const QString broadRepKey   = "SettingsPanel/brodacastRepeat";
+    const QString lowLatencyKey = "SettingsPanel/lowLatency";
     //const QString netIntfKey    = "SettingsPanel/networkInterface";
-    const QString autoLoadKey   = "SettingsPanel/autoLoad";
-    const QString autoCameraKey = "SettingsPanel/autoCamera";
 
 
 signals:
@@ -67,6 +67,7 @@ public slots:
     void autoDiscoveryClicked(bool);
     void multiBroadcastClicked(bool);
     void broadcastRepeatChanged(int);
+    void lowLatencyClicked(bool);
     //void netIntfChanged(const QString&);
 
 };

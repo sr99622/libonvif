@@ -48,7 +48,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
 
     //networkInterfaces = new QComboBox();
     //networkInterfaces->setMaximumWidth(180);
-    QLabel *lbl03 = new QLabel("Select Network Interface");
+    //QLabel *lbl03 = new QLabel("Select Network Interface");
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
     broadcastRepeat = new QSpinBox();
@@ -60,18 +60,20 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     commonPassword = new QLineEdit();
     commonPassword->setMaximumWidth(100);
     QLabel *lbl02 = new QLabel("Common Password");
+    lowLatency = new QCheckBox("Low Latency Buffering");
 
     QGridLayout *layout = new QGridLayout();
     //layout->addWidget(lbl03,               0, 0, 1, 1);
     //layout->addWidget(networkInterfaces,   0, 1, 1, 2);
-    layout->addWidget(autoDiscovery,       1, 0, 1, 1);
+    layout->addWidget(autoDiscovery,       1, 0, 1, 2);
     layout->addWidget(multiBroadcast,      2, 0, 1, 1);
-    layout->addWidget(lbl00,               2, 1, 1 ,1);
+    layout->addWidget(lbl00,               2, 1, 1, 1);
     layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
     layout->addWidget(lbl01,               3, 0, 1, 1);
     layout->addWidget(commonUsername,      3, 1, 1, 1);
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
+    layout->addWidget(lowLatency,          5, 0, 1, 2);
     setLayout(layout);
 
     //getActiveNetworkInterfaces();
@@ -81,6 +83,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
     multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
     broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
+    lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
     autoDiscoveryClicked(autoDiscovery->isChecked());
 
     //QString netIntf = MW->settings->value(netIntfKey, "").toString();
@@ -92,6 +95,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
     connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
     connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
+    connect(lowLatency, SIGNAL(clicked(bool)), this, SLOT(lowLatencyClicked(bool)));
     //connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
 }
 
@@ -130,6 +134,11 @@ void SettingsPanel::usernameUpdated()
 void SettingsPanel::passwordUpdated()
 {
     MW->settings->setValue(passwordKey, commonPassword->text());
+}
+
+void SettingsPanel::lowLatencyClicked(bool clicked)
+{
+    MW->settings->setValue(lowLatencyKey, clicked);
 }
 
 /*

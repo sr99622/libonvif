@@ -23,6 +23,8 @@
 #define MESSAGEPANEL_H
 
 #include <QTextEdit>
+#include <QPushButton>
+#include <QClipboard>
 #include <QMainWindow>
 
 class MessagePanel : public QWidget
@@ -34,6 +36,11 @@ public:
 
     QMainWindow *mainWindow;
     QTextEdit *msg;
+    QPushButton *btnCopy;
+    QClipboard* cp;
+
+public slots:
+    void onBtnCopyClicked();
 
 };
 

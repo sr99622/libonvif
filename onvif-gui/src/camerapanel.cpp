@@ -72,7 +72,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     layout->addWidget(cameraList,     0, 0, 1, 1);
     layout->addWidget(tabWidget,      1, 0, 1, 1);
     layout->addWidget(controlPanel,   2, 0, 1, 1);
-    layout->setColumnStretch(0, 10);
+    layout->setRowStretch(0, 10);
 
     setLayout(layout);
 

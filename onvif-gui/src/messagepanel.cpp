@@ -22,11 +22,22 @@
 #include "messagepanel.h"
 #include "mainwindow.h"
 #include <QGridLayout>
+#include <QGuiApplication>
 
 MessagePanel::MessagePanel(QMainWindow *parent)
 {
     mainWindow = parent;
+    cp = QGuiApplication::clipboard();
     msg = new QTextEdit();
+    btnCopy = new QPushButton("Copy");
+    connect(btnCopy, SIGNAL(clicked()), this, SLOT(onBtnCopyClicked()));
     QGridLayout *layout = new QGridLayout(this);
-    layout->addWidget(msg,  0, 0, 1, 1);
+    layout->addWidget(msg,     0, 0, 1, 1);
+    layout->addWidget(btnCopy, 1, 0, 1, 1, Qt::AlignRight);
+}
+
+void MessagePanel::onBtnCopyClicked()
+{
+    //std::cout << "test" << std::endl;
+    cp->setText(msg->toPlainText());
 }

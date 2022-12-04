@@ -89,7 +89,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
     connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
     connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
-    connect(MW->glWidget, SIGNAL(connectFailed()), this, SLOT(connectFailed()));
+    connect(MW->glWidget, SIGNAL(connectFailed(const QString&)), this, SLOT(connectFailed(const QString&)));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -239,10 +239,10 @@ void CameraPanel::cameraTimeout()
     msgBox.exec();
 }
 
-void CameraPanel::connectFailed()
+void CameraPanel::connectFailed(const QString& str)
 {
     connecting = false;
     QMessageBox msgBox;
-    msgBox.setText("Camera connection failed");
+    msgBox.setText(str);
     msgBox.exec();
 }

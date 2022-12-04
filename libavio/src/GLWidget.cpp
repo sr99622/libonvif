@@ -320,7 +320,7 @@ void GLWidget::start(void * parent, const char* uri)
         str << "GLWidget process error: " << e.what() << "\n";
         widget->emit msg(str.str().c_str());
         widget->process->cleanup();
-        widget->emit connectFailed();
+        widget->emit connectFailed(str.str().c_str());
     }
 
     widget->process = nullptr;

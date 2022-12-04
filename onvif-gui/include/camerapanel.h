@@ -101,7 +101,7 @@ public slots:
     void adjustVolume(int);
     void streamStarting();
     void cameraTimeout();
-    void connectFailed();
+    void connectFailed(const QString&);
 
 };
 

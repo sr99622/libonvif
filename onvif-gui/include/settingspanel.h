@@ -28,6 +28,7 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <QSpinBox>
+#include <QSlider>
 #include <QMainWindow>
 
 class SettingsPanel : public QWidget
@@ -46,6 +47,10 @@ public:
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;
+    QSlider *zoom;
+    QSlider *panX;
+    QSlider *panY;
+    QPushButton *reset;
     //QComboBox *networkInterfaces;
 
     const QString usernameKey   = "SettingsPanel/username";
@@ -68,6 +73,10 @@ public slots:
     void multiBroadcastClicked(bool);
     void broadcastRepeatChanged(int);
     void lowLatencyClicked(bool);
+    void zoomMoved(int);
+    void panXMoved(int);
+    void panYMoved(int);
+    void resetClicked();
     //void netIntfChanged(const QString&);
 
 };

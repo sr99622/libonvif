@@ -62,6 +62,42 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     QLabel *lbl02 = new QLabel("Common Password");
     lowLatency = new QCheckBox("Low Latency Buffering");
 
+    QFrame *sliderFrame = new QFrame(this);
+    sliderFrame->setMaximumHeight(300);
+    sliderFrame->setFrameShape(QFrame::Panel);
+    sliderFrame->setFrameShadow(QFrame::Plain);
+    sliderFrame->setWindowTitle("Digital Zoom");
+
+    QLabel *lbl10 = new QLabel("Zoom");
+    zoom = new QSlider(Qt::Vertical);
+    zoom->setValue(0);
+    connect(zoom, SIGNAL(sliderMoved(int)), this, SLOT(zoomMoved(int)));
+
+    QLabel *lbl11 = new QLabel("Pan X");
+    panX = new QSlider(Qt::Vertical);
+    panX->setValue(50);
+    connect(panX, SIGNAL(sliderMoved(int)), this, SLOT(panXMoved(int)));
+
+    QLabel *lbl12 = new QLabel("Pan Y");
+    panY = new QSlider(Qt::Vertical);
+    panY->setValue(50);
+    connect(panY, SIGNAL(sliderMoved(int)), this, SLOT(panYMoved(int)));
+
+    reset = new QPushButton("Reset");
+    connect(reset, SIGNAL(clicked()), this, SLOT(resetClicked()));
+
+    QLabel *title = new QLabel("Digital Zoom");
+
+    QGridLayout *frameLayout = new QGridLayout(sliderFrame);
+    frameLayout->addWidget(title, 0, 0, 1, 4, Qt::AlignRight);
+    frameLayout->addWidget(zoom,  1, 0, 1, 1, Qt::AlignHCenter);
+    frameLayout->addWidget(panX,  1, 1, 1, 1, Qt::AlignHCenter);
+    frameLayout->addWidget(panY,  1, 2, 1, 1, Qt::AlignHCenter); 
+    frameLayout->addWidget(lbl10, 2, 0, 1, 1, Qt::AlignCenter);
+    frameLayout->addWidget(lbl11, 2, 1, 1, 1, Qt::AlignCenter);
+    frameLayout->addWidget(lbl12, 2, 2, 1, 1, Qt::AlignCenter);
+    frameLayout->addWidget(reset, 1, 3, 1, 1);
+
     QGridLayout *layout = new QGridLayout();
     //layout->addWidget(lbl03,               0, 0, 1, 1);
     //layout->addWidget(networkInterfaces,   0, 1, 1, 2);
@@ -74,6 +110,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
     layout->addWidget(lowLatency,          5, 0, 1, 2);
+    layout->addWidget(sliderFrame,         6, 0, 2, 4);
     setLayout(layout);
 
     //getActiveNetworkInterfaces();
@@ -139,6 +176,37 @@ void SettingsPanel::passwordUpdated()
 void SettingsPanel::lowLatencyClicked(bool clicked)
 {
     MW->settings->setValue(lowLatencyKey, clicked);
+}
+
+void SettingsPanel::zoomMoved(int arg)
+{
+    MW->glWidget->setZoomFactor(1 - (float)arg / 100.0f);
+}
+
+void SettingsPanel::panXMoved(int arg)
+{
+    //std::cout << "panXMoved: " << arg << std::endl;
+    MW->glWidget->setPanX((50.0f - (float)arg) / 20.0f);
+}
+
+void SettingsPanel::panYMoved(int arg)
+{
+    //std::cout << "panYMoved: " << arg << std::endl;
+    MW->glWidget->setPanY((50.0f - (float)arg) / 20.0f);
+}
+
+void SettingsPanel::resetClicked()
+{
+    //std::cout << "reset" << std::endl;
+    zoom->setValue(0);
+    panX->setValue(50);
+    panY->setValue(50);
+
+    //float zoom_factor = 1 - (float)zoom->value() / 100.0f;
+    //float pan_x = (50.0f - (float)panX->value()) / 50.0f;
+    //float pan_y = (50.0f - (float)panY->value()) / 50.0f;
+
+    //std::cout << "zoom_factor: " << zoom_factor << " pan_x: " << pan_x << " pan_y: " << pan_y << std::endl;
 }
 
 /*

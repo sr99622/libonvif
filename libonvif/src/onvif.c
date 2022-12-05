@@ -2428,11 +2428,11 @@ int setSocketOptions(int socket) {
         if (pIPAddrTable->table[p].dwAddr != inet_addr("127.0.0.1") && pIPAddrTable->table[p].dwMask == inet_addr("255.255.255.0")) {
             if (strlen(preferred_network_address) > 0) {
                 localInterface.s_addr = inet_addr(preferred_network_address);
-                printf("using preferred network address for broadcast: %s\n", preferred_network_address);
+                //printf("using preferred network address for broadcast: %s\n", preferred_network_address);
             }
             else {
                 localInterface.s_addr = pIPAddrTable->table[p].dwAddr;
-                printf("using default network address for broadcast\n");
+                //printf("using default network address for broadcast\n");
             }
             status = setsockopt(socket, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&localInterface, sizeof(localInterface));
             if (status < 0)

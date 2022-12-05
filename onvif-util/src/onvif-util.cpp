@@ -45,8 +45,8 @@ static struct option longopts[] = {
              { NULL,         0,                 NULL,       0 }
      };
 
-static const char *username;
-static const char *password;
+static const char *username = nullptr;
+static const char *password = nullptr;
 
 static void usage()
 {
@@ -230,8 +230,8 @@ int main(int argc, char **argv)
 		getHostname(onvif_data);
 		if (!strcmp(host, wanted)) {
 			std::cout << "  found host: " << host << std::endl;
-			strcpy(onvif_data->username, username);
-			strcpy(onvif_data->password, password);
+			if (username) strcpy(onvif_data->username, username);
+			if (password) strcpy(onvif_data->password, password);
 			if (getDeviceInformation(onvif_data)  == 0) {
 				std::cout << "  successfully connected to host" << "\n";
 				std::cout << "    name:   " << onvif_data->camera_name << "\n";

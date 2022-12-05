@@ -39,6 +39,19 @@
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
+struct ColorProfile
+{
+    QString bl;
+    QString bm;
+    QString bd;
+    QString fl;
+    QString fm;
+    QString fd;
+    QString sl;
+    QString sm;
+    QString sd;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -47,6 +60,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void applyStyle(const ColorProfile& profile);
     void closeEvent(QCloseEvent* event) override;
 
     CameraPanel* cameraPanel;
@@ -58,6 +72,8 @@ public:
     QSplitter* split;
 
     const QString splitKey = "MainWindow/splitKey";
+
+    QString style;
 
 
 public slots:

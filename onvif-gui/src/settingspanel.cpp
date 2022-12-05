@@ -63,6 +63,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     commonPassword->setMaximumWidth(100);
     QLabel *lbl02 = new QLabel("Common Password");
     lowLatency = new QCheckBox("Low Latency Buffering");
+    useSystemGui = new QCheckBox("Use System GUI");
 
     QFrame *sliderFrame = new QFrame(this);
     sliderFrame->setMaximumHeight(300);
@@ -112,7 +113,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
     layout->addWidget(lowLatency,          5, 0, 1, 2);
-    layout->addWidget(sliderFrame,         6, 0, 2, 4);
+    layout->addWidget(useSystemGui,        6, 0, 1, 2);
+    layout->addWidget(sliderFrame,         7, 0, 2, 4);
     setLayout(layout);
 
     //getActiveNetworkInterfaces();

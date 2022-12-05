@@ -109,6 +109,7 @@ if (BUILD_GUI)
 
     set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
     set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
     find_package(SDL2 REQUIRED)
     find_package(FFmpeg REQUIRED)
@@ -161,6 +162,9 @@ if (BUILD_GUI)
         libavio/src/Pipe.cpp
         libavio/src/GLWidget.cpp
         libavio/include/GLWidget.h
+
+        resources/resources.qrc
+        resources/resources.rcc
     )
 
     if (WIN32) 

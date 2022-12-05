@@ -100,3 +100,42 @@ void MainWindow::onSplitterMoved(int pos, int index)
 {
     settings->setValue(splitKey, split->saveState());
 }
+
+void MainWindow::applyStyle(const ColorProfile& profile)
+{
+    if (settingsPanel->useSystemGui->isChecked()) {
+        setStyleSheet("");
+        //control()->styleButtons();
+        //filter()->styleButtons();
+        //display()->setStyleSheet("");
+        //parameter()->applyStyle(profile);
+        return;
+    }
+
+    QFile f(":darkstyle.qss");
+    if (!f.exists()) {
+        msg("Error: MainWindow::getThemes() Style sheet not found");
+    }
+    else {
+        f.open(QFile::ReadOnly | QFile::Text);
+        style = QString(f.readAll());
+
+        style.replace("background_light",  profile.bl);
+        style.replace("background_medium", profile.bm);
+        style.replace("background_dark",   profile.bd);
+        style.replace("foreground_light",  profile.fl);
+        style.replace("foreground_medium", profile.fm);
+        style.replace("foreground_dark",   profile.fd);
+        style.replace("selection_light",   profile.sl);
+        style.replace("selection_medium",  profile.sm);
+        style.replace("selection_dark",    profile.sd);
+
+        setStyleSheet(style);
+        //control()->styleButtons();
+        //filter()->styleButtons();
+        //display()->setStyleSheet(QString("QFrame {background-color: %1; padding: 0px;}").arg(profile.bm));
+        //parameter()->applyStyle(profile);
+    }
+
+}
+

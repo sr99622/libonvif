@@ -52,6 +52,7 @@ public:
     void updateAspectRatio();
     void play(const char* uri);
     void stop();
+    float zoom_factor() { return factor; }
 
     static void start(void * parent, const char* uri);
 

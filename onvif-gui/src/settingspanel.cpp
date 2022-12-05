@@ -20,26 +20,28 @@
 *******************************************************************************/
 
 #ifdef _WIN32
-#include <WS2tcpip.h>
-#include <iphlpapi.h>
-#pragma comment(lib, "iphlpapi.lib")
+    #include <WS2tcpip.h>
+    #include <iphlpapi.h>
+    #pragma comment(lib, "iphlpapi.lib")
 #else
-//#define _GNU_SOURCE     /* To get defns of NI_MAXSERV and NI_MAXHOST */
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <ifaddrs.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <linux/if_link.h>
+    #include <arpa/inet.h>
+    #include <sys/socket.h>
+    #include <netdb.h>
+    #include <ifaddrs.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <linux/if_link.h>
 #endif
 
+#include <cmath>
 #include <QLabel>
 #include <QGridLayout>
 
 #include "settingspanel.h"
 #include "mainwindow.h"
+
+#define EulerConstant = 2.71828
 
 SettingsPanel::SettingsPanel(QMainWindow* parent)
 {
@@ -71,17 +73,17 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     QLabel *lbl10 = new QLabel("Zoom");
     zoom = new QSlider(Qt::Vertical);
     zoom->setValue(0);
-    connect(zoom, SIGNAL(sliderMoved(int)), this, SLOT(zoomMoved(int)));
+    connect(zoom, SIGNAL(valueChanged(int)), this, SLOT(zoomMoved(int)));
 
     QLabel *lbl11 = new QLabel("Pan X");
     panX = new QSlider(Qt::Vertical);
     panX->setValue(50);
-    connect(panX, SIGNAL(sliderMoved(int)), this, SLOT(panXMoved(int)));
+    connect(panX, SIGNAL(valueChanged(int)), this, SLOT(panXMoved(int)));
 
     QLabel *lbl12 = new QLabel("Pan Y");
     panY = new QSlider(Qt::Vertical);
     panY->setValue(50);
-    connect(panY, SIGNAL(sliderMoved(int)), this, SLOT(panYMoved(int)));
+    connect(panY, SIGNAL(valueChanged(int)), this, SLOT(panYMoved(int)));
 
     reset = new QPushButton("Reset");
     connect(reset, SIGNAL(clicked()), this, SLOT(resetClicked()));
@@ -181,32 +183,32 @@ void SettingsPanel::lowLatencyClicked(bool clicked)
 void SettingsPanel::zoomMoved(int arg)
 {
     MW->glWidget->setZoomFactor(1 - (float)arg / 100.0f);
+    float scale = 10 * pow(10, MW->glWidget->zoom_factor() * -2.108);
+    float range_x = (50.0f - (float)panX->value()) / 50.0f;
+    MW->glWidget->setPanX(range_x * scale);
+    float range_y = (50.0f - (float)panY->value()) / 50.0f;
+    MW->glWidget->setPanY(range_y * scale);
 }
 
 void SettingsPanel::panXMoved(int arg)
 {
-    //std::cout << "panXMoved: " << arg << std::endl;
-    MW->glWidget->setPanX((50.0f - (float)arg) / 20.0f);
+    float scale = 10 * pow(10, MW->glWidget->zoom_factor() * -2.108);
+    float range = (50.0f - (float)arg) / 50.0f;
+    MW->glWidget->setPanX(range * scale);
 }
 
 void SettingsPanel::panYMoved(int arg)
 {
-    //std::cout << "panYMoved: " << arg << std::endl;
-    MW->glWidget->setPanY((50.0f - (float)arg) / 20.0f);
+    float scale = 10 * pow(10, MW->glWidget->zoom_factor() * -2.108);
+    float range = (50.0f - (float)arg) / 50.0f;
+    MW->glWidget->setPanY(range * scale);
 }
 
 void SettingsPanel::resetClicked()
 {
-    //std::cout << "reset" << std::endl;
     zoom->setValue(0);
     panX->setValue(50);
     panY->setValue(50);
-
-    //float zoom_factor = 1 - (float)zoom->value() / 100.0f;
-    //float pan_x = (50.0f - (float)panX->value()) / 50.0f;
-    //float pan_y = (50.0f - (float)panY->value()) / 50.0f;
-
-    //std::cout << "zoom_factor: " << zoom_factor << " pan_x: " << pan_x << " pan_y: " << pan_y << std::endl;
 }
 
 /*

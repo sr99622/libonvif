@@ -44,6 +44,7 @@ public:
     QCheckBox *autoDiscovery;
     QCheckBox *multiBroadcast;
     QCheckBox *useSystemGui;
+    QPushButton *style;
     QSpinBox *broadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
@@ -78,6 +79,7 @@ public slots:
     void panXMoved(int);
     void panYMoved(int);
     void resetClicked();
+    void styleClicked();
     //void netIntfChanged(const QString&);
 
 };

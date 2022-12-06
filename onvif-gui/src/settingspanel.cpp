@@ -89,6 +89,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     reset = new QPushButton("Reset");
     connect(reset, SIGNAL(clicked()), this, SLOT(resetClicked()));
 
+    style = new QPushButton("Style");
+    connect(style, SIGNAL(clicked()), this, SLOT(styleClicked()));
+
     QLabel *title = new QLabel("Digital Zoom");
 
     QGridLayout *frameLayout = new QGridLayout(sliderFrame);
@@ -113,7 +116,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
     layout->addWidget(lowLatency,          5, 0, 1, 2);
-    layout->addWidget(useSystemGui,        6, 0, 1, 2);
+    layout->addWidget(useSystemGui,        6, 0, 1, 1);
+    layout->addWidget(style,               6, 1, 1, 1);
     layout->addWidget(sliderFrame,         7, 0, 2, 4);
     setLayout(layout);
 
@@ -211,6 +215,12 @@ void SettingsPanel::resetClicked()
     zoom->setValue(0);
     panX->setValue(50);
     panY->setValue(50);
+}
+
+void SettingsPanel::styleClicked()
+{
+    std::cout << "StylePanel::styleClicked" << std::endl;
+    MW->styleDialog->exec();
 }
 
 /*

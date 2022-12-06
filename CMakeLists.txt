@@ -131,6 +131,7 @@ if (BUILD_GUI)
         onvif-gui/src/onvifmanager.cpp
         onvif-gui/src/ptztab.cpp
         onvif-gui/src/settingspanel.cpp
+        onvif-gui/src/stylepanel.cpp
         onvif-gui/src/videotab.cpp
         onvif-gui/include/admintab.h
         onvif-gui/include/camera.h
@@ -147,6 +148,7 @@ if (BUILD_GUI)
         onvif-gui/include/onvifmanager.h
         onvif-gui/include/ptztab.h
         onvif-gui/include/settingspanel.h
+        onvif-gui/include/stylepanel.h
         onvif-gui/include/videotab.h
 
         libavio/src/Reader.cpp

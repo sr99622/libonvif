@@ -25,15 +25,15 @@
 #include <QApplication>
 #include <QScreen>
 
-
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowTitle("onvif-gui version 1.4.1-dev");
     settings = new QSettings("libonvif", "onvif");
 
     glWidget = new avio::GLWidget();
     connect(glWidget, SIGNAL(msg(const QString&)), this, SLOT(msg(const QString&)));
+
+    styleDialog = new StyleDialog(this);
 
     settingsPanel = new SettingsPanel(this);
     cameraPanel = new CameraPanel(this);
@@ -73,6 +73,11 @@ MainWindow::MainWindow(QWidget *parent)
         int y = (screenSize.height() - height()) / 2;
         move(x, y);
     }
+
+    StylePanel *stylePanel = (StylePanel*)styleDialog->panel;
+    stylePanel->onBtnDefaultsClicked();
+    const ColorProfile profile = stylePanel->getProfile();
+    applyStyle(profile);
 }
 
 MainWindow::~MainWindow()
@@ -105,10 +110,6 @@ void MainWindow::applyStyle(const ColorProfile& profile)
 {
     if (settingsPanel->useSystemGui->isChecked()) {
         setStyleSheet("");
-        //control()->styleButtons();
-        //filter()->styleButtons();
-        //display()->setStyleSheet("");
-        //parameter()->applyStyle(profile);
         return;
     }
 
@@ -131,10 +132,6 @@ void MainWindow::applyStyle(const ColorProfile& profile)
         style.replace("selection_dark",    profile.sd);
 
         setStyleSheet(style);
-        //control()->styleButtons();
-        //filter()->styleButtons();
-        //display()->setStyleSheet(QString("QFrame {background-color: %1; padding: 0px;}").arg(profile.bm));
-        //parameter()->applyStyle(profile);
     }
 
 }

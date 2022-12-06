@@ -34,23 +34,11 @@
 #include "camerapanel.h"
 #include "settingspanel.h"
 #include "messagepanel.h"
+#include "stylepanel.h"
 #include <iostream>
 #include "avio.h"
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
-
-struct ColorProfile
-{
-    QString bl;
-    QString bm;
-    QString bd;
-    QString fl;
-    QString fm;
-    QString fd;
-    QString sl;
-    QString sm;
-    QString sd;
-};
 
 class MainWindow : public QMainWindow
 {
@@ -67,6 +55,7 @@ public:
     SettingsPanel* settingsPanel;
     MessagePanel* messagePanel;
     QTabWidget* tabWidget;
+    StyleDialog* styleDialog;
     QSettings* settings;
     avio::GLWidget* glWidget;
     QSplitter* split;

@@ -76,12 +76,16 @@ StylePanel::StylePanel(QMainWindow *parent) : QWidget(parent)
     btnDefaults = new QPushButton("Defaults");
     connect(btnDefaults, SIGNAL(clicked()), this, SLOT(onBtnDefaultsClicked()));
 
-    btnApply = new QPushButton("Apply");
     btnCancel = new QPushButton("Cancel");
 
+    btnApply = new QPushButton("Apply");
+    connect(btnApply, SIGNAL(clicked()), this, SLOT(onBtnApplyClicked()));
+
     useSystemGui = new QCheckBox("Use System GUI");
+    connect(useSystemGui, SIGNAL(clicked(bool)), this, SLOT(sysGuiEnabled(bool)));
+    useSystemGui->setChecked(MW->settings->value(sysGuiKey, false).toBool());
     sysGuiEnabled(useSystemGui->isChecked());
-    connect(useSystemGui, SIGNAL(clicked(bool)), this, SLOT(sysGuiClicked(bool)));
+    btnApply->setEnabled(false);
 
     QWidget *controlPanel = new QWidget();
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
@@ -95,10 +99,6 @@ StylePanel::StylePanel(QMainWindow *parent) : QWidget(parent)
     QGridLayout *layout = new QGridLayout();
     layout->addWidget(colorPanel,    0, 0, 1, 4);
     layout->addWidget(controlPanel,  1, 0, 1, 4);
-    //layout->addWidget(useSystemGui,  1, 0, 1, 1);
-    //layout->addWidget(btnCancel,     2, 1, 1, 1, Qt::AlignRight);
-    //layout->addWidget(btnDefaults,   2, 2, 1, 1, Qt::AlignRight);
-    //layout->addWidget(btnApply,      2, 3, 1, 1, Qt::AlignRight);
     setLayout(layout);
 }
 
@@ -144,13 +144,25 @@ void StylePanel::sysGuiEnabled(bool arg)
     sd->setEnabled(!arg);
 
     btnDefaults->setEnabled(!arg);
+    btnApply->setEnabled(true);
 }
 
-void StylePanel::sysGuiClicked(bool checked)
+void StylePanel::onBtnApplyClicked()
 {
-    MW->settings->setValue(sysGuiKey, checked);
+    MW->settings->setValue(sysGuiKey, useSystemGui->isChecked());
     MW->applyStyle(getProfile());
-    sysGuiEnabled(checked);
+
+    bl->writeSettings();
+    bm->writeSettings();
+    bd->writeSettings();
+    fl->writeSettings();
+    fm->writeSettings();
+    fd->writeSettings();
+    sl->writeSettings();
+    sm->writeSettings();
+    sd->writeSettings();
+
+    btnApply->setEnabled(false);
 }
 
 void StylePanel::onBtnDefaultsClicked()
@@ -165,36 +177,27 @@ void StylePanel::onBtnDefaultsClicked()
     sm->setColor(smDefault);
     sd->setColor(sdDefault);
 
-    //MW->applyStyle(getProfile());
+    btnApply->setEnabled(true);
 }
-
-StyleDialog::StyleDialog(QMainWindow *parent) : PanelDialog(parent)
-{
-    setWindowTitle("Configuration");
-    panel = new StylePanel(mainWindow);
-    QVBoxLayout *layout = new QVBoxLayout();
-    layout->addWidget(panel);
-    setLayout(layout);
-
-    defaultWidth = 510;
-    defaultHeight = 165;
-    settingsKey = "StylePanel/geometry";
-}
-
 
 ColorButton::ColorButton(QMainWindow *parent, const QString& qss_name, const QString& color_name)
 {
     mainWindow = parent;
-    name = qss_name;
-    settingsKey = qss_name + "/" + color_name;
+
+    settingsKey = qss_name;
+    QString thingy = MW->settings->value(settingsKey).toString();
+
     color.setNamedColor(MW->settings->value(settingsKey, color_name).toString());
+    
     button = new QPushButton();
-    button->setStyleSheet(getStyle());
     connect(button, SIGNAL(clicked()), this, SLOT(clicked()));
-    QGridLayout *layout = new QGridLayout();
+
+    button->setStyleSheet(getStyle());
+
+    QGridLayout *layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(button, 0, 0, 1, 1);
-    setLayout(layout);
+
 }
 
 void ColorButton::setTempColor(const QString& color_name)
@@ -207,7 +210,6 @@ void ColorButton::setColor(const QString& color_name)
 {
     color.setNamedColor(color_name);
     button->setStyleSheet(getStyle());
-    MW->settings->setValue(settingsKey, color.name());
 }
 
 QString ColorButton::getStyle() const
@@ -215,107 +217,17 @@ QString ColorButton::getStyle() const
     return QString("QPushButton {background-color: %1;}").arg(color.name());
 }
 
+void ColorButton::writeSettings()
+{
+    MW->settings->setValue(settingsKey, color.name());
+}
+
 void ColorButton::clicked()
 {
     QColor result = QColorDialog::getColor(color, this, "playqt");
     if (result.isValid()) {
-        color = result;
-        button->setStyleSheet(getStyle());
-        MW->settings->setValue(settingsKey, color.name());
-        //MW->applyStyle(MW->config()->getProfile());
+        setColor(result.name());
+        MW->styleDialog->panel->btnApply->setEnabled(true);
     }
 }
 
-PanelDialog::PanelDialog(QMainWindow *parent) : QDialog(parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint)
-{
-    mainWindow = parent;
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(autoSave()));
-    timer->start(10000);
-}
-
-void PanelDialog::keyPressEvent(QKeyEvent *event)
-{
-    if (event->modifiers() & Qt::ControlModifier) {
-        QAction action(getSettingsKey());
-        action.setShortcut(QKeySequence(Qt::CTRL | event->key()));
-        //MW->menuAction(&action);
-    }
-
-    QDialog::keyPressEvent(event);
-}
-
-void PanelDialog::showEvent(QShowEvent *event)
-{
-    shown = true;
-
-    int w = getDefaultWidth();
-    int h = getDefaultHeight();
-    int x = MW->geometry().center().x() - w/2;
-    int y = MW->geometry().center().y() - h/2;
-
-    if (getSettingsKey().length() > 0) {
-        if (MW->settings->contains(getSettingsKey())) {
-            QRect rect = MW->settings->value(getSettingsKey()).toRect();
-            //if (rect.width() + rect.x() < MW->screen->geometry().width() &&
-            //        rect.height() + rect.y() < MW->screen->geometry().height())
-            //{
-            //    w = rect.width();
-            //    h = rect.height();
-            //    x = rect.x();
-            //    y = rect.y();
-            //}
-        }
-    }
-
-    setGeometry(QRect(x, y, w, h));
-
-    QDialog::showEvent(event);
-}
-
-void PanelDialog::autoSave()
-{
-    if (changed && shown && getSettingsKey().length() > 0) {
-        MW->settings->setValue(getSettingsKey(), geometry());
-        changed = false;
-    }
-
-    //if (panel)
-    //    panel->autoSave();
-
-}
-
-void PanelDialog::resizeEvent(QResizeEvent *event)
-{
-    if (isVisible())
-        changed = true;
-    QDialog::resizeEvent(event);
-}
-
-void PanelDialog::moveEvent(QMoveEvent *event)
-{
-    if (isVisible())
-        changed = true;
-    QDialog::moveEvent(event);
-}
-
-void PanelDialog::closeEvent(QCloseEvent *event)
-{
-    autoSave();
-    QDialog::closeEvent(event);
-}
-
-int PanelDialog::getDefaultWidth()
-{
-    return defaultWidth;
-}
-
-int PanelDialog::getDefaultHeight()
-{
-    return defaultHeight;
-}
-
-QString PanelDialog::getSettingsKey() const
-{
-    return settingsKey;
-}

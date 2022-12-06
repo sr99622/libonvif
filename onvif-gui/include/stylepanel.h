@@ -26,62 +26,7 @@
 #include <QColor>
 #include <QCheckBox>
 #include <QPushButton>
-
-class PanelDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    PanelDialog(QMainWindow *parent);
-    void closeEvent(QCloseEvent *event) override;
-    void showEvent(QShowEvent *event) override;
-    void moveEvent(QMoveEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    virtual int getDefaultWidth();
-    virtual int getDefaultHeight();
-    virtual QString getSettingsKey() const;
-
-    //void saveSettings();
-
-    QMainWindow *mainWindow;
-    QWidget *panel = nullptr;
-    bool shown = false;
-    bool changed = false;
-
-    QTimer *timer;
-    int defaultWidth = 320;
-    int defaultHeight = 240;
-    QString settingsKey = "";
-
-signals:
-    void closing();
-
-public slots:
-    void autoSave();
-
-};
-
-class ColorButton : public QWidget
-{
-    Q_OBJECT
-
-public:
-    ColorButton(QMainWindow *parent, const QString& qss_name, const QString& color_name);
-    QString getStyle() const;
-    void setColor(const QString& color_name);
-    void setTempColor(const QString& color_name);
-
-    QMainWindow *mainWindow;
-    QString name;
-    QColor color;
-    QPushButton *button;
-    QString settingsKey;
-
-public slots:
-    void clicked();
-
-};
+#include <QVBoxLayout>
 
 struct ColorProfile
 {
@@ -96,14 +41,34 @@ struct ColorProfile
     QString sd;
 };
 
+class ColorButton : public QWidget
+{
+    Q_OBJECT
+
+public:
+    ColorButton(QMainWindow *parent, const QString& qss_name, const QString& color_name);
+    QString getStyle() const;
+    void setColor(const QString& color_name);
+    void writeSettings();
+    void setTempColor(const QString& color_name);
+
+    QMainWindow *mainWindow;
+    QString name;
+    QColor color;
+    QPushButton *button;
+    QString settingsKey;
+
+public slots:
+    void clicked();
+
+};
+
 class StylePanel : public QWidget
 {
     Q_OBJECT
 
 public:
     StylePanel(QMainWindow *parent);
-    void sysGuiEnabled(bool arg);
-    //void autoSave() override;
     ColorProfile getProfile() const;
     void setTempProfile(const ColorProfile& profile);
 
@@ -138,15 +103,27 @@ public:
 
 public slots:
     void onBtnDefaultsClicked();
-    void sysGuiClicked(bool);
+    void onBtnApplyClicked();
+    void sysGuiEnabled(bool);
 };
 
-class StyleDialog : public PanelDialog
+class StyleDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    StyleDialog(QMainWindow *parent);
+    StyleDialog(QMainWindow *parent)  : QDialog(parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint)
+    {
+        mainWindow = parent;
+        setWindowTitle("Themes");
+        panel = new StylePanel(mainWindow);
+        connect(panel->btnCancel, SIGNAL(clicked()), this, SLOT(close()));
+        QVBoxLayout *layout = new QVBoxLayout(this);
+        layout->addWidget(panel);
+    }
+
+    QMainWindow *mainWindow;
+    StylePanel *panel;
 
 };
 

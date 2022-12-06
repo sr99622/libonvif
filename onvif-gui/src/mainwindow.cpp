@@ -75,7 +75,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     }
 
     StylePanel *stylePanel = (StylePanel*)styleDialog->panel;
-    stylePanel->onBtnDefaultsClicked();
     const ColorProfile profile = stylePanel->getProfile();
     applyStyle(profile);
 }
@@ -97,7 +96,7 @@ void MainWindow::closeEvent(QCloseEvent* e)
 
 void MainWindow::msg(const QString& str)
 {
-    std::cout << str.toLatin1().data() << std::endl;
+    //std::cout << str.toLatin1().data() << std::endl;
     messagePanel->msg->append(str);
 }
 
@@ -108,7 +107,7 @@ void MainWindow::onSplitterMoved(int pos, int index)
 
 void MainWindow::applyStyle(const ColorProfile& profile)
 {
-    if (settingsPanel->useSystemGui->isChecked()) {
+    if (styleDialog->panel->useSystemGui->isChecked()) {
         setStyleSheet("");
         return;
     }

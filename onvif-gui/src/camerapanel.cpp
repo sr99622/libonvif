@@ -138,8 +138,8 @@ void CameraPanel::viewButtonClicked()
         std::string uri(onvif_data->stream_uri);
         ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
         uri = ss_uri.str();
-        memset(buf, 0, 256);
-        strcpy(buf, ss_uri.str().c_str());
+        //memset(buf, 0, 256);
+        //strcpy(buf, ss_uri.str().c_str());
         connecting = true;
         if (MW->settingsPanel->lowLatency->isChecked()) {
             MW->glWidget->vpq_size = 1;
@@ -149,7 +149,7 @@ void CameraPanel::viewButtonClicked()
             MW->glWidget->vpq_size = 100;
             MW->glWidget->apq_size = 100;
         }
-        MW->glWidget->play(buf);
+        MW->glWidget->play(uri.c_str());
         MW->setWindowTitle("connecting to " + currentStreamingCameraName);
     }
 }

@@ -122,6 +122,7 @@ if (BUILD_GUI)
         onvif-gui/src/cameralistview.cpp
         onvif-gui/src/camerapanel.cpp
         onvif-gui/src/discovery.cpp
+        onvif-gui/src/filepanel.cpp
         onvif-gui/src/imagetab.cpp
         onvif-gui/src/logindialog.cpp
         onvif-gui/src/main.cpp
@@ -140,6 +141,7 @@ if (BUILD_GUI)
         onvif-gui/include/cameralistview.h
         onvif-gui/include/camerapanel.h
         onvif-gui/include/discovery.h
+        onvif-gui/include/filepanel.h
         onvif-gui/include/imagetab.h
         onvif-gui/include/logindialog.h
         onvif-gui/include/mainwindow.h

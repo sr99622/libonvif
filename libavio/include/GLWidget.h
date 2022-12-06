@@ -50,11 +50,11 @@ public:
     void setPanY(float);
     void setFormat(QImage::Format);
     void updateAspectRatio();
-    void play(const char* uri);
+    void play(const QString& arg);
     void stop();
     float zoom_factor() { return factor; }
 
-    static void start(void * parent, const char* uri);
+    static void start(void * parent);
 
     QSize sizeHint() const override;
 
@@ -87,6 +87,7 @@ signals:
     void cameraTimeout();
     void connectFailed(const QString&);
     void msg(const QString&);
+    void progress(float);
 
 public slots:
     void poll();
@@ -113,6 +114,8 @@ private:
     float pan_y  = 0.0f;
 
     QImage::Format fmt = QImage::Format_RGB888;
+
+    char uri[1024];
 
     QTimer *timer;
     int count = 0;

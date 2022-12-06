@@ -37,9 +37,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     settingsPanel = new SettingsPanel(this);
     cameraPanel = new CameraPanel(this);
+    filePanel = new FilePanel(this);
     messagePanel = new MessagePanel(this);
     tabWidget= new QTabWidget();
     tabWidget->addTab(cameraPanel, "Cameras");
+    tabWidget->addTab(filePanel, "Files");
     tabWidget->addTab(settingsPanel, "Settings");
     tabWidget->addTab(messagePanel, "Messages");
     setMinimumWidth(840);

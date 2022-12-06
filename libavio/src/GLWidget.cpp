@@ -240,7 +240,7 @@ void GLWidget::poll()
     }
 }
 
-void GLWidget::play(const char* uri)
+void GLWidget::play(const QString& arg)
 {
     try {
         stop();
@@ -249,7 +249,10 @@ void GLWidget::play(const char* uri)
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        std::thread process_thread(start, this, uri);
+        memset(uri, 0, 1024);
+        strcpy(uri, arg.toLatin1().data());
+
+        std::thread process_thread(start, this/*, uri*/);
         process_thread.detach();
     }
     catch (const std::runtime_error& e) {
@@ -262,14 +265,15 @@ void GLWidget::stop()
     running = false;
 }
 
-void GLWidget::start(void * parent, const char* uri)
+void GLWidget::start(void * parent)
 {
     GLWidget* widget = (GLWidget*)parent;
+
     try {
         avio::Process process;
         widget->process = &process;
 
-        avio::Reader reader(uri);
+        avio::Reader reader(widget->uri);
         if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
         if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
         widget->tex_width = reader.width();

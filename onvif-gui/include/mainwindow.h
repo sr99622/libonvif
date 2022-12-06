@@ -35,6 +35,7 @@
 #include "settingspanel.h"
 #include "messagepanel.h"
 #include "stylepanel.h"
+#include "filepanel.h"
 #include <iostream>
 #include "avio.h"
 
@@ -56,6 +57,7 @@ public:
     MessagePanel* messagePanel;
     QTabWidget* tabWidget;
     StyleDialog* styleDialog;
+    FilePanel* filePanel;
     QSettings* settings;
     avio::GLWidget* glWidget;
     QSplitter* split;

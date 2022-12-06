@@ -158,6 +158,12 @@ void Display::videoPresentation()
         ex.ck(SDL_RenderCopy(renderer, texture, NULL, NULL), SDL_GetError());
         SDL_RenderPresent(renderer);
     }
+    else {
+        if (glWidget->media_duration) {
+            float pct = (float)f.m_rts / (float)glWidget->media_duration;
+            glWidget->emit progress(pct);
+        }
+    }
 }
 
 void Display::clearInputQueues()
@@ -316,7 +322,7 @@ bool Display::display()
                 toggleRecord();
             }
 
-            if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
+            //if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
                 SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
             
             if (!reader->seeking()) videoPresentation();

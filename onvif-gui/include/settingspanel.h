@@ -43,7 +43,6 @@ public:
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
     QCheckBox *multiBroadcast;
-    QCheckBox *useSystemGui;
     QPushButton *style;
     QSpinBox *broadcastRepeat;
     QLineEdit *commonUsername;

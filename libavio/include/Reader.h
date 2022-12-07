@@ -75,7 +75,7 @@ public:
 	AVRational audio_time_base();
 
 	std::string get_pipe_out_filename();
-	std::string extension;
+	//std::string extension;
 	bool request_pipe_write = false;
 	bool pipe_out = false;
 	bool pipe_out_enabled = false;

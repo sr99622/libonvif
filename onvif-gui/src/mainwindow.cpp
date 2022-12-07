@@ -89,11 +89,10 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent* e)
 {
     Q_UNUSED(e);
-    settings->setValue("geometry", geometry());
-    SDL_Event event;
-    event.type = SDL_QUIT;
-    SDL_PushEvent(&event);
 
+    glWidget->stop();
+    settings->setValue("geometry", geometry());
+    std::cout << "closeEvent" << std::endl;
 }
 
 void MainWindow::msg(const QString& str)

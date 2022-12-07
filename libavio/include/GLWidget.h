@@ -91,6 +91,7 @@ signals:
 
 public slots:
     void poll();
+    void seek(float);
 
 protected:
     void initializeGL() override;

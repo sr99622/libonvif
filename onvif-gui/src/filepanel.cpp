@@ -45,14 +45,6 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     btnStop->setStyleSheet(getButtonStyle("stop"));
     connect(btnStop, SIGNAL(clicked()), this, SLOT(onBtnStopClicked()));
 
-    btnRewind = new QPushButton();
-    btnRewind->setStyleSheet(getButtonStyle("rewind"));
-    connect(btnRewind, SIGNAL(clicked()), this, SLOT(onBtnRewindClicked()));
-
-    btnFastForward = new QPushButton();
-    btnFastForward->setStyleSheet(getButtonStyle("fast-forward"));
-    connect(btnFastForward, SIGNAL(clicked()), this, SLOT(onBtnFastForwardClicked()));
-
     btnNext = new QPushButton();
     btnNext->setStyleSheet(getButtonStyle("next"));
     connect(btnNext, SIGNAL(clicked()), this, SLOT(onBtnNextClicked()));
@@ -68,15 +60,14 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     sldProgress = new ProgressSlider(Qt::Horizontal, this);
     sldProgress->setMaximum(1000);
     connect(MW->glWidget, SIGNAL(progress(float)), this, SLOT(progress(float)));
+    connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
     controlLayout->addWidget(btnPlay,         0, 0, 1, 1);
     controlLayout->addWidget(btnStop,         0, 1, 1, 1);
-    controlLayout->addWidget(btnRewind,       0, 2, 1, 1);
-    controlLayout->addWidget(btnFastForward,  0, 3, 1, 1);
-    controlLayout->addWidget(btnNext,         0, 4, 1, 1);
-    controlLayout->addWidget(btnPrevious,     0, 5, 1, 1);
+    controlLayout->addWidget(btnNext,         0, 3, 1, 1);
+    controlLayout->addWidget(btnPrevious,     0, 4, 1, 1);
     controlLayout->addWidget(btnMute,         0, 6, 1, 1);
     controlLayout->addWidget(sldProgress,     1, 0, 1, 7);
 
@@ -176,6 +167,7 @@ void FilePanel::onBtnStopClicked()
     MW->glWidget->stop();
 }
 
+/*
 void FilePanel::onBtnRewindClicked()
 {
     std::cout << "onBtnRewindClicked" << std::endl;
@@ -189,6 +181,7 @@ void FilePanel::onBtnFastForwardClicked()
 {
     std::cout << "onBtnFastForwardClicked" << std::endl;
 }
+*/
 
 void FilePanel::onBtnNextClicked()
 {
@@ -435,4 +428,10 @@ void DirectorySetter::selectDirectory()
         text->setText(directory);
         emit directorySet(directory);
     }
+}
+
+void ProgressSlider::mousePressEvent(QMouseEvent *event)
+{
+    float pct = event->pos().x() / (float)width();
+    emit seek(pct);
 }

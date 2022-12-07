@@ -260,6 +260,12 @@ void GLWidget::play(const QString& arg)
     }
 }
 
+void GLWidget::seek(float arg)
+{
+    std::cout << "seek: " << arg << std::endl;
+    process->reader->request_seek(arg);
+}
+
 void GLWidget::stop()
 {
     running = false;

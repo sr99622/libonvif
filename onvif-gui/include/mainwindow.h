@@ -30,6 +30,7 @@
 #include <QSettings>
 #include <QSplitter>
 #include <QTabWidget>
+#include <QObject>
 
 #include "camerapanel.h"
 #include "settingspanel.h"
@@ -49,6 +50,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void showVersion() { std::cout << "1.4.1-dev" << std::endl; }
+ 
     void applyStyle(const ColorProfile& profile);
     void closeEvent(QCloseEvent* event) override;
 

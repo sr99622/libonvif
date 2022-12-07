@@ -69,8 +69,8 @@ Reader::Reader(const char* filename)
     if (audio_stream_index < 0) 
         ex.msg("av_find_best_stream could not find audio stream", MsgPriority::INFO);
 
-    std::filesystem::path path = filename;
-    extension = path.extension().string();
+    //std::filesystem::path path = filename;
+    //extension = path.extension().string();
 
     if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
 
@@ -145,6 +145,7 @@ AVPacket* Reader::seek()
 
 void Reader::request_seek(float pct)
 {
+    std::cout << "request_seek" << std::endl;
     seek_target_pts = (start_time() + (pct * duration()) / av_q2d(fmt_ctx->streams[seek_stream_index()]->time_base)) / 1000;
 }
 
@@ -374,7 +375,7 @@ std::string Reader::get_pipe_out_filename()
         std::tm tm = *std::localtime(&t);
         std::stringstream str;
         str << std::put_time(&tm, "%y%m%d%H%M%S");
-        filename = str.str() + extension;
+        //filename = str.str() + extension;
     }
     else {
         filename = pipe_out_filename;

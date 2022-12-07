@@ -29,7 +29,7 @@
 #include <QTreeView>
 #include <QHeaderView>
 #include <QSettings>
-
+#include <QMouseEvent>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QIcon>
@@ -41,14 +41,11 @@ class ProgressSlider : public QSlider
 
 public:
     ProgressSlider(Qt::Orientation o, QWidget *parent) : QSlider(o, parent) { }
-    void mousePressEvent(QMouseEvent *event) override
-    {
-        std::cout << "mouse click" << std::endl;
-        //QPointF pos = event->position();
-        //int x_pos = pos.x();
-        //float pct = pos.x() / (float)width();
-        //std::cout << "pos: " << pct << std::endl;
-    }
+    void mousePressEvent(QMouseEvent *event) override;
+    QWidget *mainWindow;
+
+signals:
+    void seek(float);
 
 };
 
@@ -103,8 +100,6 @@ public:
     QPushButton *btnMute;
     QPushButton *btnPlay;
     QPushButton *btnStop;
-    QPushButton *btnRewind;
-    QPushButton *btnFastForward;
     QPushButton *btnNext;
     QPushButton *btnPrevious;
     QIcon icnAudioOn;
@@ -112,8 +107,6 @@ public:
     QIcon icnPlay;
     QIcon icnPause;
     QIcon icnStop;
-    QIcon icnRewind;
-    QIcon icnFastForward;
     QIcon icnNext;
     QIcon icnPrevious;
 
@@ -136,8 +129,6 @@ public slots:
     void onMenuPlay();
     void onBtnPlayClicked();
     void onBtnStopClicked();
-    void onBtnRewindClicked();
-    void onBtnFastForwardClicked();
     void onBtnNextClicked();
     void onBtnPreviousClicked();
     void onBtnMuteClicked();

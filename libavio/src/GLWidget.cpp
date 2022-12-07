@@ -278,7 +278,11 @@ void GLWidget::play(const QString& arg)
 
 void GLWidget::seek(float arg)
 {
-    process->reader->request_seek(arg);
+    if (process) {
+        if (process->reader) {
+            process->reader->request_seek(arg);
+        }
+    }
 }
 
 void GLWidget::stop()
@@ -355,6 +359,7 @@ void GLWidget::start(void * parent)
     }
 
     widget->process = nullptr;
+    widget->media_duration = 0;
     widget->emit progress(0);
 }
 

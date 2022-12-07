@@ -40,9 +40,15 @@ class ProgressSlider : public QSlider
     Q_OBJECT
 
 public:
-    ProgressSlider(Qt::Orientation o, QWidget *parent) : QSlider(o, parent) { }
+    ProgressSlider(Qt::Orientation o, QWidget *parent) : QSlider(o, parent) 
+    { setMouseTracking(true); filePanel = parent; }
+    bool event(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
-    QWidget *mainWindow;
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    QWidget* filePanel;
+
+    int last_position_x;
 
 signals:
     void seek(float);

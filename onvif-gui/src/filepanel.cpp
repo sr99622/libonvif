@@ -25,6 +25,7 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QDateTime>
+#include <QToolTip>
 
 #include "filepanel.h"
 #include "mainwindow.h"
@@ -342,8 +343,45 @@ void DirectorySetter::selectDirectory()
     }
 }
 
+bool ProgressSlider::event(QEvent *e)
+{
+    if (e->type() == QEvent::Leave)
+        QToolTip::hideText();
+
+    return QSlider::event(e);
+}
+
 void ProgressSlider::mousePressEvent(QMouseEvent *event)
 {
     float pct = event->pos().x() / (float)width();
     emit seek(pct);
+}
+
+void ProgressSlider::mouseMoveEvent(QMouseEvent *e)
+{
+    if (last_position_x != e->pos().x())
+        QToolTip::hideText();
+
+    MainWindow* mainWindow = (MainWindow*)(((FilePanel*)filePanel)->mainWindow);
+
+    if (mainWindow->glWidget->media_duration) {
+        double percentage = e->pos().x() / (double)width();
+        double position = percentage * MW->glWidget->media_duration;
+
+        int position_in_seconds = position / 1000;
+        int hours = position_in_seconds / 3600;
+        int minutes = (position_in_seconds - (hours * 3600)) / 60;
+        int seconds = (position_in_seconds - (hours * 3600) - (minutes * 60));
+        char buf[32] = {0};
+        if (hours > 0)
+            sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
+        else 
+            sprintf(buf, "%d:%02d", minutes, seconds);
+
+        QString output(buf);
+
+        const QPoint pos = mapToGlobal(QPoint(e->pos().x(), geometry().top() - 60));
+        QToolTip::showText(pos, output);
+        last_position_x = e->pos().x();
+    }
 }

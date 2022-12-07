@@ -92,7 +92,6 @@ void MainWindow::closeEvent(QCloseEvent* e)
 
     glWidget->stop();
     settings->setValue("geometry", geometry());
-    std::cout << "closeEvent" << std::endl;
 }
 
 void MainWindow::msg(const QString& str)

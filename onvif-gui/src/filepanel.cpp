@@ -45,17 +45,17 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     btnStop->setStyleSheet(getButtonStyle("stop"));
     connect(btnStop, SIGNAL(clicked()), this, SLOT(onBtnStopClicked()));
 
-    btnNext = new QPushButton();
-    btnNext->setStyleSheet(getButtonStyle("next"));
-    connect(btnNext, SIGNAL(clicked()), this, SLOT(onBtnNextClicked()));
-
-    btnPrevious = new QPushButton();
-    btnPrevious->setStyleSheet(getButtonStyle("previous"));
-    connect(btnPrevious, SIGNAL(clicked()), this, SLOT(onBtnPreviousClicked()));
-
     btnMute = new QPushButton();
-    btnMute->setStyleSheet(getButtonStyle("mute"));
+    MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
+    if (MW->glWidget->getMute())
+        btnMute->setStyleSheet(getButtonStyle("mute"));
+    else 
+        btnMute->setStyleSheet(getButtonStyle("audio"));
     connect(btnMute, SIGNAL(clicked()), this, SLOT(onBtnMuteClicked()));
+
+    sldVolume = new QSlider(Qt::Horizontal, this);
+    sldVolume->setValue(MW->settings->value(volumeKey, 80).toInt());
+    connect(sldVolume, SIGNAL(sliderMoved(int)), this, SLOT(onSldVolumeMoved(int)));
 
     sldProgress = new ProgressSlider(Qt::Horizontal, this);
     sldProgress->setMaximum(1000);
@@ -66,9 +66,8 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
     controlLayout->addWidget(btnPlay,         0, 0, 1, 1);
     controlLayout->addWidget(btnStop,         0, 1, 1, 1);
-    controlLayout->addWidget(btnNext,         0, 3, 1, 1);
-    controlLayout->addWidget(btnPrevious,     0, 4, 1, 1);
-    controlLayout->addWidget(btnMute,         0, 6, 1, 1);
+    controlLayout->addWidget(btnMute,         0, 3, 1, 1);
+    controlLayout->addWidget(sldVolume,       0, 4, 1, 2);
     controlLayout->addWidget(sldProgress,     1, 0, 1, 7);
 
     QGridLayout *layout = new QGridLayout(this);
@@ -125,7 +124,6 @@ void FilePanel::doubleClicked(const QModelIndex& index)
             tree->setExpanded(index, !expanded);
         }
         else {
-            std::cout << "double clicked: " << fileInfo.filePath().toLatin1().data() << std::endl;
             MW->glWidget->play(fileInfo.filePath());
             btnPlay->setStyleSheet(getButtonStyle("pause"));
         }
@@ -144,7 +142,6 @@ void FilePanel::progress(float arg)
 
 void FilePanel::onBtnPlayClicked()
 {
-    std::cout << "onBtnPlayClicked" << std::endl;
     if (MW->glWidget->running) {
         SDL_Event event;
         event.type = SDL_KEYDOWN;
@@ -162,40 +159,30 @@ void FilePanel::onBtnPlayClicked()
 
 void FilePanel::onBtnStopClicked()
 {
-    std::cout << "onBtnStopClicked" << std::endl;
     btnPlay->setStyleSheet(getButtonStyle("play"));
     MW->glWidget->stop();
 }
 
-/*
-void FilePanel::onBtnRewindClicked()
-{
-    std::cout << "onBtnRewindClicked" << std::endl;
-    if (MW->glWidget->running)
-        std::cout << "RUNNING" << std::endl;
-    else
-        std::cout << "NOT RUNNING" << std::endl;
-}
-
-void FilePanel::onBtnFastForwardClicked()
-{
-    std::cout << "onBtnFastForwardClicked" << std::endl;
-}
-*/
-
-void FilePanel::onBtnNextClicked()
-{
-    std::cout << "onBtnNextClicked" << std::endl;
-}
-
-void FilePanel::onBtnPreviousClicked()
-{
-    std::cout << "onBtnPreviousClicked" << std::endl;
-}
-
 void FilePanel::onBtnMuteClicked()
 {
-    std::cout << "onBtnMuteClicked" << std::endl;
+    if (MW->glWidget->getMute()) {
+        btnMute->setStyleSheet(getButtonStyle("audio"));
+        MW->cameraPanel->btnMute->setStyleSheet(getButtonStyle("audio"));
+    }
+    else {
+        btnMute->setStyleSheet(getButtonStyle("mute"));
+        MW->cameraPanel->btnMute->setStyleSheet(getButtonStyle("mute"));
+    }
+
+    MW->glWidget->setMute(!MW->glWidget->getMute());
+    MW->settings->setValue(muteKey, MW->glWidget->getMute());
+}
+
+void FilePanel::onSldVolumeMoved(int value)
+{
+    MW->glWidget->setVolume(value);
+    MW->settings->setValue(volumeKey, value);
+    MW->cameraPanel->volumeSlider->setValue(value);
 }
 
 QString FilePanel::getButtonStyle(const QString& name) const

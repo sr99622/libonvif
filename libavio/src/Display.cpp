@@ -444,7 +444,7 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
         return;
 
     try {
-        if (d->disable_audio || d->user_paused)
+        if (/*d->disable_audio ||*/ d->user_paused)
             return;
 
         while (len > 0) {
@@ -488,7 +488,8 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
                 len--;
             }
 
-            SDL_MixAudioFormat(audio_buffer, temp, d->sdl.format, d->audio_buffer_len, SDL_MIX_MAXVOLUME * d->volume);
+            if (!d->mute)
+                SDL_MixAudioFormat(audio_buffer, temp, d->sdl.format, d->audio_buffer_len, SDL_MIX_MAXVOLUME * d->volume);
 
             d->rtClock.sync(f.m_rts); 
             d->reader->seek_found_pts = AV_NOPTS_VALUE;

@@ -100,20 +100,19 @@ public:
     QPushButton *btnMute;
     QPushButton *btnPlay;
     QPushButton *btnStop;
-    QPushButton *btnNext;
-    QPushButton *btnPrevious;
     QIcon icnAudioOn;
     QIcon icnAudioOff;
     QIcon icnPlay;
     QIcon icnPause;
     QIcon icnStop;
-    QIcon icnNext;
-    QIcon icnPrevious;
 
     ProgressSlider *sldProgress;
+    QSlider *sldVolume;
 
     const QString dirKey    = "FilePanel/dir";
     const QString headerKey = "FilePanel/header";
+    const QString volumeKey = "Application/volume";
+    const QString muteKey   = "Application/mute";
 
 signals:
     void msg(const QString&);
@@ -129,9 +128,8 @@ public slots:
     void onMenuPlay();
     void onBtnPlayClicked();
     void onBtnStopClicked();
-    void onBtnNextClicked();
-    void onBtnPreviousClicked();
     void onBtnMuteClicked();
+    void onSldVolumeMoved(int);
     void progress(float);
 
 };

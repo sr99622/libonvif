@@ -74,8 +74,7 @@ Reader::Reader(const char* filename)
 
     if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
 
-    std::cout << "video codec: " << str_video_codec() << std::endl;
-    std::cout << "Reader successfully opened " << std::endl;
+    //std::cout << "Reader successfully opened " << std::endl;
 }
 
 Reader::~Reader()
@@ -145,7 +144,6 @@ AVPacket* Reader::seek()
 
 void Reader::request_seek(float pct)
 {
-    std::cout << "request_seek" << std::endl;
     seek_target_pts = (start_time() + (pct * duration()) / av_q2d(fmt_ctx->streams[seek_stream_index()]->time_base)) / 1000;
 }
 

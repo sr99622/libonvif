@@ -49,6 +49,9 @@ public:
     void setPanX(float);
     void setPanY(float);
     void setFormat(QImage::Format);
+    void setVolume(int arg);
+    void setMute(bool arg);
+    bool getMute() { return mute; }
     void updateAspectRatio();
     void play(const QString& arg);
     void stop();
@@ -113,6 +116,9 @@ private:
     float aspect = 1.0f;
     float pan_x  = 0.0f;
     float pan_y  = 0.0f;
+
+    int volume = 100;
+    bool mute = false;
 
     QImage::Format fmt = QImage::Format_RGB888;
 

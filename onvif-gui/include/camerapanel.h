@@ -58,6 +58,8 @@ public:
     void autoLoadClicked(bool checked);
     void autoCameraChanged(int index);
     void saveBroadcastRepeat(int value);
+    QString getButtonStyle(const QString& name) const;
+
 
     Camera *camera;
     QTabWidget *tabWidget;
@@ -76,8 +78,14 @@ public:
     LoginDialog *loginDialog = nullptr;
     QSettings *cameraNames;
     OnvifSession *onvif_session;
+    QPushButton *btnMute;
+    QIcon icnAudioOn;
+    QIcon icnAudioOff;
 
-    const QString volumeKey     = "CameraPanel/volume";
+
+    const QString volumeKey     = "Application/volume";
+    const QString muteKey       = "Application/mute";
+
 
     QString currentStreamingCameraName;
     bool connecting = false;
@@ -100,6 +108,7 @@ public slots:
     void discoveryFinished();
     void adjustVolume(int);
     void streamStarting();
+    void onBtnMuteClicked();
     void cameraTimeout();
     void connectFailed(const QString&);
 

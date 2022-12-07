@@ -214,6 +214,26 @@ void GLWidget::setFormat(QImage::Format arg)
     fmt = arg;
 }
 
+void GLWidget::setVolume(int arg)
+{
+    volume = arg;
+    if (process) {
+        if (process->display) {
+            process->display->volume = (float)arg / 100.0f;
+        }
+    }
+}
+
+void GLWidget::setMute(bool arg)
+{
+    mute = arg;
+    if (process) {
+        if (process->display) {
+            process->display->mute = arg;
+        }
+    }
+}
+
 void GLWidget::poll()
 {
     if (!running)
@@ -245,10 +265,6 @@ void GLWidget::play(const QString& arg)
     try {
         stop();
 
-        while (process) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
         memset(uri, 0, 1024);
         strcpy(uri, arg.toLatin1().data());
 
@@ -262,13 +278,18 @@ void GLWidget::play(const QString& arg)
 
 void GLWidget::seek(float arg)
 {
-    std::cout << "seek: " << arg << std::endl;
     process->reader->request_seek(arg);
 }
 
 void GLWidget::stop()
 {
     running = false;
+
+    while (process) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    emit progress(0);
 }
 
 void GLWidget::start(void * parent)
@@ -309,6 +330,8 @@ void GLWidget::start(void * parent)
             audioDecoder->set_audio_in(reader.audio_out());
             audioDecoder->set_audio_out("afq_decoder");
             display.set_audio_in(audioDecoder->audio_out());
+            display.volume = widget->volume;
+            display.mute = widget->getMute();
             process.add_decoder(*audioDecoder);
         }
 
@@ -332,6 +355,7 @@ void GLWidget::start(void * parent)
     }
 
     widget->process = nullptr;
+    widget->emit progress(0);
 }
 
 }

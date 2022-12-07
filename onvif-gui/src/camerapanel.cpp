@@ -55,14 +55,25 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
 
     volumeSlider = new QSlider(Qt::Horizontal, this);
-    volumeSlider->setValue(MW->settings->value(volumeKey, 100).toInt());
+    int volume = MW->settings->value(volumeKey, 100).toInt();
+    volumeSlider->setValue(volume);
+    MW->glWidget->setVolume(volume);
     connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustVolume(int)));
+
+    btnMute = new QPushButton();
+    MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
+    if (MW->glWidget->getMute())
+        btnMute->setStyleSheet(getButtonStyle("mute"));
+    else 
+        btnMute->setStyleSheet(getButtonStyle("audio"));
+    connect(btnMute, SIGNAL(clicked()), this, SLOT(onBtnMuteClicked()));
+
     QWidget *controlPanel = new QWidget(this);
     QGridLayout* controlLayout = new QGridLayout(controlPanel);
-    controlLayout->addWidget(new QLabel("Volume"), 0, 0, 1, 1);
-    controlLayout->addWidget(volumeSlider,         0, 1, 1, 1);
-    controlLayout->addWidget(discoverButton,       0, 2, 1, 1);
-    controlLayout->addWidget(applyButton,          0, 3, 1 ,1);
+    controlLayout->addWidget(btnMute,         0, 0, 1, 1);
+    controlLayout->addWidget(volumeSlider,    0, 1, 1, 1);
+    controlLayout->addWidget(discoverButton,  0, 2, 1, 1);
+    controlLayout->addWidget(applyButton,     0, 3, 1 ,1);
     controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
@@ -125,6 +136,29 @@ void CameraPanel::discoverButtonClicked()
     discovery->start();
 }
 
+QString CameraPanel::getButtonStyle(const QString& name) const
+{
+    if (MW->styleDialog->panel->useSystemGui->isChecked())
+        return QString("QPushButton {image:url(:%1_lo.png);}").arg(name);
+    else
+        return QString("QPushButton {image:url(:%1.png);} QPushButton:hover {image:url(:%1_hi.png);} QPushButton:pressed {image:url(:%1.png);}").arg(name);
+}
+
+void CameraPanel::onBtnMuteClicked()
+{
+    if (MW->glWidget->getMute()) {
+        btnMute->setStyleSheet(getButtonStyle("audio"));
+        MW->filePanel->btnMute->setStyleSheet(getButtonStyle("audio"));
+    }
+    else {
+        btnMute->setStyleSheet(getButtonStyle("mute"));
+        MW->filePanel->btnMute->setStyleSheet(getButtonStyle("mute"));
+    }
+
+    MW->glWidget->setMute(!MW->glWidget->getMute());
+    MW->settings->setValue(muteKey, MW->glWidget->getMute());
+}
+
 void CameraPanel::viewButtonClicked()
 {
     if (connecting) {
@@ -138,8 +172,6 @@ void CameraPanel::viewButtonClicked()
         std::string uri(onvif_data->stream_uri);
         ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
         uri = ss_uri.str();
-        //memset(buf, 0, 256);
-        //strcpy(buf, ss_uri.str().c_str());
         connecting = true;
         if (MW->settingsPanel->lowLatency->isChecked()) {
             MW->glWidget->vpq_size = 1;
@@ -224,15 +256,13 @@ void CameraPanel::refreshList()
 
 void CameraPanel::adjustVolume(int value)
 {
-    if (MW->glWidget->process) {
-        MW->glWidget->process->display->volume = (float)value / 100.0f;        
-    }
+    MW->glWidget->setVolume(value);
     MW->settings->setValue(volumeKey, value);
+    MW->filePanel->sldVolume->setValue(value);
 }
 
 void CameraPanel::streamStarting()
 {
-    std::cout << "stream starting " << std::endl;
     connecting = false;
     if (MW->glWidget->process) {
         MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;

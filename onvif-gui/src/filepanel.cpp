@@ -215,7 +215,7 @@ void FilePanel::onMenuRemove()
     if (!index.isValid())
         return;
 
-    int ret = QMessageBox::warning(this, "playqt",
+    int ret = QMessageBox::warning(this, "onvif-gui",
                                    "You are about to delete this file.\n"
                                    "Are you sure you want to continue?",
                                    QMessageBox::Ok | QMessageBox::Cancel);
@@ -341,6 +341,12 @@ void DirectorySetter::selectDirectory()
         text->setText(directory);
         emit directorySet(directory);
     }
+}
+
+ProgressSlider::ProgressSlider(Qt::Orientation o, QWidget *parent) : QSlider(o, parent)
+{
+    setMouseTracking(true); 
+    filePanel = parent;
 }
 
 bool ProgressSlider::event(QEvent *e)

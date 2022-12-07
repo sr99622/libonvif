@@ -22,7 +22,9 @@
 #include <QFileDialog>
 #include <QMenu>
 #include <QAction>
+#include <QStandardPaths>
 #include <QMessageBox>
+#include <QDateTime>
 
 #include "filepanel.h"
 #include "mainwindow.h"
@@ -76,14 +78,14 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     layout->addWidget(controlPanel,         2, 0, 1, 1);
     layout->setRowStretch(1, 20);
 
-    QString path = MW->settings->value(dirKey).toString();
+    QStringList list = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
+    QString path = MW->settings->value(dirKey, list[0]).toString();
     directorySetter->setPath(path);
     model->setRootPath(path);
     tree->setRootIndex(model->index(path));
     connect(directorySetter, SIGNAL(directorySet(const QString&)), this, SLOT(setDirectory(const QString&)));
 
-    if (MW->settings->contains(headerKey))
-        tree->header()->restoreState(MW->settings->value(headerKey).toByteArray());
+    tree->header()->restoreState(MW->settings->value(headerKey).toByteArray());
     tree->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(tree, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
     connect(tree, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(doubleClicked(const QModelIndex&)));
@@ -230,134 +232,47 @@ void FilePanel::onMenuRename()
 
 void FilePanel::onMenuInfo()
 {
-    /*
-    QModelIndex index = tree->currentIndex();
-    if (!index.isValid())
-        return;
+    QString str;
+    QModelIndex idx = tree->currentIndex();
+    if (idx.isValid()) {
+        QFileInfo info = model->fileInfo(idx);
+        str += "Filename: " + info.absoluteFilePath();
+        str += "\nLast Modified: " + info.lastModified().toString();
 
-    QString filename = model->filePath(tree->currentIndex());
-    AVFormatContext *fmt_ctx = nullptr;
-    AVStream *video;
-    AVStream *audio;
-    int video_stream;
-    int audio_stream;
+        avio::Reader reader(info.absoluteFilePath().toLatin1().data());
+        long duration = reader.duration();
+        int time_in_seconds = duration / 1000;
+        int hours = time_in_seconds / 3600;
+        int minutes = (time_in_seconds - (hours * 3600)) / 60;
+        int seconds = (time_in_seconds - (hours * 3600) - (minutes * 60));
+        char buf[32] = {0};
+        if (hours > 0)
+            sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
+        else 
+            sprintf(buf, "%d:%02d", minutes, seconds);
+        str += "\nDuration: " + QString(buf);
 
-    try {
-        av.ck(avformat_open_input(&fmt_ctx, filename.toLatin1().data(), NULL, NULL), AOI);
-        av.ck(avformat_find_stream_info(fmt_ctx, NULL), AFSI);
-    }
-    catch (AVException *e) {
-        emit msg(QString("Unable to open format context %1: %2\n").arg(av.tag(e->cmd_tag), e->error_text));
-        return;
-    }
-
-    try {
-        av.ck(audio_stream = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0), AFBS);
-        audio = fmt_ctx->streams[audio_stream];
-        QString str = "File audio parameters\n";
-
-        char buf[16];
-
-        QString codec_str;
-        const AVCodecDescriptor *cd = avcodec_descriptor_get(audio->codecpar->codec_id);
-        if (cd) {
-            QTextStream(&codec_str) << "codec_name: " << cd->name << "\n"
-                                    << "codec_long_name: " << cd->long_name << "\n";
+        if (reader.has_video()) {
+            str += "\n\nVideo Stream:";
+            str += "\n\tResolution: " + QString::number(reader.width()) + " x " + QString::number(reader.height());
+            str += "\n\tFrame Rate: " + QString::number((float)reader.frame_rate().num / (float)reader.frame_rate().den);
+            str += "\n\tVideo Codec: " + QString(reader.str_video_codec());
+            str += "\n\tPixel Format: " + QString(reader.str_pix_fmt());
         }
-        else {
-            QTextStream(&codec_str) << "Uknown codec" << "\n";
+        if (reader.has_audio()) {
+            str += "\n\nAudio Stream:";
+            str += "\n\tChannel Layout: " + QString(reader.str_channel_layout().c_str());
+            str += "\n\tAudio Codec: " + QString(reader.str_audio_codec());
+            str += "\n\tSample Rate: " + QString::number(reader.sample_rate());
         }
-
-        if (fmt_ctx->metadata == NULL) {
-            str.append("\nmetadata is NULL\n");
-        }
-        else {
-            QTextStream(&str) << "\n";
-            AVDictionaryEntry *t = NULL;
-            while (t = av_dict_get(fmt_ctx->metadata, "", t, AV_DICT_IGNORE_SUFFIX)) {
-                QTextStream(&codec_str) << t->key << " : " << t->value << "\n";
-            }
-        }
-
-        QTextStream(&str)
-            << "filename: " << filename << "\n"
-            << codec_str
-
-            << "format: " << fmt_ctx->iformat->long_name << " (" << fmt_ctx->iformat->name << ")\n"
-            << "flags: " << fmt_ctx->iformat->flags << "\n"
-            << "extradata_size: " << audio->codecpar->extradata_size << "\n"
-            << "codec time_base:  " << audio->codec->time_base.num << " / " << audio->codec->time_base.den << "\n"
-            << "audio time_base: " << audio->time_base.num << " / " << audio->time_base.den << "\n"
-            << "codec framerate: " << audio->codec->framerate.num << " / " << audio->codec->framerate.den << "\n"
-            << "ticks_per_frame: " << audio->codec->ticks_per_frame << "\n"
-            << "bit_rate: " << fmt_ctx->bit_rate << "\n"
-            << "codec framerate: " << av_q2d(audio->codec->framerate) << "\n"
-            << "start_time: " << fmt_ctx->start_time * av_q2d(av_get_time_base_q()) << "\n"
-            << "duration: " << fmt_ctx->duration * av_q2d(av_get_time_base_q()) << "\n";
-
-        emit msg(str);
-        MW->messageDialog->show();
-    }
-    catch (AVException *e) {
-        emit msg(QString("Unable to process audio stream %1: %2\n").arg(av.tag(e->cmd_tag), e->error_text));
+    }    
+    else {
+        str = "Invalid Index";
     }
 
-    try {
-        av.ck(video_stream = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0), AFBS);
-        video = fmt_ctx->streams[video_stream];
-
-        QString str = "File video parameters\n";
-
-        QString codec_str;
-        const AVCodecDescriptor *cd = avcodec_descriptor_get(video->codecpar->codec_id);
-        if (cd) {
-            QTextStream(&codec_str) << "codec_name: " << cd->name << "\n"
-                                    << "codec_long_name: " << cd->long_name << "\n";
-        }
-        else {
-            QTextStream(&codec_str) << "Uknown codec" << "\n";
-        }
-
-        if (fmt_ctx->metadata == NULL) {
-            str.append("\nmetadata is NULL\n");
-        }
-        else {
-            QTextStream(&str) << "\n";
-            AVDictionaryEntry *t = NULL;
-            while (t = av_dict_get(fmt_ctx->metadata, "", t, AV_DICT_IGNORE_SUFFIX)) {
-                QTextStream(&codec_str) << t->key << " : " << t->value << "\n";
-            }
-        }
-
-        QTextStream(&str)
-            << "filename: " << filename << "\n"
-            << "pixel format: " << av_get_pix_fmt_name((AVPixelFormat)video->codecpar->format) << "\n"
-            << codec_str
-            << "format: " << fmt_ctx->iformat->long_name << " (" << fmt_ctx->iformat->name << ")\n"
-            << "flags: " << fmt_ctx->iformat->flags << "\n"
-            << "extradata_size: " << video->codecpar->extradata_size << "\n"
-            << "codec time_base:  " << video->codec->time_base.num << " / " << video->codec->time_base.den << "\n"
-            << "video time_base: " << video->time_base.num << " / " << video->time_base.den << "\n"
-            << "codec framerate: " << video->codec->framerate.num << " / " << video->codec->framerate.den << "\n"
-            << "gop_size: " << video->codec->gop_size << "\n"
-            << "ticks_per_frame: " << video->codec->ticks_per_frame << "\n"
-            << "bit_rate: " << fmt_ctx->bit_rate << "\n"
-            << "codec framerate: " << av_q2d(video->codec->framerate) << "\n"
-            << "start_time: " << fmt_ctx->start_time * av_q2d(av_get_time_base_q()) << "\n"
-            << "duration: " << fmt_ctx->duration * av_q2d(av_get_time_base_q()) << "\n"
-            << "width: " << video->codecpar->width << "\n"
-            << "height: " << video->codecpar->height << "\n";
-
-        emit msg(str);
-        MW->messageDialog->show();
-    }
-    catch (AVException *e) {
-        emit msg(QString("Unable to process video stream %1: %2\n").arg(av.tag(e->cmd_tag), e->error_text));
-    }
-
-    if (fmt_ctx != nullptr)
-        avformat_close_input(&fmt_ctx);
-    */
+    QMessageBox msgBox(this);
+    msgBox.setText(str);
+    msgBox.exec();
 }
 
 TreeView::TreeView(QWidget *parent) : QTreeView(parent)
@@ -367,11 +282,21 @@ TreeView::TreeView(QWidget *parent) : QTreeView(parent)
 
 void TreeView::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Delete) {
-        ((FilePanel*)parent())->onMenuRemove();
-    }
-    else {
-        QTreeView::keyPressEvent(event);
+    switch (event->key()) {
+        case (Qt::Key_Delete):
+            ((FilePanel*)parent())->onMenuRemove();
+            break;
+        case (Qt::Key_Return):
+            ((FilePanel*)parent())->doubleClicked(currentIndex());
+            break;
+        case (Qt::Key_Space):
+            ((FilePanel*)parent())->onBtnPlayClicked();
+            break;
+        case (Qt::Key_Escape):
+            ((FilePanel*)parent())->onBtnStopClicked();
+            break;
+        default:
+            QTreeView::keyPressEvent(event);
     }
 }
 

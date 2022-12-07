@@ -37,6 +37,7 @@
 #include <cmath>
 #include <QLabel>
 #include <QGridLayout>
+#include <QMessageBox>
 
 #include "settingspanel.h"
 #include "mainwindow.h"
@@ -91,6 +92,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     style = new QPushButton("Style");
     connect(style, SIGNAL(clicked()), this, SLOT(styleClicked()));
 
+    clear = new QPushButton("Clear");
+    connect(clear, SIGNAL(clicked()), this, SLOT(clearClicked()));
+
     QLabel *title = new QLabel("Digital Zoom");
 
     QGridLayout *frameLayout = new QGridLayout(sliderFrame);
@@ -115,7 +119,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
     layout->addWidget(lowLatency,          5, 0, 1, 2);
-    layout->addWidget(style,               6, 1, 1, 1);
+    layout->addWidget(clear,               6, 0, 1, 1, Qt::AlignCenter);
+    layout->addWidget(style,               6, 1, 1, 1, Qt::AlignCenter);
     layout->addWidget(sliderFrame,         7, 0, 2, 4);
     setLayout(layout);
 
@@ -219,6 +224,14 @@ void SettingsPanel::styleClicked()
 {
     std::cout << "StylePanel::styleClicked" << std::endl;
     MW->styleDialog->exec();
+}
+
+void SettingsPanel::clearClicked()
+{
+    std::cout << "StylePanel::clearClicked" << std::endl;
+    QMessageBox::StandardButton result = QMessageBox::question(this, "onvif-gui", "You are about to delete all saved program settings\nAre you sure you want to do this");
+    if (result == QMessageBox::Yes)
+        MW->settings->clear();
 }
 
 /*

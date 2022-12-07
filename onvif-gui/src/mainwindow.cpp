@@ -58,12 +58,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     layout->addWidget(split,  0, 0, 1, 1);
     setCentralWidget(layoutPanel);
 
-    QList<QScreen*> screens = QGuiApplication::screens();
-    QSize screenSize = screens[0]->size();
-    int x = (screenSize.width() - width()) / 2;
-    int y = (screenSize.height() - height()) / 2;
-    move(x, y);
-
     QRect savedGeometry = settings->value("geometry").toRect();
     if (savedGeometry.isValid()) {
         setGeometry(savedGeometry);

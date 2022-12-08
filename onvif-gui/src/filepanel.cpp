@@ -41,19 +41,19 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     tree->setModel(model);
 
     btnPlay = new QPushButton();
-    btnPlay->setStyleSheet(getButtonStyle("play"));
+    btnPlay->setStyleSheet(MW->getButtonStyle("play"));
     connect(btnPlay, SIGNAL(clicked()), this, SLOT(onBtnPlayClicked()));
 
     btnStop = new QPushButton();
-    btnStop->setStyleSheet(getButtonStyle("stop"));
+    btnStop->setStyleSheet(MW->getButtonStyle("stop"));
     connect(btnStop, SIGNAL(clicked()), this, SLOT(onBtnStopClicked()));
 
     btnMute = new QPushButton();
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
     if (MW->glWidget->getMute())
-        btnMute->setStyleSheet(getButtonStyle("mute"));
+        btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
-        btnMute->setStyleSheet(getButtonStyle("audio"));
+        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     connect(btnMute, SIGNAL(clicked()), this, SLOT(onBtnMuteClicked()));
 
     sldVolume = new QSlider(Qt::Horizontal, this);
@@ -128,7 +128,7 @@ void FilePanel::doubleClicked(const QModelIndex& index)
         }
         else {
             MW->glWidget->play(fileInfo.filePath());
-            btnPlay->setStyleSheet(getButtonStyle("pause"));
+            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
         }
     }
 }
@@ -151,9 +151,9 @@ void FilePanel::onBtnPlayClicked()
         event.key.keysym.sym = SDLK_SPACE;
         SDL_PushEvent(&event);
         if (MW->glWidget->process->display->paused)
-            btnPlay->setStyleSheet(getButtonStyle("pause"));
+            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
         else
-            btnPlay->setStyleSheet(getButtonStyle("play"));
+            btnPlay->setStyleSheet(MW->getButtonStyle("play"));
     }
     else {
         doubleClicked(tree->currentIndex());
@@ -162,19 +162,19 @@ void FilePanel::onBtnPlayClicked()
 
 void FilePanel::onBtnStopClicked()
 {
-    btnPlay->setStyleSheet(getButtonStyle("play"));
+    btnPlay->setStyleSheet(MW->getButtonStyle("play"));
     MW->glWidget->stop();
 }
 
 void FilePanel::onBtnMuteClicked()
 {
     if (MW->glWidget->getMute()) {
-        btnMute->setStyleSheet(getButtonStyle("audio"));
-        MW->cameraPanel->btnMute->setStyleSheet(getButtonStyle("audio"));
+        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+        MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     }
     else {
-        btnMute->setStyleSheet(getButtonStyle("mute"));
-        MW->cameraPanel->btnMute->setStyleSheet(getButtonStyle("mute"));
+        btnMute->setStyleSheet(MW->getButtonStyle("mute"));
+        MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
 
     MW->glWidget->setMute(!MW->glWidget->getMute());
@@ -186,14 +186,6 @@ void FilePanel::onSldVolumeMoved(int value)
     MW->glWidget->setVolume(value);
     MW->settings->setValue(volumeKey, value);
     MW->cameraPanel->volumeSlider->setValue(value);
-}
-
-QString FilePanel::getButtonStyle(const QString& name) const
-{
-    if (MW->styleDialog->panel->useSystemGui->isChecked())
-        return QString("QPushButton {image:url(:%1_lo.png);}").arg(name);
-    else
-        return QString("QPushButton {image:url(:%1.png);} QPushButton:hover {image:url(:%1_hi.png);} QPushButton:pressed {image:url(:%1.png);}").arg(name);
 }
 
 void FilePanel::showContextMenu(const QPoint &pos)

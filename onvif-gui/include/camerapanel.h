@@ -58,8 +58,6 @@ public:
     void autoLoadClicked(bool checked);
     void autoCameraChanged(int index);
     void saveBroadcastRepeat(int value);
-    QString getButtonStyle(const QString& name) const;
-
 
     Camera *camera;
     QTabWidget *tabWidget;
@@ -82,10 +80,8 @@ public:
     QIcon icnAudioOn;
     QIcon icnAudioOff;
 
-
     const QString volumeKey     = "Application/volume";
     const QString muteKey       = "Application/mute";
-
 
     QString currentStreamingCameraName;
     bool connecting = false;

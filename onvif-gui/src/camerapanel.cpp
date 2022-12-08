@@ -63,9 +63,9 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     btnMute = new QPushButton();
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
     if (MW->glWidget->getMute())
-        btnMute->setStyleSheet(getButtonStyle("mute"));
+        btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
-        btnMute->setStyleSheet(getButtonStyle("audio"));
+        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     connect(btnMute, SIGNAL(clicked()), this, SLOT(onBtnMuteClicked()));
 
     QWidget *controlPanel = new QWidget(this);
@@ -136,23 +136,15 @@ void CameraPanel::discoverButtonClicked()
     discovery->start();
 }
 
-QString CameraPanel::getButtonStyle(const QString& name) const
-{
-    if (MW->styleDialog->panel->useSystemGui->isChecked())
-        return QString("QPushButton {image:url(:%1_lo.png);}").arg(name);
-    else
-        return QString("QPushButton {image:url(:%1.png);} QPushButton:hover {image:url(:%1_hi.png);} QPushButton:pressed {image:url(:%1.png);}").arg(name);
-}
-
 void CameraPanel::onBtnMuteClicked()
 {
     if (MW->glWidget->getMute()) {
-        btnMute->setStyleSheet(getButtonStyle("audio"));
-        MW->filePanel->btnMute->setStyleSheet(getButtonStyle("audio"));
+        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+        MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     }
     else {
-        btnMute->setStyleSheet(getButtonStyle("mute"));
-        MW->filePanel->btnMute->setStyleSheet(getButtonStyle("mute"));
+        btnMute->setStyleSheet(MW->getButtonStyle("mute"));
+        MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
 
     MW->glWidget->setMute(!MW->glWidget->getMute());

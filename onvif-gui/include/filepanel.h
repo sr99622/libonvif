@@ -94,7 +94,6 @@ class FilePanel : public QWidget
 
 public:
     FilePanel(QMainWindow *mainWindow);
-    QString getButtonStyle(const QString& name) const;
 
     QMainWindow *mainWindow;
     DirectorySetter *directorySetter;

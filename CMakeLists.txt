@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 1.4.1)
+project(libonvif VERSION 1.4.2)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -168,7 +168,7 @@ if (BUILD_GUI)
         libavio/include/GLWidget.h
 
         resources/resources.qrc
-        resources/resources.rcc
+#        resources/libonvif.rcc
     )
 
     if (WIN32) 

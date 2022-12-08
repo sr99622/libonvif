@@ -24,10 +24,12 @@
 #include <QGridLayout>
 #include <QApplication>
 #include <QScreen>
+#include <QResource>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    setWindowTitle("onvif-gui version 1.4.1-dev");
+    Q_INIT_RESOURCE(resources);
+    setWindowTitle("onvif-gui version 1.4.2");
     settings = new QSettings("libonvif", "onvif");
 
     glWidget = new avio::GLWidget();
@@ -99,6 +101,16 @@ void MainWindow::onSplitterMoved(int pos, int index)
     settings->setValue(splitKey, split->saveState());
 }
 
+QString MainWindow::getButtonStyle(const QString& name) const
+{
+    if (styleDialog->panel->useSystemGui->isChecked()) {
+        return QString("QPushButton {image:url(:/%1_lo.png);}").arg(name);
+    }
+    else {
+        return QString("QPushButton {image:url(:/%1.png);} QPushButton:hover {image:url(:/%1_hi.png);} QPushButton:pressed {image:url(:/%1.png);}").arg(name);
+    }
+}
+
 void MainWindow::applyStyle(const ColorProfile& profile)
 {
     if (styleDialog->panel->useSystemGui->isChecked()) {
@@ -106,7 +118,7 @@ void MainWindow::applyStyle(const ColorProfile& profile)
         return;
     }
 
-    QFile f(":darkstyle.qss");
+    QFile f(":/darkstyle.qss");
     if (!f.exists()) {
         msg("Error: MainWindow::getThemes() Style sheet not found");
     }

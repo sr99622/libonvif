@@ -22,8 +22,6 @@
 #ifndef DISCOVERY_H
 #define DISCOVERY_H
 
-#include "onvif.h"
-#include "logindialog.h"
 #include <QObject>
 #include <QMutex>
 #include <QThread>
@@ -31,12 +29,16 @@
 #include <QMainWindow>
 #include <QWaitCondition>
 
+#include "onvif.h"
+#include "logindialog.h"
+#include "settingspanel.h"
+
 class Discovery : public QObject
 {
     Q_OBJECT
 
 public:
-    Discovery(QWidget *parent);
+    Discovery(QWidget *camerPanel, SettingsPanel *settingsPanel);
     ~Discovery();
 
     void start();
@@ -48,6 +50,8 @@ public:
     void addCamera(OnvifData *onvif_data);
 
     QWidget *cameraPanel;
+    SettingsPanel *settingsPanel;
+
     char *username;
     char *password;
     QHash<QString, QString> cameraAlias;
@@ -65,7 +69,7 @@ signals:
     void stopping();
     void found(OnvifData *onvif_data);
     void login(Credential*);
-    void msg(QString);
+    void msg(const QString&);
 
 public slots:
     void run();

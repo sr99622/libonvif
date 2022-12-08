@@ -124,10 +124,11 @@ public:
     int swr_buffer_size = 0;
     Queue<char> sdl_buffer;
     int audio_buffer_len = 0;
-    bool disable_audio = false;
+    //bool disable_audio = false;
     bool ignore_video_pts = false;
     bool audio_eof = false;
     float volume = 1.0f;
+    bool mute = false;
 
     int width = 0;
     int height = 0;

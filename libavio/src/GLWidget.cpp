@@ -21,6 +21,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <iostream>
+#include <sstream>
 #include "avio.h"
 
 #define VERTEX_ATTRIBUTE 0
@@ -213,6 +214,26 @@ void GLWidget::setFormat(QImage::Format arg)
     fmt = arg;
 }
 
+void GLWidget::setVolume(int arg)
+{
+    volume = arg;
+    if (process) {
+        if (process->display) {
+            process->display->volume = (float)arg / 100.0f;
+        }
+    }
+}
+
+void GLWidget::setMute(bool arg)
+{
+    mute = arg;
+    if (process) {
+        if (process->display) {
+            process->display->mute = arg;
+        }
+    }
+}
+
 void GLWidget::poll()
 {
     if (!running)
@@ -239,16 +260,15 @@ void GLWidget::poll()
     }
 }
 
-void GLWidget::play(const char* uri)
+void GLWidget::play(const QString& arg)
 {
     try {
         stop();
 
-        while (process) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        memset(uri, 0, 1024);
+        strcpy(uri, arg.toLatin1().data());
 
-        std::thread process_thread(start, this, uri);
+        std::thread process_thread(start, this/*, uri*/);
         process_thread.detach();
     }
     catch (const std::runtime_error& e) {
@@ -256,21 +276,37 @@ void GLWidget::play(const char* uri)
     }
 }
 
+void GLWidget::seek(float arg)
+{
+    if (process) {
+        if (process->reader) {
+            process->reader->request_seek(arg);
+        }
+    }
+}
+
 void GLWidget::stop()
 {
     running = false;
+
+    while (process) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    emit progress(0);
 }
 
-void GLWidget::start(void * parent, const char* uri)
+void GLWidget::start(void * parent)
 {
     GLWidget* widget = (GLWidget*)parent;
+
     try {
         avio::Process process;
         widget->process = &process;
 
-        avio::Reader reader(uri);
-        reader.apq_max_size = 100;
-        reader.vpq_max_size = 100;
+        avio::Reader reader(widget->uri);
+        if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
+        if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
         widget->tex_width = reader.width();
         widget->tex_height = reader.height();
         reader.set_video_out("vpq_reader");
@@ -298,6 +334,8 @@ void GLWidget::start(void * parent, const char* uri)
             audioDecoder->set_audio_in(reader.audio_out());
             audioDecoder->set_audio_out("afq_decoder");
             display.set_audio_in(audioDecoder->audio_out());
+            display.volume = widget->volume;
+            display.mute = widget->getMute();
             process.add_decoder(*audioDecoder);
         }
 
@@ -315,12 +353,14 @@ void GLWidget::start(void * parent, const char* uri)
 
     }
     catch (const Exception& e) {
-        std::cout << "GLWidget process error: " << e.what() << std::endl;
-        widget->process->cleanup();
-        widget->emit connectFailed();
+        std::stringstream str;
+        str << "GLWidget process error: " << e.what() << "\n";
+        widget->emit connectFailed(str.str().c_str());
     }
 
     widget->process = nullptr;
+    widget->media_duration = 0;
+    widget->emit progress(0);
 }
 
 }

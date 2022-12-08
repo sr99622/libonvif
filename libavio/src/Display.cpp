@@ -158,6 +158,12 @@ void Display::videoPresentation()
         ex.ck(SDL_RenderCopy(renderer, texture, NULL, NULL), SDL_GetError());
         SDL_RenderPresent(renderer);
     }
+    else {
+        if (glWidget->media_duration) {
+            float pct = (float)f.m_rts / (float)glWidget->media_duration;
+            glWidget->emit progress(pct);
+        }
+    }
 }
 
 void Display::clearInputQueues()
@@ -244,9 +250,6 @@ bool Display::display()
     while (true)
     {
         if (glWidget) {
-            //if (glWidget->connecting) {
-            //    glWidget->connecting = false;
-            //}
             if (!glWidget->running) {
                 playing = false;
                 break;
@@ -319,7 +322,7 @@ bool Display::display()
                 toggleRecord();
             }
 
-            if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
+            //if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
                 SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
             
             if (!reader->seeking()) videoPresentation();
@@ -441,7 +444,7 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
         return;
 
     try {
-        if (d->disable_audio || d->user_paused)
+        if (/*d->disable_audio ||*/ d->user_paused)
             return;
 
         while (len > 0) {
@@ -485,7 +488,8 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
                 len--;
             }
 
-            SDL_MixAudioFormat(audio_buffer, temp, d->sdl.format, d->audio_buffer_len, SDL_MIX_MAXVOLUME * d->volume);
+            if (!d->mute)
+                SDL_MixAudioFormat(audio_buffer, temp, d->sdl.format, d->audio_buffer_len, SDL_MIX_MAXVOLUME * d->volume);
 
             d->rtClock.sync(f.m_rts); 
             d->reader->seek_found_pts = AV_NOPTS_VALUE;

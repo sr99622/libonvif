@@ -24,33 +24,41 @@
 #include <QGridLayout>
 #include <QApplication>
 #include <QScreen>
+#include <QResource>
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    setWindowTitle("onvif-gui version 1.4.1");
+    Q_INIT_RESOURCE(resources);
+    setWindowTitle("onvif-gui version 1.4.2");
     settings = new QSettings("libonvif", "onvif");
 
     glWidget = new avio::GLWidget();
+    connect(glWidget, SIGNAL(msg(const QString&)), this, SLOT(msg(const QString&)));
 
+    styleDialog = new StyleDialog(this);
+
+    settingsPanel = new SettingsPanel(this);
     cameraPanel = new CameraPanel(this);
+    filePanel = new FilePanel(this);
+    messagePanel = new MessagePanel(this);
+    tabWidget= new QTabWidget();
+    tabWidget->addTab(cameraPanel, "Cameras");
+    tabWidget->addTab(filePanel, "Files");
+    tabWidget->addTab(settingsPanel, "Settings");
+    tabWidget->addTab(messagePanel, "Messages");
     setMinimumWidth(840);
 
     QWidget* layoutPanel = new QWidget();
-    QGridLayout* layout = new QGridLayout();
+    QGridLayout* layout = new QGridLayout(layoutPanel);
 
-    layout->addWidget(glWidget,        0, 0, 2, 1);
-    layout->addWidget(cameraPanel,     0, 1, 1, 1);
-    layout->setColumnStretch(0, 10);
-    layoutPanel->setLayout(layout);
+    split = new QSplitter;
+    split->addWidget(glWidget);
+    split->addWidget(tabWidget);
+    split->restoreState(settings->value(splitKey).toByteArray());
+    connect(split, SIGNAL(splitterMoved(int, int)), this, SLOT(onSplitterMoved(int, int)));
+
+    layout->addWidget(split,  0, 0, 1, 1);
     setCentralWidget(layoutPanel);
-
-    QList<QScreen*> screens = QGuiApplication::screens();
-    QSize screenSize = screens[0]->size();
-    int x = (screenSize.width() - width()) / 2;
-    int y = (screenSize.height() - height()) / 2;
-    move(x, y);
-    std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
 
     QRect savedGeometry = settings->value("geometry").toRect();
     if (savedGeometry.isValid()) {
@@ -62,21 +70,74 @@ MainWindow::MainWindow(QWidget *parent)
         int x = (screenSize.width() - width()) / 2;
         int y = (screenSize.height() - height()) / 2;
         move(x, y);
-        std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
     }
+
+    StylePanel *stylePanel = (StylePanel*)styleDialog->panel;
+    const ColorProfile profile = stylePanel->getProfile();
+    applyStyle(profile);
 }
 
 MainWindow::~MainWindow()
 {
+
 }
 
-void MainWindow::closeEvent(QCloseEvent* event)
+void MainWindow::closeEvent(QCloseEvent* e)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(e);
+
+    glWidget->stop();
     settings->setValue("geometry", geometry());
 }
 
-void MainWindow::msg(QString str)
+void MainWindow::msg(const QString& str)
 {
-    std::cout << (const char*)str.toLatin1() << std::endl;
+    //std::cout << str.toLatin1().data() << std::endl;
+    messagePanel->msg->append(str);
 }
+
+void MainWindow::onSplitterMoved(int pos, int index)
+{
+    settings->setValue(splitKey, split->saveState());
+}
+
+QString MainWindow::getButtonStyle(const QString& name) const
+{
+    if (styleDialog->panel->useSystemGui->isChecked()) {
+        return QString("QPushButton {image:url(:/%1_lo.png);}").arg(name);
+    }
+    else {
+        return QString("QPushButton {image:url(:/%1.png);} QPushButton:hover {image:url(:/%1_hi.png);} QPushButton:pressed {image:url(:/%1.png);}").arg(name);
+    }
+}
+
+void MainWindow::applyStyle(const ColorProfile& profile)
+{
+    if (styleDialog->panel->useSystemGui->isChecked()) {
+        setStyleSheet("");
+        return;
+    }
+
+    QFile f(":/darkstyle.qss");
+    if (!f.exists()) {
+        msg("Error: MainWindow::getThemes() Style sheet not found");
+    }
+    else {
+        f.open(QFile::ReadOnly | QFile::Text);
+        style = QString(f.readAll());
+
+        style.replace("background_light",  profile.bl);
+        style.replace("background_medium", profile.bm);
+        style.replace("background_dark",   profile.bd);
+        style.replace("foreground_light",  profile.fl);
+        style.replace("foreground_medium", profile.fm);
+        style.replace("foreground_dark",   profile.fd);
+        style.replace("selection_light",   profile.sl);
+        style.replace("selection_medium",  profile.sm);
+        style.replace("selection_dark",    profile.sd);
+
+        setStyleSheet(style);
+    }
+
+}
+

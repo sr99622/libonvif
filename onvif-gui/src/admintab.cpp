@@ -166,14 +166,14 @@ void AdminTab::enableResetChecked()
 
 void AdminTab::rebootClicked()
 {
-    QMessageBox::StandardButton result = QMessageBox::question(this, "playqt", "You are about to reboot the camera\nAre you sure you want to do this");
+    QMessageBox::StandardButton result = QMessageBox::question(this, "onvif-gui", "You are about to reboot the camera\nAre you sure you want to do this");
     if (result == QMessageBox::Yes)
         QThreadPool::globalInstance()->tryStart(rebooter);
 }
 
 void AdminTab::hardResetClicked()
 {
-    QMessageBox::StandardButton result = QMessageBox::question(this, "playqt", "You are about to HARD RESET the camera\nAll settings will be returned to default factory configuration\nAre you sure you want to do this");
+    QMessageBox::StandardButton result = QMessageBox::question(this, "onvif-gui", "You are about to HARD RESET the camera\nAll settings will be returned to default factory configuration\nAre you sure you want to do this");
     if (result == QMessageBox::Yes)
         QThreadPool::globalInstance()->tryStart(resetter);
 }

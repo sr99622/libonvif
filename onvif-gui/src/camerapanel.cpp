@@ -44,14 +44,10 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     tabWidget->addTab(ptzTab, "PTZ");
     adminTab = new AdminTab(this);
     tabWidget->addTab(adminTab, "Admin");
-    configTab = new ConfigTab(this);
-    tabWidget->addTab(configTab, "Config");
     QList<QScreen*> screens = QGuiApplication::screens();
     QSize screenSize = screens[0]->size();
-    std::cout << "w: " << screenSize.width() << " h: " << screenSize.height() << std::endl;
 
     tabWidget->setMaximumHeight(screenSize.height() * 0.2);
-    tabWidget->setMinimumWidth(440);
 
     applyButton = new QPushButton(tr("Apply"), this);
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));
@@ -59,14 +55,25 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
 
     volumeSlider = new QSlider(Qt::Horizontal, this);
-    volumeSlider->setValue(MW->settings->value(volumeKey, 100).toInt());
+    int volume = MW->settings->value(volumeKey, 100).toInt();
+    volumeSlider->setValue(volume);
+    MW->glWidget->setVolume(volume);
     connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(adjustVolume(int)));
+
+    btnMute = new QPushButton();
+    MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
+    if (MW->glWidget->getMute())
+        btnMute->setStyleSheet(MW->getButtonStyle("mute"));
+    else 
+        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+    connect(btnMute, SIGNAL(clicked()), this, SLOT(onBtnMuteClicked()));
+
     QWidget *controlPanel = new QWidget(this);
     QGridLayout* controlLayout = new QGridLayout(controlPanel);
-    controlLayout->addWidget(new QLabel("Volume"), 0, 0, 1, 1);
-    controlLayout->addWidget(volumeSlider,         0, 1, 1, 1);
-    controlLayout->addWidget(discoverButton,    0, 2, 1, 1);
-    controlLayout->addWidget(applyButton,       0, 3, 1 ,1);
+    controlLayout->addWidget(btnMute,         0, 0, 1, 1);
+    controlLayout->addWidget(volumeSlider,    0, 1, 1, 1);
+    controlLayout->addWidget(discoverButton,  0, 2, 1, 1);
+    controlLayout->addWidget(applyButton,     0, 3, 1 ,1);
     controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
@@ -76,7 +83,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     layout->addWidget(cameraList,     0, 0, 1, 1);
     layout->addWidget(tabWidget,      1, 0, 1, 1);
     layout->addWidget(controlPanel,   2, 0, 1, 1);
-    layout->setColumnStretch(0, 10);
+    layout->setRowStretch(0, 10);
 
     setLayout(layout);
 
@@ -90,33 +97,25 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     adminTab->setActive(false);
     applyButton->setEnabled(false);
 
-    connect(this, SIGNAL(msg(QString)), mainWindow, SLOT(msg(QString)));
+    connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
     connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
     connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
-    connect(MW->glWidget, SIGNAL(connectFailed()), this, SLOT(connectFailed()));
+    connect(MW->glWidget, SIGNAL(connectFailed(const QString&)), this, SLOT(connectFailed(const QString&)));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
     connect(cameraListModel, SIGNAL(getCameraData()), this, SLOT(fillData()));
 
-    configTab->commonUsername->setText(MW->settings->value(usernameKey, "").toString());
-    configTab->commonPassword->setText(MW->settings->value(passwordKey, "").toString());
-    configTab->autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
-    configTab->multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
-    configTab->broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
-    configTab->autoDiscoveryClicked(configTab->autoDiscovery->isChecked());
-
-    savedAutoCameraName = MW->settings->value(autoCameraKey, "").toString();
-    onvif_session = (OnvifSession*)malloc(sizeof(OnvifSession));
+    onvif_session = (OnvifSession*)calloc(sizeof(OnvifSession), 1);
     initializeSession(onvif_session);
-    discovery = new Discovery(this);
+    discovery = new Discovery(this, MW->settingsPanel);
     connect(discovery, SIGNAL(stopping()), this, SLOT(discoveryFinished()));
     cameraNames = new QSettings("Onvif", "Camera Names");
     foreach(QString key, cameraNames->allKeys()) {
         discovery->cameraAlias.insert(key, cameraNames->value(key).toString());
     }
 
-    if (configTab->autoDiscovery->isChecked()) {
+    if (MW->settingsPanel->autoDiscovery->isChecked()) {
         discovery->start();
     }
 }
@@ -137,6 +136,21 @@ void CameraPanel::discoverButtonClicked()
     discovery->start();
 }
 
+void CameraPanel::onBtnMuteClicked()
+{
+    if (MW->glWidget->getMute()) {
+        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+        MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+    }
+    else {
+        btnMute->setStyleSheet(MW->getButtonStyle("mute"));
+        MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
+    }
+
+    MW->glWidget->setMute(!MW->glWidget->getMute());
+    MW->settings->setValue(muteKey, MW->glWidget->getMute());
+}
+
 void CameraPanel::viewButtonClicked()
 {
     if (connecting) {
@@ -150,10 +164,16 @@ void CameraPanel::viewButtonClicked()
         std::string uri(onvif_data->stream_uri);
         ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
         uri = ss_uri.str();
-        memset(buf, 0, 256);
-        strcpy(buf, ss_uri.str().c_str());
         connecting = true;
-        MW->glWidget->play(buf);
+        if (MW->settingsPanel->lowLatency->isChecked()) {
+            MW->glWidget->vpq_size = 1;
+            MW->glWidget->apq_size = 1;
+        }
+        else {
+            MW->glWidget->vpq_size = 100;
+            MW->glWidget->apq_size = 100;
+        }
+        MW->glWidget->play(uri.c_str());
         MW->setWindowTitle("connecting to " + currentStreamingCameraName);
     }
 }
@@ -216,41 +236,6 @@ void CameraPanel::showData()
     applyButton->setEnabled(false);   
 }
 
-void CameraPanel::saveUsername()
-{
-    MW->settings->setValue(usernameKey, configTab->commonUsername->text());
-}
-
-void CameraPanel::savePassword()
-{
-    MW->settings->setValue(passwordKey, configTab->commonPassword->text());
-}
-
-void CameraPanel::saveAutoDiscovery()
-{
-    MW->settings->setValue(autoDiscKey, configTab->autoDiscovery->isChecked());
-}
-
-void CameraPanel::saveMultiBroadcast()
-{
-    MW->settings->setValue(multiBroadKey, configTab->multiBroadcast->isChecked());
-}
-
-void CameraPanel::saveBroadcastRepeat(int value)
-{
-    MW->settings->setValue(broadRepKey, value);
-}
-
-void CameraPanel::saveNetIntf(const QString& name)
-{
-    MW->settings->setValue(netIntfKey, name);
-}
-
-void CameraPanel::autoLoadClicked(bool checked)
-{
-    MW->settings->setValue(autoLoadKey, checked);
-}
-
 void CameraPanel::discoveryFinished()
 {
     emit msg("discovery is completed");
@@ -263,15 +248,13 @@ void CameraPanel::refreshList()
 
 void CameraPanel::adjustVolume(int value)
 {
-    if (MW->glWidget->process) {
-        MW->glWidget->process->display->volume = (float)value / 100.0f;        
-    }
+    MW->glWidget->setVolume(value);
     MW->settings->setValue(volumeKey, value);
+    MW->filePanel->sldVolume->setValue(value);
 }
 
 void CameraPanel::streamStarting()
 {
-    std::cout << "stream starting " << std::endl;
     connecting = false;
     if (MW->glWidget->process) {
         MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
@@ -286,10 +269,13 @@ void CameraPanel::cameraTimeout()
     msgBox.exec();
 }
 
-void CameraPanel::connectFailed()
+void CameraPanel::connectFailed(const QString& str)
 {
     connecting = false;
+    QString title = "connection failed - ";
+    title += currentStreamingCameraName;
+    MW->setWindowTitle(title);
     QMessageBox msgBox;
-    msgBox.setText("Camera connection failed");
+    msgBox.setText(str);
     msgBox.exec();
 }

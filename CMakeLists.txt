@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 1.4.1)
+project(libonvif VERSION 1.4.2)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -109,6 +109,7 @@ if (BUILD_GUI)
 
     set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
     set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
     find_package(SDL2 REQUIRED)
     find_package(FFmpeg REQUIRED)
@@ -120,15 +121,18 @@ if (BUILD_GUI)
         onvif-gui/src/cameralistmodel.cpp
         onvif-gui/src/cameralistview.cpp
         onvif-gui/src/camerapanel.cpp
-        onvif-gui/src/configtab.cpp
         onvif-gui/src/discovery.cpp
+        onvif-gui/src/filepanel.cpp
         onvif-gui/src/imagetab.cpp
         onvif-gui/src/logindialog.cpp
         onvif-gui/src/main.cpp
         onvif-gui/src/mainwindow.cpp
+        onvif-gui/src/messagepanel.cpp
         onvif-gui/src/networktab.cpp
         onvif-gui/src/onvifmanager.cpp
         onvif-gui/src/ptztab.cpp
+        onvif-gui/src/settingspanel.cpp
+        onvif-gui/src/stylepanel.cpp
         onvif-gui/src/videotab.cpp
         onvif-gui/include/admintab.h
         onvif-gui/include/camera.h
@@ -136,14 +140,17 @@ if (BUILD_GUI)
         onvif-gui/include/cameralistmodel.h
         onvif-gui/include/cameralistview.h
         onvif-gui/include/camerapanel.h
-        onvif-gui/include/configtab.h
         onvif-gui/include/discovery.h
+        onvif-gui/include/filepanel.h
         onvif-gui/include/imagetab.h
         onvif-gui/include/logindialog.h
         onvif-gui/include/mainwindow.h
+        onvif-gui/include/messagepanel.h
         onvif-gui/include/networktab.h
         onvif-gui/include/onvifmanager.h
         onvif-gui/include/ptztab.h
+        onvif-gui/include/settingspanel.h
+        onvif-gui/include/stylepanel.h
         onvif-gui/include/videotab.h
 
         libavio/src/Reader.cpp
@@ -159,6 +166,9 @@ if (BUILD_GUI)
         libavio/src/Pipe.cpp
         libavio/src/GLWidget.cpp
         libavio/include/GLWidget.h
+
+        resources/resources.qrc
+#        resources/libonvif.rcc
     )
 
     if (WIN32) 

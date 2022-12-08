@@ -39,7 +39,7 @@ static int interrupt_callback(void *ctx)
     avio::Reader* reader = (avio::Reader*)ctx;
     time_t diff = time(NULL) - timeout_start;
 
-    if (diff > MAX_TIMEOUT) {
+    if (diff > MAX_TIMEOUT || reader->request_break) {
         return 1;
     }
     return 0;
@@ -49,7 +49,7 @@ namespace avio {
 
 Reader::Reader(const char* filename)
 {
-    std::cout << "Reader opening " << filename << std::endl;
+    //std::cout << "Reader opening " << filename << std::endl;
     AVDictionary* opts = NULL;
     av_dict_set(&opts, "stimeout", "10000000", 0);
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
@@ -69,9 +69,12 @@ Reader::Reader(const char* filename)
     if (audio_stream_index < 0) 
         ex.msg("av_find_best_stream could not find audio stream", MsgPriority::INFO);
 
-    std::filesystem::path path = filename;
-    extension = path.extension().string();
-    std::cout << "Reader successfully opened " << std::endl;
+    //std::filesystem::path path = filename;
+    //extension = path.extension().string();
+
+    if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
+
+    //std::cout << "Reader successfully opened " << std::endl;
 }
 
 Reader::~Reader()
@@ -370,7 +373,7 @@ std::string Reader::get_pipe_out_filename()
         std::tm tm = *std::localtime(&t);
         std::stringstream str;
         str << std::put_time(&tm, "%y%m%d%H%M%S");
-        filename = str.str() + extension;
+        //filename = str.str() + extension;
     }
     else {
         filename = pipe_out_filename;

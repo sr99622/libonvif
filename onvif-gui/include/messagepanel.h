@@ -1,7 +1,7 @@
 /*******************************************************************************
-* configtab.h
+* messagepanel.h
 *
-* Copyright (c) 2020 Stephen Rhodes
+* Copyright (c) 2022 Stephen Rhodes
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,43 +19,29 @@
 *
 *******************************************************************************/
 
-#ifndef CONFIGTAB_H
-#define CONFIGTAB_H
+#ifndef MESSAGEPANEL_H
+#define MESSAGEPANEL_H
 
-#include <QComboBox>
-#include <QLineEdit>
+#include <QTextEdit>
 #include <QPushButton>
-#include <QCheckBox>
-#include <QLabel>
-#include <QSpinBox>
+#include <QClipboard>
 #include <QMainWindow>
 
-#include "cameradialogtab.h"
-
-class ConfigTab : public CameraDialogTab
+class MessagePanel : public QWidget
 {
     Q_OBJECT
 
 public:
-    ConfigTab(QWidget *parent);
+    MessagePanel(QMainWindow *parent);
 
-    QWidget *cameraPanel;
-    QCheckBox *autoDiscovery;
-    QCheckBox *multiBroadcast;
-    QSpinBox *broadcastRepeat;
-    QLineEdit *commonUsername;
-    QLineEdit *commonPassword;
-
-signals:
-    void msg(const QString&);
+    QMainWindow *mainWindow;
+    QTextEdit *msg;
+    QPushButton *btnCopy;
+    QClipboard* cp;
 
 public slots:
-    void usernameUpdated();
-    void passwordUpdated();
-    void autoDiscoveryClicked(bool);
-    void multiBroadcastClicked(bool);
-    void broadcastRepeatChanged(int);
+    void onBtnCopyClicked();
 
 };
 
-#endif // CONFIGTAB_H
+#endif // MESSAGEPANEL_H

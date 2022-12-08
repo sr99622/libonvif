@@ -49,11 +49,15 @@ public:
     void setPanX(float);
     void setPanY(float);
     void setFormat(QImage::Format);
+    void setVolume(int arg);
+    void setMute(bool arg);
+    bool getMute() { return mute; }
     void updateAspectRatio();
-    void play(const char* uri);
+    void play(const QString& arg);
     void stop();
+    float zoom_factor() { return factor; }
 
-    static void start(void * parent, const char* uri);
+    static void start(void * parent);
 
     QSize sizeHint() const override;
 
@@ -75,6 +79,8 @@ public:
     long media_duration = 0;
     long media_start_time = 0;
     bool running = false;
+    int vpq_size = 0;
+    int apq_size = 0;
 
     avio::Process* process = nullptr;
 
@@ -82,10 +88,13 @@ signals:
     void timerStart();
     void timerStop();
     void cameraTimeout();
-    void connectFailed();
+    void connectFailed(const QString&);
+    void msg(const QString&);
+    void progress(float);
 
 public slots:
     void poll();
+    void seek(float);
 
 protected:
     void initializeGL() override;
@@ -108,7 +117,12 @@ private:
     float pan_x  = 0.0f;
     float pan_y  = 0.0f;
 
+    int volume = 100;
+    bool mute = false;
+
     QImage::Format fmt = QImage::Format_RGB888;
+
+    char uri[1024];
 
     QTimer *timer;
     int count = 0;

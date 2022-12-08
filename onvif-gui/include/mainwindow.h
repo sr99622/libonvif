@@ -28,7 +28,15 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QSettings>
+#include <QSplitter>
+#include <QTabWidget>
+#include <QObject>
+
 #include "camerapanel.h"
+#include "settingspanel.h"
+#include "messagepanel.h"
+#include "stylepanel.h"
+#include "filepanel.h"
 #include <iostream>
 #include "avio.h"
 
@@ -42,15 +50,29 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void showVersion() { std::cout << "1.4.2" << std::endl; }
+    QString getButtonStyle(const QString& name) const;
+    void applyStyle(const ColorProfile& profile);
     void closeEvent(QCloseEvent* event) override;
 
     CameraPanel* cameraPanel;
-    QSettings *settings;
+    SettingsPanel* settingsPanel;
+    MessagePanel* messagePanel;
+    QTabWidget* tabWidget;
+    StyleDialog* styleDialog;
+    FilePanel* filePanel;
+    QSettings* settings;
     avio::GLWidget* glWidget;
+    QSplitter* split;
+
+    const QString splitKey = "MainWindow/splitKey";
+
+    QString style;
 
 
 public slots:
-    void msg(QString);
+    void msg(const QString&);
+    void onSplitterMoved(int pos, int index);
 
 };
 #endif // MAINWINDOW_H

@@ -28,20 +28,11 @@
         <file>play.png</file>
         <file>pause.png</file>
         <file>stop.png</file>
-        <file>rewind.png</file>
-        <file>fast-forward.png</file>
-        <file>next.png</file>
-        <file>previous.png</file>
         <file>branch_open.png</file>
         <file>branch_closed.png</file>
         <file>branch_closed_hi.png</file>
         <file>branch_open_hi.png</file>
         <file>stop_hi.png</file>
-        <file>rewind_hi.png</file>
-        <file>fast-forward_hi.png</file>
-        <file>previous_hi.png</file>
-        <file>next_hi.png</file>
-        <file>next_lo.png</file>
         <file>pause_hi.png</file>
         <file>play_hi.png</file>
         <file>audio_hi.png</file>
@@ -65,12 +56,9 @@
         <file>radio-on_hi.png</file>
         <file>radio-on_lo.png</file>
         <file>audio_lo.png</file>
-        <file>fast-forward_lo.png</file>
         <file>mute_lo.png</file>
         <file>pause_lo.png</file>
         <file>play_lo.png</file>
-        <file>previous_lo.png</file>
-        <file>rewind_lo.png</file>
         <file>stop_lo.png</file>
         <file>branch_closed_lo.png</file>
         <file>small_arrow_left_lo.png</file>

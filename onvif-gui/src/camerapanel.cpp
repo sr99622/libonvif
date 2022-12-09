@@ -154,11 +154,11 @@ void CameraPanel::onBtnMuteClicked()
 void CameraPanel::viewButtonClicked()
 {
     if (connecting) {
-        std::cout << "currently attempting to connect to " << currentStreamingCameraName.toLatin1().data() << " please wait" << std::endl;
+        std::cout << "currently attempting to connect to " << MW->currentStreamingMediaName.toLatin1().data() << " please wait" << std::endl;
     }
     else {
-        currentStreamingCameraName = cameraList->getCurrentCamera()->getCameraName();
-        std::cout << "attempting to connnect to " << currentStreamingCameraName.toLatin1().data() << std::endl;
+        MW->currentStreamingMediaName = cameraList->getCurrentCamera()->getCameraName();
+        std::cout << "attempting to connnect to " << MW->currentStreamingMediaName.toLatin1().data() << std::endl;
         std::stringstream ss_uri;
         OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
         std::string uri(onvif_data->stream_uri);
@@ -174,7 +174,7 @@ void CameraPanel::viewButtonClicked()
             MW->glWidget->apq_size = 100;
         }
         MW->glWidget->play(uri.c_str());
-        MW->setWindowTitle("connecting to " + currentStreamingCameraName);
+        MW->setWindowTitle("connecting to " + MW->currentStreamingMediaName);
     }
 }
 
@@ -259,7 +259,7 @@ void CameraPanel::streamStarting()
     if (MW->glWidget->process) {
         MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
     }
-    MW->setWindowTitle("Streaming from " + currentStreamingCameraName);
+    MW->setWindowTitle("Streaming from " + MW->currentStreamingMediaName);
 }
 
 void CameraPanel::cameraTimeout()
@@ -273,7 +273,7 @@ void CameraPanel::connectFailed(const QString& str)
 {
     connecting = false;
     QString title = "connection failed - ";
-    title += currentStreamingCameraName;
+    title += MW->currentStreamingMediaName;
     MW->setWindowTitle(title);
     QMessageBox msgBox;
     msgBox.setText(str);

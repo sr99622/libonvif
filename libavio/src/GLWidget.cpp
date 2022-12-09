@@ -268,7 +268,7 @@ void GLWidget::play(const QString& arg)
         memset(uri, 0, 1024);
         strcpy(uri, arg.toLatin1().data());
 
-        std::thread process_thread(start, this/*, uri*/);
+        std::thread process_thread(start, this);
         process_thread.detach();
     }
     catch (const std::runtime_error& e) {

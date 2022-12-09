@@ -69,11 +69,11 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     sliderFrame->setMaximumHeight(300);
     sliderFrame->setFrameShape(QFrame::Panel);
     sliderFrame->setFrameShadow(QFrame::Plain);
-    sliderFrame->setWindowTitle("Digital Zoom");
 
     QLabel *lbl10 = new QLabel("Zoom");
     zoom = new QSlider(Qt::Vertical);
     zoom->setValue(0);
+    zoom->setStyleSheet(MW->style);
     connect(zoom, SIGNAL(valueChanged(int)), this, SLOT(zoomMoved(int)));
 
     QLabel *lbl11 = new QLabel("Pan X");
@@ -222,13 +222,11 @@ void SettingsPanel::resetClicked()
 
 void SettingsPanel::styleClicked()
 {
-    std::cout << "StylePanel::styleClicked" << std::endl;
     MW->styleDialog->exec();
 }
 
 void SettingsPanel::clearClicked()
 {
-    std::cout << "StylePanel::clearClicked" << std::endl;
     QMessageBox::StandardButton result = QMessageBox::question(this, "onvif-gui", "You are about to delete all saved program settings\nAre you sure you want to do this");
     if (result == QMessageBox::Yes)
         MW->settings->clear();

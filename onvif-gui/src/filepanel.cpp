@@ -130,6 +130,7 @@ void FilePanel::doubleClicked(const QModelIndex& index)
             MW->glWidget->play(fileInfo.filePath());
             btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
         }
+        MW->currentStreamingMediaName = fileInfo.fileName();
     }
 }
 

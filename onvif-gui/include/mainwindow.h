@@ -69,6 +69,8 @@ public:
 
     QString style;
 
+    QString currentStreamingMediaName;
+
 
 public slots:
     void msg(const QString&);

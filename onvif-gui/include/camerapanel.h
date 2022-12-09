@@ -77,13 +77,11 @@ public:
     QSettings *cameraNames;
     OnvifSession *onvif_session;
     QPushButton *btnMute;
-    QIcon icnAudioOn;
-    QIcon icnAudioOff;
 
     const QString volumeKey     = "Application/volume";
     const QString muteKey       = "Application/mute";
 
-    QString currentStreamingCameraName;
+    //QString MW->currentStreamingMediaName;
     bool connecting = false;
     std::string uri;
     char buf[256];

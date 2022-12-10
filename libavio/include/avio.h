@@ -518,16 +518,17 @@ public:
 
             while (display->display()) {}
 
-            reader->request_break = true;
-            while (reader->running) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-
             if (glWidget)
                 glWidget->emit timerStop();
 
-            if (!reader->exit_error_msg.empty())
+            if (!reader->exit_error_msg.empty()) {
+                reader->request_break = true;
+                while (reader->running) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    std::cout << "reader running" << std::endl;
+                }
                 throw Exception(reader->exit_error_msg);
+            }
 
             if (writer) {
                 while (!display->audio_eof)

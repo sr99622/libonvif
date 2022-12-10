@@ -521,11 +521,15 @@ public:
             if (glWidget)
                 glWidget->emit timerStop();
 
+            int count = 0;
             if (!reader->exit_error_msg.empty()) {
                 reader->request_break = true;
                 while (reader->running) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     std::cout << "reader running" << std::endl;
+                    if (count++ > 3000)
+                        break;
+
                 }
                 throw Exception(reader->exit_error_msg);
             }

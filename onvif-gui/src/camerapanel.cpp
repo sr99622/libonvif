@@ -55,6 +55,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
 
     volumeSlider = new QSlider(Qt::Horizontal, this);
+    volumeSlider->setMaximumHeight(16);
     int volume = MW->settings->value(volumeKey, 100).toInt();
     volumeSlider->setValue(volume);
     MW->glWidget->setVolume(volume);

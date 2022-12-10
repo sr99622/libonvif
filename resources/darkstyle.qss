@@ -582,7 +582,6 @@ QGroupBox::title:disabled {
     color : foreground_dark;
 }
 
-
 QSlider::groove:horizontal {
   border : 1px solid background_medium;
   height : 4px;
@@ -602,16 +601,16 @@ QSlider::add-page:horizontal {
 }
 
 QSlider::handle:horizontal {
-  background : background_medium;
+  background : background_light;
   border : 1px solid foreground_dark;
   width : 8px;
-  height : 8px;
+  height : 12px;
   margin : -8px 0px;
   border-radius : 4px;
 }
 
 QSlider::handle:horizontal:hover {
-  background : background_light;
+  background : foreground_dark;
   border : 1px solid foreground_medium;
   border-radius : 2px;
 }
@@ -645,7 +644,7 @@ QSlider::add-page:vertical {
 }
 
 QSlider::handle:vertical {
-  background : background_medium;
+  background : background_light;
   border : 1px solid foreground_dark;
   width : 8px;
   height : 8px;
@@ -654,7 +653,7 @@ QSlider::handle:vertical {
 }
 
 QSlider::handle:vertical:hover {
-  background : background_light;
+  background : foreground_dark;
   border : 1px solid foreground_medium;
   border-radius : 2px;
 }

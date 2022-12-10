@@ -238,6 +238,11 @@ QSpinBox {
     padding-right : 15px;
 }
 
+QSpinBox:disabled {
+    background : background_medium;
+    color : foreground_dark;
+}
+
 QSpinBox::up-button {
     subcontrol-origin : border;
     subcontrol-position : top right;
@@ -348,6 +353,7 @@ QComboBox {
 
 QComboBox:disabled {
     color : foreground_dark;
+    background : background_medium
 }
 
 QComboBox::drop-down {
@@ -542,6 +548,7 @@ QLineEdit {
 
 QLineEdit:disabled {
     color : foreground_dark;
+    background : background_medium;
 }
 
 QLineEdit:hover:enabled {
@@ -598,9 +605,9 @@ QSlider::handle:horizontal {
   background : background_medium;
   border : 1px solid foreground_dark;
   width : 8px;
-  height : 4px;
+  height : 8px;
   margin : -8px 0px;
-  border-radius : 2px;
+  border-radius : 4px;
 }
 
 QSlider::handle:horizontal:hover {
@@ -640,7 +647,7 @@ QSlider::add-page:vertical {
 QSlider::handle:vertical {
   background : background_medium;
   border : 1px solid foreground_dark;
-  width : 4px;
+  width : 8px;
   height : 8px;
   margin : 0px -8px;
   border-radius : 2px;
@@ -661,3 +668,4 @@ QSlider::handle:vertical:disabled {
   background : background_dark;
   border-color : background_light;
 }
+

@@ -56,7 +56,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     multiBroadcast = new QCheckBox("Multi Broadcast");
     broadcastRepeat = new QSpinBox();
     broadcastRepeat->setRange(2, 5);
-    QLabel *lbl00 = new QLabel("Broadcast Repeat");
+    lblBroadcastRepeat = new QLabel("Broadcast Repeat");
     commonUsername = new QLineEdit();
     commonUsername->setMaximumWidth(100);
     QLabel *lbl01 = new QLabel("Common Username");
@@ -112,7 +112,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     //layout->addWidget(networkInterfaces,   0, 1, 1, 2);
     layout->addWidget(autoDiscovery,       1, 0, 1, 2);
     layout->addWidget(multiBroadcast,      2, 0, 1, 1);
-    layout->addWidget(lbl00,               2, 1, 1, 1);
+    layout->addWidget(lblBroadcastRepeat,  2, 1, 1, 1);
     layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
     layout->addWidget(lbl01,               3, 0, 1, 1);
     layout->addWidget(commonUsername,      3, 1, 1, 1);
@@ -152,10 +152,12 @@ void SettingsPanel::autoDiscoveryClicked(bool checked)
     if (checked) {
         multiBroadcast->setEnabled(true);
         broadcastRepeat->setEnabled(true);
+        lblBroadcastRepeat->setEnabled(true);
     }
     else {
         multiBroadcast->setEnabled(false);
         broadcastRepeat->setEnabled(false);
+        lblBroadcastRepeat->setEnabled(false);
         multiBroadcast->setChecked(false);
     }
 

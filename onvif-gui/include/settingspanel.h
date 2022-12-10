@@ -46,6 +46,7 @@ public:
     QPushButton *style;
     QPushButton *clear;
     QSpinBox *broadcastRepeat;
+    QLabel *lblBroadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;

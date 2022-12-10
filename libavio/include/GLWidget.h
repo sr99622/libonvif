@@ -81,6 +81,7 @@ public:
     bool running = false;
     int vpq_size = 0;
     int apq_size = 0;
+    AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
     avio::Process* process = nullptr;
 

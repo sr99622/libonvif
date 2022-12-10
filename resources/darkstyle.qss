@@ -379,6 +379,24 @@ QComboBox::down-arrow:on {
     image : url(:small_arrow_up.png);
 }
 
+/*
+QComboBox QAbstractItemView {
+    background-color: red;
+}
+
+QComboBox QAbstractItemView::item:hover
+{ 
+    color : green; 
+}
+
+QComboBox QAbstractItemView::item:selected{background-color: green;}
+
+QComboBox QAbstractItemView
+{
+  background-color: background_medium;
+}
+*/
+
 QScrollBar:vertical {
     border : 1px solid foreground_dark;
     border-right : 0;

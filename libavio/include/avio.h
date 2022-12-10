@@ -59,6 +59,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     try {
         while (AVPacket* pkt = reader->read())
         {
+            reader->running = true;
             if (reader->request_break) {
                 if (vpq) while (vpq->size() > 0) vpq->pop();
                 if (apq) while (apq->size() > 0) apq->pop();
@@ -139,6 +140,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     }
     catch (const QueueClosedException& e) {}
     catch (const Exception& e) { std::cout << " reader failed: " << e.what() << std::endl; }
+    reader->running = false;
 }
 
 static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* frame_q) 
@@ -156,7 +158,15 @@ static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* fram
         decoder->frame_q->push(Frame(nullptr));
     }
     catch (const QueueClosedException& e) { }
-    catch (const Exception& e) { std::cout << decoder->strMediaType << " decoder failed: " << e.what() << std::endl; }
+    catch (const Exception& e) { 
+        std::stringstream str;
+        str << decoder->strMediaType << " decoder failed: " << e.what();
+        std::cout << str.str() << std::endl;
+        decoder->reader->exit_error_msg = str.str();
+        //decoder->reader->request_break;
+        decoder->decode(NULL);
+        decoder->frame_q->push(Frame(nullptr));
+    }
 }
 
 static void filter(Filter* filter, Queue<Frame>* q_in, Queue<Frame>* q_out)
@@ -376,11 +386,11 @@ public:
 
     void cleanup()
     {
-        reader = nullptr;
-        videoDecoder = nullptr;
-        videoFilter = nullptr;
-        audioDecoder = nullptr;
-        display = nullptr;
+        //reader = nullptr;
+        //videoDecoder = nullptr;
+        //videoFilter = nullptr;
+        //audioDecoder = nullptr;
+        //display = nullptr;
 
         for (PKT_Q_MAP::iterator q = pkt_queues.begin(); q != pkt_queues.end(); ++q) {
             if (q->second) {
@@ -508,8 +518,16 @@ public:
 
             while (display->display()) {}
 
+            reader->request_break = true;
+            while (reader->running) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+
             if (glWidget)
                 glWidget->emit timerStop();
+
+            if (!reader->exit_error_msg.empty())
+                throw Exception(reader->exit_error_msg);
 
             if (writer) {
                 while (!display->audio_eof)

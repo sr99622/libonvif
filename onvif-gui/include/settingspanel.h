@@ -26,10 +26,12 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QLabel>
 #include <QSpinBox>
 #include <QSlider>
 #include <QMainWindow>
+#include <QListWidget>
 
 class SettingsPanel : public QWidget
 {
@@ -50,11 +52,17 @@ public:
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;
+    QCheckBox *hardwareDecoding;
+    QComboBox *hardwareDecoders;
     QSlider *zoom;
     QSlider *panX;
     QSlider *panY;
     QPushButton *reset;
     //QComboBox *networkInterfaces;
+
+    QStringList decoders;
+    QListWidget *listDecoders;
+    QLabel *lblDecoders;
 
     const QString usernameKey   = "SettingsPanel/username";
     const QString passwordKey   = "SettingsPanel/password";
@@ -63,6 +71,7 @@ public:
     const QString multiBroadKey = "SettingsPanel/multiBroadcast";
     const QString broadRepKey   = "SettingsPanel/brodacastRepeat";
     const QString lowLatencyKey = "SettingsPanel/lowLatency";
+    const QString decoderKey    = "SettingsPanel/decoder";
     //const QString netIntfKey    = "SettingsPanel/networkInterface";
 
 
@@ -76,6 +85,7 @@ public slots:
     void multiBroadcastClicked(bool);
     void broadcastRepeatChanged(int);
     void lowLatencyClicked(bool);
+    void decoderChanged(const QString&);
     void zoomMoved(int);
     void panXMoved(int);
     void panYMoved(int);

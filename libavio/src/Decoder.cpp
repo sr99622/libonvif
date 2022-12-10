@@ -20,17 +20,22 @@
 #include "Decoder.h"
 
 AVPixelFormat hw_pix_fmt = AV_PIX_FMT_NONE;
+const char * good = "good";
+const char * bad = "bad";
 
 AVPixelFormat get_hw_format(AVCodecContext* ctx, const AVPixelFormat* pix_fmts)
 {
     const AVPixelFormat* p;
 
     for (p = pix_fmts; *p != AV_PIX_FMT_NONE; p++) {
-        if (*p == hw_pix_fmt)
+        if (*p == hw_pix_fmt) {
+            ctx->opaque = (void*)good;
             return *p;
+        }
     }
 
     fprintf(stderr, "Failed to get HW surface format.\n");
+    ctx->opaque = (void*)bad;
     return AV_PIX_FMT_NONE;
 }
 
@@ -39,7 +44,7 @@ namespace avio
 
 Decoder::Decoder(Reader& reader, AVMediaType mediaType, AVHWDeviceType hw_device_type) : reader(&reader), mediaType(mediaType)
 {
-    try {
+    //try {
         const char* str = av_get_media_type_string(mediaType);
         strMediaType = (str ? str : "UNKOWN MEDIA TYPE");
 
@@ -60,6 +65,7 @@ Decoder::Decoder(Reader& reader, AVMediaType mediaType, AVHWDeviceType hw_device
 
         ex.ck(dec_ctx = avcodec_alloc_context3(dec), AAC3);
         ex.ck(avcodec_parameters_to_context(dec_ctx, stream->codecpar), APTC);
+        dec_ctx->opaque = nullptr;
 
         if (mediaType == AVMEDIA_TYPE_VIDEO && dec_ctx->pix_fmt != AV_PIX_FMT_YUV420P) {
             ex.ck(sws_ctx = sws_getContext(dec_ctx->width, dec_ctx->height, dec_ctx->pix_fmt,
@@ -71,6 +77,7 @@ Decoder::Decoder(Reader& reader, AVMediaType mediaType, AVHWDeviceType hw_device
             av_frame_get_buffer(cvt_frame, 0);
         }
 
+        this->hw_device_type = hw_device_type;
         ex.ck(frame = av_frame_alloc(), AFA);
         if (hw_device_type != AV_HWDEVICE_TYPE_NONE) {
             ex.ck(sw_frame = av_frame_alloc(), AFA);
@@ -108,11 +115,11 @@ Decoder::Decoder(Reader& reader, AVMediaType mediaType, AVHWDeviceType hw_device
         }
 
         ex.ck(avcodec_open2(dec_ctx, dec, NULL), AO2);
-    }
-    catch (const Exception& e) {
-        std::cout << strMediaType << " Decoder constructor exception: " << e.what() << std::endl;
-        close();
-    }
+    //}
+    //catch (const Exception& e) {
+    //    std::cout << strMediaType << " Decoder constructor exception: " << e.what() << std::endl;
+    //    close();
+    //}
 }
 
 Decoder::~Decoder()
@@ -132,11 +139,18 @@ void Decoder::close()
 
 int Decoder::decode(AVPacket* pkt)
 {
+
+    if (!dec_ctx) throw Exception("dec_ctx null");
+
+    if (dec_ctx->opaque && pkt) {
+        const char* status = (const char *)dec_ctx->opaque;
+        if (strcmp("good", status))
+            throw Exception("incompatible hardware decoder");
+    }
+
     int ret = 0;
     try 
     {
-        if (!dec_ctx) throw Exception("dec_ctx null");
-
         ex.ck(ret = avcodec_send_packet(dec_ctx, pkt), ASP);
 
         while (ret >= 0) {

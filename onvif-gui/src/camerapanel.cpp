@@ -276,7 +276,7 @@ void CameraPanel::connectFailed(const QString& str)
     QString title = "connection failed - ";
     title += MW->currentStreamingMediaName;
     MW->setWindowTitle(title);
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText(str);
     msgBox.exec();
 }

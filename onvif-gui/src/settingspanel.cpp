@@ -38,6 +38,9 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QMessageBox>
+#include <QListWidget>
+
+#include "avio.h"
 
 #include "settingspanel.h"
 #include "mainwindow.h"
@@ -64,6 +67,32 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     commonPassword->setMaximumWidth(100);
     QLabel *lbl02 = new QLabel("Common Password");
     lowLatency = new QCheckBox("Low Latency Buffering");
+    //hardwareDecoding = new QCheckBox("Hardware Decoding");
+    
+    QStringList decoders = {
+        "NONE",
+        "VDPAU",
+        "CUDA",
+        "VAAPI",
+        "DXVA2",
+        "QSV",
+        "VIDEOTOOLBOX",
+        "D3D11VA",
+        "DRM",
+        "OPENCL",
+        "MEDIACODEC"
+    };
+
+    listDecoders = new QListWidget(this);
+    listDecoders->addItems(decoders);
+
+    hardwareDecoders = new QComboBox(this);
+    hardwareDecoders->setModel(listDecoders->model());
+    hardwareDecoders->setView(listDecoders);
+    connect(hardwareDecoders, SIGNAL(currentTextChanged(const QString&)), this, SLOT(decoderChanged(const QString&)));
+    //hardwareDecoders->addItems(decoders);
+    lblDecoders = new QLabel("Hardware Decoder");
+    hardwareDecoders->setCurrentText(MW->settings->value(decoderKey, "NONE").toString());
 
     QFrame *sliderFrame = new QFrame(this);
     sliderFrame->setMaximumHeight(300);
@@ -118,10 +147,12 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(commonUsername,      3, 1, 1, 1);
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
-    layout->addWidget(lowLatency,          5, 0, 1, 2);
-    layout->addWidget(clear,               6, 0, 1, 1, Qt::AlignCenter);
-    layout->addWidget(style,               6, 1, 1, 1, Qt::AlignCenter);
-    layout->addWidget(sliderFrame,         7, 0, 2, 4);
+    layout->addWidget(lowLatency,          5, 0, 1, 3);
+    layout->addWidget(lblDecoders,         6, 0, 1, 1);
+    layout->addWidget(hardwareDecoders,    6, 1, 1, 2);
+    layout->addWidget(clear,               8, 0, 1, 1, Qt::AlignCenter);
+    layout->addWidget(style,               8, 1, 1, 1, Qt::AlignCenter);
+    layout->addWidget(sliderFrame,         9, 0, 2, 4);
     setLayout(layout);
 
     //getActiveNetworkInterfaces();
@@ -232,6 +263,35 @@ void SettingsPanel::clearClicked()
     QMessageBox::StandardButton result = QMessageBox::question(this, "onvif-gui", "You are about to delete all saved program settings\nAre you sure you want to do this");
     if (result == QMessageBox::Yes)
         MW->settings->clear();
+}
+
+void SettingsPanel::decoderChanged(const QString& name)
+{
+    std::cout << "name: " << name.toLatin1().data() << std::endl;
+    AVHWDeviceType result = AV_HWDEVICE_TYPE_NONE;
+    if (name == "VDPAU")
+        result = AV_HWDEVICE_TYPE_VDPAU;
+    else if (name == "CUDA")
+        result = AV_HWDEVICE_TYPE_CUDA;
+    else if (name == "VAAPI")
+        result = AV_HWDEVICE_TYPE_VAAPI;
+    else if (name == "DXVA2")
+        result = AV_HWDEVICE_TYPE_DXVA2;
+    else if (name == "QSV")
+        result = AV_HWDEVICE_TYPE_QSV;
+    else if (name == "VIDEOTOOLBOX")
+        result = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
+    else if (name == "D3D11VA")
+        result = AV_HWDEVICE_TYPE_D3D11VA;
+    else if (name == "DRM")
+        result = AV_HWDEVICE_TYPE_DRM;
+    else if (name == "OPENCL")
+        result = AV_HWDEVICE_TYPE_OPENCL;
+    else if (name == "MEDIACODEC")
+        result = AV_HWDEVICE_TYPE_MEDIACODEC;
+
+    MW->settings->setValue(decoderKey, name);    
+    MW->glWidget->hardwareDecoder = result;
 }
 
 /*

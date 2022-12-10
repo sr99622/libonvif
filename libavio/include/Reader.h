@@ -106,6 +106,8 @@ public:
 	void *display;
 
 	bool request_break = false;
+	bool running = false;
+	std::string exit_error_msg;
 
 	ExceptionHandler ex;
 };

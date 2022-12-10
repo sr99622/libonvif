@@ -61,6 +61,8 @@ public:
 	AVBufferRef* hw_device_ctx = NULL;
 	SwsContext* sws_ctx = NULL;
 
+	AVHWDeviceType hw_device_type;
+
 	int stream_index;
 	Reader* reader;
 

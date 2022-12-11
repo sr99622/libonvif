@@ -173,7 +173,6 @@ static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* fram
         str << decoder->strMediaType << " decoder failed: " << e.what();
         std::cout << str.str() << std::endl;
         decoder->reader->exit_error_msg = str.str();
-        //decoder->reader->request_break;
         decoder->decode(NULL);
         decoder->frame_q->push(Frame(nullptr));
     }
@@ -396,12 +395,6 @@ public:
 
     void cleanup()
     {
-        //reader = nullptr;
-        //videoDecoder = nullptr;
-        //videoFilter = nullptr;
-        //audioDecoder = nullptr;
-        //display = nullptr;
-
         for (PKT_Q_MAP::iterator q = pkt_queues.begin(); q != pkt_queues.end(); ++q) {
             if (q->second) {
                 while (q->second->size() > 0) {
@@ -531,12 +524,12 @@ public:
             if (glWidget)
                 glWidget->emit timerStop();
 
+            // reader shutdown routine if downstream module shuts down process
             int count = 0;
             if (!reader->exit_error_msg.empty()) {
                 reader->request_break = true;
                 while (reader->running) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                    std::cout << "reader running: " << count << std::endl;
                     if (count++ > 1000) {
                         if (!reader->apq_name.empty()) {
                             Queue<AVPacket*>* q = pkt_queues[reader->apq_name];

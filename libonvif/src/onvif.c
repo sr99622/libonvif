@@ -2449,6 +2449,13 @@ int setSocketOptions(int socket) {
 
     status = setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&broadcast, sizeof(broadcast));
 #else
+    if (strlen(preferred_network_address) > 0) {
+        printf("preferred network address: %s\n", preferred_network_address);
+        localInterface.s_addr = inet_addr(preferred_network_address);
+        status = setsockopt(socket, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&localInterface, sizeof(localInterface));
+        if (status < 0)
+            printf("ip_multicast_if error");
+    }
     status = setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tv, sizeof(struct timeval));
 #endif
     status = setsockopt(socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch));

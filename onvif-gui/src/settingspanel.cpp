@@ -52,9 +52,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     mainWindow = parent;
     connect(this, SIGNAL(msg(const QString&)), MW, SLOT(msg(const QString&)));
 
-    //networkInterfaces = new QComboBox();
-    //networkInterfaces->setMaximumWidth(180);
-    //QLabel *lbl03 = new QLabel("Select Network Interface");
+    networkInterfaces = new QComboBox();
+    networkInterfaces->setMaximumWidth(180);
+    QLabel *lbl03 = new QLabel("Select Network Interface");
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
     broadcastRepeat = new QSpinBox();
@@ -67,7 +67,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     commonPassword->setMaximumWidth(100);
     QLabel *lbl02 = new QLabel("Common Password");
     lowLatency = new QCheckBox("Low Latency Buffering");
-    //hardwareDecoding = new QCheckBox("Hardware Decoding");
     
     QStringList decoders = {
         "NONE",
@@ -90,7 +89,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     hardwareDecoders->setModel(listDecoders->model());
     hardwareDecoders->setView(listDecoders);
     connect(hardwareDecoders, SIGNAL(currentTextChanged(const QString&)), this, SLOT(decoderChanged(const QString&)));
-    //hardwareDecoders->addItems(decoders);
     lblDecoders = new QLabel("Hardware Decoder");
     hardwareDecoders->setCurrentText(MW->settings->value(decoderKey, "NONE").toString());
 
@@ -137,8 +135,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     frameLayout->addWidget(reset, 1, 3, 1, 1);
 
     QGridLayout *layout = new QGridLayout();
-    //layout->addWidget(lbl03,               0, 0, 1, 1);
-    //layout->addWidget(networkInterfaces,   0, 1, 1, 2);
+    layout->addWidget(lbl03,               0, 0, 1, 1);
+    layout->addWidget(networkInterfaces,   0, 1, 1, 2);
     layout->addWidget(autoDiscovery,       1, 0, 1, 2);
     layout->addWidget(multiBroadcast,      2, 0, 1, 1);
     layout->addWidget(lblBroadcastRepeat,  2, 1, 1, 1);
@@ -155,7 +153,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(sliderFrame,         9, 0, 2, 4);
     setLayout(layout);
 
-    //getActiveNetworkInterfaces();
+    getActiveNetworkInterfaces();
 
     commonUsername->setText(MW->settings->value(usernameKey, "").toString());
     commonPassword->setText(MW->settings->value(passwordKey, "").toString());
@@ -165,9 +163,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
     autoDiscoveryClicked(autoDiscovery->isChecked());
 
-    //QString netIntf = MW->settings->value(netIntfKey, "").toString();
-    //if (netIntf.length() > 0)
-    //    networkInterfaces->setCurrentText(netIntf);
+    QString netIntf = MW->settings->value(netIntfKey, "").toString();
+    if (netIntf.length() > 0)
+        networkInterfaces->setCurrentText(netIntf);
 
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
     connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
@@ -175,7 +173,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
     connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
     connect(lowLatency, SIGNAL(clicked(bool)), this, SLOT(lowLatencyClicked(bool)));
-    //connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
+    connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -294,7 +292,6 @@ void SettingsPanel::decoderChanged(const QString& name)
     MW->glWidget->hardwareDecoder = result;
 }
 
-/*
 void SettingsPanel::netIntfChanged(const QString& arg)
 {
     MW->settings->setValue(netIntfKey, arg);
@@ -393,4 +390,4 @@ void SettingsPanel::getCurrentlySelectedIP(char *buffer)
     }
     buffer[i] = '\0';
 }
-*/
+

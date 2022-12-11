@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     Q_INIT_RESOURCE(resources);
     setWindowTitle("onvif-gui version 1.4.2");
     settings = new QSettings("libonvif", "onvif");
+    messagePanel = new MessagePanel(this);
 
     glWidget = new avio::GLWidget();
     connect(glWidget, SIGNAL(msg(const QString&)), this, SLOT(msg(const QString&)));
@@ -40,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     settingsPanel = new SettingsPanel(this);
     cameraPanel = new CameraPanel(this);
     filePanel = new FilePanel(this);
-    messagePanel = new MessagePanel(this);
     tabWidget= new QTabWidget();
     tabWidget->addTab(cameraPanel, "Cameras");
     tabWidget->addTab(filePanel, "Files");
@@ -92,8 +92,9 @@ void MainWindow::closeEvent(QCloseEvent* e)
 
 void MainWindow::msg(const QString& str)
 {
-    //std::cout << str.toLatin1().data() << std::endl;
+    std::cout << str.toLatin1().data() << std::endl;
     messagePanel->msg->append(str);
+    std::cout << "msg done" << std::endl;
 }
 
 void MainWindow::onSplitterMoved(int pos, int index)

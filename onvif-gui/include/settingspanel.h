@@ -39,8 +39,8 @@ class SettingsPanel : public QWidget
 
 public:
     SettingsPanel(QMainWindow *parent);
-    //void getActiveNetworkInterfaces();
-    //void getCurrentlySelectedIP(char *buffer);
+    void getActiveNetworkInterfaces();
+    void getCurrentlySelectedIP(char *buffer);
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
@@ -58,7 +58,7 @@ public:
     QSlider *panX;
     QSlider *panY;
     QPushButton *reset;
-    //QComboBox *networkInterfaces;
+    QComboBox *networkInterfaces;
 
     QStringList decoders;
     QListWidget *listDecoders;
@@ -72,7 +72,7 @@ public:
     const QString broadRepKey   = "SettingsPanel/brodacastRepeat";
     const QString lowLatencyKey = "SettingsPanel/lowLatency";
     const QString decoderKey    = "SettingsPanel/decoder";
-    //const QString netIntfKey    = "SettingsPanel/networkInterface";
+    const QString netIntfKey    = "SettingsPanel/networkInterface";
 
 
 signals:
@@ -92,7 +92,7 @@ public slots:
     void resetClicked();
     void styleClicked();
     void clearClicked();
-    //void netIntfChanged(const QString&);
+    void netIntfChanged(const QString&);
 
 };
 

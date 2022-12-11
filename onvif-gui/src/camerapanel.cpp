@@ -184,6 +184,8 @@ void CameraPanel::showLoginDialog(Credential *credential)
     if (loginDialog == nullptr)
         loginDialog = new LoginDialog(this);
 
+    loginDialog->setStyleSheet(MW->style);
+
     loginDialog->cameraName->setText(QString("Camera Name: ").append(credential->camera_name));
     if (loginDialog->exec()) {
         QString username = loginDialog->username->text();

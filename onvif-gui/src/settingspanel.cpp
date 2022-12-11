@@ -55,7 +55,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     networkInterfaces = new QComboBox();
     networkInterfaces->setMaximumWidth(180);
     interfaces = new QListWidget(this);
-    QLabel *lbl03 = new QLabel("Select Network Interface");
+    QLabel *lbl03 = new QLabel("Network Interface");
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
     broadcastRepeat = new QSpinBox();

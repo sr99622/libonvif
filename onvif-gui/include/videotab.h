@@ -28,6 +28,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QLabel>
+#include <QListWidget>
 
 class SpinBox : public QSpinBox
 {
@@ -49,6 +50,7 @@ public:
     bool hasBeenEdited() override;
 
     QWidget *cameraPanel;
+    QListWidget *resolutions = nullptr;
     QComboBox *comboResolutions;
     SpinBox *spinFrameRate;
     SpinBox *spinGovLength;

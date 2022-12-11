@@ -137,9 +137,17 @@ void VideoTab::initialize()
         }
     }
 
+    if (resolutions) delete resolutions;
+    resolutions = new QListWidget(this);
+
+    QStringList args;
     for (int i=0; i<size; i++) {
-        comboResolutions->addItem(tr(onvif_data->resolutions_buf[i]));
+        args.push_back(onvif_data->resolutions_buf[i]);
     }
+
+    resolutions->addItems(args);
+    comboResolutions->setModel(resolutions->model());
+    comboResolutions->setView(resolutions);
 
     spinGovLength->setMinimum(onvif_data->gov_length_min);
     spinGovLength->setMaximum(onvif_data->gov_length_max);

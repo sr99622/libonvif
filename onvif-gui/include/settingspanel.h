@@ -58,6 +58,7 @@ public:
     QSlider *panX;
     QSlider *panY;
     QPushButton *reset;
+    QListWidget *interfaces;
     QComboBox *networkInterfaces;
 
     QStringList decoders;

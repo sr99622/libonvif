@@ -54,6 +54,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
 
     networkInterfaces = new QComboBox();
     networkInterfaces->setMaximumWidth(180);
+    interfaces = new QListWidget(this);
     QLabel *lbl03 = new QLabel("Select Network Interface");
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
@@ -116,10 +117,10 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     reset = new QPushButton("Reset");
     connect(reset, SIGNAL(clicked()), this, SLOT(resetClicked()));
 
-    style = new QPushButton("Style");
+    style = new QPushButton("Style Colors");
     connect(style, SIGNAL(clicked()), this, SLOT(styleClicked()));
 
-    clear = new QPushButton("Clear");
+    clear = new QPushButton("Clear Settings");
     connect(clear, SIGNAL(clicked()), this, SLOT(clearClicked()));
 
     QLabel *title = new QLabel("Digital Zoom");
@@ -347,6 +348,7 @@ void SettingsPanel::getActiveNetworkInterfaces()
         //exit(EXIT_FAILURE);
     }
 
+    QStringList args;
     for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr == NULL)
             continue;
@@ -370,11 +372,16 @@ void SettingsPanel::getActiveNetworkInterfaces()
                 label += " - ";
                 label += ifa->ifa_name;
                 emit msg(label);
-                networkInterfaces->addItem(label);
+                //networkInterfaces->addItem(label);
+                args.push_back(label);
             }
 
         } 
     }
+
+    interfaces->addItems(args);
+    networkInterfaces->setModel(interfaces->model());
+    networkInterfaces->setView(interfaces);
 
     freeifaddrs(ifaddr);
 #endif

@@ -313,7 +313,7 @@ void GLWidget::start(void * parent)
         widget->media_duration = reader.duration();
         widget->media_start_time = reader.start_time();
 
-        avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO, widget->hardwareDecoder);
+        avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO, (AVHWDeviceType)widget->hardwareDecoder);
         //avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO, AV_HWDEVICE_TYPE_VDPAU);
         videoDecoder.set_video_in(reader.video_out());
         videoDecoder.set_video_out("vfq_decoder");
@@ -349,6 +349,8 @@ void GLWidget::start(void * parent)
         widget->running = true;
         process.run();
 
+        std::cout << "process done" << std::endl;
+
         if (audioDecoder)
             delete audioDecoder;
 
@@ -356,6 +358,7 @@ void GLWidget::start(void * parent)
     catch (const Exception& e) {
         std::stringstream str;
         str << "GLWidget process error: " << e.what() << "\n";
+        std::cout << str.str() << std::endl;
         widget->emit connectFailed(str.str().c_str());
     }
 

@@ -61,8 +61,18 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
         {
             reader->running = true;
             if (reader->request_break) {
-                if (vpq) while (vpq->size() > 0) vpq->pop();
-                if (apq) while (apq->size() > 0) apq->pop();
+                if (vpq) {
+                    while (vpq->size() > 0) {
+                        AVPacket* tmp = vpq->pop();
+                        av_packet_free(&tmp);
+                    }
+                }
+                if (apq) {
+                    while (apq->size() > 0) {
+                        AVPacket* tmp = apq->pop();
+                        av_packet_free(&tmp);
+                    }
+                }
                 break;
             }
 
@@ -526,10 +536,28 @@ public:
                 reader->request_break = true;
                 while (reader->running) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                    std::cout << "reader running" << std::endl;
-                    if (count++ > 3000)
+                    std::cout << "reader running: " << count << std::endl;
+                    if (count++ > 1000) {
+                        if (!reader->apq_name.empty()) {
+                            Queue<AVPacket*>* q = pkt_queues[reader->apq_name];
+                            if (q) {
+                                while (q->size() > 0) {
+                                    AVPacket* pkt = q->pop();
+                                    av_packet_free(&pkt);
+                                }
+                            }
+                        }
+                        if (!reader->vpq_name.empty()) {
+                            Queue<AVPacket*>* q = pkt_queues[reader->vpq_name];
+                            if (q) {
+                                while (q->size() > 0) {
+                                    AVPacket* pkt = q->pop();
+                                    av_packet_free(&pkt);
+                                }
+                            }
+                        }
                         break;
-
+                    }
                 }
                 throw Exception(reader->exit_error_msg);
             }

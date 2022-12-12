@@ -29,39 +29,70 @@ The GUI interface may be invoked using the 'onvif-gui' command.
 To Install From Source
 ----------------------
 
-DEPENDENCY ON LIBXML2
-
-libonvif has a dependency on libxml2.  This means you will need to have libxml2
-installed on your machine and you will need to know the location of the libxml2
-include files for compilation.  Most Linux systems come with libxml2 pre-
-installed.  You can check the availability of libxml2 on your system with the
-following command:
+BUILD ON LINUX
 
 ```bash
-xml2-config --cflags
+sudo apt install libxml2-dev
+sudo apt install qtbase5-dev
+sudo apt install libavcodec-dev
+sudo apt install libavdevice-dev
+sudo apt install libsdl2-dev
+git clone https://github.com/sr99622/libonvif.git
+cd libonvif
+mkdir build
+cd build
+cmake -DBUILD_GUI=ON ..
+make
+sudo make install
 ```
 
-This command should return with -I/usr/include/libxml2 or something similar.  If
-you receive this response, libxml2 is installed.  If the command is not
-recognized, then you will need to install libxml2.  An easy way to do this on
-Linux is to use the apt utility to install.  Make sure to get the -dev version
-by using the following command on Debian or Ubuntu:
+BUILD ON WINDOWS
+
+The reccommended method for building libonvif on Windows is to use a conda 
+environment to install dependencies.  TO install anaconda on Windows, please
+refer to the link https://docs.anaconda.com/anaconda/install/windows/.  Once
+anaconda has been installed, launch a conda promtp and then use the following 
+commands to build.
 
 ```bash
-sudo apt-get install libxml2-dev
+conda create --name onvif -c conda-forge libxml2 ffmpeg sdl2 git cmake
+conda activate onvif
+git clone https://github.com/sr99622/libonvif.git
+cd libonvif
+mkdir build
+cd build
+cmake -DBUILD_GUI=ON ..
+cmake --build . --config Release
 ```
 
-Installing libxml2 on Windows is more difficult.  You will need to get the source
-code for libxml2 from https://github.com/GNOME/libxml2.  Upon completion of the 
-build for libxml2, you will need Adminstrator privileges to install the library.
-You will also need to set the PATH environment variable to include the libxml2.dll 
-path.  The instructions below will build a stripped down version of libxml2 which
-is fine for onvif.  To get an administrator privileged command prompt, use the
-Windows search bar for cmd and right click on the command prompt icon to select
-Run as Administrator.  To make a permanent change to the PATH environment variable, 
+Installing the build requires using the Adminstrator mode on the command prompt.
+To get an administrator privileged command prompt, use the Windows search bar 
+for cmd and right click on the command prompt icon to select Run as Administrator.
+
+```bash
+cmake --install .
+```
+
+ALTEERNATE WINDOWS BUILD
+
+If you are only interested in the libonvif library and command line utility,
+it is possible to build on Windows without using conda.  
+
+
+You will need to get the source code for libxml2 from https://github.com/GNOME/libxml2.  
+Upon completion of the build for libxml2, you will need Adminstrator privileges to 
+install the library. You will also need to set the PATH environment variable to include 
+the libxml2.dll path. The instructions below will build a stripped down version of 
+libxml2 which is fine for onvif. To get an administrator privileged command prompt, 
+use the Windows search bar for cmd and right click on the command prompt icon to select
+Run as Administrator. To make a permanent change to the PATH environment variable, 
 use the Settings->About->Advanced System Settings->Environment Variables configuration 
 screen.
 
+
+For Windows, use the commands following from an Administrator privileged command prompt.
+To make a permanent change to the PATH environment variable, use the 
+Settings->About->Advanced System Settings->Environment Variables configuration screen.
 
 ```bash
 git clone https://github.com/GNOME/libxml2.git
@@ -72,91 +103,16 @@ cmake -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF
 cmake --build . --config Release
 cmake --install .
 set PATH=%PATH%;"C:\Program Files (x86)\libxml2\bin"
-```
 
-If you are working in a conda environment, the dependency for libxml2 may also be 
-satisfied using anaconda.  This is the same for Linux and Windows.
-
-```bash
-conda install -c conda-forge libxml2
-```
-
-COMPILE
-
-The utils program is built by default.  To build the GUI program, you will need to have
-Qt development libraries installed on the host machine.    Additionally, the ffmpeg and
-sdl2 libraries are required.  Use the cmake flag -DBUILD_GUI=ON to build the GUI.
-
-```bash
-sudo apt install qtbase5-dev
-sudo apt install libavcodec-dev
-sudo apt install libavdevice-dev
-sudo apt install libsdl2-dev
-```
-
-The Windows version requires these libraries as well.  The recommended way to get them
-is to use conda with the conda-forge channel.  Qt5 is installed by default on conda.
-
-```bash
-conda install -c conda-forge ffmpeg
-conda install -c conda-forge sdl2
-```
-
-The library is compiled using standard cmake procedure
-
-On Linux, the commands are as follows
-
-```bash
 git clone https://github.com/sr99622/libonvif.git
 cd libonvif
 mkdir build
 cd build
-cmake ..     *(or optionally to build the GUI)*  cmake -DBUILD_GUI=ON ..
-make
-sudo make install
-```
-
-For Windows, use the commands following from an Administrator privileged command prompt.
-To make a permanent change to the PATH environment variable, use the 
-Settings->About->Advanced System Settings->Environment Variables configuration screen.
-
-```bash
-git clone https://github.com/sr99622/libonvif.git
-cd libonvif
-mkdir build
-cd build
-cmake ..     *(or optionally to build the GUI)*  cmake -DBUILD_GUI=ON ..
+cmake .. 
 cmake --build . --config Release
 cmake --install .
 set PATH=%PATH%;"C:\Program Files (x86)\libonvif\bin"
 ```
-
-Run the test program on Linux
-
-```bash
-./onvif-util -a
-```
-
-Run the test program on Windows
-
-```bash
-Release\onvif-util -a
-```
-
-To use utility in Docker
-
-Build image
-
-```bash
-docker build -t libonvif:latest -f docker/Dockerfile .
-```
-
-Run container
-
-```bash
-docker run --rm -it --name=lib-onvif-util --network host libonvif:latest
-```
-
 
 Utility Program Commands 
 ----------------------

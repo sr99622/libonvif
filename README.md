@@ -50,7 +50,7 @@ BUILD ON WINDOWS
 
 The reccommended method for building libonvif on Windows is to use a conda 
 environment to install dependencies.  TO install anaconda on Windows, please
-refer to the link https://docs.anaconda.com/anaconda/install/windows/.  Once
+refer to the link https://docs.anaconda.com/anaconda/install/windows/. Once
 anaconda has been installed, launch a conda promtp and then use the following 
 commands to build.
 
@@ -79,7 +79,7 @@ If you are only interested in the libonvif library and command line utility,
 it is possible to build on Windows without using conda.  
 
 
-You will need to get the source code for libxml2 from https://github.com/GNOME/libxml2.  
+You will need to get the source code for libxml2 from https://github.com/GNOME/libxml2. 
 Upon completion of the build for libxml2, you will need Adminstrator privileges to 
 install the library. You will also need to set the PATH environment variable to include 
 the libxml2.dll path. The instructions below will build a stripped down version of 
@@ -266,7 +266,8 @@ SEE ALSO
   implement most of the same commands. It may be invoke using the 'onvif-gui' 
   command.
 
-
+Onvif GUI Program
+-----------------
 
 NAME 
 

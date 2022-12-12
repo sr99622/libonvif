@@ -64,20 +64,8 @@ mkdir build
 cd build
 cmake -DBUILD_GUI=ON ..
 cmake --build . --config Release
-```
-
-Installing the build requires using the Adminstrator mode on the command prompt.
-To get an administrator privileged command prompt, use the Windows search bar 
-for cmd and right click on the command prompt icon to select Run as Administrator.
-
-```bash
 cmake --install .
-set PATH=%PATH%;"C:\Program Files (x86)\libonvif\bin"
 ```
-
-To make a permanent change to the PATH environment variable, use the 
-Settings->About->Advanced System Settings->Environment Variables configuration screen.
-
 
 ALTERNATE WINDOWS BUILD
 

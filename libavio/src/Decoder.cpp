@@ -145,6 +145,9 @@ int Decoder::decode(AVPacket* pkt)
     int ret = 0;
     try 
     {
+        int width = dec_ctx->width;
+        int height = dec_ctx->height;
+
         ex.ck(ret = avcodec_send_packet(dec_ctx, pkt), ASP);
 
         while (ret >= 0) {
@@ -155,6 +158,26 @@ int Decoder::decode(AVPacket* pkt)
                 }
                 else if (ret < 0) {
                     ex.ck(ret, "error during decoding");
+                }
+            }
+
+            if (frame->width != width || frame->height != height) {
+                if (sw_frame) {
+                    av_frame_free(&sw_frame);
+                    ex.ck(sw_frame = av_frame_alloc(), AFA);
+                }
+                if (cvt_frame) {
+                    av_frame_free(&cvt_frame);
+                    ex.ck(cvt_frame = av_frame_alloc(), AFA);
+                    cvt_frame->width = dec_ctx->width;
+                    cvt_frame->height = dec_ctx->height;
+                    cvt_frame->format = AV_PIX_FMT_YUV420P;
+                    av_frame_get_buffer(cvt_frame, 0);
+                }
+                if (sws_ctx) {
+                    sws_freeContext(sws_ctx);
+                    ex.ck(sws_ctx = sws_getContext(dec_ctx->width, dec_ctx->height, AV_PIX_FMT_NV12,
+                        dec_ctx->width, dec_ctx->height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL), SGC);
                 }
             }
 

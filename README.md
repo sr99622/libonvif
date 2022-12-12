@@ -46,6 +46,7 @@ make
 sudo make install
 ```
 
+
 BUILD ON WINDOWS
 
 The recommended method for building libonvif on Windows is to use a conda 
@@ -71,7 +72,12 @@ for cmd and right click on the command prompt icon to select Run as Administrato
 
 ```bash
 cmake --install .
+set PATH=%PATH%;"C:\Program Files (x86)\libonvif\bin"
 ```
+
+To make a permanent change to the PATH environment variable, use the 
+Settings->About->Advanced System Settings->Environment Variables configuration screen.
+
 
 ALTERNATE WINDOWS BUILD
 

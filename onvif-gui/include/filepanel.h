@@ -35,6 +35,19 @@
 #include <QIcon>
 #include <QLabel>
 
+class ProgressLabel : public QLabel
+{
+    Q_OBJECT
+
+public:
+    ProgressLabel(QWidget *parent);
+    void paintEvent(QPaintEvent *event) override;
+
+    QWidget *filePanel;
+    int x_pos;
+
+};
+
 class ProgressSlider : public QSlider
 {
     Q_OBJECT
@@ -110,6 +123,7 @@ public:
     QIcon icnPause;
     QIcon icnStop;
 
+    ProgressLabel *lblProgress;
     ProgressSlider *sldProgress;
     QSlider *sldVolume;
 

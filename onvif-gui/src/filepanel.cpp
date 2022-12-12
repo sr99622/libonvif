@@ -25,7 +25,8 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QDateTime>
-#include <QToolTip>
+#include <QPainter>
+#include <QFontMetrics>
 
 #include "filepanel.h"
 #include "mainwindow.h"
@@ -65,13 +66,16 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     connect(MW->glWidget, SIGNAL(progress(float)), this, SLOT(progress(float)));
     connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
 
+    lblProgress = new ProgressLabel(this);
+
     QWidget *controlPanel = new QWidget(this);
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
     controlLayout->addWidget(btnPlay,         0, 0, 1, 1);
     controlLayout->addWidget(btnStop,         0, 1, 1, 1);
     controlLayout->addWidget(btnMute,         0, 3, 1, 1);
     controlLayout->addWidget(sldVolume,       0, 4, 1, 2);
-    controlLayout->addWidget(sldProgress,     1, 0, 1, 7);
+    controlLayout->addWidget(lblProgress,     1, 0, 1, 7);
+    controlLayout->addWidget(sldProgress,     2, 0, 1, 7);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(directorySetter,      0, 0, 1, 1);
@@ -345,7 +349,7 @@ ProgressSlider::ProgressSlider(Qt::Orientation o, QWidget *parent) : QSlider(o, 
 bool ProgressSlider::event(QEvent *e)
 {
     if (e->type() == QEvent::Leave)
-        QToolTip::hideText();
+        ((FilePanel*)filePanel)->lblProgress->setText("");
 
     return QSlider::event(e);
 }
@@ -358,9 +362,6 @@ void ProgressSlider::mousePressEvent(QMouseEvent *event)
 
 void ProgressSlider::mouseMoveEvent(QMouseEvent *e)
 {
-    if (last_position_x != e->pos().x())
-        QToolTip::hideText();
-
     MainWindow* mainWindow = (MainWindow*)(((FilePanel*)filePanel)->mainWindow);
 
     if (mainWindow->glWidget->media_duration) {
@@ -379,8 +380,21 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *e)
 
         QString output(buf);
 
-        const QPoint pos = mapToGlobal(QPoint(e->pos().x(), geometry().top() - 60));
-        QToolTip::showText(pos, output);
-        last_position_x = e->pos().x();
+        ((FilePanel*)filePanel)->lblProgress->x_pos = e->pos().x();
+        ((FilePanel*)filePanel)->lblProgress->setText(output);
     }
+}
+
+ProgressLabel::ProgressLabel(QWidget *parent) : QLabel(parent)
+{
+
+}
+
+void ProgressLabel::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+    QFontMetrics metrics = fontMetrics();
+    QRect rect = metrics.boundingRect(text());
+    int x = std::min(width() - rect.width(), x_pos);
+    painter.drawText(QPoint(x, height()), text());
 }

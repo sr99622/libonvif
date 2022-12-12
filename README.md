@@ -48,10 +48,10 @@ sudo make install
 
 BUILD ON WINDOWS
 
-The reccommended method for building libonvif on Windows is to use a conda 
-environment to install dependencies.  TO install anaconda on Windows, please
+The recommended method for building libonvif on Windows is to use a conda 
+environment to install dependencies.  To install anaconda on Windows, please
 refer to the link https://docs.anaconda.com/anaconda/install/windows/. Once
-anaconda has been installed, launch a conda promtp and then use the following 
+anaconda has been installed, launch a conda prompt and then use the following 
 commands to build.
 
 ```bash
@@ -73,7 +73,7 @@ for cmd and right click on the command prompt icon to select Run as Administrato
 cmake --install .
 ```
 
-ALTEERNATE WINDOWS BUILD
+ALTERNATE WINDOWS BUILD
 
 If you are only interested in the libonvif library and command line utility,
 it is possible to build on Windows without using conda.  

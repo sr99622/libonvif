@@ -174,6 +174,7 @@ void CameraPanel::viewButtonClicked()
             MW->glWidget->vpq_size = 100;
             MW->glWidget->apq_size = 100;
         }
+        MW->glWidget->mediaShortName = MW->currentStreamingMediaName.toLatin1().data();
         MW->glWidget->play(uri.c_str());
         MW->setWindowTitle("connecting to " + MW->currentStreamingMediaName);
     }
@@ -267,7 +268,7 @@ void CameraPanel::streamStarting()
 
 void CameraPanel::cameraTimeout()
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText("Camera has timed out");
     msgBox.exec();
 }

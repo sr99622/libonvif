@@ -28,6 +28,7 @@
 #include <iostream>
 #include "Queue.h"
 #include "Frame.h"
+#include "Reader.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
@@ -56,6 +57,7 @@ public:
     void play(const QString& arg);
     void stop();
     float zoom_factor() { return factor; }
+    void showStreamParameters(avio::Reader* reader);
 
     static void start(void * parent);
 
@@ -81,6 +83,7 @@ public:
     bool running = false;
     int vpq_size = 0;
     int apq_size = 0;
+    std::string mediaShortName;
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
     avio::Process* process = nullptr;

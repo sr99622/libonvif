@@ -296,6 +296,24 @@ void GLWidget::stop()
     emit progress(0);
 }
 
+void GLWidget::showStreamParameters(avio::Reader* reader)
+{
+    std::stringstream str;
+    str << "\n" << mediaShortName
+        << "\nCamera Stream Parameters"
+        << "\nVideo Codec: " << reader->str_video_codec()
+        << "\nPixel Format: " << reader->str_pix_fmt();
+    if (reader->has_audio()) {
+        str << "\nAudio Codec: " << reader->str_audio_codec()
+            << "\nSample Format: " << reader->str_sample_format()
+            << "\nChannels: " << reader->str_channel_layout();
+    }
+    else {
+        str << "\nNo Audio Stream Found";
+    }
+    emit msg(str.str().c_str());
+}
+
 void GLWidget::start(void * parent)
 {
     GLWidget* widget = (GLWidget*)parent;
@@ -305,6 +323,9 @@ void GLWidget::start(void * parent)
         widget->process = &process;
 
         avio::Reader reader(widget->uri);
+        if (QString(widget->uri).startsWith("rtsp://"))
+            widget->showStreamParameters(&reader);
+
         if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
         if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
         widget->tex_width = reader.width();

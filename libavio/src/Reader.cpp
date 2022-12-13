@@ -49,7 +49,6 @@ namespace avio {
 
 Reader::Reader(const char* filename)
 {
-    //std::cout << "Reader opening " << filename << std::endl;
     AVDictionary* opts = NULL;
     av_dict_set(&opts, "stimeout", "10000000", 0);
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
@@ -69,12 +68,8 @@ Reader::Reader(const char* filename)
     if (audio_stream_index < 0) 
         ex.msg("av_find_best_stream could not find audio stream", MsgPriority::INFO);
 
-    //std::filesystem::path path = filename;
-    //extension = path.extension().string();
+    //if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
 
-    if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
-
-    //std::cout << "Reader successfully opened " << std::endl;
 }
 
 Reader::~Reader()
@@ -99,7 +94,7 @@ AVPacket* Reader::read()
     catch (const Exception& e) {
         if (ret != AVERROR_EOF) {
             ex.msg(e.what(), MsgPriority::CRITICAL, "Reader::read exception: ");
-            if (ret == AVERROR_EXIT) {
+            if (ret == AVERROR_EXIT || ret == AVERROR(ETIMEDOUT)) {
                 std::cout << "Camera connection timed out"  << std::endl;
                 if (display) {
                     if (((Display*)display)->glWidget) {

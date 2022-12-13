@@ -53,10 +53,11 @@ The recommended method for building libonvif on Windows is to use a conda
 environment to install dependencies.  To install anaconda on Windows, please
 refer to the link https://docs.anaconda.com/anaconda/install/windows/. Once
 anaconda has been installed, launch a conda prompt and then use the following 
-commands to build.
+commands to build.  You will need to have Microsoft Visual Studio installed
+with the C++ compiler.
 
 ```bash
-conda create --name onvif -c conda-forge libxml2 ffmpeg sdl2 git cmake
+conda create --name onvif -c conda-forge qt libxml2 ffmpeg sdl2 git cmake
 conda activate onvif
 git clone https://github.com/sr99622/libonvif.git
 cd libonvif

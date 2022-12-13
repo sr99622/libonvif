@@ -50,7 +50,11 @@ namespace avio {
 Reader::Reader(const char* filename)
 {
     AVDictionary* opts = NULL;
-    av_dict_set(&opts, "stimeout", "10000000", 0);
+#ifdef _WIN32
+    av_dict_set(&opts, "timeout", "5000000", 0);
+#else
+    av_dict_set(&opts, "stimeout", "5000000", 0);
+#endif
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
     av_dict_free(&opts);
     timeout_start = time(NULL);

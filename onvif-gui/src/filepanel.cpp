@@ -65,8 +65,9 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     sldProgress->setMaximum(1000);
     connect(MW->glWidget, SIGNAL(progress(float)), this, SLOT(progress(float)));
     connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
+    lblProgress = new QLabel("0:00");
 
-    lblProgress = new ProgressLabel(this);
+    lblSeek = new ProgressLabel(this);
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
@@ -74,8 +75,9 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     controlLayout->addWidget(btnStop,         0, 1, 1, 1);
     controlLayout->addWidget(btnMute,         0, 3, 1, 1);
     controlLayout->addWidget(sldVolume,       0, 4, 1, 2);
-    controlLayout->addWidget(lblProgress,     1, 0, 1, 7);
-    controlLayout->addWidget(sldProgress,     2, 0, 1, 7);
+    controlLayout->addWidget(lblSeek,         1, 1, 1, 7);
+    controlLayout->addWidget(lblProgress,     2, 0, 1, 1);
+    controlLayout->addWidget(sldProgress,     2, 1, 1, 7);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(directorySetter,      0, 0, 1, 1);
@@ -143,9 +145,26 @@ void FilePanel::headerChanged(int arg1, int arg2, int arg3)
     MW->settings->setValue(headerKey, tree->header()->saveState());
 }
 
-void FilePanel::progress(float arg)
+void FilePanel::progress(float pct)
 {
-    sldProgress->setValue(sldProgress->maximum() * arg);
+    sldProgress->setValue(sldProgress->maximum() * pct);
+    if (MW->glWidget->media_duration) {
+    double position = pct * MW->glWidget->media_duration;
+
+    int position_in_seconds = position / 1000;
+    int hours = position_in_seconds / 3600;
+    int minutes = (position_in_seconds - (hours * 3600)) / 60;
+    int seconds = (position_in_seconds - (hours * 3600) - (minutes * 60));
+    char buf[32] = {0};
+    if (hours > 0)
+        sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
+    else 
+        sprintf(buf, "%d:%02d", minutes, seconds);
+
+    QString output(buf);
+    lblProgress->setText(output);
+}
+
 }
 
 void FilePanel::onBtnPlayClicked()
@@ -167,8 +186,9 @@ void FilePanel::onBtnPlayClicked()
 
 void FilePanel::onBtnStopClicked()
 {
-    btnPlay->setStyleSheet(MW->getButtonStyle("play"));
     MW->glWidget->stop();
+    btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+    lblProgress->setText("0:00");
 }
 
 void FilePanel::onBtnMuteClicked()
@@ -349,7 +369,7 @@ ProgressSlider::ProgressSlider(Qt::Orientation o, QWidget *parent) : QSlider(o, 
 bool ProgressSlider::event(QEvent *e)
 {
     if (e->type() == QEvent::Leave)
-        ((FilePanel*)filePanel)->lblProgress->setText("");
+        ((FilePanel*)filePanel)->lblSeek->setText("");
 
     return QSlider::event(e);
 }
@@ -380,8 +400,8 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *e)
 
         QString output(buf);
 
-        ((FilePanel*)filePanel)->lblProgress->x_pos = e->pos().x();
-        ((FilePanel*)filePanel)->lblProgress->setText(output);
+        ((FilePanel*)filePanel)->lblSeek->x_pos = e->pos().x();
+        ((FilePanel*)filePanel)->lblSeek->setText(output);
     }
 }
 

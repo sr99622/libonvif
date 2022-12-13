@@ -123,8 +123,9 @@ public:
     QIcon icnPause;
     QIcon icnStop;
 
-    ProgressLabel *lblProgress;
+    ProgressLabel *lblSeek;
     ProgressSlider *sldProgress;
+    QLabel *lblProgress;
     QSlider *sldVolume;
 
     const QString dirKey    = "FilePanel/dir";

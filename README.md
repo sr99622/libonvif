@@ -54,7 +54,9 @@ environment to install dependencies.  To install anaconda on Windows, please
 refer to the link https://docs.anaconda.com/anaconda/install/windows/. Once
 anaconda has been installed, launch a conda prompt and then use the following 
 commands to build.  You will need to have Microsoft Visual Studio installed
-with the C++ compiler.
+with the C++ compiler. After the build, the executable files can be found in
+the Release directory.  The conda environment must be active when running the 
+program.
 
 ```bash
 conda create --name onvif -c conda-forge qt libxml2 ffmpeg sdl2 git cmake
@@ -65,7 +67,6 @@ mkdir build
 cd build
 cmake -DBUILD_GUI=ON ..
 cmake --build . --config Release
-cmake --install .
 ```
 
 ALTERNATE WINDOWS BUILD

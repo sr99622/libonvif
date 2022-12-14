@@ -71,16 +71,16 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     
     QStringList decoders = {
         "NONE",
-        "VDPAU",
         "CUDA",
         "VAAPI",
+        "VDPAU",
         "DXVA2",
-        "QSV",
-        "VIDEOTOOLBOX",
         "D3D11VA",
+        "QSV",
         "DRM",
         "OPENCL",
-        "MEDIACODEC"
+//        "MEDIACODEC"
+//        "VIDEOTOOLBOX",
     };
 
     listDecoders = new QListWidget(this);
@@ -305,6 +305,7 @@ void SettingsPanel::getActiveNetworkInterfaces()
     PIP_ADAPTER_INFO pAdapter = NULL;
     DWORD dwRetVal = 0;
     //UINT i;
+    QStringList args;
 
     ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
     pAdapterInfo = (IP_ADAPTER_INFO *) malloc(sizeof (IP_ADAPTER_INFO));
@@ -329,11 +330,15 @@ void SettingsPanel::getActiveNetworkInterfaces()
                 char interface_info[1024];
                 sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
                 emit msg(QString("Network interface info %1").arg(interface_info));
-                networkInterfaces->addItem(QString(interface_info));
+                args.push_back(interface_info);
             }
             pAdapter = pAdapter->Next;
         }
-    } else {
+        interfaces->addItems(args);
+        networkInterfaces->setModel(interfaces->model());
+        networkInterfaces->setView(interfaces);
+    } 
+    else {
         emit msg(QString("GetAdaptersInfo failed with error: %1").arg(dwRetVal));
     }
     if (pAdapterInfo)
@@ -372,7 +377,6 @@ void SettingsPanel::getActiveNetworkInterfaces()
                 label += " - ";
                 label += ifa->ifa_name;
                 emit msg(label);
-                //networkInterfaces->addItem(label);
                 args.push_back(label);
             }
 

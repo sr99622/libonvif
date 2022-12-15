@@ -29,7 +29,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     Q_INIT_RESOURCE(resources);
-    setWindowTitle("onvif-gui version 1.4.2");
+    setWindowTitle("onvif-gui version 1.4.3");
     settings = new QSettings("libonvif", "onvif");
     messagePanel = new MessagePanel(this);
 

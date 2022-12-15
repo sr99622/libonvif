@@ -1,6 +1,3 @@
-#ifndef SHA1_H
-#define SHA1_H
-
 /*
    SHA-1 in C
    By Steve Reid <steve@edmweb.com>
@@ -31,6 +28,9 @@ CC0 for Public Domain Dedication
 This tool is based on United States law and may not be applicable outside the US. For dedicating new works 
 to the public domain, we recommend CC0.
  */
+
+#ifndef SHA1_H
+#define SHA1_H
 
 #ifdef __cplusplus
 extern "C" {

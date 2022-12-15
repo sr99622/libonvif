@@ -1,4 +1,3 @@
-#ifndef __GETOPT_H__
 /**
  * DISCLAIMER
  * This file is part of the mingw-w64 runtime package.
@@ -56,9 +55,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma warning(disable:4996)
-
+#ifndef __GETOPT_H__
 #define __GETOPT_H__
+
+#pragma warning(disable:4996)
 
 /* All the headers include this file. */
 #include <crtdefs.h>

@@ -50,7 +50,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void showVersion() { std::cout << "1.4.2" << std::endl; }
+    void showVersion() { std::cout << "1.4.3" << std::endl; }
     QString getButtonStyle(const QString& name) const;
     void applyStyle(const ColorProfile& profile);
     void closeEvent(QCloseEvent* event) override;

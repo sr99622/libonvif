@@ -26,8 +26,8 @@ License: Apache-2.0
  limitations under the License.
 
 
-Files: include/cencode.h
-       src/cencode.c
+Files: libonvif/include/cencode.h
+       libonvif/src/cencode.c
 Copyright: 2005,2010 Chris Venter <chris.venter@gmail.com>
 License: public-domain1
  Copyright-Only Dedication (based on United States law) or Public
@@ -64,14 +64,14 @@ License: public-domain1
  that have not yet been invented or conceived.
 
 
-Files: include/sha1.h
-       src/sha1.c
+Files: libonvif/include/sha1.h
+       libonvif/src/sha1.c
 Copyright: Steve Reid <steve@edmweb.com>
 License: public-domain2
  100% Public Domain.
 
 
-Files:     include/getopt-win.h
+Files:     libonvif/include/getopt-win.h
 Copyright: 2002 Todd C. Miller <Todd.Miller@courtesan.com>
            2000 The NetBSD Foundation, Inc.
 License:   BSD-2-Clause-NETBSD

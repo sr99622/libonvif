@@ -45,7 +45,7 @@ namespace avio
 Decoder::Decoder(Reader& reader, AVMediaType mediaType, AVHWDeviceType hw_device_type) : reader(&reader), mediaType(mediaType)
 {
     const char* str = av_get_media_type_string(mediaType);
-    strMediaType = (str ? str : "UNKOWN MEDIA TYPE");
+    strMediaType = (str ? str : "UNKNOWN MEDIA TYPE");
 
     stream_index = av_find_best_stream(reader.fmt_ctx, mediaType, -1, -1, NULL, 0);
     if (stream_index < 0) {

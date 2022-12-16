@@ -31,7 +31,7 @@ Encoder::Encoder(Writer& writer, AVMediaType mediaType) : mediaType(mediaType), 
 void Encoder::init()
 {
     const char* str = av_get_media_type_string(mediaType);
-    strMediaType = (str ? str : "UNKOWN MEDIA TYPE");
+    strMediaType = (str ? str : "UNKNOWN MEDIA TYPE");
 
     switch (mediaType) {
     case AVMEDIA_TYPE_VIDEO:

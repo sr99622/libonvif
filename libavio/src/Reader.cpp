@@ -222,7 +222,7 @@ AVPixelFormat Reader::pix_fmt()
 
 const char* Reader::str_pix_fmt()
 {
-    const char* result = "unkown pixel format";
+    const char* result = "unknown pixel format";
     if (video_stream_index >= 0) {
         const char* name = av_get_pix_fmt_name((AVPixelFormat)fmt_ctx->streams[video_stream_index]->codecpar->format);
         if (name)
@@ -241,7 +241,7 @@ AVCodecID Reader::video_codec()
 
 const char* Reader::str_video_codec()
 {
-    const char* result = "unkown codec";
+    const char* result = "unknown codec";
     if (video_stream_index >= 0) {
         result = avcodec_get_name(fmt_ctx->streams[video_stream_index]->codecpar->codec_id);
     }
@@ -322,7 +322,7 @@ AVSampleFormat Reader::sample_format()
 
 const char* Reader::str_sample_format()
 {
-    const char* result = "unkown sample format";
+    const char* result = "unknown sample format";
     if (audio_stream_index >= 0) {
         const char* name = av_get_sample_fmt_name((AVSampleFormat)fmt_ctx->streams[audio_stream_index]->codecpar->format);
         if (name)
@@ -341,7 +341,7 @@ AVCodecID Reader::audio_codec()
 
 const char* Reader::str_audio_codec()
 {
-    const char* result = "unkown codec";
+    const char* result = "unknown codec";
     if (audio_stream_index >= 0) {
         result = avcodec_get_name(fmt_ctx->streams[audio_stream_index]->codecpar->codec_id);
     }

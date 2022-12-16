@@ -313,7 +313,7 @@ DESCRIPTION
     PTZ:
 
         Settings pertain to preset selections or current camera position.  The arrow keys, Zoom In 
-        and Zoom out control the postion and zoom. The numbered buttons on the left correspond to 
+        and Zoom out control the position and zoom. The numbered buttons on the left correspond to 
         preset positions.  The blank text box may be used to address presets numbered higher than 5.
         To set a preset, position the camera, then check Set Preset, then click the numbered preset button.
 
@@ -360,7 +360,7 @@ NOTES
     Camera compliance with the onvif standard is often incomplete and in some cases 
     incorrect. Success with the onvif-util may be limited in many cases. Cameras 
     made by Hikvision will have the greatest level of compatibility with onvif-util. 
-    Cameras made by Dahua will have a close degree of compatability with some notable 
+    Cameras made by Dahua will have a close degree of compaiability with some notable 
     exceptions regarding gateway and DNS settings. Time settings may not be reliable 
     in some cases. If the time is set without the zone flag, the time appearing in 
     the camera feed will be synced to the computer time. If the time zone flag is used, 

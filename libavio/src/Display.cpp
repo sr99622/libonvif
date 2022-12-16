@@ -385,7 +385,7 @@ int Display::initAudio(int stream_sample_rate, AVSampleFormat stream_sample_form
             sdl.format = AUDIO_U8;
             break;
         default:
-            const char* result = "unkown sample format";
+            const char* result = "unknown sample format";
             const char* name = av_get_sample_fmt_name(sdl_sample_format);
             if (name)
                 result = name;

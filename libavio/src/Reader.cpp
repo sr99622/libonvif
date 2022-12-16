@@ -55,10 +55,11 @@ Reader::Reader(const char* filename)
 #else
     av_dict_set(&opts, "stimeout", "5000000", 0);
 #endif
+    
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
+    
     av_dict_free(&opts);
     timeout_start = time(NULL);
-
     AVIOInterruptCB cb = { interrupt_callback, this };
     fmt_ctx->interrupt_callback = cb;
 

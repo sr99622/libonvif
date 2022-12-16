@@ -52,7 +52,6 @@ public:
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;
-    QCheckBox *hardwareDecoding;
     QComboBox *hardwareDecoders;
     QSlider *zoom;
     QSlider *panX;

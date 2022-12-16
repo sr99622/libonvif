@@ -30,16 +30,18 @@ LoginDialog::LoginDialog(QWidget *parent)
 {
     cameraPanel = parent;
     setWindowTitle("Login");
+    cameraIP = new QLabel();
     cameraName = new QLabel("Camera Name:");
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     username = new QLineEdit;
     password = new QLineEdit;
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(cameraName,             0, 0, 1, 2);
-    layout->addWidget(new QLabel("Username"), 1, 0, 1, 1);
-    layout->addWidget(username,               1, 1, 1, 1);
-    layout->addWidget(new QLabel("Password"), 2, 0, 1, 1);
-    layout->addWidget(password,               2, 1, 1, 1);
+    layout->addWidget(cameraIP,               0, 0, 1, 2);
+    layout->addWidget(cameraName,             1, 0, 1, 2);
+    layout->addWidget(new QLabel("Username"), 2, 0, 1, 1);
+    layout->addWidget(username,               2, 1, 1, 1);
+    layout->addWidget(new QLabel("Password"), 3, 0, 1, 1);
+    layout->addWidget(password,               3, 1, 1, 1);
     layout->addWidget(buttonBox,              4, 0, 1, 2);
     setLayout(layout);
 

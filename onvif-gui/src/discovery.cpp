@@ -130,6 +130,8 @@ void Discovery::discover()
                             memset(&credential, 0, sizeof(credential));
                             strncpy(credential.camera_name, onvif_data->camera_name,
                                     sizeof(credential.camera_name)-1);
+                            strncpy(credential.host_name, onvif_data->xaddrs,
+                                    sizeof(credential.host_name) - 1);
                             emit login(&credential);
 
                             emit msg("starting login");

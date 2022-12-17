@@ -36,6 +36,7 @@ public:
     char camera_name[1024];
     char username[128];
     char password[128];
+    char host_name[1024];
     bool accept_requested;
 };
 
@@ -48,6 +49,7 @@ public:
     int exec() override;
 
     QWidget *cameraPanel;
+    QLabel *cameraIP;
     QLabel *cameraName;
     QDialogButtonBox *buttonBox;
     QLineEdit *username;

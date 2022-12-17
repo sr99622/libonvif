@@ -187,7 +187,19 @@ void CameraPanel::showLoginDialog(Credential *credential)
 
     loginDialog->setStyleSheet(MW->style);
 
+    QString host = QString(credential->host_name);
+    int start = host.indexOf("//") + 2;
+    int stop = host.indexOf("/", start);
+    int len = stop - start;
+    QString ip = host.mid(start, len);
+    //QString name = "(";
+    //        name += ip + ") ";
+    //        name += "Camera Name: ";
+    //        name += credential->camera_name;
+
+    loginDialog->cameraIP->setText(QString("Camera IP: ").append(ip));
     loginDialog->cameraName->setText(QString("Camera Name: ").append(credential->camera_name));
+    //loginDialog->cameraName->setText(name);
     if (loginDialog->exec()) {
         QString username = loginDialog->username->text();
         strncpy(credential->username, username.toLatin1(), username.length());

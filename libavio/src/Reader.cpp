@@ -73,7 +73,7 @@ Reader::Reader(const char* filename)
     if (audio_stream_index < 0) 
         ex.msg("av_find_best_stream could not find audio stream", MsgPriority::INFO);
 
-    //if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
+    if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
 
 }
 

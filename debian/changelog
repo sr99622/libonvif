@@ -1,9 +1,18 @@
 libonvif (1.4.3-1) unstable; urgency=medium
 
-  * Initial release (Closes: #1021980).
   * Second release (Supersedes version 1.4.2-1).
   * Add custom gui
   * Add network selector
   * Bug fixes
+
+  * Upload sponsored by Petter Reinholdtsen.
+
+ -- Stephen Rhodes <sr99622@gmail.com>  Sat, 17 Dec 2022 07:06:30 +0100
+
+libonvif (1.4.1-1) unstable; urgency=medium
+
+  * Initial release (Closes: #1021980).
+
+  * Upload sponsored by Petter Reinholdtsen.
 
  -- Stephen Rhodes <sr99622@gmail.com>  Tue, 18 Oct 2022 10:35:17 +0200

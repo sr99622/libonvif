@@ -2,7 +2,6 @@ Source: libonvif
 Priority: optional
 Maintainer: Stephen Rhodes <sr99622@gmail.com>
 Build-Depends: debhelper-compat (= 13)
- , debhelper (>=9)
  , cmake
  , libxml2-dev
  , libavcodec-dev

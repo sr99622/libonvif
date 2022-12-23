@@ -176,7 +176,7 @@ if (BUILD_GUI)
             Qt5::Widgets
             onvif
             ${LIBXML2_LIBRARIES}
-            ${FFMPEG_LIBRARIES}
+            FFmpeg::FFmpeg
             SDL2::SDL2
         )
     else()
@@ -184,7 +184,7 @@ if (BUILD_GUI)
             Qt5::Widgets
             onvif
             ${LIBXML2_LIBRARIES}
-            ${FFMPEG_LIBRARIES}
+            FFmpeg::FFmpeg
             SDL2::SDL2
             pthread
         )

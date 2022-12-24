@@ -73,6 +73,10 @@
         <file>record_hi.png</file>
         <file>record_lo.png</file>
 
+        <file>recording.png</file>
+        <file>recording_hi.png</file>
+        <file>recording_lo.png</file>
+
         <file>small_arrow_left.png</file>
         <file>small_arrow_left_hi.png</file>
         <file>small_arrow_left_lo.png</file>

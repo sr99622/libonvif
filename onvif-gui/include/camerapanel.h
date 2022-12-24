@@ -84,10 +84,9 @@ public:
 
     //QString MW->currentStreamingMediaName;
     bool connecting = false;
+    bool recording = false;
     std::string uri;
     char buf[256];
-
-    QProcess process;
 
 signals:
     void msg(QString str);

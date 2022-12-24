@@ -295,6 +295,17 @@ void GLWidget::play(const QString& arg)
     }
 }
 
+void GLWidget::pipe_out(const std::string& filename)
+{
+    if (process) {
+        Reader* reader = ((Process*)process)->reader;
+        if (reader) {
+            reader->pipe_out_filename = filename;
+            reader->request_pipe_write = !reader->request_pipe_write;
+        }
+    }
+}
+
 void GLWidget::seek(float arg)
 {
     if (process) {

@@ -233,6 +233,13 @@ void CameraPanel::applyButtonClicked()
 void CameraPanel::recordButtonClicked()
 {
     std::cout << "record button clicked" << std::endl;
+    recording = !recording;
+    if (recording)
+        recordButton->setStyleSheet(MW->getButtonStyle("recording"));
+    else
+        recordButton->setStyleSheet(MW->getButtonStyle("record"));
+
+    MW->glWidget->pipe_out("test.mp4");
 }
 
 void CameraPanel::fillData()
@@ -285,10 +292,7 @@ void CameraPanel::adjustVolume(int value)
 void CameraPanel::streamStarting()
 {
     connecting = false;
-    //if (MW->glWidget->process) {
-        //MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
-    ///}
-    MW->glWidget->setVolume(volumeSlider->value());
+   MW->glWidget->setVolume(volumeSlider->value());
     MW->setWindowTitle("Streaming from " + MW->currentStreamingMediaName);
     recordButton->setEnabled(true);
 }

@@ -64,6 +64,7 @@ public:
     QSlider* volumeSlider;
     QPushButton *applyButton;
     QPushButton *discoverButton;
+    QPushButton *recordButton;
     VideoTab *videoTab;
     ImageTab *imageTab;
     NetworkTab *networkTab;
@@ -99,6 +100,7 @@ public slots:
     void applyButtonClicked();
     void discoverButtonClicked();
     void viewButtonClicked();
+    void recordButtonClicked();
     void discoveryFinished();
     void adjustVolume(int);
     void streamStarting();

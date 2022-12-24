@@ -49,10 +49,17 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     tabWidget->setMaximumHeight(screenSize.height() * 0.2);
 
-    applyButton = new QPushButton(tr("Apply"), this);
+    applyButton = new QPushButton(this);
+    applyButton->setStyleSheet(MW->getButtonStyle("apply"));
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));
-    discoverButton = new QPushButton("Discover", this);
+    discoverButton = new QPushButton(this);
+    discoverButton->setStyleSheet(MW->getButtonStyle("discover"));
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
+
+    recordButton = new QPushButton(this);
+    recordButton->setStyleSheet(MW->getButtonStyle("record"));
+    connect(recordButton, SIGNAL(clicked()), this, SLOT(recordButtonClicked()));
+    recordButton->setEnabled(false);
 
     volumeSlider = new QSlider(Qt::Horizontal, this);
     volumeSlider->setMaximumHeight(16);
@@ -71,10 +78,11 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout* controlLayout = new QGridLayout(controlPanel);
-    controlLayout->addWidget(btnMute,         0, 0, 1, 1);
-    controlLayout->addWidget(volumeSlider,    0, 1, 1, 1);
-    controlLayout->addWidget(discoverButton,  0, 2, 1, 1);
-    controlLayout->addWidget(applyButton,     0, 3, 1 ,1);
+    controlLayout->addWidget(recordButton,    0, 0, 1, 1);
+    controlLayout->addWidget(btnMute,         0, 1, 1, 1);
+    controlLayout->addWidget(volumeSlider,    0, 2, 1, 1);
+    controlLayout->addWidget(discoverButton,  0, 3, 1, 1);
+    controlLayout->addWidget(applyButton,     0, 4, 1 ,1);
     controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
@@ -222,6 +230,11 @@ void CameraPanel::applyButtonClicked()
     tab->update();
 }
 
+void CameraPanel::recordButtonClicked()
+{
+    std::cout << "record button clicked" << std::endl;
+}
+
 void CameraPanel::fillData()
 {
     videoTab->clear();
@@ -277,6 +290,7 @@ void CameraPanel::streamStarting()
     ///}
     MW->glWidget->setVolume(volumeSlider->value());
     MW->setWindowTitle("Streaming from " + MW->currentStreamingMediaName);
+    recordButton->setEnabled(true);
 }
 
 void CameraPanel::cameraTimeout()

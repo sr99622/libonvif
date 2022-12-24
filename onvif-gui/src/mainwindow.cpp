@@ -107,7 +107,7 @@ QString MainWindow::getButtonStyle(const QString& name) const
         return QString("QPushButton {image:url(:/%1_lo.png);}").arg(name);
     }
     else {
-        return QString("QPushButton {image:url(:/%1.png);} QPushButton:hover {image:url(:/%1_hi.png);} QPushButton:pressed {image:url(:/%1.png);}").arg(name);
+        return QString("QPushButton {image:url(:/%1.png);} QPushButton:!enabled {image:url(:/%1_lo.png);} QPushButton:hover {image:url(:/%1_hi.png);} QPushButton:pressed {image:url(:/%1.png);}").arg(name);
     }
 }
 

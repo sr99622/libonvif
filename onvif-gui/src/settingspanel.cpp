@@ -40,8 +40,6 @@
 #include <QMessageBox>
 #include <QListWidget>
 
-#include "avio.h"
-
 #include "settingspanel.h"
 #include "mainwindow.h"
 

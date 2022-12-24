@@ -63,7 +63,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     btnMute = new QPushButton();
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
-    if (MW->glWidget->getMute())
+    if (MW->glWidget->isMute())
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
@@ -139,7 +139,7 @@ void CameraPanel::discoverButtonClicked()
 
 void CameraPanel::onBtnMuteClicked()
 {
-    if (MW->glWidget->getMute()) {
+    if (MW->glWidget->isMute()) {
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
         MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     }
@@ -148,8 +148,8 @@ void CameraPanel::onBtnMuteClicked()
         MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
 
-    MW->glWidget->setMute(!MW->glWidget->getMute());
-    MW->settings->setValue(muteKey, MW->glWidget->getMute());
+    MW->glWidget->setMute(!MW->glWidget->isMute());
+    MW->settings->setValue(muteKey, MW->glWidget->isMute());
 }
 
 void CameraPanel::viewButtonClicked()
@@ -272,9 +272,10 @@ void CameraPanel::adjustVolume(int value)
 void CameraPanel::streamStarting()
 {
     connecting = false;
-    if (MW->glWidget->process) {
-        MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
-    }
+    //if (MW->glWidget->process) {
+        //MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
+    ///}
+    MW->glWidget->setVolume(volumeSlider->value());
     MW->setWindowTitle("Streaming from " + MW->currentStreamingMediaName);
 }
 

@@ -36,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
 namespace avio
 {
 
-QT_FORWARD_DECLARE_CLASS(Process)
+//QT_FORWARD_DECLARE_CLASS(Process)
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -52,7 +52,9 @@ public:
     void setFormat(QImage::Format);
     void setVolume(int arg);
     void setMute(bool arg);
-    bool getMute() { return mute; }
+    bool isMute() { return mute; }
+    void togglePaused();
+    bool isPaused();
     void updateAspectRatio();
     void play(const QString& arg);
     void stop();
@@ -86,7 +88,8 @@ public:
     std::string mediaShortName;
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
-    avio::Process* process = nullptr;
+    //avio::Process* process = nullptr;
+    void* process = nullptr;
 
 signals:
     void timerStart();

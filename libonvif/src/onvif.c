@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sys/stat.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
 #include "libxml/xpathInternals.h"
 
 #ifdef _WIN32
@@ -54,6 +56,18 @@
 (_addr >> 8 & 0xFF), \
 (_addr >> 16 & 0xFF), \
 (_addr >> 24 & 0xFF)
+
+xmlDocPtr sendCommandToCamera(char * cmd, char * xaddrs);
+void getBase64(unsigned char * buffer, int chunk_size, unsigned char * result);
+void getUUID(char uuid_buf[47]);
+void addUsernameDigestHeader(xmlNodePtr root, xmlNsPtr ns_env, char * user, char * password, time_t offset);
+void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char * xaddrs, char * post_type, char cmd[], int cmd_length);
+checkForXmlErrorMsg(xmlDocPtr doc, char error_msg[1024]);
+getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_length);
+getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char buf[], int buf_length, int profileIndex);
+#define getNodeAttribute(doc,xpath,attribute,buf,buf_length) getNodeAttributen(doc,xpath,attribute,buf,buf_length,0)
+xmlXPathObjectPtr getNodeSet (xmlDocPtr doc, xmlChar *xpath);
+
 
 const int SHA1_DIGEST_SIZE = 20;
 char preferred_network_address[16];

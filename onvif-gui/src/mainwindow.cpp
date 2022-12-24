@@ -94,7 +94,6 @@ void MainWindow::msg(const QString& str)
 {
     std::cout << str.toLatin1().data() << std::endl;
     messagePanel->msg->append(str);
-    std::cout << "msg done" << std::endl;
 }
 
 void MainWindow::onSplitterMoved(int pos, int index)

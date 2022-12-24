@@ -218,8 +218,8 @@ void GLWidget::setVolume(int arg)
 {
     volume = arg;
     if (process) {
-        if (process->display) {
-            process->display->volume = (float)arg / 100.0f;
+        if (((Process*)process)->display) {
+            ((Process*)process)->display->volume = (float)arg / 100.0f;
         }
     }
 }
@@ -228,10 +228,29 @@ void GLWidget::setMute(bool arg)
 {
     mute = arg;
     if (process) {
-        if (process->display) {
-            process->display->mute = arg;
+        if (((Process*)process)->display) {
+            ((Process*)process)->display->mute = arg;
         }
     }
+}
+
+void GLWidget::togglePaused()
+{
+    SDL_Event event;
+    event.type = SDL_KEYDOWN;
+    event.key.keysym.sym = SDLK_SPACE;
+    SDL_PushEvent(&event);
+}
+
+bool GLWidget::isPaused()
+{
+    bool result = false;
+    if (process) {
+        if (((Process*)process)->display) {
+            result = ((Process*)process)->display->paused;
+        }
+    }
+    return result;
 }
 
 void GLWidget::poll()
@@ -279,8 +298,8 @@ void GLWidget::play(const QString& arg)
 void GLWidget::seek(float arg)
 {
     if (process) {
-        if (process->reader) {
-            process->reader->request_seek(arg);
+        if (((Process*)process)->reader) {
+            ((Process*)process)->reader->request_seek(arg);
         }
     }
 }
@@ -320,7 +339,7 @@ void GLWidget::start(void * parent)
 
     try {
         avio::Process process;
-        widget->process = &process;
+        widget->process = (void*)&process;
 
         avio::Reader reader(widget->uri);
         if (QString(widget->uri).startsWith("rtsp://"))
@@ -357,7 +376,7 @@ void GLWidget::start(void * parent)
             audioDecoder->set_audio_out("afq_decoder");
             display.set_audio_in(audioDecoder->audio_out());
             display.volume = widget->volume;
-            display.mute = widget->getMute();
+            display.mute = widget->isMute();
             process.add_decoder(*audioDecoder);
         }
 

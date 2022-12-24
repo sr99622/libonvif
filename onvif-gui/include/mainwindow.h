@@ -38,7 +38,7 @@
 #include "stylepanel.h"
 #include "filepanel.h"
 #include <iostream>
-#include "avio.h"
+#include "GLWidget.h"
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 

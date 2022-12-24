@@ -28,6 +28,7 @@
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QScreen>
+#include <QDateTime>
 
 CameraPanel::CameraPanel(QMainWindow *parent)
 {
@@ -182,6 +183,7 @@ void CameraPanel::viewButtonClicked()
             MW->glWidget->vpq_size = 100;
             MW->glWidget->apq_size = 100;
         }
+        MW->glWidget->disable_audio = MW->settingsPanel->disableAudio->isChecked();
         MW->glWidget->mediaShortName = MW->currentStreamingMediaName.toLatin1().data();
         MW->glWidget->play(uri.c_str());
         MW->setWindowTitle("connecting to " + MW->currentStreamingMediaName);
@@ -232,14 +234,20 @@ void CameraPanel::applyButtonClicked()
 
 void CameraPanel::recordButtonClicked()
 {
-    std::cout << "record button clicked" << std::endl;
+    std::cout << "record button clicked - use environment variable QT_FILESYSTEMMODEL_WATCH_FILES for file size updates" << std::endl;
     recording = !recording;
     if (recording)
         recordButton->setStyleSheet(MW->getButtonStyle("recording"));
     else
         recordButton->setStyleSheet(MW->getButtonStyle("record"));
 
-    MW->glWidget->pipe_out("test.mp4");
+    QString filename = MW->filePanel->directorySetter->directory;
+    if (MW->settingsPanel->generateFilename->isChecked()) 
+        filename.append("/").append(QDateTime::currentDateTime().toString("yyyyMMddhhmmss")).append(".mp4");
+    else 
+        filename.append("/").append("out.mp4");
+
+    MW->glWidget->pipe_out(filename.toLatin1().data());
 }
 
 void CameraPanel::fillData()

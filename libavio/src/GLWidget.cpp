@@ -380,7 +380,7 @@ void GLWidget::start(void * parent)
         widget->set_video_in(display.video_out());
 
         avio::Decoder* audioDecoder = nullptr;
-        if (reader.has_audio()) {
+        if (reader.has_audio() && !widget->disable_audio) {
             reader.set_audio_out("apq_reader");
             audioDecoder = new avio::Decoder(reader, AVMEDIA_TYPE_AUDIO);
             audioDecoder->set_audio_in(reader.audio_out());
@@ -389,6 +389,9 @@ void GLWidget::start(void * parent)
             display.volume = widget->volume;
             display.mute = widget->isMute();
             process.add_decoder(*audioDecoder);
+        }
+        else {
+            std::cout << "no audio ------" << std::endl;
         }
 
         process.add_reader(reader);

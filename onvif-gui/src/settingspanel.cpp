@@ -37,6 +37,7 @@
 #include <cmath>
 #include <QLabel>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QMessageBox>
 #include <QListWidget>
 
@@ -66,6 +67,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     commonPassword->setMaximumWidth(100);
     QLabel *lbl02 = new QLabel("Common Password");
     lowLatency = new QCheckBox("Low Latency Buffering");
+    disableAudio = new QCheckBox("Disable Audio");
     
     QStringList decoders = {
         "NONE",
@@ -90,6 +92,10 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(hardwareDecoders, SIGNAL(currentTextChanged(const QString&)), this, SLOT(decoderChanged(const QString&)));
     lblDecoders = new QLabel("Hardware Decoder");
     hardwareDecoders->setCurrentText(MW->settings->value(decoderKey, "NONE").toString());
+
+    generateFilename = new QRadioButton("Generate Unique Filename");
+    defaultFilename = new QRadioButton("Use Default Filename");
+    QGroupBox *groupBox = new QGroupBox("Record Filename", this);
 
     QFrame *sliderFrame = new QFrame(this);
     sliderFrame->setMaximumHeight(300);
@@ -133,6 +139,10 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     frameLayout->addWidget(lbl12, 2, 2, 1, 1, Qt::AlignCenter);
     frameLayout->addWidget(reset, 1, 3, 1, 1);
 
+    QGridLayout *groupLayout = new QGridLayout(groupBox);
+    groupLayout->addWidget(generateFilename,  0, 0, 1, 1);
+    groupLayout->addWidget(defaultFilename,   0, 1, 1, 1);
+
     QGridLayout *layout = new QGridLayout();
     layout->addWidget(lbl03,               0, 0, 1, 1);
     layout->addWidget(networkInterfaces,   0, 1, 1, 2);
@@ -145,11 +155,13 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
     layout->addWidget(lowLatency,          5, 0, 1, 3);
-    layout->addWidget(lblDecoders,         6, 0, 1, 1);
-    layout->addWidget(hardwareDecoders,    6, 1, 1, 2);
-    layout->addWidget(clear,               8, 0, 1, 1, Qt::AlignCenter);
-    layout->addWidget(style,               8, 1, 1, 1, Qt::AlignCenter);
-    layout->addWidget(sliderFrame,         9, 0, 2, 4);
+    layout->addWidget(disableAudio,        6, 0, 1, 3);
+    layout->addWidget(lblDecoders,         7, 0, 1, 1);
+    layout->addWidget(hardwareDecoders,    7, 1, 1, 2);
+    layout->addWidget(groupBox,            8, 0, 1, 4);
+    layout->addWidget(clear,               9, 0, 1, 1, Qt::AlignCenter);
+    layout->addWidget(style,               9, 1, 1, 1, Qt::AlignCenter);
+    layout->addWidget(sliderFrame,         10, 0, 2, 4);
     setLayout(layout);
 
     getActiveNetworkInterfaces();
@@ -160,6 +172,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
     broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
     lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
+    disableAudio->setChecked(MW->settings->value(disAudioKey, false).toBool());
+    generateFilename->setChecked(MW->settings->value(genFileKey, true).toBool());
+    defaultFilename->setChecked(MW->settings->value(defFileKey, false).toBool());
     autoDiscoveryClicked(autoDiscovery->isChecked());
 
     QString netIntf = MW->settings->value(netIntfKey, "").toString();
@@ -172,7 +187,10 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
     connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
     connect(lowLatency, SIGNAL(clicked(bool)), this, SLOT(lowLatencyClicked(bool)));
+    connect(disableAudio, SIGNAL(clicked(bool)), this, SLOT(disableAudioClicked(bool)));
     connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
+    connect(generateFilename, SIGNAL(clicked(bool)), this, SLOT(generateFilenameClicked(bool)));
+    connect(defaultFilename, SIGNAL(clicked(bool)), this, SLOT(defaultFilenameClicked(bool)));
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -217,6 +235,25 @@ void SettingsPanel::passwordUpdated()
 void SettingsPanel::lowLatencyClicked(bool clicked)
 {
     MW->settings->setValue(lowLatencyKey, clicked);
+}
+
+void SettingsPanel::disableAudioClicked(bool clicked)
+{
+    MW->settings->setValue(disAudioKey, clicked);
+}
+
+void SettingsPanel::generateFilenameClicked(bool arg)
+{
+    std::cout << "generateed: " << arg << std::endl;
+    MW->settings->setValue(genFileKey, arg);
+    MW->settings->setValue(defFileKey, !arg);
+}
+
+void SettingsPanel::defaultFilenameClicked(bool arg)
+{
+    std::cout << "default: " << arg << std::endl;
+    MW->settings->setValue(defFileKey, arg);
+    MW->settings->setValue(genFileKey, !arg);
 }
 
 void SettingsPanel::zoomMoved(int arg)

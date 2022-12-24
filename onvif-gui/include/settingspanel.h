@@ -30,6 +30,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QSlider>
+#include <QRadioButton>
 #include <QMainWindow>
 #include <QListWidget>
 
@@ -53,6 +54,9 @@ public:
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;
     QComboBox *hardwareDecoders;
+    QRadioButton *generateFilename;
+    QRadioButton *defaultFilename;
+    QCheckBox *disableAudio;
     QSlider *zoom;
     QSlider *panX;
     QSlider *panY;
@@ -73,7 +77,9 @@ public:
     const QString lowLatencyKey = "SettingsPanel/lowLatency";
     const QString decoderKey    = "SettingsPanel/decoder";
     const QString netIntfKey    = "SettingsPanel/networkInterface";
-
+    const QString genFileKey    = "SettingsPanel/generateFIlename";
+    const QString defFileKey    = "SettingsPanel/defaultFilename";
+    const QString disAudioKey   = "SettingsPanel/disableAudio";
 
 signals:
     void msg(const QString&);
@@ -92,6 +98,9 @@ public slots:
     void resetClicked();
     void styleClicked();
     void clearClicked();
+    void generateFilenameClicked(bool);
+    void defaultFilenameClicked(bool);
+    void disableAudioClicked(bool);
     void netIntfChanged(const QString&);
 
 };

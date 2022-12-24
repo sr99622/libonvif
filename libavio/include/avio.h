@@ -80,17 +80,24 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 if (!pipe) {
                     pipe = new Pipe(*reader);
                     std::string filename = reader->get_pipe_out_filename();
-                    pipe->open(filename);
-                    while (pkts.size() > 0) {
-                        AVPacket* tmp = pkts.front();
-                        pkts.pop_front();
-                        pipe->write(tmp);
-                        av_packet_free(&tmp);
+                    if (pipe->open(filename)) {
+                        while (pkts.size() > 0) {
+                            AVPacket* tmp = pkts.front();
+                            pkts.pop_front();
+                            pipe->write(tmp);
+                            av_packet_free(&tmp);
+                        }
+                    }
+                    else {
+                        delete pipe;
+                        pipe = nullptr;
                     }
                 }
-                AVPacket* tmp = av_packet_clone(pkt);
-                pipe->write(tmp);
-                av_packet_free(&tmp);
+                if (pipe) {
+                    AVPacket* tmp = av_packet_clone(pkt);
+                    pipe->write(tmp);
+                    av_packet_free(&tmp);
+                }
             }
             else {
                 if (pipe) {

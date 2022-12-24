@@ -84,6 +84,7 @@ public:
     long media_duration = 0;
     long media_start_time = 0;
     bool running = false;
+    bool disable_audio = false;
     int vpq_size = 0;
     int apq_size = 0;
     std::string mediaShortName;

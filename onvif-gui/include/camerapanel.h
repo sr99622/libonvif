@@ -106,6 +106,7 @@ public slots:
     void onBtnMuteClicked();
     void cameraTimeout();
     void connectFailed(const QString&);
+    void openWriterFailed(const std::string&);
 
 };
 

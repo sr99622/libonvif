@@ -17,8 +17,9 @@
 *
 *********************************************************************/
 
-#include "Display.h"
 #include <filesystem>
+#include "Display.h"
+#include "avio.h"
 
 namespace avio 
 {
@@ -26,10 +27,10 @@ namespace avio
 void Display::init()
 {
     try {
-        if (audioFilter)
-            initAudio(audioFilter->sample_rate(), audioFilter->sample_format(), audioFilter->channels(), audioFilter->channel_layout(), audioFilter->frame_size());
-        else if (audioDecoder)
-            initAudio(audioDecoder->sample_rate(), audioDecoder->sample_format(), audioDecoder->channels(), audioDecoder->channel_layout(), audioDecoder->frame_size());
+        if (P->audioFilter)
+            initAudio(P->audioFilter->sample_rate(), P->audioFilter->sample_format(), P->audioFilter->channels(), P->audioFilter->channel_layout(), P->audioFilter->frame_size());
+        else if (P->audioDecoder)
+            initAudio(P->audioDecoder->sample_rate(), P->audioDecoder->sample_format(), P->audioDecoder->channels(), P->audioDecoder->channel_layout(), P->audioDecoder->frame_size());
     }
     catch (const Exception& e) {
         ex.msg(e.what(), MsgPriority::CRITICAL, "Display constructor exception: ");
@@ -55,7 +56,7 @@ int Display::initVideo(int width, int height, AVPixelFormat pix_fmt)
 {
     int ret = 0;
 
-    if (glWidget)
+    if (P->glWidget)
         return ret;
 
     try {
@@ -142,7 +143,7 @@ int Display::initVideo(int width, int height, AVPixelFormat pix_fmt)
 
 void Display::videoPresentation()
 {
-    if (!glWidget) {
+    if (!P->glWidget) {
         if (f.m_frame->format == AV_PIX_FMT_YUV420P) {
             ex.ck(SDL_UpdateYUVTexture(texture, NULL,
                 f.m_frame->data[0], f.m_frame->linesize[0],
@@ -159,9 +160,9 @@ void Display::videoPresentation()
         SDL_RenderPresent(renderer);
     }
     else {
-        if (glWidget->media_duration) {
-            float pct = (float)f.m_rts / (float)glWidget->media_duration;
-            glWidget->emit progress(pct);
+        if (P->glWidget->media_duration) {
+            float pct = (float)f.m_rts / (float)P->glWidget->media_duration;
+            P->glWidget->emit progress(pct);
         }
     }
 }
@@ -249,8 +250,8 @@ bool Display::display()
 
     while (true)
     {
-        if (glWidget) {
-            if (!glWidget->running) {
+        if (P->glWidget) {
+            if (!P->glWidget->running) {
                 playing = false;
                 break;
             }
@@ -314,7 +315,7 @@ bool Display::display()
 
             paused_frame = f;
 
-            if (!glWidget)
+            if (!P->glWidget)
                 ex.ck(initVideo(f.m_frame->width, f.m_frame->height, (AVPixelFormat)f.m_frame->format), "initVideo");
 
             if (key_record_flag) {
@@ -515,20 +516,20 @@ void Display::togglePause()
 
 void Display::toggleRecord()
 {
-    if (!writer && !reader->pipe_out) {
+    if (!P->writer && !reader->pipe_out) {
         std::cout << "Error: no writer specified" << std::endl;
         return;
     }
 
     recording = !recording;
 
-    if (writer) {
+    if (P->writer) {
         if (prepend_recent_write && recording) {
             for (int i = 0; i < recent.size() - 1; i++)
                 vfq_out->push(recent[i]);
         }
 
-        writer->enabled = recording;
+        P->writer->enabled = recording;
     }
     else if (reader->pipe_out) {
         reader->request_pipe_write = recording;

@@ -52,22 +52,25 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(this, SIGNAL(msg(const QString&)), MW, SLOT(msg(const QString&)));
 
     networkInterfaces = new QComboBox();
-    networkInterfaces->setMaximumWidth(180);
+    //networkInterfaces->setMaximumWidth(180);
     interfaces = new QListWidget(this);
     QLabel *lbl03 = new QLabel("Network Interface");
     autoDiscovery = new QCheckBox("Auto Discovery");
     multiBroadcast = new QCheckBox("Multi Broadcast");
-    broadcastRepeat = new QSpinBox();
+    broadcastRepeat = new QSpinBox(this);
     broadcastRepeat->setRange(2, 5);
     lblBroadcastRepeat = new QLabel("Broadcast Repeat");
-    commonUsername = new QLineEdit();
-    commonUsername->setMaximumWidth(100);
+    commonUsername = new QLineEdit(this);
+    //commonUsername->setMaximumWidth(100);
     QLabel *lbl01 = new QLabel("Common Username");
-    commonPassword = new QLineEdit();
-    commonPassword->setMaximumWidth(100);
+    commonPassword = new QLineEdit(this);
+    //commonPassword->setMaximumWidth(100);
     QLabel *lbl02 = new QLabel("Common Password");
     lowLatency = new QCheckBox("Low Latency Buffering");
     disableAudio = new QCheckBox("Disable Audio");
+    keyframeCount = new QSpinBox(this);
+    keyframeCount->setRange(1, 100);
+    lblKeyframeCount = new QLabel("Write Cache Size");
     
     QStringList decoders = {
         "NONE",
@@ -151,17 +154,19 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(lblBroadcastRepeat,  2, 1, 1, 1);
     layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
     layout->addWidget(lbl01,               3, 0, 1, 1);
-    layout->addWidget(commonUsername,      3, 1, 1, 1);
+    layout->addWidget(commonUsername,      3, 1, 1, 2);
     layout->addWidget(lbl02,               4, 0, 1, 1);
-    layout->addWidget(commonPassword,      4, 1, 1, 1);
+    layout->addWidget(commonPassword,      4, 1, 1, 2);
     layout->addWidget(lowLatency,          5, 0, 1, 3);
     layout->addWidget(disableAudio,        6, 0, 1, 3);
-    layout->addWidget(lblDecoders,         7, 0, 1, 1);
-    layout->addWidget(hardwareDecoders,    7, 1, 1, 2);
-    layout->addWidget(groupBox,            8, 0, 1, 4);
-    layout->addWidget(clear,               9, 0, 1, 1, Qt::AlignCenter);
-    layout->addWidget(style,               9, 1, 1, 1, Qt::AlignCenter);
-    layout->addWidget(sliderFrame,         10, 0, 2, 4);
+    layout->addWidget(lblKeyframeCount,    7, 0, 1, 1);
+    layout->addWidget(keyframeCount,       7, 1, 1, 1);
+    layout->addWidget(lblDecoders,         8, 0, 1, 1);
+    layout->addWidget(hardwareDecoders,    8, 1, 1, 2);
+    layout->addWidget(groupBox,            9, 0, 1, 4);
+    layout->addWidget(clear,               10, 0, 1, 1, Qt::AlignCenter);
+    layout->addWidget(style,               10, 1, 1, 1, Qt::AlignCenter);
+    layout->addWidget(sliderFrame,         11, 0, 2, 4);
     setLayout(layout);
 
     getActiveNetworkInterfaces();
@@ -171,6 +176,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
     multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
     broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
+    keyframeCount->setValue(MW->settings->value(keyCountKey, 1).toInt());
     lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
     disableAudio->setChecked(MW->settings->value(disAudioKey, false).toBool());
     generateFilename->setChecked(MW->settings->value(genFileKey, true).toBool());
@@ -186,6 +192,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
     connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
     connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
+    connect(keyframeCount, SIGNAL(valueChanged(int)), this, SLOT(keyframeCountChanged(int)));
     connect(lowLatency, SIGNAL(clicked(bool)), this, SLOT(lowLatencyClicked(bool)));
     connect(disableAudio, SIGNAL(clicked(bool)), this, SLOT(disableAudioClicked(bool)));
     connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
@@ -220,6 +227,11 @@ void SettingsPanel::multiBroadcastClicked(bool checked)
 void SettingsPanel::broadcastRepeatChanged(int value)
 {
     MW->settings->setValue(broadRepKey, value);
+}
+
+void SettingsPanel::keyframeCountChanged(int value)
+{
+    MW->settings->setValue(keyCountKey, value);
 }
 
 void SettingsPanel::usernameUpdated()

@@ -111,6 +111,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
     connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
     connect(MW->glWidget, SIGNAL(connectFailed(const QString&)), this, SLOT(connectFailed(const QString&)));
+    connect(MW->glWidget, SIGNAL(openWriterFailed(const std::string&)), this, SLOT(openWriterFailed(const std::string&)));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -321,4 +322,15 @@ void CameraPanel::connectFailed(const QString& str)
     QMessageBox msgBox(this);
     msgBox.setText(str);
     msgBox.exec();
+}
+
+void CameraPanel::openWriterFailed(const std::string& str)
+{
+    QMessageBox msgBox(this);
+    QString msg = "Writer open failure: ";
+    msg.append(str.c_str());
+    msgBox.setText(msg);
+    msgBox.exec();
+    recording = false;
+    recordButton->setStyleSheet(MW->getButtonStyle("record"));
 }

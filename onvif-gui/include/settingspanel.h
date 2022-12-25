@@ -63,6 +63,8 @@ public:
     QPushButton *reset;
     QListWidget *interfaces;
     QComboBox *networkInterfaces;
+    QSpinBox *keyframeCount;
+    QLabel *lblKeyframeCount;
 
     QStringList decoders;
     QListWidget *listDecoders;
@@ -80,6 +82,7 @@ public:
     const QString genFileKey    = "SettingsPanel/generateFIlename";
     const QString defFileKey    = "SettingsPanel/defaultFilename";
     const QString disAudioKey   = "SettingsPanel/disableAudio";
+    const QString keyCountKey   = "SettingsPanel/keyframeCount";
 
 signals:
     void msg(const QString&);
@@ -102,6 +105,7 @@ public slots:
     void defaultFilenameClicked(bool);
     void disableAudioClicked(bool);
     void netIntfChanged(const QString&);
+    void keyframeCountChanged(int);
 
 };
 

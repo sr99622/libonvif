@@ -85,6 +85,7 @@ public:
     long media_start_time = 0;
     bool running = false;
     bool disable_audio = false;
+    int keyframe_cache_size = 1;
     int vpq_size = 0;
     int apq_size = 0;
     std::string mediaShortName;
@@ -98,6 +99,7 @@ signals:
     void timerStop();
     void cameraTimeout();
     void connectFailed(const QString&);
+    void openWriterFailed(const std::string&);
     void msg(const QString&);
     void progress(float);
 

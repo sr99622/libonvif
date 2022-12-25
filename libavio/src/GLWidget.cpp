@@ -350,7 +350,7 @@ void GLWidget::start(void * parent)
 
     try {
         avio::Process process;
-        widget->process = (void*)&process;
+        //widget->process = (void*)&process;
 
         avio::Reader reader(widget->uri);
         if (QString(widget->uri).startsWith("rtsp://"))
@@ -374,7 +374,7 @@ void GLWidget::start(void * parent)
         videoFilter.set_video_out("vfq_filter");
 
         avio::Display display(reader);
-        display.glWidget = widget;
+        //display.glWidget = widget;
         display.set_video_in(videoFilter.video_out());
         display.set_video_out("vfq_display");
         widget->set_video_in(display.video_out());

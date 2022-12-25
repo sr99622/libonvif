@@ -35,6 +35,8 @@ public:
 	~Reader();
 	AVPacket* read();
 
+	void* process;
+
 	void request_seek(float pct);
 	int64_t seek_target_pts = AV_NOPTS_VALUE;
 	int64_t seek_found_pts = AV_NOPTS_VALUE;
@@ -81,6 +83,7 @@ public:
 	bool pipe_out_enabled = false;
 	std::string pipe_out_dir;
 	std::string pipe_out_filename;
+	int keyframe_cache_size = 1;
 
 	AVFormatContext* fmt_ctx = NULL;
 	int video_stream_index = -1;
@@ -102,8 +105,6 @@ public:
 	std::string audio_out() const { return std::string(apq_name); }
 	void set_video_out(const std::string& name) { vpq_name = std::string(name); }
 	void set_audio_out(const std::string& name) { apq_name = std::string(name); }
-
-	void *display;
 
 	bool request_break = false;
 	bool running = false;

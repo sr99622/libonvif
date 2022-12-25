@@ -26,11 +26,9 @@ extern "C"
 #include <time.h>
 
 #include "Reader.h"
-#include "Decoder.h"
-#include "Display.h"
+#include "avio.h"
 
 #define MAX_TIMEOUT 10
-
 
 time_t timeout_start = time(NULL);
 
@@ -101,10 +99,8 @@ AVPacket* Reader::read()
             ex.msg(e.what(), MsgPriority::CRITICAL, "Reader::read exception: ");
             if (ret == AVERROR_EXIT || ret == AVERROR(ETIMEDOUT)) {
                 std::cout << "Camera connection timed out"  << std::endl;
-                if (display) {
-                    if (((Display*)display)->glWidget) {
-                        ((Display*)display)->glWidget->emit cameraTimeout();
-                    }
+                if (P->glWidget) {
+                    P->glWidget->emit cameraTimeout();
                 }
             }
         }

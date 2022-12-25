@@ -18,6 +18,7 @@
 *********************************************************************/
 
 #include "Pipe.h"
+#include "avio.h"
 
 namespace avio
 {
@@ -89,7 +90,7 @@ bool Pipe::open(const std::string& filename)
             audio_stream->time_base = reader->fmt_ctx->streams[reader->audio_stream_index]->time_base;
         }
 
-        show_ctx();
+        //show_ctx();
         ex.ck(avio_open(&fmt_ctx->pb, filename.c_str(), AVIO_FLAG_WRITE), AO);
         opened = true;
         ex.ck(avformat_write_header(fmt_ctx, NULL), AWH);
@@ -100,11 +101,15 @@ bool Pipe::open(const std::string& filename)
         std::cout << "opened write file " << filename.c_str() << std::endl;
     }
     catch (const Exception& e) {
-        std::cout << "Pipe::open exception: " << e.what() << std::endl;
+        std::stringstream str;
+        str << "Pipe::open exception: " << e.what();
         reader->request_pipe_write = false;
-        if (opened) {
+        if (opened) 
             ex.ck(avio_closep(&fmt_ctx->pb), ACP);
-        }
+
+        if (P->glWidget)
+            P->glWidget->emit openWriterFailed(str.str());
+
         return false;
     }
     return true;

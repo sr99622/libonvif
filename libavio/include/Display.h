@@ -53,8 +53,11 @@ class Display
 {
 
 public:
-    Display(Reader& reader) : reader(&reader) { reader.display = this; }
+    Display(Reader& reader) : reader(&reader) { }
     ~Display();
+
+    void* process;
+    Reader* reader;
 
     void init();
     int initAudio(int sample_rate, AVSampleFormat sample_fmt, int channels, uint64_t channel_layout, int stream_nb_samples);
@@ -144,11 +147,10 @@ public:
     int recent_q_size = 200;
     bool prepend_recent_write = false;
 
-    Reader* reader = nullptr;
-    Writer* writer = nullptr;
-    Decoder* audioDecoder = nullptr;
-    Filter* audioFilter = nullptr;
-    GLWidget* glWidget = nullptr;
+    //Writer* writer = nullptr;
+    //Decoder* audioDecoder = nullptr;
+    //Filter* audioFilter = nullptr;
+    //GLWidget* glWidget = nullptr;
 
     ExceptionHandler ex;
 

@@ -46,6 +46,8 @@ public:
     Pipe(Reader& reader);
     ~Pipe();
 
+    void* process;
+
     AVCodecContext* getContext(AVMediaType mediaType);
     bool open(const std::string& filename);
     void close();

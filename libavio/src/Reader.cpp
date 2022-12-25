@@ -360,6 +360,14 @@ AVRational Reader::audio_time_base()
     return result;
 }
 
+int Reader::keyframe_cache_size()
+{
+    int result = 1;
+    if (P->glWidget) 
+        result = P->glWidget->keyframe_cache_size;
+    return result;
+}
+
 std::string Reader::get_pipe_out_filename()
 {
     std::string filename;

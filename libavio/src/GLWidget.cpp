@@ -416,9 +416,11 @@ void GLWidget::start(void * parent)
         widget->emit connectFailed(str.str().c_str());
     }
 
+    std::cout << "test 1" << std::endl;
     widget->process = nullptr;
     widget->media_duration = 0;
-    widget->emit progress(0);
+    widget->emit donePlayingMedia();
+    std::cout << "test 2" << std::endl;
 }
 
 }

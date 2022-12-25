@@ -181,7 +181,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     disableAudio->setChecked(MW->settings->value(disAudioKey, false).toBool());
     generateFilename->setChecked(MW->settings->value(genFileKey, true).toBool());
     defaultFilename->setChecked(MW->settings->value(defFileKey, false).toBool());
+
     autoDiscoveryClicked(autoDiscovery->isChecked());
+    MW->glWidget->keyframe_cache_size = keyframeCount->value();
 
     QString netIntf = MW->settings->value(netIntfKey, "").toString();
     if (netIntf.length() > 0)
@@ -231,6 +233,7 @@ void SettingsPanel::broadcastRepeatChanged(int value)
 
 void SettingsPanel::keyframeCountChanged(int value)
 {
+    MW->glWidget->keyframe_cache_size = value;
     MW->settings->setValue(keyCountKey, value);
 }
 

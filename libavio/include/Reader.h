@@ -76,6 +76,7 @@ public:
 	int64_t audio_bit_rate();
 	AVRational audio_time_base();
 
+	int keyframe_cache_size();
 	std::string get_pipe_out_filename();
 	//std::string extension;
 	bool request_pipe_write = false;
@@ -83,7 +84,7 @@ public:
 	bool pipe_out_enabled = false;
 	std::string pipe_out_dir;
 	std::string pipe_out_filename;
-	int keyframe_cache_size = 1;
+	//int keyframe_cache_size = 1;
 
 	AVFormatContext* fmt_ctx = NULL;
 	int video_stream_index = -1;

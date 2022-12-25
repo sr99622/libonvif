@@ -102,6 +102,7 @@ signals:
     void openWriterFailed(const std::string&);
     void msg(const QString&);
     void progress(float);
+    void donePlayingMedia();
 
 public slots:
     void poll();

@@ -63,8 +63,11 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     try {
         while (AVPacket* pkt = reader->read())
         {
-            std::cout << "pkts size: " << pkts.size() << std::endl;
+            
+            
+            //std::cout << "pkts size: " << pkts.size() << std::endl;
 
+            
             reader->running = true;
             if (reader->request_break) {
                 if (vpq) {
@@ -116,7 +119,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 if (pkt->stream_index == reader->video_stream_index) {
                     if (pkt->flags) {
                         // key frame packet found in stream
-                        if (++keyframe_count >= reader->keyframe_cache_size) {
+                        if (++keyframe_count >= reader->keyframe_cache_size()) {
                             while (pkts.size() > keyframe_marker) {
                                 AVPacket* tmp = pkts.front();
                                 pkts.pop_front();

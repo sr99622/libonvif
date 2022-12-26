@@ -368,6 +368,7 @@ int Reader::keyframe_cache_size()
     return result;
 }
 
+/*
 std::string Reader::get_pipe_out_filename()
 {
     std::string filename;
@@ -388,6 +389,7 @@ std::string Reader::get_pipe_out_filename()
 
     return filename;
 }
+*/
 
 }
 

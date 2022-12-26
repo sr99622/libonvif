@@ -86,7 +86,9 @@ void MainWindow::closeEvent(QCloseEvent* e)
 {
     Q_UNUSED(e);
 
+    std::cout << "start shutdown" << std::endl;
     glWidget->stop();
+    std::cout << "shutdown complete" << std::endl;
     settings->setValue("geometry", geometry());
 }
 

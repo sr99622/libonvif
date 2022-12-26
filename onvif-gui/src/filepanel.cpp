@@ -141,11 +141,9 @@ void FilePanel::onBtnPlayClicked()
             std::cout << "index is valid" << std::endl;
             QFileInfo fileInfo = model->fileInfo(index);
             std::cout << fileInfo.filePath().toLatin1().data() << std::endl;
+             MW->currentStreamingMediaName = fileInfo.fileName();
             MW->glWidget->play(fileInfo.filePath());
             btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
-        }
-        else {
-            std::cout << "INVALID INDEX" << std::endl;
         }
     }
 }
@@ -159,13 +157,12 @@ void FilePanel::doubleClicked(const QModelIndex& index)
             tree->setExpanded(index, !expanded);
         }
         else {
+            std::cout << "test a" << std::endl;
             MW->glWidget->play(fileInfo.filePath());
             btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+            MW->currentStreamingMediaName = fileInfo.fileName();
+            std::cout << "test b" << std::endl;
         }
-        MW->currentStreamingMediaName = fileInfo.fileName();
-    }
-    else {
-        std::cout << "invalid index" << std::endl;
     }
 }
 

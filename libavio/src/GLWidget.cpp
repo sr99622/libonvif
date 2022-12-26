@@ -263,7 +263,6 @@ void GLWidget::poll()
             if (vfq_in->size() > 0) {
                 vfq_in->pop(f);
                 if (f.isValid()) {
-                    count = 0;
                     if (f.m_frame->width == texture->width() && f.m_frame->height == texture->height()) {
                         QImage img(f.m_frame->data[0], texture->width(), texture->height(), fmt);
                         texture->setData(QOpenGLTexture::RGB, QOpenGLTexture::UInt8, (const void*)img.bits());
@@ -295,7 +294,7 @@ void GLWidget::play(const QString& arg)
     }
 }
 
-void GLWidget::pipe_out(const std::string& filename)
+void GLWidget::toggle_pipe_out(const std::string& filename)
 {
     if (process) {
         Reader* reader = ((Process*)process)->reader;

@@ -77,7 +77,7 @@ public:
 	AVRational audio_time_base();
 
 	int keyframe_cache_size();
-	std::string get_pipe_out_filename();
+	//std::string get_pipe_out_filename();
 	//std::string extension;
 	bool request_pipe_write = false;
 	bool pipe_out = false;

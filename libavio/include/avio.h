@@ -90,8 +90,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 if (!pipe) {
                     pipe = new Pipe(*reader);
                     pipe->process = reader->process;
-                    std::string filename = reader->get_pipe_out_filename();
-                    if (pipe->open(filename)) {
+                    if (pipe->open(reader->pipe_out_filename)) {
                         while (pkts.size() > 0) {
                             AVPacket* tmp = pkts.front();
                             pkts.pop_front();
@@ -423,8 +422,6 @@ public:
     {
         widget_in->process = (void*)this;
         glWidget = widget_in;
-        //if (!display->vfq_out_name.empty())
-        //    frame_q_names.push_back(display->vfq_out_name);
     }
 
     void add_frame_drain(const std::string& frame_q_name)
@@ -567,8 +564,9 @@ public:
                 glWidget->emit timerStop();
 
             // reader shutdown routine if downstream module shuts down process
-            int count = 0;
             if (!reader->exit_error_msg.empty()) {
+                int count = 0;
+                std::cout << "reader attempting shutdown" << std::endl;
                 reader->request_break = true;
                 while (reader->running) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));

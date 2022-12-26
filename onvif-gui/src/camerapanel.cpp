@@ -248,7 +248,7 @@ void CameraPanel::recordButtonClicked()
     else 
         filename.append("/").append("out.mp4");
 
-    MW->glWidget->pipe_out(filename.toLatin1().data());
+    MW->glWidget->toggle_pipe_out(filename.toLatin1().data());
 }
 
 void CameraPanel::fillData()

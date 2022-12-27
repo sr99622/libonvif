@@ -91,7 +91,6 @@ public:
     std::string mediaShortName;
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
-    //avio::Process* process = nullptr;
     void* process = nullptr;
 
 signals:
@@ -102,7 +101,8 @@ signals:
     void openWriterFailed(const std::string&);
     void msg(const QString&);
     void progress(float);
-    void donePlayingMedia();
+    void mediaPlayingFinished();
+    void mediaPlayingStarted();
 
 public slots:
     void poll();

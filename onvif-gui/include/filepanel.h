@@ -150,7 +150,8 @@ public slots:
     void onBtnMuteClicked();
     void onSldVolumeMoved(int);
     void progress(float);
-    void donePlayingMedia();
+    void mediaPlayingFinished();
+    void mediaPlayingStarted();
 
 };
 

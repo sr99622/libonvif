@@ -35,13 +35,13 @@ CameraListView::CameraListView(QMainWindow *parent)
 void CameraListView::mouseDoubleClickEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
-    MW->cameraPanel->viewButtonClicked();
+    MW->cameraPanel->cameraListDoubleClicked();
 }
 
 void CameraListView::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Return)
-        MW->cameraPanel->viewButtonClicked();
+        MW->cameraPanel->cameraListDoubleClicked();
     QListView::keyPressEvent(event);
 }
 

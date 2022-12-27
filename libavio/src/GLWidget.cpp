@@ -236,10 +236,22 @@ void GLWidget::setMute(bool arg)
 
 void GLWidget::togglePaused()
 {
-    SDL_Event event;
-    event.type = SDL_KEYDOWN;
-    event.key.keysym.sym = SDLK_SPACE;
-    SDL_PushEvent(&event);
+    //SDL_Event event;
+    //event.type = SDL_KEYDOWN;
+    //event.key.keysym.sym = SDLK_SPACE;
+    //SDL_PushEvent(&event);
+    if (process) {
+        if (((Process*)process)->display) {
+            ((Process*)process)->display->togglePause();
+        }
+
+    }
+    if (isPaused()) {
+        std::cout << "WIDGET IS PAUSED" << std::endl;
+    }
+    else {
+        std::cout << "widget is NOT paused" << std::endl;
+    }
 }
 
 bool GLWidget::isPaused()
@@ -389,9 +401,6 @@ void GLWidget::start(void * parent)
             display.mute = widget->isMute();
             process.add_decoder(*audioDecoder);
         }
-        else {
-            std::cout << "no audio ------" << std::endl;
-        }
 
         process.add_reader(reader);
         process.add_decoder(videoDecoder);
@@ -400,9 +409,9 @@ void GLWidget::start(void * parent)
         process.add_widget(widget);
 
         widget->running = true;
-        process.run();
+        widget->emit mediaPlayingStarted();
 
-        std::cout << "process done" << std::endl;
+        process.run();
 
         if (audioDecoder)
             delete audioDecoder;
@@ -415,11 +424,9 @@ void GLWidget::start(void * parent)
         widget->emit connectFailed(str.str().c_str());
     }
 
-    std::cout << "test 1" << std::endl;
     widget->process = nullptr;
     widget->media_duration = 0;
-    widget->emit donePlayingMedia();
-    std::cout << "test 2" << std::endl;
+    widget->emit mediaPlayingFinished();
 }
 
 }

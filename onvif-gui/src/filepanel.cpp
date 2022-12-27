@@ -64,7 +64,8 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     sldProgress = new ProgressSlider(Qt::Horizontal, this);
     sldProgress->setMaximum(1000);
     connect(MW->glWidget, SIGNAL(progress(float)), this, SLOT(progress(float)));
-    connect(MW->glWidget, SIGNAL(donePlayingMedia()), this, SLOT(donePlayingMedia()));
+    connect(MW->glWidget, SIGNAL(mediaPlayingFinished()), this, SLOT(mediaPlayingFinished()));
+    connect(MW->glWidget, SIGNAL(mediaPlayingStarted()), this, SLOT(mediaPlayingStarted()));
     connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
     lblProgress = new QLabel("0:00");
 
@@ -127,23 +128,23 @@ void FilePanel::setDirectory(const QString& path)
 
 void FilePanel::onBtnPlayClicked()
 {
-    if (MW->glWidget->running) {
+    std::cout << "onBtnPlayCLicked()" << std::endl;
+    if (MW->glWidget->process) {
+        std::cout << "widget running" << std::endl;
         MW->glWidget->togglePaused();
         if (MW->glWidget->isPaused())
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
-        else
             btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+        else
+            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
     }
     else {
-        //doubleClicked(tree->currentIndex());
+        std::cout << "widget NOT running" << std::endl;
         QModelIndex index = tree->currentIndex();
         if (index.isValid()) {
-            std::cout << "index is valid" << std::endl;
             QFileInfo fileInfo = model->fileInfo(index);
             std::cout << fileInfo.filePath().toLatin1().data() << std::endl;
-             MW->currentStreamingMediaName = fileInfo.fileName();
+            MW->currentStreamingMediaName = fileInfo.fileName();
             MW->glWidget->play(fileInfo.filePath());
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
         }
     }
 }
@@ -157,24 +158,21 @@ void FilePanel::doubleClicked(const QModelIndex& index)
             tree->setExpanded(index, !expanded);
         }
         else {
-            std::cout << "test a" << std::endl;
             MW->glWidget->play(fileInfo.filePath());
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
             MW->currentStreamingMediaName = fileInfo.fileName();
-            std::cout << "test b" << std::endl;
         }
     }
 }
 
-void FilePanel::headerChanged(int arg1, int arg2, int arg3)
-{
-    MW->settings->setValue(headerKey, tree->header()->saveState());
-}
-
-void FilePanel::donePlayingMedia()
+void FilePanel::mediaPlayingFinished()
 {
     progress(0);
     btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+}
+
+void FilePanel::mediaPlayingStarted()
+{
+    btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
 }
 
 void FilePanel::progress(float pct)
@@ -197,6 +195,11 @@ void FilePanel::progress(float pct)
 
     QString output(buf);
     lblProgress->setText(output);
+}
+
+void FilePanel::headerChanged(int arg1, int arg2, int arg3)
+{
+    MW->settings->setValue(headerKey, tree->header()->saveState());
 }
 
 void FilePanel::onBtnStopClicked()

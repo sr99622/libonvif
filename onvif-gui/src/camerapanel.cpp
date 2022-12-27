@@ -57,6 +57,10 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     discoverButton->setStyleSheet(MW->getButtonStyle("discover"));
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
 
+    playButton = new QPushButton(this);
+    playButton->setStyleSheet(MW->getButtonStyle("play"));
+    connect(playButton, SIGNAL(clicked()), this, SLOT(playButtonClicked()));
+
     recordButton = new QPushButton(this);
     recordButton->setStyleSheet(MW->getButtonStyle("record"));
     connect(recordButton, SIGNAL(clicked()), this, SLOT(recordButtonClicked()));
@@ -79,11 +83,12 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout* controlLayout = new QGridLayout(controlPanel);
-    controlLayout->addWidget(recordButton,    0, 0, 1, 1);
-    controlLayout->addWidget(btnMute,         0, 1, 1, 1);
-    controlLayout->addWidget(volumeSlider,    0, 2, 1, 1);
-    controlLayout->addWidget(discoverButton,  0, 3, 1, 1);
-    controlLayout->addWidget(applyButton,     0, 4, 1 ,1);
+    controlLayout->addWidget(playButton,      0, 0, 1, 1);
+    controlLayout->addWidget(recordButton,    0, 1, 1, 1);
+    controlLayout->addWidget(btnMute,         0, 2, 1, 1);
+    controlLayout->addWidget(volumeSlider,    0, 3, 1, 1);
+    controlLayout->addWidget(discoverButton,  0, 4, 1, 1);
+    controlLayout->addWidget(applyButton,     0, 5, 1 ,1);
     controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
@@ -162,7 +167,7 @@ void CameraPanel::onBtnMuteClicked()
     MW->settings->setValue(muteKey, MW->glWidget->isMute());
 }
 
-void CameraPanel::viewButtonClicked()
+void CameraPanel::cameraListDoubleClicked()
 {
     if (connecting) {
         std::cout << "currently attempting to connect to " << MW->currentStreamingMediaName.toLatin1().data() << " please wait" << std::endl;
@@ -188,7 +193,28 @@ void CameraPanel::viewButtonClicked()
         MW->glWidget->mediaShortName = MW->currentStreamingMediaName.toLatin1().data();
         MW->glWidget->play(uri.c_str());
         MW->setWindowTitle("connecting to " + MW->currentStreamingMediaName);
+        playButton->setStyleSheet(MW->getButtonStyle("stop"));
     }
+}
+
+void CameraPanel::playButtonClicked()
+{
+    std::cout << "play button clicked" << std::endl;
+
+    if (MW->glWidget->process){
+        std::cout << "YES PROCESS" << std::endl;
+        MW->glWidget->stop();
+        playButton->setStyleSheet(MW->getButtonStyle("play"));
+    }
+    else {
+        std::cout << "NO PROCESS" << std::endl;
+        if (cameraList->getCurrentCamera()) {
+            QString name = cameraList->getCurrentCamera()->getCameraName();
+            std::cout << "name: " << name.toLatin1().data() << std::endl;
+            cameraListDoubleClicked();
+        }
+    }
+
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)

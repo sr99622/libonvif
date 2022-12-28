@@ -30,6 +30,7 @@ Pipe::Pipe(Reader& reader) : reader(&reader)
 
 Pipe::~Pipe()
 {
+    std::cout << "pipe destructor called" << std::endl;
     if (fmt_ctx) avformat_free_context(fmt_ctx);
     if (video_ctx) avcodec_free_context(&video_ctx);
 }

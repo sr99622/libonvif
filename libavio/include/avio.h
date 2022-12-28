@@ -70,6 +70,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
             
             reader->running = true;
             if (reader->request_break) {
+                /*
                 if (vpq) {
                     while (vpq->size() > 0) {
                         AVPacket* tmp = vpq->pop();
@@ -82,7 +83,26 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                         av_packet_free(&tmp);
                     }
                 }
+                */
+                reader->clear_stream_queues();
                 break;
+            }
+
+            if (reader->seek_target_pts != AV_NOPTS_VALUE) {
+                av_packet_free(&pkt);
+                pkt = reader->seek();
+                if (!pkt) {
+                    std::cout << "seek did not find packet" << std::endl;
+                    break;
+                }
+
+                reader->clear_stream_queues();
+                
+                while (pkts.size() > 0) {
+                    AVPacket* tmp = pkts.front();
+                    pkts.pop_front();
+                    av_packet_free(&tmp);
+                }
             }
 
             if (reader->request_pipe_write) {
@@ -131,32 +151,6 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 }
                 AVPacket* tmp = av_packet_clone(pkt);
                 pkts.push_back(tmp);
-            }
-
-            if (reader->seek_target_pts != AV_NOPTS_VALUE) {
-                av_packet_free(&pkt);
-                pkt = reader->seek();
-                if (!pkt) {
-                    break;
-                }
-                //if (vpq) pkt_drain(vpq);
-                //if (apq) pkt_drain(apq);
-                
-                /*
-                if (vpq) {
-                    while(vpq->size() > 0) {
-                        AVPacket* tmp = vpq->pop();
-                        av_packet_free(&tmp);
-                    }
-                }
-                if (apq) {
-                    while(apq->size() > 0) {
-                        AVPacket* tmp = apq->pop();
-                        av_packet_free(&tmp);
-                    }
-                }
-                */
-                
             }
 
             if (reader->stop_play_at_pts != AV_NOPTS_VALUE && pkt->stream_index == reader->seek_stream_index()) {

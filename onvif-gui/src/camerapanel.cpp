@@ -199,18 +199,15 @@ void CameraPanel::cameraListDoubleClicked()
 
 void CameraPanel::playButtonClicked()
 {
-    std::cout << "play button clicked" << std::endl;
-
     if (MW->glWidget->process){
-        std::cout << "YES PROCESS" << std::endl;
+        if (recording)
+            recordButtonClicked();
         MW->glWidget->stop();
         playButton->setStyleSheet(MW->getButtonStyle("play"));
     }
     else {
-        std::cout << "NO PROCESS" << std::endl;
         if (cameraList->getCurrentCamera()) {
             QString name = cameraList->getCurrentCamera()->getCameraName();
-            std::cout << "name: " << name.toLatin1().data() << std::endl;
             cameraListDoubleClicked();
         }
     }

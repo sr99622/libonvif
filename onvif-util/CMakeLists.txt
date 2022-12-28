@@ -1,7 +1,7 @@
 #*******************************************************************************
 # libonvif/onvif-util/CMakeLists.txt
 #
-# Copyright (c) 2020 Stephen Rhodes 
+# Copyright (c) 2022 Stephen Rhodes 
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

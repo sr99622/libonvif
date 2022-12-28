@@ -111,6 +111,8 @@ public:
 	bool running = false;
 	std::string exit_error_msg;
 
+	void clear_stream_queues();
+
 	ExceptionHandler ex;
 };
 

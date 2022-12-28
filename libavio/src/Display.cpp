@@ -323,10 +323,14 @@ bool Display::display()
                 toggleRecord();
             }
 
-            //if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
-                SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
+            ////if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
+            //std::cout << "delay" << std::endl;
+            //    SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
             
-            if (!reader->seeking()) videoPresentation();
+            if (!reader->seeking()) {
+                SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
+                videoPresentation();
+            }
             reader->last_video_pts = f.m_frame->pts;
 
             if (vfq_out) {

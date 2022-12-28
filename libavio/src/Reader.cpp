@@ -368,6 +368,26 @@ int Reader::keyframe_cache_size()
     return result;
 }
 
+void Reader::clear_stream_queues()
+{
+    PKT_Q_MAP::iterator pkt_q;
+    for (pkt_q = P->pkt_queues.begin(); pkt_q != P->pkt_queues.end(); ++pkt_q) {
+        //std::cout << "q name: " << pkt_q->first << " size: " << pkt_q->second->size() << std::endl;
+        while (pkt_q->second->size() > 0) {
+            AVPacket* tmp = pkt_q->second->pop();
+            av_packet_free(&tmp);
+        }
+    }
+    FRAME_Q_MAP::iterator frame_q;
+    for (frame_q = P->frame_queues.begin(); frame_q != P->frame_queues.end(); ++frame_q) {
+        //std::cout << "q_name: " << frame_q->first << " size: " << frame_q->second->size() << std::endl;
+        while (frame_q->second->size() > 0) {
+            Frame f;
+            frame_q->second->pop(f);
+        }
+    }
+}
+
 /*
 std::string Reader::get_pipe_out_filename()
 {

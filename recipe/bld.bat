@@ -1,7 +1,7 @@
 REM*******************************************************************************
 REM libovnif/recipe/meta.yaml
 REM
-REM Copyright (c) 2020 Stephen Rhodes 
+REM Copyright (c) 2022 Stephen Rhodes 
 REM
 REM This program is free software; you can redistribute it and/or modify
 REM it under the terms of the GNU General Public License as published by

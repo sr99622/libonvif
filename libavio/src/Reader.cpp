@@ -47,15 +47,16 @@ namespace avio {
 
 Reader::Reader(const char* filename)
 {
+    std::cout << "open reader start" << std::endl;
     AVDictionary* opts = NULL;
-#ifdef _WIN32
+//#ifdef _WIN32
     av_dict_set(&opts, "timeout", "5000000", 0);
-#else
+//#else
     av_dict_set(&opts, "stimeout", "5000000", 0);
-#endif
+//#endif
     
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
-    
+
     av_dict_free(&opts);
     timeout_start = time(NULL);
     AVIOInterruptCB cb = { interrupt_callback, this };
@@ -72,6 +73,7 @@ Reader::Reader(const char* filename)
         ex.msg("av_find_best_stream could not find audio stream", MsgPriority::INFO);
 
     //if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
+    std::cout << "open reader finish" << std::endl;
 
 }
 

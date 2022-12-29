@@ -63,45 +63,28 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     try {
         while (AVPacket* pkt = reader->read())
         {
-            
-            
-            //std::cout << "pkts size: " << pkts.size() << std::endl;
-
-            
             reader->running = true;
             if (reader->request_break) {
-                /*
-                if (vpq) {
-                    while (vpq->size() > 0) {
-                        AVPacket* tmp = vpq->pop();
-                        av_packet_free(&tmp);
-                    }
-                }
-                if (apq) {
-                    while (apq->size() > 0) {
-                        AVPacket* tmp = apq->pop();
-                        av_packet_free(&tmp);
-                    }
-                }
-                */
                 reader->clear_stream_queues();
                 break;
             }
 
             if (reader->seek_target_pts != AV_NOPTS_VALUE) {
-                av_packet_free(&pkt);
-                pkt = reader->seek();
-                if (!pkt) {
-                    std::cout << "seek did not find packet" << std::endl;
-                    break;
-                }
-
+                AVPacket* tmp = reader->seek();
                 reader->clear_stream_queues();
-                
                 while (pkts.size() > 0) {
                     AVPacket* tmp = pkts.front();
                     pkts.pop_front();
                     av_packet_free(&tmp);
+                }
+
+                if (tmp) {
+                    av_packet_free(&pkt);
+                    pkt = tmp;
+
+                }
+                else {
+                    break;
                 }
             }
 
@@ -123,6 +106,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                         pipe = nullptr;
                     }
                 }
+                // verify pipe was opened successfully before continuing
                 if (pipe) {
                     AVPacket* tmp = av_packet_clone(pkt);
                     pipe->write(tmp);
@@ -175,6 +159,7 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 else
                     av_packet_free(&pkt);
             }
+            //std::cout << "read loop end" << std::endl;
         }
         if (vpq) vpq->push(NULL);
         if (apq) apq->push(NULL);

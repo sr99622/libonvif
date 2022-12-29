@@ -28,7 +28,7 @@ extern "C"
 #include "Reader.h"
 #include "avio.h"
 
-#define MAX_TIMEOUT 10
+#define MAX_TIMEOUT 5
 
 time_t timeout_start = time(NULL);
 
@@ -374,7 +374,6 @@ void Reader::clear_stream_queues()
 {
     PKT_Q_MAP::iterator pkt_q;
     for (pkt_q = P->pkt_queues.begin(); pkt_q != P->pkt_queues.end(); ++pkt_q) {
-        //std::cout << "q name: " << pkt_q->first << " size: " << pkt_q->second->size() << std::endl;
         while (pkt_q->second->size() > 0) {
             AVPacket* tmp = pkt_q->second->pop();
             av_packet_free(&tmp);
@@ -382,12 +381,14 @@ void Reader::clear_stream_queues()
     }
     FRAME_Q_MAP::iterator frame_q;
     for (frame_q = P->frame_queues.begin(); frame_q != P->frame_queues.end(); ++frame_q) {
-        //std::cout << "q_name: " << frame_q->first << " size: " << frame_q->second->size() << std::endl;
         while (frame_q->second->size() > 0) {
             Frame f;
             frame_q->second->pop(f);
         }
     }
+
+    if (P->videoDecoder) P->videoDecoder->flush();
+    if (P->audioDecoder) P->audioDecoder->flush();
 }
 
 /*

@@ -67,9 +67,18 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     connect(MW->glWidget, SIGNAL(mediaPlayingFinished()), this, SLOT(mediaPlayingFinished()));
     connect(MW->glWidget, SIGNAL(mediaPlayingStarted()), this, SLOT(mediaPlayingStarted()));
     connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
-    lblProgress = new QLabel("0:00");
-
+    lblProgress = new QLabel("0:00", this);
+    lblDuration = new QLabel("-:--", this);
     lblSeek = new ProgressLabel(this);
+
+    QWidget *progressPanel = new QWidget(this);
+    QGridLayout *progressLayout = new QGridLayout(progressPanel);
+    progressLayout->addWidget(lblSeek,         0, 1, 1, 7);
+    progressLayout->addWidget(lblProgress,     1, 0, 1, 1);
+    progressLayout->addWidget(sldProgress,     1, 1, 1, 7);
+    progressLayout->addWidget(lblDuration,     1, 8, 1, 1);
+    progressLayout->setContentsMargins(0, 0, 0, 0);
+    progressLayout->setColumnStretch(1, 20);
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
@@ -77,9 +86,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     controlLayout->addWidget(btnStop,         0, 1, 1, 1);
     controlLayout->addWidget(btnMute,         0, 3, 1, 1);
     controlLayout->addWidget(sldVolume,       0, 4, 1, 2);
-    controlLayout->addWidget(lblSeek,         1, 1, 1, 7);
-    controlLayout->addWidget(lblProgress,     2, 0, 1, 1);
-    controlLayout->addWidget(sldProgress,     2, 1, 1, 7);
+    controlLayout->addWidget(progressPanel,   1, 0, 1, 8);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(directorySetter,      0, 0, 1, 1);
@@ -173,6 +180,18 @@ void FilePanel::mediaPlayingFinished()
 void FilePanel::mediaPlayingStarted()
 {
     btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+    int duration_in_seconds = MW->glWidget->media_duration / 1000;
+    int hours = duration_in_seconds / 3600;
+    int minutes = (duration_in_seconds - (hours * 3600)) / 60;
+    int seconds = (duration_in_seconds - (hours * 3600) - (minutes * 60));
+    char buf[32] = {0};
+    if (hours > 0)
+        sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
+    else 
+        sprintf(buf, "%d:%02d", minutes, seconds);
+
+    QString output(buf);
+    lblDuration->setText(output);
 }
 
 void FilePanel::progress(float pct)

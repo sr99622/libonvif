@@ -282,6 +282,7 @@ bool Display::display()
             }
             else {
                 videoPresentation();
+                //std::cout << "sdl delay" << std::endl;
                 SDL_Delay(SDL_EVENT_LOOP_WAIT);
             }
 
@@ -304,6 +305,13 @@ bool Display::display()
             }
 
             if (reader->seeking()) {
+                std::cout << "display reader seeking" << std::endl;
+                if (f.m_frame->pts == reader->seek_found_pts) {
+                    reader->seek_found_pts = AV_NOPTS_VALUE;
+                    paused = user_paused;
+                }
+
+                /*
                 if (f.m_frame->pts != reader->seek_found_pts) {
                     paused = false;
                 }
@@ -311,6 +319,7 @@ bool Display::display()
                     reader->seek_found_pts = AV_NOPTS_VALUE;
                     paused = user_paused;
                 }
+                */
             }
 
             paused_frame = f;

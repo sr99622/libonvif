@@ -126,6 +126,7 @@ public:
     ProgressLabel *lblSeek;
     ProgressSlider *sldProgress;
     QLabel *lblProgress;
+    QLabel *lblDuration;
     QSlider *sldVolume;
 
     const QString dirKey    = "FilePanel/dir";

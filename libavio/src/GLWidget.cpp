@@ -236,21 +236,11 @@ void GLWidget::setMute(bool arg)
 
 void GLWidget::togglePaused()
 {
-    //SDL_Event event;
-    //event.type = SDL_KEYDOWN;
-    //event.key.keysym.sym = SDLK_SPACE;
-    //SDL_PushEvent(&event);
     if (process) {
         if (((Process*)process)->display) {
             ((Process*)process)->display->togglePause();
         }
 
-    }
-    if (isPaused()) {
-        std::cout << "WIDGET IS PAUSED" << std::endl;
-    }
-    else {
-        std::cout << "widget is NOT paused" << std::endl;
     }
 }
 
@@ -259,7 +249,7 @@ bool GLWidget::isPaused()
     bool result = false;
     if (process) {
         if (((Process*)process)->display) {
-            result = ((Process*)process)->display->paused;
+            result = ((Process*)process)->display->user_paused;
         }
     }
     return result;

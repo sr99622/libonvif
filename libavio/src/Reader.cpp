@@ -50,13 +50,20 @@ Reader::Reader(const char* filename)
     std::cout << "open reader start" << std::endl;
     AVDictionary* opts = NULL;
 //#ifdef _WIN32
-    av_dict_set(&opts, "timeout", "5000000", 0);
+//    av_dict_set(&opts, "timeout", "5000000", 0);
 //#else
     av_dict_set(&opts, "stimeout", "5000000", 0);
 //#endif
+
+    std::cout << "version major: " << LIBAVFORMAT_VERSION_MAJOR << std::endl; // 58
+    std::cout << "version minor: " << LIBAVFORMAT_VERSION_MINOR << std::endl; // 45
+    std::cout << "version micro: " << LIBAVFORMAT_VERSION_MICRO << std::endl; // 100
+    std::cout << "version int: " << LIBAVFORMAT_VERSION_INT << std::endl;
+    if (LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58, 45, 100))
+        std::cout << "VERSION HIGHER " << std::endl;
     
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
-
+ 
     av_dict_free(&opts);
     timeout_start = time(NULL);
     AVIOInterruptCB cb = { interrupt_callback, this };

@@ -38,6 +38,7 @@
 #include "stylepanel.h"
 #include "filepanel.h"
 #include <iostream>
+#include <functional>
 #include "GLWidget.h"
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
@@ -68,9 +69,9 @@ public:
     const QString splitKey = "MainWindow/splitKey";
 
     QString style;
-
     QString currentStreamingMediaName;
-
+    std::function<void(const std::string&, const std::string&)> fnct_ptr;
+    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy;
 
 public slots:
     void msg(const QString&);

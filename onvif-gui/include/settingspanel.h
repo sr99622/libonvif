@@ -48,6 +48,7 @@ public:
     QCheckBox *multiBroadcast;
     QPushButton *style;
     QPushButton *clear;
+    QPushButton *test;
     QSpinBox *broadcastRepeat;
     QLabel *lblBroadcastRepeat;
     QLineEdit *commonUsername;
@@ -101,6 +102,7 @@ public slots:
     void resetClicked();
     void styleClicked();
     void clearClicked();
+    void testClicked();
     void generateFilenameClicked(bool);
     void defaultFilenameClicked(bool);
     void disableAudioClicked(bool);

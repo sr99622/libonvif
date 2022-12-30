@@ -37,6 +37,8 @@ endif()
 find_package(SDL2 REQUIRED)
 find_package(FFmpeg REQUIRED)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
+
 set(CMAKE_AUTOMOC ON)
 
 add_library(avio SHARED
@@ -59,6 +61,7 @@ target_link_libraries(avio PRIVATE
     Qt5::Widgets
     FFmpeg::FFmpeg
     SDL2::SDL2
+    Python3::Python
 )
 
 set_target_properties(avio PROPERTIES

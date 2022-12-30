@@ -19,11 +19,19 @@
 #
 #******************************************************************************/
 
+cmake_minimum_required(VERSION 3.17)
+project(avio)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
+find_package(FFmpeg REQUIRED)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 add_executable(onvif-gui
     src/admintab.cpp
@@ -69,6 +77,8 @@ add_executable(onvif-gui
 
 target_link_libraries(onvif-gui PRIVATE
     Qt5::Widgets
+    FFmpeg::FFmpeg
+    Python3::Python
     onvif
     avio
 )

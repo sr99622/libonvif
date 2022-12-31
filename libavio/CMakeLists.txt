@@ -54,6 +54,7 @@ add_library(avio SHARED
     src/Writer.cpp
     src/Pipe.cpp
     src/GLWidget.cpp
+    src/PyRunner.cpp
     include/GLWidget.h
 )
 

@@ -28,7 +28,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
-find_package(FFmpeg REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -77,7 +76,6 @@ add_executable(onvif-gui
 
 target_link_libraries(onvif-gui PRIVATE
     Qt5::Widgets
-    FFmpeg::FFmpeg
     Python3::Python
     onvif
     avio

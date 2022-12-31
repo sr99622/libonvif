@@ -338,8 +338,7 @@ bool Display::display()
 
             if (P->glWidget) {
                 std::cout << "have widget" << std::endl;
-                std::string events;
-                P->glWidget->runPy(f, events);
+                P->glWidget->runPy(f);
             }
             
             if (!reader->seeking()) {

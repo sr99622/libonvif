@@ -94,7 +94,7 @@ public:
 
     void* process = nullptr;
     std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
-    std::function<bool(avio::Frame&, const std::string&)> runPy = nullptr;
+    std::function<bool(avio::Frame&)> runPy = nullptr;
     bool pyInitialized = false;
 
 

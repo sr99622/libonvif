@@ -335,8 +335,7 @@ void SettingsPanel::runClicked()
 {
     std::cout << "run clicked" << std::endl;
     avio::Frame f(nullptr);
-    std::string events;
-    MW->glWidget->runPy(f, events);
+    MW->glWidget->runPy(f);
 }
 
 void SettingsPanel::decoderChanged(const QString& name)

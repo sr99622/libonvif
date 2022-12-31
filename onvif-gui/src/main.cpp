@@ -1,7 +1,7 @@
 /*******************************************************************************
 * main.cpp
 *
-* Copyright (c) 2020 Stephen Rhodes
+* Copyright (c) 2022 Stephen Rhodes
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL AV_ARRAY_API
 #include "numpy/arrayobject.h"
-#include "pyhelper.h"
 #define NO_IMPORT_ARRAY
 
 #include <functional>
@@ -40,39 +39,37 @@ namespace avio
 class PyRunner {
 public:
 	PyRunner() {}
+	~PyRunner();
 	int initialize(const std::string& dir, const std::string& file, const std::string& py_class, const std::string& arg);
-	CPyObject getImage(Frame& f);
-	bool run(Frame& f, const std::string& events);
+	PyObject* getImage(Frame& f);
+	bool run(Frame& f);
 
-	CPyObject pClass = nullptr;
-	Queue<Frame>* frame_q = nullptr;
+	PyObject* pClass = nullptr;
 	ExceptionHandler ex;
-	bool initialized = false;
-	bool loop_back = false;
-    //uint8_t* mat_buf = nullptr;
+    uint8_t* mat_buf = nullptr;
 	PyObject* pData = NULL;
 
 };
 
+PyRunner::~PyRunner()
+{
+	if (pClass) Py_DECREF(pClass);
+}
+
 int PyRunner::initialize(const std::string& dir, const std::string& file, const std::string& py_class, const std::string& arg)
 {
-	//std::cout << "python_dir: " << dir << std::endl;
-	//std::cout << "python_file: " << file << std::endl;
-	//std::cout << "python_class: " << py_class << std::endl;
-	//std::cout << "init arg: " << arg << std::endl;
-
     try {
-		CPyObject sysPath = PySys_GetObject("path");
-		CPyObject dirName = PyUnicode_FromString(dir.c_str());
+		PyObject* sysPath = PySys_GetObject("path");
+		PyObject* dirName = PyUnicode_FromString(dir.c_str());
 		PyList_Append(sysPath, dirName);
 
-		CPyObject pName = PyUnicode_FromString(file.c_str());		     if (!pName)   throw Exception("pName");
-		CPyObject pModule = PyImport_Import(pName);                      if (!pModule) throw Exception("pModule");
-		CPyObject pDict = PyModule_GetDict(pModule);                     if (!pDict)   throw Exception("pDict");
-		CPyObject pItem = PyDict_GetItemString(pDict, py_class.c_str()); if (!pItem)   throw Exception("pItem");
+		PyObject* pName = PyUnicode_FromString(file.c_str());		     if (!pName)   throw Exception("pName");
+		PyObject* pModule = PyImport_Import(pName);                      if (!pModule) throw Exception("pModule");
+		PyObject* pDict = PyModule_GetDict(pModule);                     if (!pDict)   throw Exception("pDict");
+		PyObject* pItem = PyDict_GetItemString(pDict, py_class.c_str()); if (!pItem)   throw Exception("pItem");
 
-		CPyObject pWrap = NULL;
-		CPyObject pArg = NULL;
+		PyObject* pWrap = nullptr;
+		PyObject* pArg = nullptr;
 
 		if (arg.length() > 0) {
 			pArg = Py_BuildValue("(s)", arg.c_str());
@@ -81,7 +78,15 @@ int PyRunner::initialize(const std::string& dir, const std::string& file, const 
 		}
 
 		pClass = PyObject_CallObject(pItem, pWrap);                      if (!pClass) throw Exception("pClass");
-		std::cout << "PyRunner construction complete" << std::endl;
+
+		if (sysPath) Py_DECREF(sysPath);
+		if (dirName) Py_DECREF(dirName);
+		if (pName)   Py_DECREF(pName);
+		if (pModule) Py_DECREF(pModule);
+		if (pDict)   Py_DECREF(pDict);
+		if (pItem)   Py_DECREF(pItem);
+		if (pArg)    Py_DECREF(pArg);
+		if (pWrap)   Py_DECREF(pWrap);
 	}
 	catch (const Exception& e) {
 		std::cout << "PyRunner constuctor exception: " << e.what() << std::endl;
@@ -90,9 +95,9 @@ int PyRunner::initialize(const std::string& dir, const std::string& file, const 
     return 0;
 }
 
-CPyObject PyRunner::getImage(Frame& f)
+PyObject* PyRunner::getImage(Frame& f)
 {
-	CPyObject result;
+	PyObject* result;
 	try {
 		if (!PyArray_API) throw Exception("numpy not initialized");
 
@@ -113,15 +118,14 @@ CPyObject PyRunner::getImage(Frame& f)
 		int width = f.m_frame->width;
 		int height = f.m_frame->height;
 		int linesize = width * depth;
-		if (f.mat_buf) delete[] f.mat_buf;
-		f.mat_buf = new uint8_t[linesize * height];
-        std::cout << "w: " << width << " h: " << height << " d: " << depth << std::endl;
+		if (mat_buf) delete[] mat_buf;
+		mat_buf = new uint8_t[linesize * height];
 
 		for (int y = 0; y < height; y++)
-			memcpy(f.mat_buf + y * linesize, f.m_frame->data[0] + y * f.m_frame->linesize[0], linesize);
+			memcpy(mat_buf + y * linesize, f.m_frame->data[0] + y * f.m_frame->linesize[0], linesize);
 
 		npy_intp dimensions[3] = { f.m_frame->height, f.m_frame->width, depth };
-		pData = PyArray_SimpleNewFromData(3, dimensions, NPY_UINT8, f.mat_buf);
+		pData = PyArray_SimpleNewFromData(3, dimensions, NPY_UINT8, mat_buf);
 		if (!pData) throw Exception("pData");
 		result = Py_BuildValue("(O)", pData);
         if (!result) throw Exception("Py_BuildValue null return");
@@ -132,36 +136,33 @@ CPyObject PyRunner::getImage(Frame& f)
 	return result;
 }
 
-bool PyRunner::run(Frame& f, const std::string& events)
+bool PyRunner::run(Frame& f)
 {
 	bool result = false;
 
 	if (f.isValid()) {
-		CPyObject pImage = getImage(f);
-		CPyObject pRTS = Py_BuildValue("(i)", f.m_rts);
+		PyObject* pImage = getImage(f);
+		PyObject* pRTS = Py_BuildValue("(i)", f.m_rts);
 
 		// pts is long long so use stream writer to convert
 		std::stringstream str;
 		str << f.m_frame->pts;
-		CPyObject pStrPTS = Py_BuildValue("(s)", str.str().c_str());
+		PyObject* pStrPTS = Py_BuildValue("(s)", str.str().c_str());
 
-		CPyObject pEvents = Py_BuildValue("(s)", events.c_str());
-
-		CPyObject pArg = PyTuple_New(4);
+		PyObject* pArg = PyTuple_New(3);
 		PyTuple_SetItem(pArg, 0, pImage);
 		PyTuple_SetItem(pArg, 1, pStrPTS);
 		PyTuple_SetItem(pArg, 2, pRTS);
-		PyTuple_SetItem(pArg, 3, pEvents);
 
-		CPyObject pWrap = PyTuple_New(1);
+		PyObject* pWrap = PyTuple_New(1);
 		PyTuple_SetItem(pWrap, 0, pArg);
 
 		PyObject* pValue = PyObject_CallObject(pClass, pWrap);
 		if (pValue) {
 			if (pValue != Py_None) {
-				PyObject* pImgRet = NULL;
-				PyObject* pPtsRet = NULL;
-				PyObject* pRecRet = NULL;
+				PyObject* pImgRet = nullptr;
+				PyObject* pPtsRet = nullptr;
+				PyObject* pRecRet = nullptr;
 				if (PyTuple_Check(pValue)) {
 					Py_ssize_t size = PyTuple_GET_SIZE(pValue);
 					if (size > 0) pImgRet = PyTuple_GetItem(pValue, 0);
@@ -246,11 +247,18 @@ bool PyRunner::run(Frame& f, const std::string& events)
 				}
 			}
 
-			Py_DECREF(pValue);
-			pValue = NULL;
+			if (pValue) Py_DECREF(pValue);
+			pValue = nullptr;
 
 			if (pData) Py_DECREF(pData);
-			pData = NULL;
+			pData = nullptr;
+
+			if (pImage)  Py_DECREF(pImage);
+			if (pRTS)    Py_DECREF(pRTS);
+			if (pStrPTS) Py_DECREF(pStrPTS);
+			if (pWrap)   Py_DECREF(pWrap);
+			if (pArg)    Py_DECREF(pArg);
+
 		}
 		else {
 			std::cout << "Error: pyrunner returned null pvalue" << std::endl;
@@ -276,7 +284,9 @@ int main(int argc, char *argv[])
     using namespace std::placeholders;
     avio::PyRunner runner;
     w.glWidget->initPy = std::bind(&avio::PyRunner::initialize, &runner, _1, _2, _3, _4);
-    w.glWidget->runPy = std::bind(&avio::PyRunner::run, &runner, _1, _2);
+    w.glWidget->runPy = std::bind(&avio::PyRunner::run, &runner, _1);
     w.show();
-    return a.exec();
+    int result = a.exec();
+	//Py_Finalize();
+	return result;
 }

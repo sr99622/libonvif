@@ -43,7 +43,7 @@ class Echo:
         #im2 = np.zeros_like(img)
         #cv2.rectangle(image, (100, 100), (200, 200), (255, 255 ,255), 10)
 
-        im2 = np.asarray(image)
+        img = np.asarray(image)
 
         '''
         print("image shape", img.shape)
@@ -71,7 +71,7 @@ class Echo:
         # Possible return arguments
 
         #return cv2.resize(img, (1920, 1080), interpolation=cv2.INTER_AREA)       # return a modified image
-        return im2
+        return img
         #return pts       # return a modified pts
         #return False     # record trigger argument
 

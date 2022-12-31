@@ -1,3 +1,7 @@
+import numpy as np
+#import cv2
+from PIL import Image, ImageDraw
+
 class Echo:
     def __init__(self, arg):
         print("echo.__init__")
@@ -22,14 +26,27 @@ class Echo:
         #'''
 
     def __call__(self, arg):
-        print("echo.__cal__")
-        '''
+        print("echo.__call__")
         img = arg[0][0]
-        print("image shape", img.shape)
+        print('img shape', img.shape)
         pts = arg[1][0]
         print("pts", pts)
         rts = arg[2][0]
         print("rts", rts)
+
+        #im2 = np.copy(img)
+
+        image = Image.fromarray(img.astype(np.uint8))
+        draw = ImageDraw.Draw(image)
+        draw.line([(0, 0), (1000, 1000)], fill=(255, 255, 255), width=10)
+
+        #im2 = np.zeros_like(img)
+        #cv2.rectangle(image, (100, 100), (200, 200), (255, 255 ,255), 10)
+
+        im2 = np.asarray(image)
+
+        '''
+        print("image shape", img.shape)
         events = arg[3][0].split(';')
         for event in events:
             e = event.split(',')
@@ -49,15 +66,15 @@ class Echo:
                 self.keysym = e[2]
                 self.keymod = e[3]
                 print("mouse", self.keysym, self.keymod, self.repeat)
-        
+        '''        
 
         # Possible return arguments
 
         #return cv2.resize(img, (1920, 1080), interpolation=cv2.INTER_AREA)       # return a modified image
+        return im2
         #return pts       # return a modified pts
         #return False     # record trigger argument
 
         #return (img, pts, False)
         #return (img, pts)
         #return (img, False)
-        '''

@@ -379,7 +379,15 @@ void GLWidget::start(void * parent)
         display.set_video_in(videoFilter.video_out());
         display.set_video_out("vfq_display");
         widget->set_video_in(display.video_out());
-
+        if (widget->initPy && !widget->pyInitialized) {
+            std::string python_dir = "/home/stephen/source/libonvif-1.4.3/onvif-gui/python/";
+            std::string python_file = "echo";
+            std::string python_class = "Echo";
+            std::string args = "key1=value1";
+            widget->initPy(python_dir, python_file, python_class, args);
+            widget->pyInitialized = true;
+        }
+ 
         avio::Decoder* audioDecoder = nullptr;
         if (reader.has_audio() && !widget->disable_audio) {
             reader.set_audio_out("apq_reader");

@@ -335,6 +335,12 @@ bool Display::display()
             ////if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
             //std::cout << "delay" << std::endl;
             //    SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
+
+            if (P->glWidget) {
+                std::cout << "have widget" << std::endl;
+                std::string events;
+                P->glWidget->runPy(f, events);
+            }
             
             if (!reader->seeking()) {
                 SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));

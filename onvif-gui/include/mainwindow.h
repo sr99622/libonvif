@@ -70,8 +70,8 @@ public:
 
     QString style;
     QString currentStreamingMediaName;
-    std::function<void(const std::string&, const std::string&)> fnct_ptr;
-    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy;
+    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
+    std::function<bool(avio::Frame&, const std::string&)> runPy = nullptr;
 
 public slots:
     void msg(const QString&);

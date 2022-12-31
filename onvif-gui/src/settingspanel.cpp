@@ -133,6 +133,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     test = new QPushButton("Test");
     connect(test, SIGNAL(clicked()), this, SLOT(testClicked()));
 
+    run = new QPushButton("Run");
+    connect(run, SIGNAL(clicked()), this, SLOT(runClicked()));
+
     QLabel *title = new QLabel("Digital Zoom");
 
     QGridLayout *frameLayout = new QGridLayout(sliderFrame);
@@ -170,6 +173,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(clear,               10, 0, 1, 1, Qt::AlignCenter);
     layout->addWidget(style,               10, 1, 1, 1, Qt::AlignCenter);
     layout->addWidget(test,                10, 2, 1, 1, Qt::AlignCenter);
+    layout->addWidget(run,                 10, 3, 1, 1, Qt::AlignCenter);
     layout->addWidget(sliderFrame,         11, 0, 2, 4);
     setLayout(layout);
 
@@ -320,16 +324,19 @@ void SettingsPanel::clearClicked()
 
 void SettingsPanel::testClicked()
 {
-    std::cout << "test clicked" << std::endl;
-    std::string arg1 = "TEST ARG1";
-    std::string arg2 = "TEST ARG2";
-    MW->fnct_ptr(arg1, arg2);
-
     std::string python_dir = "/home/stephen/source/libonvif-1.4.3/onvif-gui/python/";
     std::string python_file = "echo";
     std::string python_class = "Echo";
     std::string args = "key1=value1";
-    MW->initPy(python_dir, python_file, python_class, args);
+    MW->glWidget->initPy(python_dir, python_file, python_class, args);
+}
+
+void SettingsPanel::runClicked()
+{
+    std::cout << "run clicked" << std::endl;
+    avio::Frame f(nullptr);
+    std::string events;
+    MW->glWidget->runPy(f, events);
 }
 
 void SettingsPanel::decoderChanged(const QString& name)

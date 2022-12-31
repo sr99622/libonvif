@@ -43,41 +43,28 @@ public:
 	int initialize(const std::string& dir, const std::string& file, const std::string& py_class, const std::string& arg);
 	CPyObject getImage(Frame& f);
 	bool run(Frame& f, const std::string& events);
-    void test(const std::string& arg1, const std::string& arg2);
 
 	CPyObject pClass = nullptr;
 	Queue<Frame>* frame_q = nullptr;
 	ExceptionHandler ex;
 	bool initialized = false;
 	bool loop_back = false;
-
+    //uint8_t* mat_buf = nullptr;
 	PyObject* pData = NULL;
 
 };
 
 int PyRunner::initialize(const std::string& dir, const std::string& file, const std::string& py_class, const std::string& arg)
 {
-	std::cout << "python_dir: " << dir << std::endl;
-	std::cout << "python_file: " << file << std::endl;
-	std::cout << "python_class: " << py_class << std::endl;
-	std::cout << "init arg: " << arg << std::endl;
-
-    //import_array();
-    //if (PyErr_Occurred())
-    //    std::cout << "you're fucked" << std::endl;
-    
-
+	//std::cout << "python_dir: " << dir << std::endl;
+	//std::cout << "python_file: " << file << std::endl;
+	//std::cout << "python_class: " << py_class << std::endl;
+	//std::cout << "init arg: " << arg << std::endl;
 
     try {
-        //if (pClass) delete pClass;
-
 		CPyObject sysPath = PySys_GetObject("path");
 		CPyObject dirName = PyUnicode_FromString(dir.c_str());
 		PyList_Append(sysPath, dirName);
-
-        PyRun_SimpleString("import sys");
-        PyRun_SimpleString("print('this is a test', sys.path)");
-        //PyRun_SimpleString("import echo");
 
 		CPyObject pName = PyUnicode_FromString(file.c_str());		     if (!pName)   throw Exception("pName");
 		CPyObject pModule = PyImport_Import(pName);                      if (!pModule) throw Exception("pModule");
@@ -98,7 +85,6 @@ int PyRunner::initialize(const std::string& dir, const std::string& file, const 
 	}
 	catch (const Exception& e) {
 		std::cout << "PyRunner constuctor exception: " << e.what() << std::endl;
-		//std::exit(0);
 	}
 
     return 0;
@@ -106,11 +92,10 @@ int PyRunner::initialize(const std::string& dir, const std::string& file, const 
 
 CPyObject PyRunner::getImage(Frame& f)
 {
-	// Note that this conversion will depend on the scope of Frame f to preserve data in mat_buf
-
 	CPyObject result;
 	try {
 		if (!PyArray_API) throw Exception("numpy not initialized");
+
 		int depth = -1;
 		switch (f.m_frame->format) {
 			case AV_PIX_FMT_BGR24:
@@ -130,6 +115,7 @@ CPyObject PyRunner::getImage(Frame& f)
 		int linesize = width * depth;
 		if (f.mat_buf) delete[] f.mat_buf;
 		f.mat_buf = new uint8_t[linesize * height];
+        std::cout << "w: " << width << " h: " << height << " d: " << depth << std::endl;
 
 		for (int y = 0; y < height; y++)
 			memcpy(f.mat_buf + y * linesize, f.m_frame->data[0] + y * f.m_frame->linesize[0], linesize);
@@ -138,10 +124,10 @@ CPyObject PyRunner::getImage(Frame& f)
 		pData = PyArray_SimpleNewFromData(3, dimensions, NPY_UINT8, f.mat_buf);
 		if (!pData) throw Exception("pData");
 		result = Py_BuildValue("(O)", pData);
+        if (!result) throw Exception("Py_BuildValue null return");
 	}
 	catch (const Exception& e) {
 		ex.msg(e.what(), MsgPriority::CRITICAL, "PyRunner::getImage exception: ");
-		std::exit(0);
 	}
 	return result;
 }
@@ -149,6 +135,7 @@ CPyObject PyRunner::getImage(Frame& f)
 bool PyRunner::run(Frame& f, const std::string& events)
 {
 	bool result = false;
+
 	if (f.isValid()) {
 		CPyObject pImage = getImage(f);
 		CPyObject pRTS = Py_BuildValue("(i)", f.m_rts);
@@ -273,16 +260,6 @@ bool PyRunner::run(Frame& f, const std::string& events)
 	return result;
 }
 
-void PyRunner::test(const std::string& arg1, const std::string& arg2) 
-{
-    std::cout << "PyRunner::test: " << arg1 << " " << arg2 << std::endl;
-}
-
-}
-
-void test_function() 
-{
-    std::cout << "test function" << std::endl;
 }
 
 Q_DECLARE_METATYPE(std::string);
@@ -290,18 +267,16 @@ Q_DECLARE_METATYPE(std::string);
 int main(int argc, char *argv[])
 {
     Py_Initialize();
+    import_array1(1);
+
     QApplication a(argc, argv);
     qRegisterMetaType<std::string>();
     MainWindow w;
-    //std::function<void(void)> tf = test_function;
 
     using namespace std::placeholders;
     avio::PyRunner runner;
-    std::function<void(const std::string&, const std::string&)> tf = std::bind(&avio::PyRunner::test, &runner, _1, _2);
-    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy 
-        = std::bind(&avio::PyRunner::initialize, &runner, _1, _2, _3, _4);
-    w.fnct_ptr = tf;
-    w.initPy = initPy;
+    w.glWidget->initPy = std::bind(&avio::PyRunner::initialize, &runner, _1, _2, _3, _4);
+    w.glWidget->runPy = std::bind(&avio::PyRunner::run, &runner, _1, _2);
     w.show();
     return a.exec();
 }

@@ -26,6 +26,7 @@
 #include <QOpenGLShader>
 #include <QTimer>
 #include <iostream>
+#include <functional>
 #include "Queue.h"
 #include "Frame.h"
 #include "Reader.h"
@@ -92,6 +93,10 @@ public:
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
     void* process = nullptr;
+    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
+    std::function<bool(avio::Frame&, const std::string&)> runPy = nullptr;
+    bool pyInitialized = false;
+
 
 signals:
     void timerStart();

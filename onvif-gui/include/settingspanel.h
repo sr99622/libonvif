@@ -49,6 +49,7 @@ public:
     QPushButton *style;
     QPushButton *clear;
     QPushButton *test;
+    QPushButton *run;
     QSpinBox *broadcastRepeat;
     QLabel *lblBroadcastRepeat;
     QLineEdit *commonUsername;
@@ -103,6 +104,7 @@ public slots:
     void styleClicked();
     void clearClicked();
     void testClicked();
+    void runClicked();
     void generateFilenameClicked(bool);
     void defaultFilenameClicked(bool);
     void disableAudioClicked(bool);

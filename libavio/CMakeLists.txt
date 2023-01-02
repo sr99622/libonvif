@@ -70,4 +70,5 @@ set_target_properties(avio PROPERTIES
 
 target_include_directories(avio PUBLIC
     include
+    ${Python3_NumPy_INCLUDE_DIRS}
 )

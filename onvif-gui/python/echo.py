@@ -1,6 +1,6 @@
-import numpy as np
+#import numpy as np
 #import cv2
-from PIL import Image, ImageDraw
+#from PIL import Image, ImageDraw
 
 class Echo:
     def __init__(self, arg):
@@ -22,11 +22,11 @@ class Echo:
         rts = arg[2][0]
         print("rts", rts)
 
-        image = Image.fromarray(img.astype(np.uint8))
-        draw = ImageDraw.Draw(image)
-        draw.line([(0, 0), (1000, 1000)], fill=(255, 255, 255), width=10)
+        #image = Image.fromarray(img.astype(np.uint8))
+        #draw = ImageDraw.Draw(image)
+        #draw.line([(0, 0), (1000, 1000)], fill=(255, 255, 255), width=10)
 
-        img = np.asarray(image)
+        #img = np.asarray(image)
 
         # Possible return arguments
 

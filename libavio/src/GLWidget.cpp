@@ -376,7 +376,7 @@ void GLWidget::start(void * parent)
         display.set_video_in(videoFilter.video_out());
         display.set_video_out("vfq_display");
         widget->set_video_in(display.video_out());
-        if (widget->initPy && !widget->pyInitialized) {
+        if (widget->initPy && !widget->pyInitialized && widget->python_enabled) {
 
             std::cout << "python_dir: " << widget->python_dir << std::endl;
             std::cout << "python_file: " << widget->python_file << std::endl;

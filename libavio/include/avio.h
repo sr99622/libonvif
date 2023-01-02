@@ -159,7 +159,6 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 else
                     av_packet_free(&pkt);
             }
-            //std::cout << "read loop end" << std::endl;
         }
         if (vpq) vpq->push(NULL);
         if (apq) apq->push(NULL);
@@ -521,10 +520,6 @@ public:
             ops.push_back(new std::thread(pkt_drain, pkt_queues[name]));
 
         if (display) {
-
-            //if (writer) display->writer = writer;
-            //if (audioDecoder) display->audioDecoder = audioDecoder;
-            //if (audioFilter) display->audioFilter = audioFilter;
 
             if (!display->vfq_in_name.empty()) display->vfq_in = frame_queues[display->vfq_in_name];
             if (!display->afq_in_name.empty()) display->afq_in = frame_queues[display->afq_in_name];

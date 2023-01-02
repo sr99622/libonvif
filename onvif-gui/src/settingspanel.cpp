@@ -40,6 +40,8 @@
 #include <QGroupBox>
 #include <QMessageBox>
 #include <QListWidget>
+#include <QFileDialog>
+#include <QFileInfo>
 
 #include "settingspanel.h"
 #include "mainwindow.h"
@@ -52,7 +54,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(this, SIGNAL(msg(const QString&)), MW, SLOT(msg(const QString&)));
 
     networkInterfaces = new QComboBox();
-    //networkInterfaces->setMaximumWidth(180);
     interfaces = new QListWidget(this);
     QLabel *lbl03 = new QLabel("Network Interface");
     autoDiscovery = new QCheckBox("Auto Discovery");
@@ -61,10 +62,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     broadcastRepeat->setRange(2, 5);
     lblBroadcastRepeat = new QLabel("Broadcast Repeat");
     commonUsername = new QLineEdit(this);
-    //commonUsername->setMaximumWidth(100);
     QLabel *lbl01 = new QLabel("Common Username");
     commonPassword = new QLineEdit(this);
-    //commonPassword->setMaximumWidth(100);
     QLabel *lbl02 = new QLabel("Common Password");
     lowLatency = new QCheckBox("Low Latency Buffering");
     disableAudio = new QCheckBox("Disable Audio");
@@ -95,6 +94,8 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(hardwareDecoders, SIGNAL(currentTextChanged(const QString&)), this, SLOT(decoderChanged(const QString&)));
     lblDecoders = new QLabel("Hardware Decoder");
     hardwareDecoders->setCurrentText(MW->settings->value(decoderKey, "NONE").toString());
+
+    pythonSetter = new PythonSetter(mainWindow);
 
     generateFilename = new QRadioButton("Generate Unique Filename");
     defaultFilename = new QRadioButton("Use Default Filename");
@@ -130,12 +131,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     clear = new QPushButton("Clear Settings");
     connect(clear, SIGNAL(clicked()), this, SLOT(clearClicked()));
 
-    test = new QPushButton("Test");
-    connect(test, SIGNAL(clicked()), this, SLOT(testClicked()));
-
-    run = new QPushButton("Run");
-    connect(run, SIGNAL(clicked()), this, SLOT(runClicked()));
-
     QLabel *title = new QLabel("Digital Zoom");
 
     QGridLayout *frameLayout = new QGridLayout(sliderFrame);
@@ -169,12 +164,12 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(keyframeCount,       7, 1, 1, 1);
     layout->addWidget(lblDecoders,         8, 0, 1, 1);
     layout->addWidget(hardwareDecoders,    8, 1, 1, 2);
-    layout->addWidget(groupBox,            9, 0, 1, 4);
-    layout->addWidget(clear,               10, 0, 1, 1, Qt::AlignCenter);
-    layout->addWidget(style,               10, 1, 1, 1, Qt::AlignCenter);
-    layout->addWidget(test,                10, 2, 1, 1, Qt::AlignCenter);
-    layout->addWidget(run,                 10, 3, 1, 1, Qt::AlignCenter);
-    layout->addWidget(sliderFrame,         11, 0, 2, 4);
+    layout->addWidget(pythonSetter,       10, 0, 1, 4);
+    layout->addWidget(groupBox,           12, 0, 1, 4);
+    layout->addWidget(clear,              13, 0, 1, 1, Qt::AlignCenter);
+    layout->addWidget(style,              13, 1, 1, 1, Qt::AlignCenter);
+    layout->addWidget(sliderFrame,        14, 0, 2, 4);
+    //layout->setRowStretch(14, 20);
     setLayout(layout);
 
     getActiveNetworkInterfaces();
@@ -265,18 +260,16 @@ void SettingsPanel::disableAudioClicked(bool clicked)
     MW->settings->setValue(disAudioKey, clicked);
 }
 
-void SettingsPanel::generateFilenameClicked(bool arg)
+void SettingsPanel::generateFilenameClicked(bool clicked)
 {
-    std::cout << "generateed: " << arg << std::endl;
-    MW->settings->setValue(genFileKey, arg);
-    MW->settings->setValue(defFileKey, !arg);
+    MW->settings->setValue(genFileKey, clicked);
+    MW->settings->setValue(defFileKey, !clicked);
 }
 
-void SettingsPanel::defaultFilenameClicked(bool arg)
+void SettingsPanel::defaultFilenameClicked(bool clicked)
 {
-    std::cout << "default: " << arg << std::endl;
-    MW->settings->setValue(defFileKey, arg);
-    MW->settings->setValue(genFileKey, !arg);
+    MW->settings->setValue(defFileKey, clicked);
+    MW->settings->setValue(genFileKey, !clicked);
 }
 
 void SettingsPanel::zoomMoved(int arg)
@@ -322,22 +315,6 @@ void SettingsPanel::clearClicked()
         MW->settings->clear();
 }
 
-void SettingsPanel::testClicked()
-{
-    std::string python_dir = "/home/stephen/source/libonvif-1.4.3/onvif-gui/python/";
-    std::string python_file = "echo";
-    std::string python_class = "Echo";
-    std::string args = "key1=value1";
-    MW->glWidget->initPy(python_dir, python_file, python_class, args);
-}
-
-void SettingsPanel::runClicked()
-{
-    std::cout << "run clicked" << std::endl;
-    avio::Frame f(nullptr);
-    MW->glWidget->runPy(f);
-}
-
 void SettingsPanel::decoderChanged(const QString& name)
 {
     std::cout << "name: " << name.toLatin1().data() << std::endl;
@@ -378,7 +355,6 @@ void SettingsPanel::getActiveNetworkInterfaces()
     PIP_ADAPTER_INFO pAdapterInfo;
     PIP_ADAPTER_INFO pAdapter = NULL;
     DWORD dwRetVal = 0;
-    //UINT i;
     QStringList args;
 
     ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
@@ -424,7 +400,6 @@ void SettingsPanel::getActiveNetworkInterfaces()
 
     if (getifaddrs(&ifaddr) == -1) {
         perror("getifaddrs");
-        //exit(EXIT_FAILURE);
     }
 
     QStringList args;
@@ -442,7 +417,6 @@ void SettingsPanel::getActiveNetworkInterfaces()
 
             if (s != 0) {
                 printf("getnameinfo() failed: %s\n", gai_strerror(s));
-                //exit(EXIT_FAILURE);
             }
 
             if (strcmp(ifa->ifa_name, "lo")) {
@@ -476,3 +450,92 @@ void SettingsPanel::getCurrentlySelectedIP(char *buffer)
     buffer[i] = '\0';
 }
 
+PythonSetter::PythonSetter(QMainWindow *parent) : QGroupBox(parent)
+{
+    mainWindow = parent;
+
+    MW->glWidget->python_enabled = MW->settings->value(pythonOnKey, false).toBool();
+    QString filename = MW->settings->value(pythonFileKey, "").toString();
+    QFileInfo fileInfo(filename);
+    MW->glWidget->python_dir = fileInfo.path().toLatin1().data();
+    MW->glWidget->python_file = fileInfo.baseName().toLatin1().data();
+    MW->glWidget->python_class = MW->settings->value(pythonClassKey, "").toString().toLatin1().data();
+    MW->glWidget->python_args = MW->settings->value(pythonInitKey, "").toString().toLatin1().data();
+
+    setCheckable(true);
+    setTitle("Enable python video processing");
+    setChecked(MW->settings->value(pythonOnKey, false).toBool());
+    connect(this, SIGNAL(clicked(bool)), this, SLOT(checkBoxClicked(bool)));
+    
+    lblFile = new QLabel("File", this);
+    filePath = new QLineEdit(this);
+    filePath->setText(MW->settings->value(pythonFileKey, "").toString());
+
+    button = new QPushButton("...", this);
+    button->setMaximumWidth(30);
+    connect(button, SIGNAL(clicked()), this, SLOT(filePathSet()));
+    
+    lblInit = new QLabel("Init", this);
+    initArgs = new QLineEdit(this);
+    initArgs->setText(MW->settings->value(pythonInitKey, "").toString());
+    connect(initArgs, SIGNAL(textEdited(const QString&)), this, SLOT(initArgEdited(const QString&)));
+
+    lblClass = new QLabel("Class", this);
+    className = new QLineEdit("Class", this);
+    className->setText(MW->settings->value(pythonClassKey, "").toString());
+    connect(className, SIGNAL(textEdited(const QString&)), this, SLOT(classNameEdited(const QString&)));
+
+    QGridLayout *layout = new QGridLayout(this);
+    layout->addWidget(lblFile,    1, 0, 1, 1);
+    layout->addWidget(filePath,   1, 1, 1, 1);
+    layout->addWidget(button,     1, 2, 1, 1);
+    layout->addWidget(lblInit,    2, 0, 1, 1);
+    layout->addWidget(initArgs,   2, 1, 1, 2);
+    layout->addWidget(lblClass,   3, 0, 1, 1);
+    layout->addWidget(className,  3, 1, 1, 2);
+}
+
+void PythonSetter::setPath(const QString& path)
+{
+    filePath->setText(path);
+}
+
+QString PythonSetter::path() const
+{
+    return filePath->text();
+}
+
+void PythonSetter::checkBoxClicked(bool clicked) 
+{
+    MW->settings->setValue(pythonOnKey, clicked);
+    MW->glWidget->python_enabled = clicked;
+}
+
+void PythonSetter::filePathSet()
+{
+    QString dir = "/home";
+    if (filePath->text().length() > 0) {
+        QFileInfo fileInfo(filePath->text());
+        std::cout << fileInfo.path().toLatin1().data() << std::endl;
+        dir = fileInfo.path();
+    }
+
+    QString path = QFileDialog::getOpenFileName(mainWindow, "Open File", dir, "Python (*.py)");
+    if (path.length() > 0) {
+        filePath->setText(path);
+        MW->settings->setValue(pythonFileKey, path);
+        MW->glWidget->python_dir = path.toLatin1().data();
+    }
+}
+
+void PythonSetter::initArgEdited(const QString& arg)
+{
+    MW->settings->setValue(pythonInitKey, arg);
+    MW->glWidget->python_args = arg.toLatin1().data();
+}
+
+void PythonSetter::classNameEdited(const QString& arg)
+{
+    MW->settings->setValue(pythonClassKey, arg);
+    MW->glWidget->python_class = arg.toLatin1().data();
+}

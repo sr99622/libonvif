@@ -179,22 +179,26 @@ bool PyRunner::run(Frame& f)
 
 						uint8_t* np_buf = (uint8_t*)PyArray_BYTES((PyArrayObject*)pImgRet);
 
-						if (f.m_frame->width != width || f.m_frame->height != height) {
-							AVPixelFormat pix_fmt = (AVPixelFormat)f.m_frame->format;
-							int64_t pts = f.m_frame->pts;
-							av_frame_free(&f.m_frame);
-							f.m_frame = av_frame_alloc();
-							f.m_frame->width = width;
-							f.m_frame->height = height;
-							f.m_frame->format = pix_fmt;
-							f.m_frame->pts = pts;
-							av_frame_get_buffer(f.m_frame, 0);
-							av_frame_make_writable(f.m_frame);
-						}
+                        try {
+                            if (f.m_frame->width != width || f.m_frame->height != height) {
+                                AVPixelFormat pix_fmt = (AVPixelFormat)f.m_frame->format;
+                                int64_t pts = f.m_frame->pts;
+                                av_frame_free(&f.m_frame);
+                                f.m_frame = av_frame_alloc();
+                                f.m_frame->width = width;
+                                f.m_frame->height = height;
+                                f.m_frame->format = pix_fmt;
+                                f.m_frame->pts = pts;
+                                ex.ck(av_frame_get_buffer(f.m_frame, 0), AFGB);
+                                ex.ck(av_frame_make_writable(f.m_frame), AFMW);
+                            }
 
-						for (int y = 0; y < height; y++)
-							memcpy(f.m_frame->data[0] + y * f.m_frame->linesize[0], np_buf + y * stride, width * depth);
-
+                            for (int y = 0; y < height; y++)
+                                memcpy(f.m_frame->data[0] + y * f.m_frame->linesize[0], np_buf + y * stride, width * depth);
+                        }
+                        catch (const Exception& e) {
+                            std::cout << "Error converting array returned from python into AVFrame " << e.what() << std::endl;
+                        }
 					}
 				}
 

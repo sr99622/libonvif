@@ -261,7 +261,6 @@ bool Display::display()
         PlayState state = getEvents(&events);
 
         if (state == PlayState::QUIT) {
-            std::cout << "request_break" << std::endl;
             reader->request_break = true;
             break;
         }
@@ -282,7 +281,6 @@ bool Display::display()
             }
             else {
                 videoPresentation();
-                //std::cout << "sdl delay" << std::endl;
                 SDL_Delay(SDL_EVENT_LOOP_WAIT);
             }
 
@@ -310,16 +308,6 @@ bool Display::display()
                     reader->seek_found_pts = AV_NOPTS_VALUE;
                     paused = user_paused;
                 }
-
-                /*
-                if (f.m_frame->pts != reader->seek_found_pts) {
-                    paused = false;
-                }
-                else {
-                    reader->seek_found_pts = AV_NOPTS_VALUE;
-                    paused = user_paused;
-                }
-                */
             }
 
             paused_frame = f;
@@ -332,13 +320,9 @@ bool Display::display()
                 toggleRecord();
             }
 
-            ////if ((!afq_in || reader->vpq_max_size > 1) && !ignore_video_pts)
-            //std::cout << "delay" << std::endl;
-            //    SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
-
             if (P->glWidget) {
-                std::cout << "have widget" << std::endl;
-                P->glWidget->runPy(f);
+                if (P->glWidget->python_enabled)
+                    P->glWidget->runPy(f);
             }
             
             if (!reader->seeking()) {
@@ -425,16 +409,6 @@ int Display::initAudio(int stream_sample_rate, AVSampleFormat stream_sample_form
                 throw Exception(std::string("SDL audio init error: ") + SDL_GetError());
         }
 
-        /*
-        int num_drivers = SDL_GetNumAudioDrivers();
-        for (int i = 0; i < num_drivers; i++)
-            std::cout << "audio driver: " << i << " : " << SDL_GetAudioDriver(i) << std::endl;
-
-        int num_devices = SDL_GetNumAudioDevices(0);
-        for (int i = 0; i < num_devices; i++)
-            std::cout << "audio device: " << i << " : " << SDL_GetAudioDeviceName(i, 0) << std::endl;
-        */
-
         audioDeviceID = SDL_OpenAudioDevice(NULL, 0, &sdl, &have, 0);
         if (audioDeviceID == 0) {
             throw Exception(std::string("SDL_OpenAudioDevice exception: ") + SDL_GetError());
@@ -463,7 +437,7 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
         return;
 
     try {
-        if (/*d->disable_audio ||*/ d->user_paused)
+        if (d->user_paused)
             return;
 
         while (len > 0) {

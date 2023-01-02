@@ -93,6 +93,12 @@ public:
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
     void* process = nullptr;
+
+    bool python_enabled = false;
+    std::string python_dir;
+    std::string python_file;
+    std::string python_class;
+    std::string python_args;
     std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
     std::function<bool(avio::Frame&)> runPy = nullptr;
     bool pyInitialized = false;

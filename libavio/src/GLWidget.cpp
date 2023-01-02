@@ -351,7 +351,6 @@ void GLWidget::start(void * parent)
 
     try {
         avio::Process process;
-        //widget->process = (void*)&process;
 
         avio::Reader reader(widget->uri);
         if (QString(widget->uri).startsWith("rtsp://"))
@@ -366,7 +365,6 @@ void GLWidget::start(void * parent)
         widget->media_start_time = reader.start_time();
 
         avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO, (AVHWDeviceType)widget->hardwareDecoder);
-        //avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO, AV_HWDEVICE_TYPE_VDPAU);
         videoDecoder.set_video_in(reader.video_out());
         videoDecoder.set_video_out("vfq_decoder");
 
@@ -375,16 +373,17 @@ void GLWidget::start(void * parent)
         videoFilter.set_video_out("vfq_filter");
 
         avio::Display display(reader);
-        //display.glWidget = widget;
         display.set_video_in(videoFilter.video_out());
         display.set_video_out("vfq_display");
         widget->set_video_in(display.video_out());
         if (widget->initPy && !widget->pyInitialized) {
-            std::string python_dir = "/home/stephen/source/libonvif-1.4.3/onvif-gui/python/";
-            std::string python_file = "echo";
-            std::string python_class = "Echo";
-            std::string args = "key1=value1";
-            widget->initPy(python_dir, python_file, python_class, args);
+
+            std::cout << "python_dir: " << widget->python_dir << std::endl;
+            std::cout << "python_file: " << widget->python_file << std::endl;
+            std::cout << "python_class: " << widget->python_class << std::endl;
+            std::cout << "python_args: " << widget->python_args << std::endl;
+
+            widget->initPy(widget->python_dir, widget->python_file, widget->python_class, widget->python_args);
             widget->pyInitialized = true;
         }
  

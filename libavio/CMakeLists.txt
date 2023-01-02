@@ -44,7 +44,6 @@ set(CMAKE_AUTOMOC ON)
 add_library(avio SHARED
     src/Reader.cpp
     src/Exception.cpp
-    src/Event.cpp
     src/Frame.cpp
     src/Decoder.cpp
     src/Filter.cpp

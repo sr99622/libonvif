@@ -36,6 +36,7 @@ public:
 	AVPacket* read();
 
 	void* process;
+	void check_pause();
 
 	void request_seek(float pct);
 	int64_t seek_target_pts = AV_NOPTS_VALUE;
@@ -98,6 +99,9 @@ public:
 
 	std::string vpq_name;
 	std::string apq_name;
+
+	Queue<AVPacket*>* vpq;
+	Queue<AVPacket*>* apq;
 
 	int vpq_max_size = 0;
 	int apq_max_size = 0;

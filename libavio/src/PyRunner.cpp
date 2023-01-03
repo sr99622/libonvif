@@ -35,7 +35,7 @@ PyRunner::~PyRunner()
 
 int PyRunner::initialize(const std::string& dir, const std::string& file, const std::string& py_class, const std::string& arg)
 {
-    import_array1(1);
+//    import_array1(1);
     try {
 		PyObject* sysPath = PySys_GetObject("path");
 		PyObject* dirName = PyUnicode_FromString(dir.c_str());
@@ -77,7 +77,8 @@ PyObject* PyRunner::getImage(Frame& f)
 {
 	PyObject* result;
 	try {
-		if (!PyArray_API) throw Exception("numpy not initialized");
+		//if (!PyArray_API) throw Exception("numpy not initialized");
+		if (!PyArray_API) import_array();
 
 		int depth = -1;
 		switch (f.m_frame->format) {

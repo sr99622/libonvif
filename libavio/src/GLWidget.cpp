@@ -249,7 +249,7 @@ bool GLWidget::isPaused()
     bool result = false;
     if (process) {
         if (((Process*)process)->display) {
-            result = ((Process*)process)->display->user_paused;
+            result = ((Process*)process)->display->paused;
         }
     }
     return result;
@@ -314,6 +314,15 @@ void GLWidget::seek(float arg)
             ((Process*)process)->reader->request_seek(arg);
         }
     }
+}
+
+Reader* GLWidget::get_reader()
+{
+    Reader* result = nullptr;
+    if (process) {
+        result = ((Process*)process)->reader;
+    }
+    return result;
 }
 
 void GLWidget::stop()

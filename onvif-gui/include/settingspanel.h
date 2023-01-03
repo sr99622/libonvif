@@ -79,11 +79,11 @@ public:
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
-    QCheckBox *multiBroadcast;
+    //QCheckBox *multiBroadcast;
     QPushButton *style;
     QPushButton *clear;
-    QSpinBox *broadcastRepeat;
-    QLabel *lblBroadcastRepeat;
+    //QSpinBox *broadcastRepeat;
+    //QLabel *lblBroadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;

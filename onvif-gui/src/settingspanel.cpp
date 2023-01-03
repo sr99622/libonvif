@@ -54,21 +54,44 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(this, SIGNAL(msg(const QString&)), MW, SLOT(msg(const QString&)));
 
     networkInterfaces = new QComboBox();
+    networkInterfaces->setMaximumWidth(300);
     interfaces = new QListWidget(this);
     QLabel *lbl03 = new QLabel("Network Interface");
+    getActiveNetworkInterfaces();
+    QString netIntf = MW->settings->value(netIntfKey, "").toString();
+    if (netIntf.length() > 0)
+        networkInterfaces->setCurrentText(netIntf);
+    connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
+
+
     autoDiscovery = new QCheckBox("Auto Discovery");
+    connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
+    autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
+
+    /*
     multiBroadcast = new QCheckBox("Multi Broadcast");
+    multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
+    connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
+    lblBroadcastRepeat = new QLabel("Broadcast Repeat");
     broadcastRepeat = new QSpinBox(this);
     broadcastRepeat->setRange(2, 5);
-    lblBroadcastRepeat = new QLabel("Broadcast Repeat");
-    commonUsername = new QLineEdit(this);
+    broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
+    connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
+    /**/
+
     QLabel *lbl01 = new QLabel("Common Username");
-    commonPassword = new QLineEdit(this);
+    commonUsername = new QLineEdit(this);
+    //commonUsername->setMaximumWidth(180);
+    
     QLabel *lbl02 = new QLabel("Common Password");
+    commonPassword = new QLineEdit(this);
+    //commonPassword->setMaximumWidth(180);
+
     lowLatency = new QCheckBox("Low Latency Buffering");
     disableAudio = new QCheckBox("Disable Audio");
     keyframeCount = new QSpinBox(this);
     keyframeCount->setRange(1, 100);
+    keyframeCount->setMaximumWidth(140);
     lblKeyframeCount = new QLabel("Write Cache Size");
     
     QStringList decoders = {
@@ -88,21 +111,24 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     listDecoders = new QListWidget(this);
     listDecoders->addItems(decoders);
 
+    lblDecoders = new QLabel("Hardware Decoder");
     hardwareDecoders = new QComboBox(this);
     hardwareDecoders->setModel(listDecoders->model());
     hardwareDecoders->setView(listDecoders);
+    //hardwareDecoders->setMaximumWidth(180);
     connect(hardwareDecoders, SIGNAL(currentTextChanged(const QString&)), this, SLOT(decoderChanged(const QString&)));
-    lblDecoders = new QLabel("Hardware Decoder");
     hardwareDecoders->setCurrentText(MW->settings->value(decoderKey, "NONE").toString());
 
-    pythonSetter = new PythonSetter(mainWindow);
+    //pythonSetter = new PythonSetter(mainWindow);
 
     generateFilename = new QRadioButton("Generate Unique Filename");
     defaultFilename = new QRadioButton("Use Default Filename");
     QGroupBox *groupBox = new QGroupBox("Record Filename", this);
+    //groupBox->setMaximumWidth(200);
 
     QFrame *sliderFrame = new QFrame(this);
-    sliderFrame->setMaximumHeight(300);
+    //sliderFrame->setMaximumHeight(300);
+    //sliderFrame->setMaximumWidth(200);
     sliderFrame->setFrameShape(QFrame::Panel);
     sliderFrame->setFrameShadow(QFrame::Plain);
 
@@ -145,40 +171,35 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
 
     QGridLayout *groupLayout = new QGridLayout(groupBox);
     groupLayout->addWidget(generateFilename,  0, 0, 1, 1);
-    groupLayout->addWidget(defaultFilename,   0, 1, 1, 1);
+    groupLayout->addWidget(defaultFilename,   1, 0, 1, 1);
 
-    QGridLayout *layout = new QGridLayout();
+    QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(lbl03,               0, 0, 1, 1);
-    layout->addWidget(networkInterfaces,   0, 1, 1, 2);
+    layout->addWidget(networkInterfaces,   0, 1, 1, 1);
     layout->addWidget(autoDiscovery,       1, 0, 1, 2);
-    layout->addWidget(multiBroadcast,      2, 0, 1, 1);
-    layout->addWidget(lblBroadcastRepeat,  2, 1, 1, 1);
-    layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
+    //layout->addWidget(multiBroadcast,      2, 0, 1, 1);
+    //layout->addWidget(lblBroadcastRepeat,  2, 1, 1, 1);
+    //layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
     layout->addWidget(lbl01,               3, 0, 1, 1);
-    layout->addWidget(commonUsername,      3, 1, 1, 2);
+    layout->addWidget(commonUsername,      3, 1, 1, 1);
     layout->addWidget(lbl02,               4, 0, 1, 1);
-    layout->addWidget(commonPassword,      4, 1, 1, 2);
+    layout->addWidget(commonPassword,      4, 1, 1, 1);
     layout->addWidget(lowLatency,          5, 0, 1, 3);
     layout->addWidget(disableAudio,        6, 0, 1, 3);
     layout->addWidget(lblKeyframeCount,    7, 0, 1, 1);
     layout->addWidget(keyframeCount,       7, 1, 1, 1);
     layout->addWidget(lblDecoders,         8, 0, 1, 1);
     layout->addWidget(hardwareDecoders,    8, 1, 1, 2);
-    layout->addWidget(pythonSetter,       10, 0, 1, 4);
-    layout->addWidget(groupBox,           12, 0, 1, 4);
-    layout->addWidget(clear,              13, 0, 1, 1, Qt::AlignCenter);
-    layout->addWidget(style,              13, 1, 1, 1, Qt::AlignCenter);
-    layout->addWidget(sliderFrame,        14, 0, 2, 4);
+    //layout->addWidget(pythonSetter,       10, 0, 1, 4);
+    layout->addWidget(groupBox,            9, 0, 1, 3);
+    layout->addWidget(clear,              10, 0, 1, 1, Qt::AlignCenter);
+    layout->addWidget(style,              10, 1, 1, 1, Qt::AlignCenter);
+    layout->addWidget(sliderFrame,        11, 0, 2, 3);
     //layout->setRowStretch(14, 20);
     setLayout(layout);
 
-    getActiveNetworkInterfaces();
-
     commonUsername->setText(MW->settings->value(usernameKey, "").toString());
     commonPassword->setText(MW->settings->value(passwordKey, "").toString());
-    autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
-    multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
-    broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
     keyframeCount->setValue(MW->settings->value(keyCountKey, 1).toInt());
     lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
     disableAudio->setChecked(MW->settings->value(disAudioKey, false).toBool());
@@ -188,25 +209,18 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     autoDiscoveryClicked(autoDiscovery->isChecked());
     MW->glWidget->keyframe_cache_size = keyframeCount->value();
 
-    QString netIntf = MW->settings->value(netIntfKey, "").toString();
-    if (netIntf.length() > 0)
-        networkInterfaces->setCurrentText(netIntf);
-
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
     connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
-    connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
-    connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
-    connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
     connect(keyframeCount, SIGNAL(valueChanged(int)), this, SLOT(keyframeCountChanged(int)));
     connect(lowLatency, SIGNAL(clicked(bool)), this, SLOT(lowLatencyClicked(bool)));
     connect(disableAudio, SIGNAL(clicked(bool)), this, SLOT(disableAudioClicked(bool)));
-    connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
     connect(generateFilename, SIGNAL(clicked(bool)), this, SLOT(generateFilenameClicked(bool)));
     connect(defaultFilename, SIGNAL(clicked(bool)), this, SLOT(defaultFilenameClicked(bool)));
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
 {
+    /*
     if (checked) {
         multiBroadcast->setEnabled(true);
         broadcastRepeat->setEnabled(true);
@@ -218,15 +232,16 @@ void SettingsPanel::autoDiscoveryClicked(bool checked)
         lblBroadcastRepeat->setEnabled(false);
         multiBroadcast->setChecked(false);
     }
+    */
 
     MW->settings->setValue(autoDiscKey, autoDiscovery->isChecked());
-    MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
+    //MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
 }
 
 void SettingsPanel::multiBroadcastClicked(bool checked)
 {
     Q_UNUSED(checked);
-    MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
+    //MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
 }
 
 void SettingsPanel::broadcastRepeatChanged(int value)

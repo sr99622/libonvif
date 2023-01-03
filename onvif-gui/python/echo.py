@@ -1,6 +1,14 @@
-#import numpy as np
-#import cv2
-#from PIL import Image, ImageDraw
+import numpy as np
+from PIL import Image, ImageDraw
+import cv2
+import torch
+import torchvision
+import torchvision.transforms as transforms
+
+transform = transforms.Compose([
+    transforms.ToTensor(),
+])
+
 
 class Echo:
     def __init__(self, arg):
@@ -12,6 +20,15 @@ class Echo:
             key_value = line.split("=")
             print("key  ", key_value[0])
             print("value", key_value[1])
+        
+        
+        self.min_size = 800
+        self.threshold = 0.35
+        self.model = torchvision.models.detection.retinanet_resnet50_fpn(pretrained=True,  min_size=self.min_size)
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.eval().to(self.device)
+
+
 
     def __call__(self, arg):
         print("echo.__call__")
@@ -22,11 +39,27 @@ class Echo:
         rts = arg[2][0]
         print("rts", rts)
 
-        #image = Image.fromarray(img.astype(np.uint8))
-        #draw = ImageDraw.Draw(image)
-        #draw.line([(0, 0), (1000, 1000)], fill=(255, 255, 255), width=10)
+        #img = arg[0][0]
+        print("test 1")
+        tensor = transform(img).to(self.device)
+        print("test 2")
+        tensor = tensor.unsqueeze(0)
 
-        #img = np.asarray(image)
+        with torch.no_grad():
+            outputs = self.model(tensor)
+
+        scores = outputs[0]['scores'].detach().cpu().numpy()
+        labels = outputs[0]['labels'].detach().cpu().numpy()
+        boxes = outputs[0]['boxes'].detach().cpu().numpy()
+        labels = labels[np.array(scores) >= self.threshold]
+        boxes = boxes[np.array(scores) >= self.threshold].astype(np.int32)
+        boxes = boxes[np.array(labels) == 1]
+
+
+        image = Image.fromarray(img.astype(np.uint8))
+        draw = ImageDraw.Draw(image)
+        draw.line([(0, 0), (1000, 1000)], fill=(255, 0, 255), width=10)
+        img = np.asarray(image)
 
         # Possible return arguments
 

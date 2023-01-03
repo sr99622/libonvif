@@ -271,7 +271,34 @@ bool Display::display()
         if (paused) 
         {
             f = paused_frame;
+            bool doit = true;
             
+            while (reader->seeking()) {
+                if (afq_in) {
+                    while (afq_in->size() > 0)
+                        afq_in->pop();
+                }
+                vfq_in->pop(f);
+                if (f.isValid()) {
+                    std::cout << "seeking: " << reader->seek_found_pts << std::endl;
+                    std::cout << "current: " << f.m_frame->pts << std::endl;
+                    if (f.m_frame->pts == reader->seek_found_pts) {
+                        reader->seek_found_pts = AV_NOPTS_VALUE;
+                        //paused_frame = f;
+                        //paused = user_paused;
+                        doit = false;
+                    }
+                }
+                else {
+                    std::cout << "invalid frame" << std::endl;
+                    playing = false;
+                    break;
+                }
+            }
+            videoPresentation();
+            SDL_Delay(SDL_EVENT_LOOP_WAIT);
+
+            /*
             if (reader->seeking()) {
                 if (afq_in) {
                     while (afq_in->size() > 0)
@@ -283,8 +310,9 @@ bool Display::display()
                 videoPresentation();
                 SDL_Delay(SDL_EVENT_LOOP_WAIT);
             }
-
-            break;
+            */
+            if (doit)
+                break;
         }
 
         try 
@@ -302,13 +330,17 @@ bool Display::display()
                 f.m_rts = rtClock.stream_time();
             }
 
-            if (reader->seeking()) {
-                std::cout << "display reader seeking" << std::endl;
+            /*
+            while (reader->seeking()) {
+                vfq_in->pop(f);
+                std::cout << "seeking: " << reader->seek_found_pts << std::endl;
+                std::cout << "current: " << f.m_frame->pts << std::endl;
                 if (f.m_frame->pts == reader->seek_found_pts) {
                     reader->seek_found_pts = AV_NOPTS_VALUE;
                     paused = user_paused;
                 }
             }
+            */
 
             paused_frame = f;
 
@@ -325,10 +357,10 @@ bool Display::display()
                     P->glWidget->runPy(f);
             }
             
-            if (!reader->seeking()) {
+            //if (!reader->seeking()) {
                 SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
                 videoPresentation();
-            }
+            //}
             reader->last_video_pts = f.m_frame->pts;
 
             if (vfq_out) {
@@ -437,8 +469,8 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
         return;
 
     try {
-        if (d->user_paused)
-            return;
+        //if (d->user_paused)
+        //    return;
 
         while (len > 0) {
             if (d->sdl_buffer.size() < d->audio_buffer_len) {
@@ -503,7 +535,7 @@ void Display::togglePause()
 {
     paused = !paused;
     rtClock.pause(paused);
-    user_paused = paused;
+    //user_paused = paused;
 }
 
 void Display::toggleRecord()

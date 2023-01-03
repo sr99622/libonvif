@@ -32,15 +32,24 @@ Q_DECLARE_METATYPE(std::string);
 
 int main(int argc, char *argv[])
 {
+    /*
+    std::string python_dir = "C:/Users/sr996/source/libonvif/onvif-gui/python";
+    std::string python_file = "echo";
+    std::string python_class = "Echo";
+    std::string python_args = "key1=value1";
     avio::PyRunner runner;
+    import_array();
+    runner.initialize(python_dir, python_file, python_class, python_args);
+    */
+
     qRegisterMetaType<std::string>();
 
     QApplication a(argc, argv);
     MainWindow w;
 
-    using namespace std::placeholders;
-    w.glWidget->initPy = std::bind(&avio::PyRunner::initialize, &runner, _1, _2, _3, _4);
-    w.glWidget->runPy = std::bind(&avio::PyRunner::run, &runner, _1);
+    //using namespace std::placeholders;
+    //w.glWidget->initPy = std::bind(&avio::PyRunner::initialize, &runner, _1, _2, _3, _4);
+    //w.glWidget->runPy = std::bind(&avio::PyRunner::run, &runner, _1);
     
 	w.show();
     return a.exec();

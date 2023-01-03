@@ -59,10 +59,26 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     std::deque<AVPacket*> pkts;
     int keyframe_count = 0;
     int keyframe_marker = 0;
+    reader->vpq = vpq;
+    reader->apq = apq;
 
     try {
-        while (AVPacket* pkt = reader->read())
+        while (true)
         {
+            //bool paused = ;
+            //while (((Process*)reader->process)->display->paused) {
+            //    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            //}
+
+            //reader->check_pause();
+
+            AVPacket* pkt = reader->read();
+            if (!pkt)
+                break;
+            //    std::cout << "null pkt" << std::endl;
+            //if (!pkt && reader->seek_target_pts == AV_NOPTS_VALUE)
+            //    break;
+            std::cout << "pkt pts: " << pkt->pts << std::endl;
             reader->running = true;
             if (reader->request_break) {
                 reader->clear_stream_queues();
@@ -70,12 +86,13 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
             }
 
             if (reader->seek_target_pts != AV_NOPTS_VALUE) {
-                AVPacket* tmp = reader->seek();
                 reader->clear_stream_queues();
+                AVPacket* tmp = reader->seek();
+                //std::cout << "reader seek found: " << tmp->pts << std::endl;
                 while (pkts.size() > 0) {
-                    AVPacket* tmp = pkts.front();
+                    AVPacket* tmp2 = pkts.front();
                     pkts.pop_front();
-                    av_packet_free(&tmp);
+                    av_packet_free(&tmp2);
                 }
 
                 if (tmp) {
@@ -159,9 +176,11 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 else
                     av_packet_free(&pkt);
             }
+            std::cout << "read loop continue" << std::endl;
         }
         if (vpq) vpq->push(NULL);
         if (apq) apq->push(NULL);
+        std::cout << "read loop done" << std::endl;
     }
     catch (const QueueClosedException& e) {}
     catch (const Exception& e) { std::cout << " reader failed: " << e.what() << std::endl; }

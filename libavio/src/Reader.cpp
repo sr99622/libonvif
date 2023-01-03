@@ -123,6 +123,8 @@ AVPacket* Reader::read()
 
 AVPacket* Reader::seek()
 {
+    std::cout << "seek target pts: " << seek_target_pts << std::endl;
+    std::cout << "last video pts: " << last_video_pts << std::endl;
     int flags = AVSEEK_FLAG_FRAME;
     if (seek_target_pts < last_video_pts)
         flags |= AVSEEK_FLAG_BACKWARD;
@@ -132,6 +134,7 @@ AVPacket* Reader::seek()
     }
     catch (const Exception& e) {
         std::cout << e.what() << std::endl;
+        return NULL;
     }
 
     seek_target_pts = AV_NOPTS_VALUE;
@@ -143,13 +146,21 @@ AVPacket* Reader::seek()
             break;
         }
     }
-
+    std::cout << "seek target is " << seek_found_pts << std::endl;
     return pkt;
+}
+
+void Reader::check_pause()
+{
+    while (((Process*)process)->display->paused && seek_target_pts == AV_NOPTS_VALUE) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 }
 
 void Reader::request_seek(float pct)
 {
     seek_target_pts = (start_time() + (pct * duration()) / av_q2d(fmt_ctx->streams[seek_stream_index()]->time_base)) / 1000;
+    std::cout << "seek requested: " << seek_target_pts << std::endl;
 }
 
 bool Reader::seeking() 

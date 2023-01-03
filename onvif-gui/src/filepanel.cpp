@@ -66,7 +66,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     connect(MW->glWidget, SIGNAL(progress(float)), this, SLOT(progress(float)));
     connect(MW->glWidget, SIGNAL(mediaPlayingFinished()), this, SLOT(mediaPlayingFinished()));
     connect(MW->glWidget, SIGNAL(mediaPlayingStarted()), this, SLOT(mediaPlayingStarted()));
-    connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
+    //connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
     lblProgress = new QLabel("0:00", this);
     lblDuration = new QLabel("-:--", this);
     lblSeek = new ProgressLabel(this);
@@ -414,7 +414,18 @@ bool ProgressSlider::event(QEvent *e)
 void ProgressSlider::mousePressEvent(QMouseEvent *event)
 {
     float pct = event->pos().x() / (float)width();
-    emit seek(pct);
+    std::cout << "mouse press event: " << pct << std::endl;
+    //emit seek(pct);
+    //MW->glWidget->seek(pct);
+    avio::GLWidget* glWidget = ((MainWindow*)((FilePanel*)filePanel)->mainWindow)->glWidget;
+    avio::Reader* reader = glWidget->get_reader();
+    if (reader) {
+        if (reader->running) {
+            std::cout << "reader not running" << std::endl;
+            glWidget->seek(pct);
+            //read(reader, reader->vpq, reader->apq);
+        }
+    }
 }
 
 void ProgressSlider::mouseMoveEvent(QMouseEvent *e)

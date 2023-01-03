@@ -93,6 +93,7 @@ public:
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
     void* process = nullptr;
+    Reader* get_reader();
 
     bool python_enabled = false;
     std::string python_dir;

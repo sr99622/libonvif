@@ -93,5 +93,7 @@
         <file>unchecked_hi.png</file>
         <file>unchecked_lo.png</file>
 
+        <file>onvif-gui.png</file>
+
     </qresource>
 </RCC>

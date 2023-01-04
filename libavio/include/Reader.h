@@ -36,7 +36,6 @@ public:
 	AVPacket* read();
 
 	void* process;
-	void check_pause();
 
 	void request_seek(float pct);
 	int64_t seek_target_pts = AV_NOPTS_VALUE;
@@ -78,14 +77,11 @@ public:
 	AVRational audio_time_base();
 
 	int keyframe_cache_size();
-	//std::string get_pipe_out_filename();
-	//std::string extension;
 	bool request_pipe_write = false;
 	bool pipe_out = false;
 	bool pipe_out_enabled = false;
 	std::string pipe_out_dir;
 	std::string pipe_out_filename;
-	//int keyframe_cache_size = 1;
 
 	AVFormatContext* fmt_ctx = NULL;
 	int video_stream_index = -1;
@@ -99,9 +95,6 @@ public:
 
 	std::string vpq_name;
 	std::string apq_name;
-
-	Queue<AVPacket*>* vpq;
-	Queue<AVPacket*>* apq;
 
 	int vpq_max_size = 0;
 	int apq_max_size = 0;
@@ -118,6 +111,7 @@ public:
 	void clear_stream_queues();
 	bool isPaused();
 	void clear_decoders();
+	void signal_eof();
 
 	ExceptionHandler ex;
 };

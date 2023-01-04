@@ -53,6 +53,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     applyButton = new QPushButton(this);
     applyButton->setStyleSheet(MW->getButtonStyle("apply"));
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));
+
     discoverButton = new QPushButton(this);
     discoverButton->setStyleSheet(MW->getButtonStyle("discover"));
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
@@ -131,6 +132,8 @@ CameraPanel::CameraPanel(QMainWindow *parent)
         discovery->cameraAlias.insert(key, cameraNames->value(key).toString());
     }
 
+    disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
+
     if (MW->settingsPanel->autoDiscovery->isChecked()) {
         discovery->start();
     }
@@ -202,6 +205,7 @@ void CameraPanel::playButtonClicked()
     if (MW->glWidget->process){
         if (recording)
             recordButtonClicked();
+        recordButton->setEnabled(false);
         MW->glWidget->stop();
         playButton->setStyleSheet(MW->getButtonStyle("play"));
     }
@@ -211,7 +215,6 @@ void CameraPanel::playButtonClicked()
             cameraListDoubleClicked();
         }
     }
-
 }
 
 void CameraPanel::showLoginDialog(Credential *credential)
@@ -226,14 +229,10 @@ void CameraPanel::showLoginDialog(Credential *credential)
     int stop = host.indexOf("/", start);
     int len = stop - start;
     QString ip = host.mid(start, len);
-    //QString name = "(";
-    //        name += ip + ") ";
-    //        name += "Camera Name: ";
-    //        name += credential->camera_name;
 
     loginDialog->cameraIP->setText(QString("Camera IP: ").append(ip));
     loginDialog->cameraName->setText(QString("Camera Name: ").append(credential->camera_name));
-    //loginDialog->cameraName->setText(name);
+    
     if (loginDialog->exec()) {
         QString username = loginDialog->username->text();
         strncpy(credential->username, username.toLatin1(), username.length());
@@ -272,6 +271,25 @@ void CameraPanel::recordButtonClicked()
         filename.append("/").append("out.mp4");
 
     MW->glWidget->toggle_pipe_out(filename.toLatin1().data());
+}
+
+void CameraPanel::disableToolTips(bool arg)
+{
+    if (!arg)
+    {
+        applyButton->setToolTip("Apply");
+        discoverButton->setToolTip("Discover");
+        playButton->setToolTip("Play");
+        recordButton->setToolTip("Record");
+        btnMute->setToolTip("Mute");
+    }
+    else {
+        applyButton->setToolTip("");
+        discoverButton->setToolTip("");
+        playButton->setToolTip("");
+        recordButton->setToolTip("");
+        btnMute->setToolTip("");
+    }
 }
 
 void CameraPanel::fillData()
@@ -324,7 +342,7 @@ void CameraPanel::adjustVolume(int value)
 void CameraPanel::streamStarting()
 {
     connecting = false;
-   MW->glWidget->setVolume(volumeSlider->value());
+    MW->glWidget->setVolume(volumeSlider->value());
     MW->setWindowTitle("Streaming from " + MW->currentStreamingMediaName);
     recordButton->setEnabled(true);
 }

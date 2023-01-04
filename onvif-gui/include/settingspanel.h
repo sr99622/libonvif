@@ -47,13 +47,14 @@ public:
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
     //QCheckBox *multiBroadcast;
-    QPushButton *style;
-    QPushButton *clear;
     //QSpinBox *broadcastRepeat;
     //QLabel *lblBroadcastRepeat;
+    QPushButton *style;
+    QPushButton *clear;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;
+    QCheckBox *hideToolTips;
     QComboBox *hardwareDecoders;
     QRadioButton *generateFilename;
     QRadioButton *defaultFilename;
@@ -84,6 +85,7 @@ public:
     const QString defFileKey    = "SettingsPanel/defaultFilename";
     const QString disAudioKey   = "SettingsPanel/disableAudio";
     const QString keyCountKey   = "SettingsPanel/keyframeCount";
+    const QString hideTipsKey   = "SettingsPanel/hideToolTips";
 
 signals:
     void msg(const QString&);
@@ -92,9 +94,10 @@ public slots:
     void usernameUpdated();
     void passwordUpdated();
     void autoDiscoveryClicked(bool);
-    void multiBroadcastClicked(bool);
-    void broadcastRepeatChanged(int);
+    //void multiBroadcastClicked(bool);
+    //void broadcastRepeatChanged(int);
     void lowLatencyClicked();
+    void hideToolTipsClicked();
     void decoderChanged(const QString&);
     void zoomMoved(int);
     void panXMoved(int);

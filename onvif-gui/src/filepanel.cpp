@@ -50,6 +50,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     connect(btnStop, SIGNAL(clicked()), this, SLOT(onBtnStopClicked()));
 
     btnMute = new QPushButton();
+
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
     if (MW->glWidget->isMute())
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
@@ -125,7 +126,22 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     menu->addAction(info);
     menu->addAction(play);
 
+    disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
+
     connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
+}
+
+void FilePanel::disableToolTips(bool arg) {
+    if (!arg) {
+        btnPlay->setToolTip("Play");
+        btnStop->setToolTip("Stop");
+        btnMute->setToolTip("Mute");
+    }
+    else {
+        btnPlay->setToolTip("");
+        btnStop->setToolTip("");
+        btnMute->setToolTip("");
+    }
 }
 
 void FilePanel::setDirectory(const QString& path)
@@ -389,7 +405,7 @@ void DirectorySetter::setPath(const QString& path)
 void DirectorySetter::selectDirectory()
 {
     QString path = QFileDialog::getExistingDirectory(mainWindow, label->text(), directory,
-                                                  QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (path.length() > 0) {
         directory = path;
         text->setText(directory);
@@ -413,19 +429,12 @@ bool ProgressSlider::event(QEvent *e)
 
 void ProgressSlider::mousePressEvent(QMouseEvent *event)
 {
-    std::cout << "mouse press event" << std::endl;
     float pct = event->pos().x() / (float)width();
     avio::GLWidget* glWidget = ((MainWindow*)((FilePanel*)filePanel)->mainWindow)->glWidget;
     avio::Reader* reader = glWidget->get_reader();
     if (reader) {
         if (reader->running) {
             glWidget->seek(pct);
-            std::cout << "glWidget->seek" << std::endl;
-        }
-        else {
-            std::cout << "reader stopped" << std::endl;
-            //reader->start_from(pct * reader->duration());
-            //((FilePanel*)filePanel)->onBtnPlayClicked();
         }
     }
 }

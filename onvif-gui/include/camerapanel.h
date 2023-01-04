@@ -109,6 +109,7 @@ public slots:
     void cameraTimeout();
     void connectFailed(const QString&);
     void openWriterFailed(const std::string&);
+    void disableToolTips(bool);
 
 };
 

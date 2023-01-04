@@ -18,9 +18,9 @@ information or video settings.
 
 Additionally, there is a comprehensive GUI sample program that includes the
 discovery functionality as well controls for adjusting camera parameters and
-PTZ operations.  The GUI sample is written in Qt and can be compiled with
-either cmake or qmake using Qt Creator.  On Linux, the GUI has a viewer pane 
-that will display camera output.  
+PTZ operations.  The GUI program has a record function that will write the
+camera stream to file and includes some basic media file management tools. 
+The GUI sample is written in Qt and can be compiled with cmake.
 
 The utility program is invoked using the 'onvif-util' command.
 
@@ -44,6 +44,7 @@ cd build
 cmake -DBUILD_GUI=ON ..
 make
 sudo make install
+sudo ldconfig
 ```
 
 

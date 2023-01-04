@@ -59,8 +59,6 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     std::deque<AVPacket*> pkts;
     int keyframe_count = 0;
     int keyframe_marker = 0;
-    reader->vpq = vpq;
-    reader->apq = apq;
 
     try {
         while (true)
@@ -76,34 +74,19 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
             }
 
             if (reader->seek_target_pts != AV_NOPTS_VALUE) {
-                //if (!reader->isPaused())
-                    //reader->clear_stream_queues();
-
-                //std::cout << "seek request revcd" << std::endl;
 
                 AVPacket* tmp = reader->seek();
 
                 while (pkts.size() > 0) {
-                    AVPacket* tmp2 = pkts.front();
+                    AVPacket* jnk = pkts.front();
                     pkts.pop_front();
-                    av_packet_free(&tmp2);
+                    av_packet_free(&jnk);
                 }
 
                 if (tmp) {
-                    /*
-                    while (vpq->size() > 0) {
-                        AVPacket* jnk = vpq->pop();
-                        av_packet_free(&jnk);
-                    }
-                    while (apq->size() > 0) {
-                        AVPacket* jnk = apq->pop();
-                        av_packet_free(&jnk);
-                    }
-                    */
                     av_packet_free(&pkt);
                     pkt = tmp;
                     reader->clear_stream_queues();
-
                 }
                 else {
                     break;
@@ -187,6 +170,8 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     }
     catch (const QueueClosedException& e) {}
     catch (const Exception& e) { std::cout << " reader failed: " << e.what() << std::endl; }
+
+    reader->signal_eof();
     reader->running = false;
 }
 
@@ -353,7 +338,7 @@ public:
     std::vector<std::thread*> ops;
 
     Process() { av_log_set_level(AV_LOG_PANIC); }
-    ~Process() { std::cout << "Process destroyed" << std::endl; }
+    ~Process() { }
 
     void key_event(int keyCode)
     {
@@ -561,6 +546,7 @@ public:
                 glWidget->emit timerStop();
 
             // reader shutdown routine if downstream module shuts down process
+            // there is probably a better way to handle this situation
             if (!reader->exit_error_msg.empty()) {
                 int count = 0;
                 std::cout << "reader attempting shutdown" << std::endl;

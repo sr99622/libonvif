@@ -121,7 +121,6 @@ AVPacket* Reader::read()
 
 AVPacket* Reader::seek()
 {
-    //std::cout << "seek start" << std::endl;
     int flags = AVSEEK_FLAG_FRAME;
     if (seek_target_pts < last_video_pts)
         flags |= AVSEEK_FLAG_BACKWARD;
@@ -142,15 +141,8 @@ AVPacket* Reader::seek()
         }
     }
     seek_target_pts = AV_NOPTS_VALUE;
-    //std::cout << "seek target found: " << seek_found_pts << std::endl;
-    return pkt;
-}
 
-void Reader::check_pause()
-{
-    while (((Process*)process)->display->paused && seek_target_pts == AV_NOPTS_VALUE) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    return pkt;
 }
 
 bool Reader::isPaused()
@@ -161,7 +153,6 @@ bool Reader::isPaused()
 void Reader::request_seek(float pct)
 {
     seek_target_pts = (start_time() + (pct * duration()) / av_q2d(fmt_ctx->streams[seek_stream_index()]->time_base)) / 1000;
-    std::cout << "request seek: " << seek_target_pts << std::endl;
 }
 
 bool Reader::seeking() 
@@ -391,8 +382,6 @@ int Reader::keyframe_cache_size()
 
 void Reader::clear_stream_queues()
 {
-    std::cout << "start clear" << std::endl;
-    
     PKT_Q_MAP::iterator pkt_q;
     for (pkt_q = P->pkt_queues.begin(); pkt_q != P->pkt_queues.end(); ++pkt_q) {
         while (pkt_q->second->size() > 0) {
@@ -407,15 +396,18 @@ void Reader::clear_stream_queues()
             frame_q->second->pop(f);
         }
     }
-    
-
-    std::cout << "finish clear" << std::endl;
 }
 
 void Reader::clear_decoders()
 {
     if (P->videoDecoder) P->videoDecoder->flush();
     if (P->audioDecoder) P->audioDecoder->flush();
+}
+
+void Reader::signal_eof()
+{
+    if (P->glWidget)
+        P->glWidget->running = false;
 }
 
 /*

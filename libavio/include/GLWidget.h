@@ -62,6 +62,7 @@ public:
     float zoom_factor() { return factor; }
     void showStreamParameters(avio::Reader* reader);
     void toggle_pipe_out(const std::string& filename);
+    bool checkForStreamHeader(const char*);
 
     static void start(void * parent);
 

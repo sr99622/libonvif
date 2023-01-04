@@ -339,19 +339,39 @@ void GLWidget::stop()
 void GLWidget::showStreamParameters(avio::Reader* reader)
 {
     std::stringstream str;
-    str << "\n" << mediaShortName
-        << "\nCamera Stream Parameters"
-        << "\nVideo Codec: " << reader->str_video_codec()
-        << "\nPixel Format: " << reader->str_pix_fmt();
+    str << "\n" << mediaShortName;
+    if (reader->has_video()) {
+        str << "\nVideo Stream Parameters"
+            << "\n  Video Codec:  " << reader->str_video_codec()
+            << "\n  Pixel Format: " << reader->str_pix_fmt()
+            << "\n  Resolution:   " << reader->width() << " x " << reader->height()
+            << "\n  Frame Rate:   " << av_q2d(reader->frame_rate());
+    }
+    else {
+        str << "\nNo Video Stream Found";
+    }
     if (reader->has_audio()) {
-        str << "\nAudio Codec: " << reader->str_audio_codec()
-            << "\nSample Format: " << reader->str_sample_format()
-            << "\nChannels: " << reader->str_channel_layout();
+        str << "\nAudio Stream Parameters"
+            << "\n  Audio Codec:   " << reader->str_audio_codec()
+            << "\n  Sample Format: " << reader->str_sample_format()
+            << "\n  Channels:      " << reader->str_channel_layout();
     }
     else {
         str << "\nNo Audio Stream Found";
     }
     emit msg(str.str().c_str());
+}
+
+bool GLWidget::checkForStreamHeader(const char* name)
+{
+    QString str = QString(name).toLower();
+    if (str.startsWith("rtsp://"))
+        return true;
+    if (str.startsWith("http://"))
+        return true;
+    if (str.startsWith("https://"))
+        return true;
+    return false;
 }
 
 void GLWidget::start(void * parent)
@@ -362,11 +382,17 @@ void GLWidget::start(void * parent)
         avio::Process process;
 
         avio::Reader reader(widget->uri);
-        if (QString(widget->uri).startsWith("rtsp://"))
-            widget->showStreamParameters(&reader);
+        widget->showStreamParameters(&reader);
 
-        if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
-        if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
+        if (widget->checkForStreamHeader(widget->uri)) {
+            if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
+            if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
+        }
+        else {
+            reader.apq_max_size = 1;
+            reader.vpq_max_size = 1;
+        }
+
         widget->tex_width = reader.width();
         widget->tex_height = reader.height();
         reader.set_video_out("vpq_reader");
@@ -411,8 +437,6 @@ void GLWidget::start(void * parent)
 
         if (audioDecoder)
             delete audioDecoder;
-
-        //reader.clear_decoders();
 
     }
     catch (const Exception& e) {

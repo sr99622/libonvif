@@ -153,6 +153,7 @@ public slots:
     void progress(float);
     void mediaPlayingFinished();
     void mediaPlayingStarted();
+    void disableToolTips(bool);
 
 };
 

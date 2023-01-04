@@ -23,7 +23,7 @@ project(libavio VERSION 1.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -37,7 +37,6 @@ endif()
 find_package(SDL2 REQUIRED)
 find_package(FFmpeg REQUIRED)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -53,7 +52,6 @@ add_library(avio SHARED
     src/Writer.cpp
     src/Pipe.cpp
     src/GLWidget.cpp
-    src/PyRunner.cpp
     include/GLWidget.h
 )
 
@@ -61,7 +59,6 @@ target_link_libraries(avio PRIVATE
     Qt5::Widgets
     FFmpeg::FFmpeg
     SDL2::SDL2
-    Python3::Python
 )
 
 set_target_properties(avio PROPERTIES
@@ -70,5 +67,4 @@ set_target_properties(avio PROPERTIES
 
 target_include_directories(avio PUBLIC
     include
-    ${Python3_NumPy_INCLUDE_DIRS}
 )

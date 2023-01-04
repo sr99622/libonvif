@@ -35,39 +35,6 @@
 #include <QMainWindow>
 #include <QListWidget>
 
-class PythonSetter : public QGroupBox
-{
-    Q_OBJECT
-
-public:
-    PythonSetter(QMainWindow *parent);
-    void setPath(const QString& path);
-    QString path() const;
-
-    QLabel *lblFile;
-    QLineEdit *filePath;
-    QPushButton *button;
-    QLabel *lblInit;
-    QLineEdit *initArgs;
-    QLabel* lblClass;
-    QLineEdit *className;
-
-    QMainWindow *mainWindow;
-
-    const QString pythonOnKey    = "PythonSetter/enabled";
-    const QString pythonFileKey  = "PythonSetter/pythonFile";
-    const QString pythonInitKey  = "PythonSetter/pythonInit";
-    const QString pythonClassKey = "PythonSetter/pythonClass";
-
-public slots:
-    void checkBoxClicked(bool);
-    void filePathSet();
-    void initArgEdited(const QString&);
-    void classNameEdited(const QString&);
-
-};
-
-
 class SettingsPanel : public QWidget
 {
     Q_OBJECT
@@ -99,7 +66,6 @@ public:
     QComboBox *networkInterfaces;
     QSpinBox *keyframeCount;
     QLabel *lblKeyframeCount;
-    PythonSetter* pythonSetter;
 
     QStringList decoders;
     QListWidget *listDecoders;
@@ -128,7 +94,7 @@ public slots:
     void autoDiscoveryClicked(bool);
     void multiBroadcastClicked(bool);
     void broadcastRepeatChanged(int);
-    void lowLatencyClicked(bool);
+    void lowLatencyClicked();
     void decoderChanged(const QString&);
     void zoomMoved(int);
     void panXMoved(int);

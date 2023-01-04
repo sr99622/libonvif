@@ -42,7 +42,7 @@ template <typename T>
 class Queue
 {
 public:
-	Queue(size_t max_size = 10);
+	Queue(size_t max_size = 1);
 
 	void push(T const&);
 	T pop();

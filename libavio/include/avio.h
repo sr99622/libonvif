@@ -65,20 +65,10 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     try {
         while (true)
         {
-            //bool paused = ;
-            //while (((Process*)reader->process)->display->paused) {
-            //    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            //}
-
-            //reader->check_pause();
-
             AVPacket* pkt = reader->read();
             if (!pkt)
                 break;
-            //    std::cout << "null pkt" << std::endl;
-            //if (!pkt && reader->seek_target_pts == AV_NOPTS_VALUE)
-            //    break;
-            std::cout << "pkt pts: " << pkt->pts << std::endl;
+
             reader->running = true;
             if (reader->request_break) {
                 reader->clear_stream_queues();
@@ -86,9 +76,13 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
             }
 
             if (reader->seek_target_pts != AV_NOPTS_VALUE) {
-                reader->clear_stream_queues();
+                //if (!reader->isPaused())
+                    //reader->clear_stream_queues();
+
+                //std::cout << "seek request revcd" << std::endl;
+
                 AVPacket* tmp = reader->seek();
-                //std::cout << "reader seek found: " << tmp->pts << std::endl;
+
                 while (pkts.size() > 0) {
                     AVPacket* tmp2 = pkts.front();
                     pkts.pop_front();
@@ -96,8 +90,19 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 }
 
                 if (tmp) {
+                    /*
+                    while (vpq->size() > 0) {
+                        AVPacket* jnk = vpq->pop();
+                        av_packet_free(&jnk);
+                    }
+                    while (apq->size() > 0) {
+                        AVPacket* jnk = apq->pop();
+                        av_packet_free(&jnk);
+                    }
+                    */
                     av_packet_free(&pkt);
                     pkt = tmp;
+                    reader->clear_stream_queues();
 
                 }
                 else {
@@ -176,11 +181,9 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 else
                     av_packet_free(&pkt);
             }
-            std::cout << "read loop continue" << std::endl;
         }
         if (vpq) vpq->push(NULL);
         if (apq) apq->push(NULL);
-        std::cout << "read loop done" << std::endl;
     }
     catch (const QueueClosedException& e) {}
     catch (const Exception& e) { std::cout << " reader failed: " << e.what() << std::endl; }
@@ -350,6 +353,7 @@ public:
     std::vector<std::thread*> ops;
 
     Process() { av_log_set_level(AV_LOG_PANIC); }
+    ~Process() { std::cout << "Process destroyed" << std::endl; }
 
     void key_event(int keyCode)
     {

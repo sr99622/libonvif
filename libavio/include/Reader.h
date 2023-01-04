@@ -116,6 +116,8 @@ public:
 	std::string exit_error_msg;
 
 	void clear_stream_queues();
+	bool isPaused();
+	void clear_decoders();
 
 	ExceptionHandler ex;
 };

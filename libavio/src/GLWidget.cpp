@@ -385,17 +385,7 @@ void GLWidget::start(void * parent)
         display.set_video_in(videoFilter.video_out());
         display.set_video_out("vfq_display");
         widget->set_video_in(display.video_out());
-        if (widget->initPy && !widget->pyInitialized && widget->python_enabled) {
 
-            std::cout << "python_dir: " << widget->python_dir << std::endl;
-            std::cout << "python_file: " << widget->python_file << std::endl;
-            std::cout << "python_class: " << widget->python_class << std::endl;
-            std::cout << "python_args: " << widget->python_args << std::endl;
-
-            widget->initPy(widget->python_dir, widget->python_file, widget->python_class, widget->python_args);
-            widget->pyInitialized = true;
-        }
- 
         avio::Decoder* audioDecoder = nullptr;
         if (reader.has_audio() && !widget->disable_audio) {
             reader.set_audio_out("apq_reader");
@@ -421,6 +411,8 @@ void GLWidget::start(void * parent)
 
         if (audioDecoder)
             delete audioDecoder;
+
+        //reader.clear_decoders();
 
     }
     catch (const Exception& e) {

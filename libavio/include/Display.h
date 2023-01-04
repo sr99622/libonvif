@@ -71,7 +71,6 @@ public:
     void snapshot();
     
     bool paused = false;
-    //bool user_paused = false;
     Frame paused_frame;
     bool isPaused();
     void togglePause();

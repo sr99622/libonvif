@@ -47,20 +47,19 @@ namespace avio {
 
 Reader::Reader(const char* filename)
 {
-    std::cout << "open reader start" << std::endl;
     AVDictionary* opts = NULL;
-//#ifdef _WIN32
-//    av_dict_set(&opts, "timeout", "5000000", 0);
-//#else
+#ifdef _WIN32
+    av_dict_set(&opts, "timeout", "5000000", 0);
+#else
     av_dict_set(&opts, "stimeout", "5000000", 0);
-//#endif
+#endif
 
-    std::cout << "version major: " << LIBAVFORMAT_VERSION_MAJOR << std::endl; // 58
-    std::cout << "version minor: " << LIBAVFORMAT_VERSION_MINOR << std::endl; // 45
-    std::cout << "version micro: " << LIBAVFORMAT_VERSION_MICRO << std::endl; // 100
-    std::cout << "version int: " << LIBAVFORMAT_VERSION_INT << std::endl;
-    if (LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58, 45, 100))
-        std::cout << "VERSION HIGHER " << std::endl;
+    //std::cout << "version major: " << LIBAVFORMAT_VERSION_MAJOR << std::endl; // 58
+    //std::cout << "version minor: " << LIBAVFORMAT_VERSION_MINOR << std::endl; // 45
+    //std::cout << "version micro: " << LIBAVFORMAT_VERSION_MICRO << std::endl; // 100
+    //std::cout << "version int: " << LIBAVFORMAT_VERSION_INT << std::endl;
+    //if (LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58, 45, 100))
+    //    std::cout << "VERSION HIGHER " << std::endl;
     
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
  
@@ -80,7 +79,6 @@ Reader::Reader(const char* filename)
         ex.msg("av_find_best_stream could not find audio stream", MsgPriority::INFO);
 
     //if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
-    std::cout << "open reader finish" << std::endl;
 
 }
 
@@ -123,8 +121,7 @@ AVPacket* Reader::read()
 
 AVPacket* Reader::seek()
 {
-    std::cout << "seek target pts: " << seek_target_pts << std::endl;
-    std::cout << "last video pts: " << last_video_pts << std::endl;
+    //std::cout << "seek start" << std::endl;
     int flags = AVSEEK_FLAG_FRAME;
     if (seek_target_pts < last_video_pts)
         flags |= AVSEEK_FLAG_BACKWARD;
@@ -137,8 +134,6 @@ AVPacket* Reader::seek()
         return NULL;
     }
 
-    seek_target_pts = AV_NOPTS_VALUE;
-
     AVPacket* pkt = NULL;
     while (pkt = read()) {
         if (pkt->stream_index == seek_stream_index()) {
@@ -146,7 +141,8 @@ AVPacket* Reader::seek()
             break;
         }
     }
-    std::cout << "seek target is " << seek_found_pts << std::endl;
+    seek_target_pts = AV_NOPTS_VALUE;
+    //std::cout << "seek target found: " << seek_found_pts << std::endl;
     return pkt;
 }
 
@@ -157,10 +153,15 @@ void Reader::check_pause()
     }
 }
 
+bool Reader::isPaused()
+{
+    return ((Process*)process)->display->paused;
+}
+
 void Reader::request_seek(float pct)
 {
     seek_target_pts = (start_time() + (pct * duration()) / av_q2d(fmt_ctx->streams[seek_stream_index()]->time_base)) / 1000;
-    std::cout << "seek requested: " << seek_target_pts << std::endl;
+    std::cout << "request seek: " << seek_target_pts << std::endl;
 }
 
 bool Reader::seeking() 
@@ -390,6 +391,8 @@ int Reader::keyframe_cache_size()
 
 void Reader::clear_stream_queues()
 {
+    std::cout << "start clear" << std::endl;
+    
     PKT_Q_MAP::iterator pkt_q;
     for (pkt_q = P->pkt_queues.begin(); pkt_q != P->pkt_queues.end(); ++pkt_q) {
         while (pkt_q->second->size() > 0) {
@@ -404,7 +407,13 @@ void Reader::clear_stream_queues()
             frame_q->second->pop(f);
         }
     }
+    
 
+    std::cout << "finish clear" << std::endl;
+}
+
+void Reader::clear_decoders()
+{
     if (P->videoDecoder) P->videoDecoder->flush();
     if (P->audioDecoder) P->audioDecoder->flush();
 }

@@ -88,6 +88,10 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     //commonPassword->setMaximumWidth(180);
 
     lowLatency = new QCheckBox("Low Latency Buffering");
+    connect(lowLatency, SIGNAL(clicked()), this, SLOT(lowLatencyClicked()));
+    lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
+    lowLatencyClicked();
+
     disableAudio = new QCheckBox("Disable Audio");
     keyframeCount = new QSpinBox(this);
     keyframeCount->setRange(1, 100);
@@ -201,7 +205,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     commonUsername->setText(MW->settings->value(usernameKey, "").toString());
     commonPassword->setText(MW->settings->value(passwordKey, "").toString());
     keyframeCount->setValue(MW->settings->value(keyCountKey, 1).toInt());
-    lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
     disableAudio->setChecked(MW->settings->value(disAudioKey, false).toBool());
     generateFilename->setChecked(MW->settings->value(genFileKey, true).toBool());
     defaultFilename->setChecked(MW->settings->value(defFileKey, false).toBool());
@@ -212,10 +215,11 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
     connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
     connect(keyframeCount, SIGNAL(valueChanged(int)), this, SLOT(keyframeCountChanged(int)));
-    connect(lowLatency, SIGNAL(clicked(bool)), this, SLOT(lowLatencyClicked(bool)));
     connect(disableAudio, SIGNAL(clicked(bool)), this, SLOT(disableAudioClicked(bool)));
     connect(generateFilename, SIGNAL(clicked(bool)), this, SLOT(generateFilenameClicked(bool)));
     connect(defaultFilename, SIGNAL(clicked(bool)), this, SLOT(defaultFilenameClicked(bool)));
+
+
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -265,9 +269,17 @@ void SettingsPanel::passwordUpdated()
     MW->settings->setValue(passwordKey, commonPassword->text());
 }
 
-void SettingsPanel::lowLatencyClicked(bool clicked)
+void SettingsPanel::lowLatencyClicked()
 {
-    MW->settings->setValue(lowLatencyKey, clicked);
+    MW->settings->setValue(lowLatencyKey, lowLatency->isChecked());
+    if (lowLatency->isChecked()) {
+        MW->glWidget->vpq_size = 1;
+        MW->glWidget->apq_size = 1;
+    }
+    else {
+        MW->glWidget->vpq_size = 100;
+        MW->glWidget->apq_size = 100;
+    }
 }
 
 void SettingsPanel::disableAudioClicked(bool clicked)
@@ -463,94 +475,4 @@ void SettingsPanel::getCurrentlySelectedIP(char *buffer)
         buffer[i] = selected.toLatin1().data()[i];
     }
     buffer[i] = '\0';
-}
-
-PythonSetter::PythonSetter(QMainWindow *parent) : QGroupBox(parent)
-{
-    mainWindow = parent;
-
-    MW->glWidget->python_enabled = MW->settings->value(pythonOnKey, false).toBool();
-    QString filename = MW->settings->value(pythonFileKey, "").toString();
-    QFileInfo fileInfo(filename);
-    MW->glWidget->python_dir = fileInfo.path().toLatin1().data();
-    MW->glWidget->python_file = fileInfo.baseName().toLatin1().data();
-    MW->glWidget->python_class = MW->settings->value(pythonClassKey, "").toString().toLatin1().data();
-    MW->glWidget->python_args = MW->settings->value(pythonInitKey, "").toString().toLatin1().data();
-
-    setCheckable(true);
-    setTitle("Enable python video processing");
-    setChecked(MW->settings->value(pythonOnKey, false).toBool());
-    connect(this, SIGNAL(clicked(bool)), this, SLOT(checkBoxClicked(bool)));
-    
-    lblFile = new QLabel("File", this);
-    filePath = new QLineEdit(this);
-    filePath->setText(MW->settings->value(pythonFileKey, "").toString());
-
-    button = new QPushButton("...", this);
-    button->setMaximumWidth(30);
-    connect(button, SIGNAL(clicked()), this, SLOT(filePathSet()));
-    
-    lblInit = new QLabel("Init", this);
-    initArgs = new QLineEdit(this);
-    initArgs->setText(MW->settings->value(pythonInitKey, "").toString());
-    connect(initArgs, SIGNAL(textEdited(const QString&)), this, SLOT(initArgEdited(const QString&)));
-
-    lblClass = new QLabel("Class", this);
-    className = new QLineEdit("Class", this);
-    className->setText(MW->settings->value(pythonClassKey, "").toString());
-    connect(className, SIGNAL(textEdited(const QString&)), this, SLOT(classNameEdited(const QString&)));
-
-    QGridLayout *layout = new QGridLayout(this);
-    layout->addWidget(lblFile,    1, 0, 1, 1);
-    layout->addWidget(filePath,   1, 1, 1, 1);
-    layout->addWidget(button,     1, 2, 1, 1);
-    layout->addWidget(lblInit,    2, 0, 1, 1);
-    layout->addWidget(initArgs,   2, 1, 1, 2);
-    layout->addWidget(lblClass,   3, 0, 1, 1);
-    layout->addWidget(className,  3, 1, 1, 2);
-}
-
-void PythonSetter::setPath(const QString& path)
-{
-    filePath->setText(path);
-}
-
-QString PythonSetter::path() const
-{
-    return filePath->text();
-}
-
-void PythonSetter::checkBoxClicked(bool clicked) 
-{
-    MW->settings->setValue(pythonOnKey, clicked);
-    MW->glWidget->python_enabled = clicked;
-}
-
-void PythonSetter::filePathSet()
-{
-    QString dir = "/home";
-    if (filePath->text().length() > 0) {
-        QFileInfo fileInfo(filePath->text());
-        std::cout << fileInfo.path().toLatin1().data() << std::endl;
-        dir = fileInfo.path();
-    }
-
-    QString path = QFileDialog::getOpenFileName(mainWindow, "Open File", dir, "Python (*.py)");
-    if (path.length() > 0) {
-        filePath->setText(path);
-        MW->settings->setValue(pythonFileKey, path);
-        MW->glWidget->python_dir = path.toLatin1().data();
-    }
-}
-
-void PythonSetter::initArgEdited(const QString& arg)
-{
-    MW->settings->setValue(pythonInitKey, arg);
-    MW->glWidget->python_args = arg.toLatin1().data();
-}
-
-void PythonSetter::classNameEdited(const QString& arg)
-{
-    MW->settings->setValue(pythonClassKey, arg);
-    MW->glWidget->python_class = arg.toLatin1().data();
 }

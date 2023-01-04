@@ -68,8 +68,11 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     connect(MW->glWidget, SIGNAL(mediaPlayingStarted()), this, SLOT(mediaPlayingStarted()));
     //connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
     lblProgress = new QLabel("0:00", this);
+    lblProgress->setFont(QFont("courier", 12, QFont::Bold));
     lblDuration = new QLabel("-:--", this);
+    lblDuration->setFont(QFont("courier", 12, QFont::Bold));
     lblSeek = new ProgressLabel(this);
+    lblSeek->setFont(QFont("courier", 12, QFont::Bold));
 
     QWidget *progressPanel = new QWidget(this);
     QGridLayout *progressLayout = new QGridLayout(progressPanel);
@@ -135,9 +138,7 @@ void FilePanel::setDirectory(const QString& path)
 
 void FilePanel::onBtnPlayClicked()
 {
-    std::cout << "onBtnPlayCLicked()" << std::endl;
     if (MW->glWidget->process) {
-        std::cout << "widget running" << std::endl;
         MW->glWidget->togglePaused();
         if (MW->glWidget->isPaused())
             btnPlay->setStyleSheet(MW->getButtonStyle("play"));
@@ -145,7 +146,6 @@ void FilePanel::onBtnPlayClicked()
             btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
     }
     else {
-        std::cout << "widget NOT running" << std::endl;
         QModelIndex index = tree->currentIndex();
         if (index.isValid()) {
             QFileInfo fileInfo = model->fileInfo(index);
@@ -413,17 +413,19 @@ bool ProgressSlider::event(QEvent *e)
 
 void ProgressSlider::mousePressEvent(QMouseEvent *event)
 {
+    std::cout << "mouse press event" << std::endl;
     float pct = event->pos().x() / (float)width();
-    std::cout << "mouse press event: " << pct << std::endl;
-    //emit seek(pct);
-    //MW->glWidget->seek(pct);
     avio::GLWidget* glWidget = ((MainWindow*)((FilePanel*)filePanel)->mainWindow)->glWidget;
     avio::Reader* reader = glWidget->get_reader();
     if (reader) {
         if (reader->running) {
-            std::cout << "reader not running" << std::endl;
             glWidget->seek(pct);
-            //read(reader, reader->vpq, reader->apq);
+            std::cout << "glWidget->seek" << std::endl;
+        }
+        else {
+            std::cout << "reader stopped" << std::endl;
+            //reader->start_from(pct * reader->duration());
+            //((FilePanel*)filePanel)->onBtnPlayClicked();
         }
     }
 }

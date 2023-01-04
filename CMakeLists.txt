@@ -25,7 +25,7 @@ project(libonvif-pkg VERSION 1.4.3)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
+set(CMAKE_CXX_FLAGS "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(WIN32)

@@ -25,13 +25,14 @@ project(libonvif-pkg VERSION 1.4.4)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(WIN32)
     add_compile_options("/EHsc")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     set(BUILD_SHARED_LIBS TRUE)
+else()
+    set(CMAKE_CXX_FLAGS "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security")
 endif()
 
 include(GNUInstallDirs)

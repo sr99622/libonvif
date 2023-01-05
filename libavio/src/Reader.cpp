@@ -54,11 +54,6 @@ Reader::Reader(const char* filename)
     else 
         av_dict_set(&opts, "stimeout", "5000000", 0);
 
-    //std::cout << "version major: " << LIBAVFORMAT_VERSION_MAJOR << std::endl; // 58
-    //std::cout << "version minor: " << LIBAVFORMAT_VERSION_MINOR << std::endl; // 45
-    //std::cout << "version micro: " << LIBAVFORMAT_VERSION_MICRO << std::endl; // 100
-    //std::cout << "version int: " << LIBAVFORMAT_VERSION_INT << std::endl;
-    
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
  
     av_dict_free(&opts);
@@ -70,11 +65,11 @@ Reader::Reader(const char* filename)
 
     video_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
     if (video_stream_index < 0) 
-        ex.msg("av_find_best_stream could not find video stream", MsgPriority::INFO);
+        ex.msg("did not find video stream", MsgPriority::INFO);
 
     audio_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
     if (audio_stream_index < 0) 
-        ex.msg("av_find_best_stream could not find audio stream", MsgPriority::INFO);
+        ex.msg("did not find audio stream", MsgPriority::INFO);
 
     //if (video_codec() == AV_CODEC_ID_HEVC) throw Exception("HEVC compression is not supported by default configuration");
 
@@ -127,7 +122,7 @@ AVPacket* Reader::seek()
         ex.ck(av_seek_frame(fmt_ctx, seek_stream_index(), seek_target_pts, flags), CmdTag::ASF);
     }
     catch (const Exception& e) {
-        std::cout << e.what() << std::endl;
+        std::cout << "Reader seek exception: " << e.what() << std::endl;
         return NULL;
     }
 

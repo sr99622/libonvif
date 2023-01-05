@@ -46,9 +46,6 @@ public:
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
-    //QCheckBox *multiBroadcast;
-    //QSpinBox *broadcastRepeat;
-    //QLabel *lblBroadcastRepeat;
     QPushButton *style;
     QPushButton *clear;
     QLineEdit *commonUsername;
@@ -94,8 +91,6 @@ public slots:
     void usernameUpdated();
     void passwordUpdated();
     void autoDiscoveryClicked(bool);
-    //void multiBroadcastClicked(bool);
-    //void broadcastRepeatChanged(int);
     void lowLatencyClicked();
     void hideToolTipsClicked();
     void decoderChanged(const QString&);

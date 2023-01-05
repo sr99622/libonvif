@@ -30,7 +30,7 @@ Pipe::Pipe(Reader& reader) : reader(&reader)
 
 Pipe::~Pipe()
 {
-    std::cout << "pipe destructor called" << std::endl;
+    //std::cout << "write operation finished (pipe)" << std::endl;
     if (fmt_ctx) avformat_free_context(fmt_ctx);
     if (video_ctx) avcodec_free_context(&video_ctx);
 }
@@ -99,7 +99,7 @@ bool Pipe::open(const std::string& filename)
         video_next_pts = 0;
         audio_next_pts = 0;
 
-        std::cout << "opened write file " << filename.c_str() << std::endl;
+        std::cout << "pipe opened write file " << filename.c_str() << std::endl;
     }
     catch (const Exception& e) {
         std::stringstream str;
@@ -149,10 +149,10 @@ void Pipe::close()
         ex.ck(avio_closep(&fmt_ctx->pb), ACP);
     }
     catch (const Exception& e) {
-        std::cout << "Writer::close exception: " << e.what() << std::endl;
+        std::cout << "Pipe::close exception: " << e.what() << std::endl;
     }
 
-    //std::cout << "pipe closed file " << filename << std::endl;
+    std::cout << "pipe closed file " << std::endl;
 }
 
 void Pipe::show_ctx()

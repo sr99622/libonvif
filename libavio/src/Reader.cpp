@@ -49,7 +49,7 @@ Reader::Reader(const char* filename)
 {
     AVDictionary* opts = NULL;
 
-    if (LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58, 45, 100)) 
+    if (LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(59, 0, 0)) 
         av_dict_set(&opts, "timeout", "5000000", 0);
     else 
         av_dict_set(&opts, "stimeout", "5000000", 0);

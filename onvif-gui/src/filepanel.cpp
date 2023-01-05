@@ -50,8 +50,9 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     connect(btnStop, SIGNAL(clicked()), this, SLOT(onBtnStopClicked()));
 
     btnMute = new QPushButton();
+
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
-    if (MW->glWidget->getMute())
+    if (MW->glWidget->isMute())
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
@@ -64,10 +65,24 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     sldProgress = new ProgressSlider(Qt::Horizontal, this);
     sldProgress->setMaximum(1000);
     connect(MW->glWidget, SIGNAL(progress(float)), this, SLOT(progress(float)));
-    connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
-    lblProgress = new QLabel("0:00");
-
+    connect(MW->glWidget, SIGNAL(mediaPlayingFinished()), this, SLOT(mediaPlayingFinished()));
+    connect(MW->glWidget, SIGNAL(mediaPlayingStarted()), this, SLOT(mediaPlayingStarted()));
+    //connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
+    lblProgress = new QLabel("0:00", this);
+    lblProgress->setFont(QFont("courier", 12, QFont::Bold));
+    lblDuration = new QLabel("-:--", this);
+    lblDuration->setFont(QFont("courier", 12, QFont::Bold));
     lblSeek = new ProgressLabel(this);
+    lblSeek->setFont(QFont("courier", 12, QFont::Bold));
+
+    QWidget *progressPanel = new QWidget(this);
+    QGridLayout *progressLayout = new QGridLayout(progressPanel);
+    progressLayout->addWidget(lblSeek,         0, 1, 1, 7);
+    progressLayout->addWidget(lblProgress,     1, 0, 1, 1);
+    progressLayout->addWidget(sldProgress,     1, 1, 1, 7);
+    progressLayout->addWidget(lblDuration,     1, 8, 1, 1);
+    progressLayout->setContentsMargins(0, 0, 0, 0);
+    progressLayout->setColumnStretch(1, 20);
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
@@ -75,9 +90,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     controlLayout->addWidget(btnStop,         0, 1, 1, 1);
     controlLayout->addWidget(btnMute,         0, 3, 1, 1);
     controlLayout->addWidget(sldVolume,       0, 4, 1, 2);
-    controlLayout->addWidget(lblSeek,         1, 1, 1, 7);
-    controlLayout->addWidget(lblProgress,     2, 0, 1, 1);
-    controlLayout->addWidget(sldProgress,     2, 1, 1, 7);
+    controlLayout->addWidget(progressPanel,   1, 0, 1, 8);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(directorySetter,      0, 0, 1, 1);
@@ -113,7 +126,22 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     menu->addAction(info);
     menu->addAction(play);
 
+    disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
+
     connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
+}
+
+void FilePanel::disableToolTips(bool arg) {
+    if (!arg) {
+        btnPlay->setToolTip("Play");
+        btnStop->setToolTip("Stop");
+        btnMute->setToolTip("Mute");
+    }
+    else {
+        btnPlay->setToolTip("");
+        btnStop->setToolTip("");
+        btnMute->setToolTip("");
+    }
 }
 
 void FilePanel::setDirectory(const QString& path)
@@ -122,6 +150,26 @@ void FilePanel::setDirectory(const QString& path)
     model->setRootPath(path);
     tree->setRootIndex(model->index(path));
     MW->settings->setValue(dirKey, path);
+}
+
+void FilePanel::onBtnPlayClicked()
+{
+    if (MW->glWidget->process) {
+        MW->glWidget->togglePaused();
+        if (MW->glWidget->isPaused())
+            btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+        else
+            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+    }
+    else {
+        QModelIndex index = tree->currentIndex();
+        if (index.isValid()) {
+            QFileInfo fileInfo = model->fileInfo(index);
+            std::cout << fileInfo.filePath().toLatin1().data() << std::endl;
+            MW->currentStreamingMediaName = fileInfo.fileName();
+            MW->glWidget->play(fileInfo.filePath());
+        }
+    }
 }
 
 void FilePanel::doubleClicked(const QModelIndex& index)
@@ -134,22 +182,41 @@ void FilePanel::doubleClicked(const QModelIndex& index)
         }
         else {
             MW->glWidget->play(fileInfo.filePath());
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+            MW->currentStreamingMediaName = fileInfo.fileName();
         }
-        MW->currentStreamingMediaName = fileInfo.fileName();
     }
 }
 
-void FilePanel::headerChanged(int arg1, int arg2, int arg3)
+void FilePanel::mediaPlayingFinished()
 {
-    MW->settings->setValue(headerKey, tree->header()->saveState());
+    progress(0);
+    btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+}
+
+void FilePanel::mediaPlayingStarted()
+{
+    btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+    int duration_in_seconds = MW->glWidget->media_duration / 1000;
+    int hours = duration_in_seconds / 3600;
+    int minutes = (duration_in_seconds - (hours * 3600)) / 60;
+    int seconds = (duration_in_seconds - (hours * 3600) - (minutes * 60));
+    char buf[32] = {0};
+    if (hours > 0)
+        sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
+    else 
+        sprintf(buf, "%d:%02d", minutes, seconds);
+
+    QString output(buf);
+    lblDuration->setText(output);
 }
 
 void FilePanel::progress(float pct)
 {
     sldProgress->setValue(sldProgress->maximum() * pct);
-    if (MW->glWidget->media_duration) {
-    double position = pct * MW->glWidget->media_duration;
+
+    double position = 0;
+    if (MW->glWidget->media_duration)
+        position = pct * MW->glWidget->media_duration;
 
     int position_in_seconds = position / 1000;
     int hours = position_in_seconds / 3600;
@@ -165,23 +232,9 @@ void FilePanel::progress(float pct)
     lblProgress->setText(output);
 }
 
-}
-
-void FilePanel::onBtnPlayClicked()
+void FilePanel::headerChanged(int arg1, int arg2, int arg3)
 {
-    if (MW->glWidget->running) {
-        SDL_Event event;
-        event.type = SDL_KEYDOWN;
-        event.key.keysym.sym = SDLK_SPACE;
-        SDL_PushEvent(&event);
-        if (MW->glWidget->process->display->paused)
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
-        else
-            btnPlay->setStyleSheet(MW->getButtonStyle("play"));
-    }
-    else {
-        doubleClicked(tree->currentIndex());
-    }
+    MW->settings->setValue(headerKey, tree->header()->saveState());
 }
 
 void FilePanel::onBtnStopClicked()
@@ -193,7 +246,7 @@ void FilePanel::onBtnStopClicked()
 
 void FilePanel::onBtnMuteClicked()
 {
-    if (MW->glWidget->getMute()) {
+    if (MW->glWidget->isMute()) {
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
         MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     }
@@ -202,8 +255,8 @@ void FilePanel::onBtnMuteClicked()
         MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
 
-    MW->glWidget->setMute(!MW->glWidget->getMute());
-    MW->settings->setValue(muteKey, MW->glWidget->getMute());
+    MW->glWidget->setMute(!MW->glWidget->isMute());
+    MW->settings->setValue(muteKey, MW->glWidget->isMute());
 }
 
 void FilePanel::onSldVolumeMoved(int value)
@@ -352,7 +405,7 @@ void DirectorySetter::setPath(const QString& path)
 void DirectorySetter::selectDirectory()
 {
     QString path = QFileDialog::getExistingDirectory(mainWindow, label->text(), directory,
-                                                  QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (path.length() > 0) {
         directory = path;
         text->setText(directory);
@@ -377,7 +430,13 @@ bool ProgressSlider::event(QEvent *e)
 void ProgressSlider::mousePressEvent(QMouseEvent *event)
 {
     float pct = event->pos().x() / (float)width();
-    emit seek(pct);
+    avio::GLWidget* glWidget = ((MainWindow*)((FilePanel*)filePanel)->mainWindow)->glWidget;
+    avio::Reader* reader = glWidget->get_reader();
+    if (reader) {
+        if (reader->running) {
+            glWidget->seek(pct);
+        }
+    }
 }
 
 void ProgressSlider::mouseMoveEvent(QMouseEvent *e)

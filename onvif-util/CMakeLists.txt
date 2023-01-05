@@ -1,5 +1,5 @@
 #*******************************************************************************
-# FindLibOnvif.cmake
+# libonvif/onvif-util/CMakeLists.txt
 #
 # Copyright (c) 2022 Stephen Rhodes 
 #
@@ -19,35 +19,21 @@
 #
 #******************************************************************************/
 
-set(win_path "C:/Program Files (x86)")
+cmake_minimum_required(VERSION 3.17)
 
-find_path(LIBONVIF_INCLUDE_DIR onvif.h
-    HINTS
-        /usr/local/include
-        /usr/include
-        $ENV{CONDA_PREFIX}/include
-        $ENV{CONDA_PREFIX}/Library/include
-        ${win_path}/libonvif/include
+project(onvif-util VERSION 1.1.0)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+add_executable(onvif-util
+    src/onvif-util.cpp
 )
 
-find_library(LIBONVIF_LIBRARY NAMES onvif
-    HINTS
-        /usr/local/lib
-        /usr/lib/x86_64-linux-gnu/lib
-        $ENV{CONDA_PREFIX}/lib
-        $ENV{CONDA_PREFIX}/Library/lib
-        ${win_path}/libonvif/lib
+target_link_libraries(onvif-util PRIVATE
+    onvif
 )
 
-set(LIBONVIF_INCLUDE_DIRS ${LIBONVIF_INCLUDE_DIR})
-set(LIBONVIF_LIBRARIES ${LIBONVIF_LIBRARY})
-set(LIBONVIF_VERSION_STRING 1.4.4)
-
-include(FindPackageHandleStandardArgs)
-
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(LibOnvif
-    REQUIRED_VARS LIBONVIF_INCLUDE_DIRS LIBONVIF_LIBRARIES
-    VERSION_VAR LIBONVIF_VERSION_STRING
+target_include_directories(onvif-util PUBLIC
+    libonvif/include
 )
-
-mark_as_advanced(LIBONVIF_INCLUDE_DIR LIBONVIF_LIBRARY)

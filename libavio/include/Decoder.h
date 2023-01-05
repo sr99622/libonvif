@@ -36,6 +36,7 @@ public:
 	~Decoder();
 	int decode(AVPacket* pkt);
 	void close();
+	void flush();
 
 	int sample_rate() { return dec_ctx->sample_rate; }
 	int channels() { return dec_ctx->channels; }

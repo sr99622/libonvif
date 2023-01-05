@@ -83,8 +83,8 @@ void Discovery::run()
 void Discovery::discover()
 {
     int nb_loops = 1;
-    if (settingsPanel->multiBroadcast->isChecked())
-        nb_loops = settingsPanel->broadcastRepeat->value();
+    //if (settingsPanel->multiBroadcast->isChecked())
+    //    nb_loops = settingsPanel->broadcastRepeat->value();
 
     for (int k=0; k<nb_loops; k++) {
         OnvifSession* onvif_session = ((CameraPanel*)cameraPanel)->onvif_session;

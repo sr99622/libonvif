@@ -218,8 +218,8 @@ void GLWidget::setVolume(int arg)
 {
     volume = arg;
     if (process) {
-        if (process->display) {
-            process->display->volume = (float)arg / 100.0f;
+        if (((Process*)process)->display) {
+            ((Process*)process)->display->volume = (float)arg / 100.0f;
         }
     }
 }
@@ -228,10 +228,31 @@ void GLWidget::setMute(bool arg)
 {
     mute = arg;
     if (process) {
-        if (process->display) {
-            process->display->mute = arg;
+        if (((Process*)process)->display) {
+            ((Process*)process)->display->mute = arg;
         }
     }
+}
+
+void GLWidget::togglePaused()
+{
+    if (process) {
+        if (((Process*)process)->display) {
+            ((Process*)process)->display->togglePause();
+        }
+
+    }
+}
+
+bool GLWidget::isPaused()
+{
+    bool result = false;
+    if (process) {
+        if (((Process*)process)->display) {
+            result = ((Process*)process)->display->paused;
+        }
+    }
+    return result;
 }
 
 void GLWidget::poll()
@@ -244,7 +265,6 @@ void GLWidget::poll()
             if (vfq_in->size() > 0) {
                 vfq_in->pop(f);
                 if (f.isValid()) {
-                    count = 0;
                     if (f.m_frame->width == texture->width() && f.m_frame->height == texture->height()) {
                         QImage img(f.m_frame->data[0], texture->width(), texture->height(), fmt);
                         texture->setData(QOpenGLTexture::RGB, QOpenGLTexture::UInt8, (const void*)img.bits());
@@ -276,13 +296,33 @@ void GLWidget::play(const QString& arg)
     }
 }
 
+void GLWidget::toggle_pipe_out(const std::string& filename)
+{
+    if (process) {
+        Reader* reader = ((Process*)process)->reader;
+        if (reader) {
+            reader->pipe_out_filename = filename;
+            reader->request_pipe_write = !reader->request_pipe_write;
+        }
+    }
+}
+
 void GLWidget::seek(float arg)
 {
     if (process) {
-        if (process->reader) {
-            process->reader->request_seek(arg);
+        if (((Process*)process)->reader) {
+            ((Process*)process)->reader->request_seek(arg);
         }
     }
+}
+
+Reader* GLWidget::get_reader()
+{
+    Reader* result = nullptr;
+    if (process) {
+        result = ((Process*)process)->reader;
+    }
+    return result;
 }
 
 void GLWidget::stop()
@@ -299,19 +339,39 @@ void GLWidget::stop()
 void GLWidget::showStreamParameters(avio::Reader* reader)
 {
     std::stringstream str;
-    str << "\n" << mediaShortName
-        << "\nCamera Stream Parameters"
-        << "\nVideo Codec: " << reader->str_video_codec()
-        << "\nPixel Format: " << reader->str_pix_fmt();
+    str << "\n" << mediaShortName;
+    if (reader->has_video()) {
+        str << "\nVideo Stream Parameters"
+            << "\n  Video Codec:  " << reader->str_video_codec()
+            << "\n  Pixel Format: " << reader->str_pix_fmt()
+            << "\n  Resolution:   " << reader->width() << " x " << reader->height()
+            << "\n  Frame Rate:   " << av_q2d(reader->frame_rate());
+    }
+    else {
+        str << "\nNo Video Stream Found";
+    }
     if (reader->has_audio()) {
-        str << "\nAudio Codec: " << reader->str_audio_codec()
-            << "\nSample Format: " << reader->str_sample_format()
-            << "\nChannels: " << reader->str_channel_layout();
+        str << "\nAudio Stream Parameters"
+            << "\n  Audio Codec:   " << reader->str_audio_codec()
+            << "\n  Sample Format: " << reader->str_sample_format()
+            << "\n  Channels:      " << reader->str_channel_layout();
     }
     else {
         str << "\nNo Audio Stream Found";
     }
     emit msg(str.str().c_str());
+}
+
+bool GLWidget::checkForStreamHeader(const char* name)
+{
+    QString str = QString(name).toLower();
+    if (str.startsWith("rtsp://"))
+        return true;
+    if (str.startsWith("http://"))
+        return true;
+    if (str.startsWith("https://"))
+        return true;
+    return false;
 }
 
 void GLWidget::start(void * parent)
@@ -320,14 +380,19 @@ void GLWidget::start(void * parent)
 
     try {
         avio::Process process;
-        widget->process = &process;
 
         avio::Reader reader(widget->uri);
-        if (QString(widget->uri).startsWith("rtsp://"))
-            widget->showStreamParameters(&reader);
+        widget->showStreamParameters(&reader);
 
-        if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
-        if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
+        if (widget->checkForStreamHeader(widget->uri)) {
+            if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;
+            if (widget->apq_size) reader.vpq_max_size = widget->vpq_size;
+        }
+        else {
+            reader.apq_max_size = 1;
+            reader.vpq_max_size = 1;
+        }
+
         widget->tex_width = reader.width();
         widget->tex_height = reader.height();
         reader.set_video_out("vpq_reader");
@@ -335,7 +400,6 @@ void GLWidget::start(void * parent)
         widget->media_start_time = reader.start_time();
 
         avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO, (AVHWDeviceType)widget->hardwareDecoder);
-        //avio::Decoder videoDecoder(reader, AVMEDIA_TYPE_VIDEO, AV_HWDEVICE_TYPE_VDPAU);
         videoDecoder.set_video_in(reader.video_out());
         videoDecoder.set_video_out("vfq_decoder");
 
@@ -344,20 +408,19 @@ void GLWidget::start(void * parent)
         videoFilter.set_video_out("vfq_filter");
 
         avio::Display display(reader);
-        display.glWidget = widget;
         display.set_video_in(videoFilter.video_out());
         display.set_video_out("vfq_display");
         widget->set_video_in(display.video_out());
 
         avio::Decoder* audioDecoder = nullptr;
-        if (reader.has_audio()) {
+        if (reader.has_audio() && !widget->disable_audio) {
             reader.set_audio_out("apq_reader");
             audioDecoder = new avio::Decoder(reader, AVMEDIA_TYPE_AUDIO);
             audioDecoder->set_audio_in(reader.audio_out());
             audioDecoder->set_audio_out("afq_decoder");
             display.set_audio_in(audioDecoder->audio_out());
             display.volume = widget->volume;
-            display.mute = widget->getMute();
+            display.mute = widget->isMute();
             process.add_decoder(*audioDecoder);
         }
 
@@ -368,9 +431,9 @@ void GLWidget::start(void * parent)
         process.add_widget(widget);
 
         widget->running = true;
-        process.run();
+        widget->emit mediaPlayingStarted();
 
-        std::cout << "process done" << std::endl;
+        process.run();
 
         if (audioDecoder)
             delete audioDecoder;
@@ -385,7 +448,7 @@ void GLWidget::start(void * parent)
 
     widget->process = nullptr;
     widget->media_duration = 0;
-    widget->emit progress(0);
+    widget->emit mediaPlayingFinished();
 }
 
 }

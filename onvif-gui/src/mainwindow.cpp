@@ -25,12 +25,16 @@
 #include <QApplication>
 #include <QScreen>
 #include <QResource>
+#include <QIcon>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     Q_INIT_RESOURCE(resources);
-    setWindowTitle("onvif-gui version 1.4.3");
+    QIcon icon(":/onvif-gui.png");
+    setWindowIcon(icon);
+    setWindowTitle("onvif-gui version 1.4.4");
     settings = new QSettings("libonvif", "onvif");
+    //settings->clear();
     messagePanel = new MessagePanel(this);
 
     glWidget = new avio::GLWidget();
@@ -85,7 +89,6 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent* e)
 {
     Q_UNUSED(e);
-
     glWidget->stop();
     settings->setValue("geometry", geometry());
 }
@@ -94,7 +97,6 @@ void MainWindow::msg(const QString& str)
 {
     std::cout << str.toLatin1().data() << std::endl;
     messagePanel->msg->append(str);
-    std::cout << "msg done" << std::endl;
 }
 
 void MainWindow::onSplitterMoved(int pos, int index)
@@ -108,7 +110,7 @@ QString MainWindow::getButtonStyle(const QString& name) const
         return QString("QPushButton {image:url(:/%1_lo.png);}").arg(name);
     }
     else {
-        return QString("QPushButton {image:url(:/%1.png);} QPushButton:hover {image:url(:/%1_hi.png);} QPushButton:pressed {image:url(:/%1.png);}").arg(name);
+        return QString("QPushButton {image:url(:/%1.png);} QPushButton:!enabled {image:url(:/%1_lo.png);} QPushButton:hover {image:url(:/%1_hi.png);} QPushButton:pressed {image:url(:/%1.png);}").arg(name);
     }
 }
 

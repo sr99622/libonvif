@@ -37,10 +37,11 @@
 #include <cmath>
 #include <QLabel>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QMessageBox>
 #include <QListWidget>
-
-#include "avio.h"
+#include <QFileDialog>
+#include <QFileInfo>
 
 #include "settingspanel.h"
 #include "mainwindow.h"
@@ -53,21 +54,49 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     connect(this, SIGNAL(msg(const QString&)), MW, SLOT(msg(const QString&)));
 
     networkInterfaces = new QComboBox();
-    networkInterfaces->setMaximumWidth(180);
+    networkInterfaces->setMaximumWidth(300);
     interfaces = new QListWidget(this);
     QLabel *lbl03 = new QLabel("Network Interface");
+    getActiveNetworkInterfaces();
+    QString netIntf = MW->settings->value(netIntfKey, "").toString();
+    if (netIntf.length() > 0)
+        networkInterfaces->setCurrentText(netIntf);
+    connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
+
+
     autoDiscovery = new QCheckBox("Auto Discovery");
-    multiBroadcast = new QCheckBox("Multi Broadcast");
-    broadcastRepeat = new QSpinBox();
-    broadcastRepeat->setRange(2, 5);
-    lblBroadcastRepeat = new QLabel("Broadcast Repeat");
-    commonUsername = new QLineEdit();
-    commonUsername->setMaximumWidth(100);
+    connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
+    autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
+
     QLabel *lbl01 = new QLabel("Common Username");
-    commonPassword = new QLineEdit();
-    commonPassword->setMaximumWidth(100);
+    commonUsername = new QLineEdit(this);
+    commonUsername->setText(MW->settings->value(usernameKey, "").toString());
+    connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
+    
     QLabel *lbl02 = new QLabel("Common Password");
+    commonPassword = new QLineEdit(this);
+    commonPassword->setText(MW->settings->value(passwordKey, "").toString());
+    connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
+
     lowLatency = new QCheckBox("Low Latency Buffering");
+    connect(lowLatency, SIGNAL(clicked()), this, SLOT(lowLatencyClicked()));
+    lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
+    lowLatencyClicked();
+
+    disableAudio = new QCheckBox("Disable Audio");
+    disableAudio->setChecked(MW->settings->value(disAudioKey, false).toBool());
+    connect(disableAudio, SIGNAL(clicked(bool)), this, SLOT(disableAudioClicked(bool)));
+
+    hideToolTips = new QCheckBox("Hide Tool Tips");
+    hideToolTips->setChecked(MW->settings->value(hideTipsKey, false).toBool());
+    connect(hideToolTips, SIGNAL(clicked()), this, SLOT(hideToolTipsClicked()));
+
+    keyframeCount = new QSpinBox(this);
+    keyframeCount->setRange(1, 100);
+    keyframeCount->setMaximumWidth(140);
+    lblKeyframeCount = new QLabel("Write Cache Size");
+    keyframeCount->setValue(MW->settings->value(keyCountKey, 1).toInt());
+    connect(keyframeCount, SIGNAL(valueChanged(int)), this, SLOT(keyframeCountChanged(int)));
     
     QStringList decoders = {
         "NONE",
@@ -79,24 +108,25 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
         "QSV",
         "DRM",
         "OPENCL",
-//        "MEDIACODEC"
-//        "VIDEOTOOLBOX",
     };
 
     listDecoders = new QListWidget(this);
     listDecoders->addItems(decoders);
 
+    lblDecoders = new QLabel("Hardware Decoder");
     hardwareDecoders = new QComboBox(this);
     hardwareDecoders->setModel(listDecoders->model());
     hardwareDecoders->setView(listDecoders);
     connect(hardwareDecoders, SIGNAL(currentTextChanged(const QString&)), this, SLOT(decoderChanged(const QString&)));
-    lblDecoders = new QLabel("Hardware Decoder");
     hardwareDecoders->setCurrentText(MW->settings->value(decoderKey, "NONE").toString());
 
-    QFrame *sliderFrame = new QFrame(this);
-    sliderFrame->setMaximumHeight(300);
-    sliderFrame->setFrameShape(QFrame::Panel);
-    sliderFrame->setFrameShadow(QFrame::Plain);
+    generateFilename = new QRadioButton("Generate Unique Filename");
+    generateFilename->setChecked(MW->settings->value(genFileKey, true).toBool());
+    connect(generateFilename, SIGNAL(clicked(bool)), this, SLOT(generateFilenameClicked(bool)));
+
+    defaultFilename = new QRadioButton("Use Default Filename");
+    defaultFilename->setChecked(MW->settings->value(defFileKey, false).toBool());
+    connect(defaultFilename, SIGNAL(clicked(bool)), this, SLOT(defaultFilenameClicked(bool)));
 
     QLabel *lbl10 = new QLabel("Zoom");
     zoom = new QSlider(Qt::Vertical);
@@ -125,6 +155,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
 
     QLabel *title = new QLabel("Digital Zoom");
 
+    QFrame *sliderFrame = new QFrame(this);
+    sliderFrame->setFrameShape(QFrame::Panel);
+    sliderFrame->setFrameShadow(QFrame::Plain);
     QGridLayout *frameLayout = new QGridLayout(sliderFrame);
     frameLayout->addWidget(title, 0, 0, 1, 4, Qt::AlignRight);
     frameLayout->addWidget(zoom,  1, 0, 1, 1, Qt::AlignHCenter);
@@ -135,75 +168,45 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     frameLayout->addWidget(lbl12, 2, 2, 1, 1, Qt::AlignCenter);
     frameLayout->addWidget(reset, 1, 3, 1, 1);
 
-    QGridLayout *layout = new QGridLayout();
+    QGroupBox *groupBox = new QGroupBox("Record Filename", this);
+    QGridLayout *groupLayout = new QGridLayout(groupBox);
+    groupLayout->addWidget(generateFilename,  0, 0, 1, 1);
+    groupLayout->addWidget(defaultFilename,   1, 0, 1, 1);
+
+    QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(lbl03,               0, 0, 1, 1);
-    layout->addWidget(networkInterfaces,   0, 1, 1, 2);
+    layout->addWidget(networkInterfaces,   0, 1, 1, 1);
     layout->addWidget(autoDiscovery,       1, 0, 1, 2);
-    layout->addWidget(multiBroadcast,      2, 0, 1, 1);
-    layout->addWidget(lblBroadcastRepeat,  2, 1, 1, 1);
-    layout->addWidget(broadcastRepeat,     2, 2, 1, 1);
     layout->addWidget(lbl01,               3, 0, 1, 1);
     layout->addWidget(commonUsername,      3, 1, 1, 1);
     layout->addWidget(lbl02,               4, 0, 1, 1);
     layout->addWidget(commonPassword,      4, 1, 1, 1);
     layout->addWidget(lowLatency,          5, 0, 1, 3);
-    layout->addWidget(lblDecoders,         6, 0, 1, 1);
-    layout->addWidget(hardwareDecoders,    6, 1, 1, 2);
-    layout->addWidget(clear,               8, 0, 1, 1, Qt::AlignCenter);
-    layout->addWidget(style,               8, 1, 1, 1, Qt::AlignCenter);
-    layout->addWidget(sliderFrame,         9, 0, 2, 4);
+    layout->addWidget(disableAudio,        6, 0, 1, 3);
+    layout->addWidget(hideToolTips,        7, 0, 1, 3);
+    layout->addWidget(lblKeyframeCount,    8, 0, 1, 1);
+    layout->addWidget(keyframeCount,       8, 1, 1, 1);
+    layout->addWidget(lblDecoders,         9, 0, 1, 1);
+    layout->addWidget(hardwareDecoders,    9, 1, 1, 2);
+    layout->addWidget(groupBox,           10, 0, 1, 3);
+    layout->addWidget(clear,              11, 0, 1, 1, Qt::AlignCenter);
+    layout->addWidget(style,              11, 1, 1, 1, Qt::AlignCenter);
+    layout->addWidget(sliderFrame,        12, 0, 2, 3);
     setLayout(layout);
 
-    getActiveNetworkInterfaces();
-
-    commonUsername->setText(MW->settings->value(usernameKey, "").toString());
-    commonPassword->setText(MW->settings->value(passwordKey, "").toString());
-    autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
-    multiBroadcast->setChecked(MW->settings->value(multiBroadKey, false).toBool());
-    broadcastRepeat->setValue(MW->settings->value(broadRepKey, 2).toInt());
-    lowLatency->setChecked(MW->settings->value(lowLatencyKey, false).toBool());
     autoDiscoveryClicked(autoDiscovery->isChecked());
-
-    QString netIntf = MW->settings->value(netIntfKey, "").toString();
-    if (netIntf.length() > 0)
-        networkInterfaces->setCurrentText(netIntf);
-
-    connect(commonUsername, SIGNAL(editingFinished()), this, SLOT(usernameUpdated()));
-    connect(commonPassword, SIGNAL(editingFinished()), this, SLOT(passwordUpdated()));
-    connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
-    connect(multiBroadcast, SIGNAL(clicked(bool)), this, SLOT(multiBroadcastClicked(bool)));
-    connect(broadcastRepeat, SIGNAL(valueChanged(int)), this, SLOT(broadcastRepeatChanged(int)));
-    connect(lowLatency, SIGNAL(clicked(bool)), this, SLOT(lowLatencyClicked(bool)));
-    connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
+    MW->glWidget->keyframe_cache_size = keyframeCount->value();
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
 {
-    if (checked) {
-        multiBroadcast->setEnabled(true);
-        broadcastRepeat->setEnabled(true);
-        lblBroadcastRepeat->setEnabled(true);
-    }
-    else {
-        multiBroadcast->setEnabled(false);
-        broadcastRepeat->setEnabled(false);
-        lblBroadcastRepeat->setEnabled(false);
-        multiBroadcast->setChecked(false);
-    }
-
     MW->settings->setValue(autoDiscKey, autoDiscovery->isChecked());
-    MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
 }
 
-void SettingsPanel::multiBroadcastClicked(bool checked)
+void SettingsPanel::keyframeCountChanged(int value)
 {
-    Q_UNUSED(checked);
-    MW->settings->setValue(multiBroadKey, multiBroadcast->isChecked());
-}
-
-void SettingsPanel::broadcastRepeatChanged(int value)
-{
-    MW->settings->setValue(broadRepKey, value);
+    MW->glWidget->keyframe_cache_size = value;
+    MW->settings->setValue(keyCountKey, value);
 }
 
 void SettingsPanel::usernameUpdated()
@@ -216,9 +219,41 @@ void SettingsPanel::passwordUpdated()
     MW->settings->setValue(passwordKey, commonPassword->text());
 }
 
-void SettingsPanel::lowLatencyClicked(bool clicked)
+void SettingsPanel::lowLatencyClicked()
 {
-    MW->settings->setValue(lowLatencyKey, clicked);
+    MW->settings->setValue(lowLatencyKey, lowLatency->isChecked());
+    if (lowLatency->isChecked()) {
+        MW->glWidget->vpq_size = 1;
+        MW->glWidget->apq_size = 1;
+    }
+    else {
+        MW->glWidget->vpq_size = 100;
+        MW->glWidget->apq_size = 100;
+    }
+}
+
+void SettingsPanel::hideToolTipsClicked()
+{
+    MW->settings->setValue(hideTipsKey, hideToolTips->isChecked());
+    MW->cameraPanel->disableToolTips(hideToolTips->isChecked());
+    MW->filePanel->disableToolTips(hideToolTips->isChecked());
+}
+
+void SettingsPanel::disableAudioClicked(bool clicked)
+{
+    MW->settings->setValue(disAudioKey, clicked);
+}
+
+void SettingsPanel::generateFilenameClicked(bool clicked)
+{
+    MW->settings->setValue(genFileKey, clicked);
+    MW->settings->setValue(defFileKey, !clicked);
+}
+
+void SettingsPanel::defaultFilenameClicked(bool clicked)
+{
+    MW->settings->setValue(defFileKey, clicked);
+    MW->settings->setValue(genFileKey, !clicked);
 }
 
 void SettingsPanel::zoomMoved(int arg)
@@ -266,7 +301,6 @@ void SettingsPanel::clearClicked()
 
 void SettingsPanel::decoderChanged(const QString& name)
 {
-    std::cout << "name: " << name.toLatin1().data() << std::endl;
     AVHWDeviceType result = AV_HWDEVICE_TYPE_NONE;
     if (name == "VDPAU")
         result = AV_HWDEVICE_TYPE_VDPAU;
@@ -304,7 +338,6 @@ void SettingsPanel::getActiveNetworkInterfaces()
     PIP_ADAPTER_INFO pAdapterInfo;
     PIP_ADAPTER_INFO pAdapter = NULL;
     DWORD dwRetVal = 0;
-    //UINT i;
     QStringList args;
 
     ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
@@ -349,8 +382,8 @@ void SettingsPanel::getActiveNetworkInterfaces()
     char host[NI_MAXHOST];
 
     if (getifaddrs(&ifaddr) == -1) {
-        perror("getifaddrs");
-        //exit(EXIT_FAILURE);
+        emit msg(QString("Error: getifaddrs failed - %1").arg(strerror(errno)));
+        return;
     }
 
     QStringList args;
@@ -367,19 +400,13 @@ void SettingsPanel::getActiveNetworkInterfaces()
                     NULL, 0, NI_NUMERICHOST);
 
             if (s != 0) {
-                printf("getnameinfo() failed: %s\n", gai_strerror(s));
-                //exit(EXIT_FAILURE);
+                emit msg(QString("getnameinfo() failed: %1").arg(gai_strerror(s)));
+                continue;
             }
 
             if (strcmp(ifa->ifa_name, "lo")) {
-                printf("name: %s, address: <%s>\n", ifa->ifa_name, host);
-                QString label(host);
-                label += " - ";
-                label += ifa->ifa_name;
-                emit msg(label);
-                args.push_back(label);
+                args.push_back(QString("%1 - %2").arg(host, ifa->ifa_name));
             }
-
         } 
     }
 
@@ -401,4 +428,3 @@ void SettingsPanel::getCurrentlySelectedIP(char *buffer)
     }
     buffer[i] = '\0';
 }
-

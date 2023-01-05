@@ -30,6 +30,8 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QSlider>
+#include <QGroupBox>
+#include <QRadioButton>
 #include <QMainWindow>
 #include <QListWidget>
 
@@ -44,21 +46,24 @@ public:
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
-    QCheckBox *multiBroadcast;
     QPushButton *style;
     QPushButton *clear;
-    QSpinBox *broadcastRepeat;
-    QLabel *lblBroadcastRepeat;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;
+    QCheckBox *hideToolTips;
     QComboBox *hardwareDecoders;
+    QRadioButton *generateFilename;
+    QRadioButton *defaultFilename;
+    QCheckBox *disableAudio;
     QSlider *zoom;
     QSlider *panX;
     QSlider *panY;
     QPushButton *reset;
     QListWidget *interfaces;
     QComboBox *networkInterfaces;
+    QSpinBox *keyframeCount;
+    QLabel *lblKeyframeCount;
 
     QStringList decoders;
     QListWidget *listDecoders;
@@ -73,7 +78,11 @@ public:
     const QString lowLatencyKey = "SettingsPanel/lowLatency";
     const QString decoderKey    = "SettingsPanel/decoder";
     const QString netIntfKey    = "SettingsPanel/networkInterface";
-
+    const QString genFileKey    = "SettingsPanel/generateFIlename";
+    const QString defFileKey    = "SettingsPanel/defaultFilename";
+    const QString disAudioKey   = "SettingsPanel/disableAudio";
+    const QString keyCountKey   = "SettingsPanel/keyframeCount";
+    const QString hideTipsKey   = "SettingsPanel/hideToolTips";
 
 signals:
     void msg(const QString&);
@@ -82,9 +91,8 @@ public slots:
     void usernameUpdated();
     void passwordUpdated();
     void autoDiscoveryClicked(bool);
-    void multiBroadcastClicked(bool);
-    void broadcastRepeatChanged(int);
-    void lowLatencyClicked(bool);
+    void lowLatencyClicked();
+    void hideToolTipsClicked();
     void decoderChanged(const QString&);
     void zoomMoved(int);
     void panXMoved(int);
@@ -92,7 +100,11 @@ public slots:
     void resetClicked();
     void styleClicked();
     void clearClicked();
+    void generateFilenameClicked(bool);
+    void defaultFilenameClicked(bool);
+    void disableAudioClicked(bool);
     void netIntfChanged(const QString&);
+    void keyframeCountChanged(int);
 
 };
 

@@ -126,6 +126,7 @@ public:
     ProgressLabel *lblSeek;
     ProgressSlider *sldProgress;
     QLabel *lblProgress;
+    QLabel *lblDuration;
     QSlider *sldVolume;
 
     const QString dirKey    = "FilePanel/dir";
@@ -150,6 +151,9 @@ public slots:
     void onBtnMuteClicked();
     void onSldVolumeMoved(int);
     void progress(float);
+    void mediaPlayingFinished();
+    void mediaPlayingStarted();
+    void disableToolTips(bool);
 
 };
 

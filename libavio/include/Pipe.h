@@ -46,8 +46,10 @@ public:
     Pipe(Reader& reader);
     ~Pipe();
 
+    void* process;
+
     AVCodecContext* getContext(AVMediaType mediaType);
-    void open(const std::string& filename);
+    bool open(const std::string& filename);
     void close();
     void adjust_pts(AVPacket* pkt);
     void write(AVPacket* pkt);
@@ -65,6 +67,8 @@ public:
     int64_t video_next_pts = 0;
     int64_t audio_next_pts = 0;
     int last_video_pkt_duration = 0;
+
+    bool opened = false;
 
     std::mutex mutex;
 

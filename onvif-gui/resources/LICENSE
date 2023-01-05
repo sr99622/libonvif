@@ -2,6 +2,9 @@
 *
 * The files in this directory are copyright protected by the following license
 *
+* apply.png
+* apply_hi.png
+* apply_lo.png
 * audio.png
 * audio_hi.png
 * audio_lo.png
@@ -14,9 +17,13 @@
 * checked.png
 * checked_hi.png
 * checked_lo.png
+* discover.png
+* discover_hi.png
+* discover_lo.png
 * mute.png
 * mute_hi.png
 * mute_lo.png
+* onvif-gui.png
 * pause.png
 * pause_hi.png
 * pause_lo.png

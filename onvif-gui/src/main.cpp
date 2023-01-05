@@ -1,7 +1,7 @@
 /*******************************************************************************
 * main.cpp
 *
-* Copyright (c) 2020 Stephen Rhodes
+* Copyright (c) 2022 Stephen Rhodes
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,22 @@
 *
 *******************************************************************************/
 
+#include <functional>
+#include <iostream>
+
 #include "mainwindow.h"
 #include <QApplication>
 
+
+Q_DECLARE_METATYPE(std::string);
+
 int main(int argc, char *argv[])
 {
+    qRegisterMetaType<std::string>();
+
     QApplication a(argc, argv);
     MainWindow w;
-    w.show();
+
+	w.show();
     return a.exec();
 }

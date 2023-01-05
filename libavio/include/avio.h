@@ -31,6 +31,8 @@
 #include "Display.h"
 #include "GLWidget.h"
 
+#define P ((Process*)process)
+
 namespace avio
 {
 
@@ -53,44 +55,68 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     if (reader->vpq_max_size > 0 && vpq) vpq->set_max_size(reader->vpq_max_size);
     if (reader->apq_max_size > 0 && apq) apq->set_max_size(reader->apq_max_size);
 
-    std::deque<AVPacket*> pkts;
     Pipe* pipe = nullptr;
+    std::deque<AVPacket*> pkts;
+    int keyframe_count = 0;
+    int keyframe_marker = 0;
 
     try {
-        while (AVPacket* pkt = reader->read())
+        while (true)
         {
+            AVPacket* pkt = reader->read();
+            if (!pkt)
+                break;
+
             reader->running = true;
             if (reader->request_break) {
-                if (vpq) {
-                    while (vpq->size() > 0) {
-                        AVPacket* tmp = vpq->pop();
-                        av_packet_free(&tmp);
-                    }
-                }
-                if (apq) {
-                    while (apq->size() > 0) {
-                        AVPacket* tmp = apq->pop();
-                        av_packet_free(&tmp);
-                    }
-                }
+                reader->clear_stream_queues();
                 break;
             }
 
+            if (reader->seek_target_pts != AV_NOPTS_VALUE) {
+
+                AVPacket* tmp = reader->seek();
+
+                while (pkts.size() > 0) {
+                    AVPacket* jnk = pkts.front();
+                    pkts.pop_front();
+                    av_packet_free(&jnk);
+                }
+
+                if (tmp) {
+                    av_packet_free(&pkt);
+                    pkt = tmp;
+                    reader->clear_stream_queues();
+                }
+                else {
+                    break;
+                }
+            }
+
             if (reader->request_pipe_write) {
+                // pkts queue caches recent packets based off key frame packet
                 if (!pipe) {
                     pipe = new Pipe(*reader);
-                    std::string filename = reader->get_pipe_out_filename();
-                    pipe->open(filename);
-                    while (pkts.size() > 0) {
-                        AVPacket* tmp = pkts.front();
-                        pkts.pop_front();
-                        pipe->write(tmp);
-                        av_packet_free(&tmp);
+                    pipe->process = reader->process;
+                    if (pipe->open(reader->pipe_out_filename)) {
+                        while (pkts.size() > 0) {
+                            AVPacket* tmp = pkts.front();
+                            pkts.pop_front();
+                            pipe->write(tmp);
+                            av_packet_free(&tmp);
+                        }
+                    }
+                    else {
+                        delete pipe;
+                        pipe = nullptr;
                     }
                 }
-                AVPacket* tmp = av_packet_clone(pkt);
-                pipe->write(tmp);
-                av_packet_free(&tmp);
+                // verify pipe was opened successfully before continuing
+                if (pipe) {
+                    AVPacket* tmp = av_packet_clone(pkt);
+                    pipe->write(tmp);
+                    av_packet_free(&tmp);
+                }
             }
             else {
                 if (pipe) {
@@ -100,25 +126,20 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
                 }
                 if (pkt->stream_index == reader->video_stream_index) {
                     if (pkt->flags) {
-                        while (pkts.size() > 0) {
-                            AVPacket* tmp = pkts.front();
-                            pkts.pop_front();
-                            av_packet_free(&tmp);
+                        // key frame packet found in stream
+                        if (++keyframe_count >= reader->keyframe_cache_size()) {
+                            while (pkts.size() > keyframe_marker) {
+                                AVPacket* tmp = pkts.front();
+                                pkts.pop_front();
+                                av_packet_free(&tmp);
+                            }
+                            keyframe_count--;
                         }
+                        keyframe_marker = pkts.size();
                     }
                 }
                 AVPacket* tmp = av_packet_clone(pkt);
                 pkts.push_back(tmp);
-            }
-
-            if (reader->seek_target_pts != AV_NOPTS_VALUE) {
-                av_packet_free(&pkt);
-                pkt = reader->seek();
-                if (!pkt) {
-                    break;
-                }
-                if (vpq) while(vpq->size() > 0) vpq->pop();
-                if (apq) while(apq->size() > 0) apq->pop();
             }
 
             if (reader->stop_play_at_pts != AV_NOPTS_VALUE && pkt->stream_index == reader->seek_stream_index()) {
@@ -130,9 +151,8 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
 
             if (pkt->stream_index == reader->video_stream_index) {
                 if (reader->show_video_pkts) show_pkt(pkt);
-                if (vpq) {
+                if (vpq)
                     vpq->push(pkt);
-                }
                 else
                     av_packet_free(&pkt);
             }
@@ -150,6 +170,8 @@ static void read(Reader* reader, Queue<AVPacket*>* vpq, Queue<AVPacket*>* apq)
     }
     catch (const QueueClosedException& e) {}
     catch (const Exception& e) { std::cout << " reader failed: " << e.what() << std::endl; }
+
+    reader->signal_eof();
     reader->running = false;
 }
 
@@ -315,6 +337,9 @@ public:
 
     std::vector<std::thread*> ops;
 
+    Process() { av_log_set_level(AV_LOG_PANIC); }
+    ~Process() { }
+
     void key_event(int keyCode)
     {
         SDL_Event event;
@@ -325,7 +350,9 @@ public:
 
     void add_reader(Reader& reader_in)
     {
+        reader_in.process = (void*)this;
         reader = &reader_in;
+        
         if (!reader_in.vpq_name.empty()) pkt_q_names.push_back(reader_in.vpq_name);
         if (!reader_in.apq_name.empty()) pkt_q_names.push_back(reader_in.apq_name);
     }
@@ -366,18 +393,9 @@ public:
         frame_q_names.push_back(encoder_in.frame_q_name);
     }
 
-    void add_frame_drain(const std::string& frame_q_name)
-    {
-        frame_q_drain_names.push_back(frame_q_name);
-    }
-
-    void add_packet_drain(const std::string& pkt_q_name)
-    {
-        pkt_q_drain_names.push_back(pkt_q_name);
-    }
-
     void add_display(Display& display_in)
     {
+        display_in.process = (void*)this;
         display = &display_in;
 
         if (!display->vfq_out_name.empty())
@@ -388,9 +406,18 @@ public:
 
     void add_widget(GLWidget* widget_in)
     {
+        widget_in->process = (void*)this;
         glWidget = widget_in;
-        if (!display->vfq_out_name.empty())
-            frame_q_names.push_back(display->vfq_out_name);
+    }
+
+    void add_frame_drain(const std::string& frame_q_name)
+    {
+        frame_q_drain_names.push_back(frame_q_name);
+    }
+
+    void add_packet_drain(const std::string& pkt_q_name)
+    {
+        pkt_q_drain_names.push_back(pkt_q_name);
     }
 
     void cleanup()
@@ -433,8 +460,6 @@ public:
 
     void run()
     {
-        av_log_set_level(AV_LOG_PANIC);
-
         for (const std::string& name : pkt_q_names) {
             if (!name.empty()) {
                 if (pkt_queues.find(name) == pkt_queues.end())
@@ -504,10 +529,6 @@ public:
 
         if (display) {
 
-            if (writer) display->writer = writer;
-            if (audioDecoder) display->audioDecoder = audioDecoder;
-            if (audioFilter) display->audioFilter = audioFilter;
-
             if (!display->vfq_in_name.empty()) display->vfq_in = frame_queues[display->vfq_in_name];
             if (!display->afq_in_name.empty()) display->afq_in = frame_queues[display->afq_in_name];
 
@@ -525,8 +546,10 @@ public:
                 glWidget->emit timerStop();
 
             // reader shutdown routine if downstream module shuts down process
-            int count = 0;
+            // there is probably a better way to handle this situation
             if (!reader->exit_error_msg.empty()) {
+                int count = 0;
+                std::cout << "reader attempting shutdown" << std::endl;
                 reader->request_break = true;
                 while (reader->running) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));

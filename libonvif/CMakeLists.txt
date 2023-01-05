@@ -1,7 +1,7 @@
 #*******************************************************************************
-# libovnif/recipe/build.sh
+# libonvif/libonvif/CMakeLists.txt
 #
-# Copyright (c) 2022 Stephen Rhodes 
+# Copyright (c) 2020 Stephen Rhodes 
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,8 +19,35 @@
 #
 #******************************************************************************/
 
-echo "BUILD.SH"
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=${PREFIX} -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_GUI=ON ..
-make install
+cmake_minimum_required(VERSION 3.17)
+
+project(libonvif VERSION 1.4.4)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+if(WIN32)
+    find_package(Iconv REQUIRED)
+endif()
+
+find_package(LibXml2 REQUIRED)
+
+add_library(onvif SHARED
+    src/onvif.c
+    src/cencode.c
+    src/sha1.c
+)
+
+target_link_libraries(onvif PRIVATE
+    ${LIBXML2_LIBRARIES}
+)
+
+set_target_properties(onvif PROPERTIES
+    SOVERSION 1
+)
+
+target_include_directories(onvif PUBLIC
+    include
+    ${Iconv_INCLUDE_DIRS}
+    ${LIBXML2_INCLUDE_DIRS}
+)

@@ -26,6 +26,7 @@
 #include <QOpenGLShader>
 #include <QTimer>
 #include <iostream>
+#include <functional>
 #include "Queue.h"
 #include "Frame.h"
 #include "Reader.h"
@@ -36,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
 namespace avio
 {
 
-QT_FORWARD_DECLARE_CLASS(Process)
+//QT_FORWARD_DECLARE_CLASS(Process)
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -52,12 +53,16 @@ public:
     void setFormat(QImage::Format);
     void setVolume(int arg);
     void setMute(bool arg);
-    bool getMute() { return mute; }
+    bool isMute() { return mute; }
+    void togglePaused();
+    bool isPaused();
     void updateAspectRatio();
     void play(const QString& arg);
     void stop();
     float zoom_factor() { return factor; }
     void showStreamParameters(avio::Reader* reader);
+    void toggle_pipe_out(const std::string& filename);
+    bool checkForStreamHeader(const char*);
 
     static void start(void * parent);
 
@@ -81,20 +86,36 @@ public:
     long media_duration = 0;
     long media_start_time = 0;
     bool running = false;
+    bool disable_audio = false;
+    int keyframe_cache_size = 1;
     int vpq_size = 0;
     int apq_size = 0;
     std::string mediaShortName;
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
-    avio::Process* process = nullptr;
+    void* process = nullptr;
+    Reader* get_reader();
+
+    bool python_enabled = false;
+    std::string python_dir;
+    std::string python_file;
+    std::string python_class;
+    std::string python_args;
+    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
+    std::function<bool(avio::Frame&)> runPy = nullptr;
+    bool pyInitialized = false;
+
 
 signals:
     void timerStart();
     void timerStop();
     void cameraTimeout();
     void connectFailed(const QString&);
+    void openWriterFailed(const std::string&);
     void msg(const QString&);
     void progress(float);
+    void mediaPlayingFinished();
+    void mediaPlayingStarted();
 
 public slots:
     void poll();
@@ -129,7 +150,7 @@ private:
     char uri[1024];
 
     QTimer *timer;
-    int count = 0;
+
 };
 
 }

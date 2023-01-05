@@ -28,6 +28,7 @@
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QScreen>
+#include <QDateTime>
 
 CameraPanel::CameraPanel(QMainWindow *parent)
 {
@@ -49,10 +50,22 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     tabWidget->setMaximumHeight(screenSize.height() * 0.2);
 
-    applyButton = new QPushButton(tr("Apply"), this);
+    applyButton = new QPushButton(this);
+    applyButton->setStyleSheet(MW->getButtonStyle("apply"));
     connect(applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClicked()));
-    discoverButton = new QPushButton("Discover", this);
+
+    discoverButton = new QPushButton(this);
+    discoverButton->setStyleSheet(MW->getButtonStyle("discover"));
     connect(discoverButton, SIGNAL(clicked()), this, SLOT(discoverButtonClicked()));
+
+    playButton = new QPushButton(this);
+    playButton->setStyleSheet(MW->getButtonStyle("play"));
+    connect(playButton, SIGNAL(clicked()), this, SLOT(playButtonClicked()));
+
+    recordButton = new QPushButton(this);
+    recordButton->setStyleSheet(MW->getButtonStyle("record"));
+    connect(recordButton, SIGNAL(clicked()), this, SLOT(recordButtonClicked()));
+    recordButton->setEnabled(false);
 
     volumeSlider = new QSlider(Qt::Horizontal, this);
     volumeSlider->setMaximumHeight(16);
@@ -63,7 +76,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     btnMute = new QPushButton();
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
-    if (MW->glWidget->getMute())
+    if (MW->glWidget->isMute())
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
@@ -71,10 +84,12 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout* controlLayout = new QGridLayout(controlPanel);
-    controlLayout->addWidget(btnMute,         0, 0, 1, 1);
-    controlLayout->addWidget(volumeSlider,    0, 1, 1, 1);
-    controlLayout->addWidget(discoverButton,  0, 2, 1, 1);
-    controlLayout->addWidget(applyButton,     0, 3, 1 ,1);
+    controlLayout->addWidget(playButton,      0, 0, 1, 1);
+    controlLayout->addWidget(recordButton,    0, 1, 1, 1);
+    controlLayout->addWidget(btnMute,         0, 2, 1, 1);
+    controlLayout->addWidget(volumeSlider,    0, 3, 1, 1);
+    controlLayout->addWidget(discoverButton,  0, 4, 1, 1);
+    controlLayout->addWidget(applyButton,     0, 5, 1 ,1);
     controlPanel->setMaximumHeight(60);
 
     cameraList = new CameraListView(mainWindow);
@@ -102,6 +117,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
     connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
     connect(MW->glWidget, SIGNAL(connectFailed(const QString&)), this, SLOT(connectFailed(const QString&)));
+    connect(MW->glWidget, SIGNAL(openWriterFailed(const std::string&)), this, SLOT(openWriterFailed(const std::string&)));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -115,6 +131,8 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     foreach(QString key, cameraNames->allKeys()) {
         discovery->cameraAlias.insert(key, cameraNames->value(key).toString());
     }
+
+    disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
 
     if (MW->settingsPanel->autoDiscovery->isChecked()) {
         discovery->start();
@@ -139,7 +157,7 @@ void CameraPanel::discoverButtonClicked()
 
 void CameraPanel::onBtnMuteClicked()
 {
-    if (MW->glWidget->getMute()) {
+    if (MW->glWidget->isMute()) {
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
         MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     }
@@ -148,11 +166,11 @@ void CameraPanel::onBtnMuteClicked()
         MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
 
-    MW->glWidget->setMute(!MW->glWidget->getMute());
-    MW->settings->setValue(muteKey, MW->glWidget->getMute());
+    MW->glWidget->setMute(!MW->glWidget->isMute());
+    MW->settings->setValue(muteKey, MW->glWidget->isMute());
 }
 
-void CameraPanel::viewButtonClicked()
+void CameraPanel::cameraListDoubleClicked()
 {
     if (connecting) {
         std::cout << "currently attempting to connect to " << MW->currentStreamingMediaName.toLatin1().data() << " please wait" << std::endl;
@@ -174,9 +192,28 @@ void CameraPanel::viewButtonClicked()
             MW->glWidget->vpq_size = 100;
             MW->glWidget->apq_size = 100;
         }
+        MW->glWidget->disable_audio = MW->settingsPanel->disableAudio->isChecked();
         MW->glWidget->mediaShortName = MW->currentStreamingMediaName.toLatin1().data();
         MW->glWidget->play(uri.c_str());
         MW->setWindowTitle("connecting to " + MW->currentStreamingMediaName);
+        playButton->setStyleSheet(MW->getButtonStyle("stop"));
+    }
+}
+
+void CameraPanel::playButtonClicked()
+{
+    if (MW->glWidget->process){
+        if (recording)
+            recordButtonClicked();
+        recordButton->setEnabled(false);
+        MW->glWidget->stop();
+        playButton->setStyleSheet(MW->getButtonStyle("play"));
+    }
+    else {
+        if (cameraList->getCurrentCamera()) {
+            QString name = cameraList->getCurrentCamera()->getCameraName();
+            cameraListDoubleClicked();
+        }
     }
 }
 
@@ -192,14 +229,10 @@ void CameraPanel::showLoginDialog(Credential *credential)
     int stop = host.indexOf("/", start);
     int len = stop - start;
     QString ip = host.mid(start, len);
-    //QString name = "(";
-    //        name += ip + ") ";
-    //        name += "Camera Name: ";
-    //        name += credential->camera_name;
 
     loginDialog->cameraIP->setText(QString("Camera IP: ").append(ip));
     loginDialog->cameraName->setText(QString("Camera Name: ").append(credential->camera_name));
-    //loginDialog->cameraName->setText(name);
+    
     if (loginDialog->exec()) {
         QString username = loginDialog->username->text();
         strncpy(credential->username, username.toLatin1(), username.length());
@@ -220,6 +253,43 @@ void CameraPanel::applyButtonClicked()
 {
     CameraDialogTab *tab = (CameraDialogTab *)tabWidget->currentWidget();
     tab->update();
+}
+
+void CameraPanel::recordButtonClicked()
+{
+    std::cout << "record button clicked - use environment variable QT_FILESYSTEMMODEL_WATCH_FILES for file size updates" << std::endl;
+    recording = !recording;
+    if (recording)
+        recordButton->setStyleSheet(MW->getButtonStyle("recording"));
+    else
+        recordButton->setStyleSheet(MW->getButtonStyle("record"));
+
+    QString filename = MW->filePanel->directorySetter->directory;
+    if (MW->settingsPanel->generateFilename->isChecked()) 
+        filename.append("/").append(QDateTime::currentDateTime().toString("yyyyMMddhhmmss")).append(".mp4");
+    else 
+        filename.append("/").append("out.mp4");
+
+    MW->glWidget->toggle_pipe_out(filename.toLatin1().data());
+}
+
+void CameraPanel::disableToolTips(bool arg)
+{
+    if (!arg)
+    {
+        applyButton->setToolTip("Apply");
+        discoverButton->setToolTip("Discover");
+        playButton->setToolTip("Play");
+        recordButton->setToolTip("Record");
+        btnMute->setToolTip("Mute");
+    }
+    else {
+        applyButton->setToolTip("");
+        discoverButton->setToolTip("");
+        playButton->setToolTip("");
+        recordButton->setToolTip("");
+        btnMute->setToolTip("");
+    }
 }
 
 void CameraPanel::fillData()
@@ -272,10 +342,9 @@ void CameraPanel::adjustVolume(int value)
 void CameraPanel::streamStarting()
 {
     connecting = false;
-    if (MW->glWidget->process) {
-        MW->glWidget->process->display->volume = (float)volumeSlider->value() / 100.0f;
-    }
+    MW->glWidget->setVolume(volumeSlider->value());
     MW->setWindowTitle("Streaming from " + MW->currentStreamingMediaName);
+    recordButton->setEnabled(true);
 }
 
 void CameraPanel::cameraTimeout()
@@ -294,4 +363,15 @@ void CameraPanel::connectFailed(const QString& str)
     QMessageBox msgBox(this);
     msgBox.setText(str);
     msgBox.exec();
+}
+
+void CameraPanel::openWriterFailed(const std::string& str)
+{
+    QMessageBox msgBox(this);
+    QString msg = "Writer open failure: ";
+    msg.append(str.c_str());
+    msgBox.setText(msg);
+    msgBox.exec();
+    recording = false;
+    recordButton->setStyleSheet(MW->getButtonStyle("record"));
 }

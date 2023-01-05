@@ -64,6 +64,8 @@ public:
     QSlider* volumeSlider;
     QPushButton *applyButton;
     QPushButton *discoverButton;
+    QPushButton *recordButton;
+    QPushButton *playButton;
     VideoTab *videoTab;
     ImageTab *imageTab;
     NetworkTab *networkTab;
@@ -83,10 +85,9 @@ public:
 
     //QString MW->currentStreamingMediaName;
     bool connecting = false;
+    bool recording = false;
     std::string uri;
     char buf[256];
-
-    QProcess process;
 
 signals:
     void msg(QString str);
@@ -98,13 +99,17 @@ public slots:
     void showLoginDialog(Credential*);
     void applyButtonClicked();
     void discoverButtonClicked();
-    void viewButtonClicked();
+    void cameraListDoubleClicked();
+    void recordButtonClicked();
+    void playButtonClicked();
     void discoveryFinished();
     void adjustVolume(int);
     void streamStarting();
     void onBtnMuteClicked();
     void cameraTimeout();
     void connectFailed(const QString&);
+    void openWriterFailed(const std::string&);
+    void disableToolTips(bool);
 
 };
 

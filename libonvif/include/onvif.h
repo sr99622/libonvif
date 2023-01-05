@@ -19,9 +19,8 @@
 #ifndef ONVIF_H
 #define ONVIF_H
 
-#include <libxml/parser.h>
-#include <libxml/xpath.h>
 #include <stdbool.h>
+#include <time.h> 
 
 #ifdef __cplusplus
 extern "C" {
@@ -192,6 +191,7 @@ LIBRARY_API void saveServiceCapabilities(char * filename, struct OnvifData *onvi
 LIBRARY_API int eventSubscribe(struct OnvifData *onvif_data);
 LIBRARY_API int eventRenew(struct OnvifData *onvif_data);
 
+/*
 LIBRARY_API xmlDocPtr sendCommandToCamera(char * cmd, char * xaddrs);
 LIBRARY_API void getBase64(unsigned char * buffer, int chunk_size, unsigned char * result);
 LIBRARY_API void getUUID(char uuid_buf[47]);
@@ -209,6 +209,15 @@ LIBRARY_API int getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_l
 LIBRARY_API int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char buf[], int buf_length, int profileIndex);
 #define getNodeAttribute(doc,xpath,attribute,buf,buf_length) getNodeAttributen(doc,xpath,attribute,buf,buf_length,0)
 LIBRARY_API xmlXPathObjectPtr getNodeSet (xmlDocPtr doc, xmlChar *xpath);
+*/
+LIBRARY_API void getDiscoveryXml(char buffer[], int buf_size, char uuid[47]);
+LIBRARY_API void getDiscoveryXml2(char buffer[], int buf_size);
+LIBRARY_API void getScopeField(char *, char *, char[1024]);
+LIBRARY_API void getCameraName(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
+LIBRARY_API void extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
+LIBRARY_API void extractOnvifService(char service[1024], bool post);
+LIBRARY_API void extractHost(char * xaddrs, char host[128]);
+
 
 LIBRARY_API int setSocketOptions(int socket);
 LIBRARY_API void prefix2mask(int prefix, char mask_buf[128]);

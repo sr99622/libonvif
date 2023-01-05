@@ -31,13 +31,13 @@ NetworkTab::NetworkTab(QWidget *parent)
 
     checkDHCP = new QCheckBox(tr("DHCP Enabled"), this);
     textIPAddress = new QLineEdit();
-    textIPAddress->setMaximumWidth(150);
+    textIPAddress->setMaximumWidth(200);
     textSubnetMask = new QLineEdit();
-    textSubnetMask->setMaximumWidth(150);
+    textSubnetMask->setMaximumWidth(200);
     textDefaultGateway = new QLineEdit();
-    textDefaultGateway->setMaximumWidth(150);
+    textDefaultGateway->setMaximumWidth(200);
     textDNS = new QLineEdit();
-    textDNS->setMaximumWidth(150);
+    textDNS->setMaximumWidth(200);
 
     lblIPAddress = new QLabel("IP Address");
     lblSubnetMask = new QLabel("Subnet Mask");

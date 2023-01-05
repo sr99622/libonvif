@@ -18,6 +18,7 @@
 *********************************************************************/
 
 #include "Pipe.h"
+#include "avio.h"
 
 namespace avio
 {
@@ -29,6 +30,7 @@ Pipe::Pipe(Reader& reader) : reader(&reader)
 
 Pipe::~Pipe()
 {
+    //std::cout << "write operation finished (pipe)" << std::endl;
     if (fmt_ctx) avformat_free_context(fmt_ctx);
     if (video_ctx) avcodec_free_context(&video_ctx);
 }
@@ -58,41 +60,60 @@ AVCodecContext* Pipe::getContext(AVMediaType mediaType)
         ex.ck(avcodec_parameters_to_context(enc_ctx, stream->codecpar), APTC);
     }
     catch (const Exception& e) {
-        std::cout << strMediaType << " Pipe::getContext exception: " << e.what() << std::endl;
+        if (strcmp(e.what(), "invalid stream index from reader"))
+            std::cout << strMediaType << " Pipe::getContext exception: " << e.what() << std::endl;
+        else 
+            std::cout << "no " << strMediaType << " found in stream" << std::endl;
     }
 
     return enc_ctx;
 }
 
-void Pipe::open(const std::string& filename)
+bool Pipe::open(const std::string& filename)
 {
     try {
+        opened = false;
         ex.ck(avformat_alloc_output_context2(&fmt_ctx, NULL, NULL, filename.c_str()), AAOC2);
 
-        ex.ck(video_stream = avformat_new_stream(fmt_ctx, NULL), ANS);
         video_ctx = getContext(AVMEDIA_TYPE_VIDEO);
-        if (video_ctx == NULL) throw Exception("no video reference context");
-        ex.ck(avcodec_parameters_from_context(video_stream->codecpar, video_ctx), APFC);
-        video_stream->time_base = reader->fmt_ctx->streams[reader->video_stream_index]->time_base;
+        if (video_ctx) {
+            ex.ck(video_stream = avformat_new_stream(fmt_ctx, NULL), ANS);
+            if (video_ctx == NULL) throw Exception("no video reference context");
+            ex.ck(avcodec_parameters_from_context(video_stream->codecpar, video_ctx), APFC);
+            video_stream->time_base = reader->fmt_ctx->streams[reader->video_stream_index]->time_base;
+        }
 
-        ex.ck(audio_stream = avformat_new_stream(fmt_ctx, NULL), ANS);
         audio_ctx = getContext(AVMEDIA_TYPE_AUDIO);
-        if (audio_ctx == NULL) throw Exception("no audio reference context");
-        ex.ck(avcodec_parameters_from_context(audio_stream->codecpar, audio_ctx), APFC);
-        audio_stream->time_base = reader->fmt_ctx->streams[reader->audio_stream_index]->time_base;
+        if (audio_ctx) {
+            ex.ck(audio_stream = avformat_new_stream(fmt_ctx, NULL), ANS);
+            if (audio_ctx == NULL) throw Exception("no audio reference context");
+            ex.ck(avcodec_parameters_from_context(audio_stream->codecpar, audio_ctx), APFC);
+            audio_stream->time_base = reader->fmt_ctx->streams[reader->audio_stream_index]->time_base;
+        }
 
-        show_ctx();
+        //show_ctx();
         ex.ck(avio_open(&fmt_ctx->pb, filename.c_str(), AVIO_FLAG_WRITE), AO);
+        opened = true;
         ex.ck(avformat_write_header(fmt_ctx, NULL), AWH);
 
         video_next_pts = 0;
         audio_next_pts = 0;
 
-        std::cout << "opened write file " << filename.c_str() << std::endl;
+        std::cout << "pipe opened write file " << filename.c_str() << std::endl;
     }
     catch (const Exception& e) {
-        std::cout << "Pipe::open exception: " << e.what() << std::endl;
+        std::stringstream str;
+        str << "Pipe::open exception: " << e.what();
+        reader->request_pipe_write = false;
+        if (opened) 
+            ex.ck(avio_closep(&fmt_ctx->pb), ACP);
+
+        if (P->glWidget)
+            P->glWidget->emit openWriterFailed(str.str());
+
+        return false;
     }
+    return true;
 }
 
 void Pipe::adjust_pts(AVPacket* pkt)
@@ -128,10 +149,10 @@ void Pipe::close()
         ex.ck(avio_closep(&fmt_ctx->pb), ACP);
     }
     catch (const Exception& e) {
-        std::cout << "Writer::close exception: " << e.what() << std::endl;
+        std::cout << "Pipe::close exception: " << e.what() << std::endl;
     }
 
-    //std::cout << "pipe closed file " << filename << std::endl;
+    std::cout << "pipe closed file " << std::endl;
 }
 
 void Pipe::show_ctx()

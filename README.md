@@ -18,9 +18,9 @@ information or video settings.
 
 Additionally, there is a comprehensive GUI sample program that includes the
 discovery functionality as well controls for adjusting camera parameters and
-PTZ operations.  The GUI sample is written in Qt and can be compiled with
-either cmake or qmake using Qt Creator.  On Linux, the GUI has a viewer pane 
-that will display camera output.  
+PTZ operations.  The GUI program has a record function that will write the
+camera stream to file and includes some basic media file management tools. 
+The GUI sample is written in Qt and can be compiled with cmake.
 
 The utility program is invoked using the 'onvif-util' command.
 
@@ -44,6 +44,7 @@ cd build
 cmake -DBUILD_GUI=ON ..
 make
 sudo make install
+sudo ldconfig
 ```
 
 
@@ -493,37 +494,6 @@ License
  License: public-domain2
  
  100% Public Domain.
-
-----------
-
- FindFFmpeg.cmake Copyright (c) 2006 Matthias Kretz <kretz@kde.org>, 
- 2008 Alexander Neundorf <neundorf@kde.org>, 2011 Michael Jansen <kde@michael-jansen.biz>
-
- License: BSD-3-Clause
-
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
- are met:
- 
- 1. Redistributions of source code must retain the copyright
-    notice, this list of conditions and the following disclaimer.
- 2. Redistributions in binary form must reproduce the copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
- 3. Neither the name of the copyright holder nor the names of its 
-    contributors may be used to endorse or promote products derived from 
-    this software without specific prior written permission.
- 
- THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------
 

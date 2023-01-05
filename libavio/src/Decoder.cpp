@@ -131,6 +131,13 @@ void Decoder::close()
     sws_freeContext(sws_ctx);
 }
 
+void Decoder::flush()
+{
+    if (!dec_ctx) throw Exception("dec_ctx null");
+
+    avcodec_flush_buffers(dec_ctx);
+}
+
 int Decoder::decode(AVPacket* pkt)
 {
 

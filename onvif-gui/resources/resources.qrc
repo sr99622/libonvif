@@ -25,6 +25,10 @@
 
         <file>darkstyle.qss</file>
 
+        <file>apply.png</file>
+        <file>apply_hi.png</file>
+        <file>apply_lo.png</file>
+
         <file>audio.png</file>
         <file>audio_hi.png</file>
         <file>audio_lo.png</file>
@@ -40,6 +44,10 @@
         <file>checked.png</file>
         <file>checked_hi.png</file>
         <file>checked_lo.png</file>
+
+        <file>discover.png</file>
+        <file>discover_hi.png</file>
+        <file>discover_lo.png</file>
 
         <file>mute.png</file>
         <file>mute_hi.png</file>
@@ -61,6 +69,14 @@
         <file>radio-on_hi.png</file>
         <file>radio-on_lo.png</file>
 
+        <file>record.png</file>
+        <file>record_hi.png</file>
+        <file>record_lo.png</file>
+
+        <file>recording.png</file>
+        <file>recording_hi.png</file>
+        <file>recording_lo.png</file>
+
         <file>small_arrow_left.png</file>
         <file>small_arrow_left_hi.png</file>
         <file>small_arrow_left_lo.png</file>
@@ -76,6 +92,8 @@
         <file>unchecked.png</file>
         <file>unchecked_hi.png</file>
         <file>unchecked_lo.png</file>
+
+        <file>onvif-gui.png</file>
 
     </qresource>
 </RCC>

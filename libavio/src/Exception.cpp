@@ -134,9 +134,9 @@ const char* ExceptionHandler::tag(CmdTag cmd_tag)
     case CmdTag::APFC:
         return "avcodec_parameters_from_context";
     case CmdTag::AWH:
-        return "av_write_header";
+        return "avformat_write_header";
     case CmdTag::AWT:
-        return "av_write_trailer";
+        return "avformat_write_trailer";
     case CmdTag::AO:
         return "avio_open";
     case CmdTag::AC:

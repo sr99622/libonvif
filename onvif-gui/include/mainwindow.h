@@ -38,7 +38,8 @@
 #include "stylepanel.h"
 #include "filepanel.h"
 #include <iostream>
-#include "avio.h"
+#include <functional>
+#include "GLWidget.h"
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
@@ -50,7 +51,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void showVersion() { std::cout << "1.4.3" << std::endl; }
+    void showVersion() { std::cout << "1.4.4" << std::endl; }
     QString getButtonStyle(const QString& name) const;
     void applyStyle(const ColorProfile& profile);
     void closeEvent(QCloseEvent* event) override;
@@ -68,9 +69,9 @@ public:
     const QString splitKey = "MainWindow/splitKey";
 
     QString style;
-
     QString currentStreamingMediaName;
-
+    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
+    std::function<bool(avio::Frame&, const std::string&)> runPy = nullptr;
 
 public slots:
     void msg(const QString&);

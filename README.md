@@ -17,7 +17,7 @@ to query each of them for device configuration such as RSTP connection uri
 information or video settings.
 
 Additionally, there is a comprehensive GUI sample program that includes the
-discovery functionality as well controls for adjusting camera parameters and
+discovery functionality as well as controls for adjusting camera parameters and
 PTZ operations.  The GUI program has a record function that will write the
 camera stream to file and includes some basic media file management tools. 
 The GUI sample is written in Qt and can be compiled with cmake.

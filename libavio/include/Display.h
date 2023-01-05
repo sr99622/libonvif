@@ -78,7 +78,6 @@ public:
     bool reverse_step = false;
     int recent_idx = -1;
 
-    bool key_record_flag = false;
     bool recording = false;
     void toggleRecord();
 

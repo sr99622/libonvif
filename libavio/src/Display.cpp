@@ -197,48 +197,6 @@ PlayState Display::getEvents(std::vector<SDL_Event>* events)
             else if (event.key.keysym.sym == SDLK_SPACE) {
                 state = PlayState::PAUSE;
             }
-            else if (event.key.keysym.sym == SDLK_LEFT && event.key.repeat == 0) {
-                if (vfq_in) {
-                    reader->seek_target_pts = reader->last_video_pts - av_q2d(av_inv_q(reader->video_time_base()));
-                }
-                else {
-                    float pct = (f.m_rts - reader->start_time()) / (float)reader->duration();
-                    if (pct > 0.02)
-                        pct -= 0.01;
-                    else
-                        pct = 0.0;
-                    reader->request_seek(pct);
-                }
-                clearInputQueues();
-            }
-            else if (event.key.keysym.sym == SDLK_RIGHT && event.key.repeat == 0) {
-                if (vfq_in) {
-                    reader->seek_target_pts = reader->last_video_pts + av_q2d(av_inv_q(reader->video_time_base()));
-                }
-                else {
-                    float pct = (f.m_rts - reader->start_time()) / (float)reader->duration();
-                    if (pct < 0.98) {
-                        pct += 0.01;
-                        reader->request_seek(pct);
-                    }
-                }
-                clearInputQueues();
-            }
-            else if (event.key.keysym.sym == SDLK_s) {
-                if (paused) single_step = true;
-            }
-            else if (event.key.keysym.sym == SDLK_a) {
-                if (paused) reverse_step = true;
-            }
-            else if (event.key.keysym.sym == SDLK_r) {
-                key_record_flag = true;
-            }
-            else if (event.key.keysym.sym == SDLK_j) {
-                snapshot();
-            }
-            else if (event.key.keysym.sym == SDLK_o) {
-                reader->request_pipe_write = !reader->request_pipe_write;
-            }
         }
     }
     return state;
@@ -283,12 +241,11 @@ bool Display::display()
                 if (f.m_frame != nullptr) {
                     if (f.m_frame->pts == reader->seek_found_pts) {
                         reader->seek_found_pts = AV_NOPTS_VALUE;
-                        //reader->seek_target_pts = AV_NOPTS_VALUE;
                         flag_out = false;
                     }
                 }
                 else {
-                    std::cout << "invalid frame" << std::endl;
+                    std::cout << "Display received invalid frame during seek" << std::endl;
                     playing = false;
                     break;
                 }
@@ -320,11 +277,6 @@ bool Display::display()
 
             if (!P->glWidget)
                 ex.ck(initVideo(f.m_frame->width, f.m_frame->height, (AVPixelFormat)f.m_frame->format), "initVideo");
-
-            if (key_record_flag) {
-                key_record_flag = false;
-                toggleRecord();
-            }
 
             SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
             videoPresentation();

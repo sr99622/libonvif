@@ -48,18 +48,16 @@ namespace avio {
 Reader::Reader(const char* filename)
 {
     AVDictionary* opts = NULL;
-#ifdef _WIN32
-    av_dict_set(&opts, "timeout", "5000000", 0);
-#else
-    av_dict_set(&opts, "stimeout", "5000000", 0);
-#endif
+
+    if (LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58, 45, 100)) 
+        av_dict_set(&opts, "timeout", "5000000", 0);
+    else 
+        av_dict_set(&opts, "stimeout", "5000000", 0);
 
     //std::cout << "version major: " << LIBAVFORMAT_VERSION_MAJOR << std::endl; // 58
     //std::cout << "version minor: " << LIBAVFORMAT_VERSION_MINOR << std::endl; // 45
     //std::cout << "version micro: " << LIBAVFORMAT_VERSION_MICRO << std::endl; // 100
     //std::cout << "version int: " << LIBAVFORMAT_VERSION_INT << std::endl;
-    //if (LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58, 45, 100))
-    //    std::cout << "VERSION HIGHER " << std::endl;
     
     ex.ck(avformat_open_input(&fmt_ctx, filename, NULL, &opts), CmdTag::AOI);
  

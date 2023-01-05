@@ -59,6 +59,7 @@ target_link_libraries(avio PRIVATE
     Qt5::Widgets
     FFmpeg::FFmpeg
     SDL2::SDL2
+    pthread
 )
 
 set_target_properties(avio PROPERTIES

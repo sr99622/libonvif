@@ -100,7 +100,7 @@ License:   BSD-2-Clause-NETBSD
  IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Files: debian/*
-Copyright: 2022 Petter Reinholdtsen <pere@debian.org>
+Copyright: 2023 Petter Reinholdtsen <pere@debian.org>
 License: GPL-2+
 
 Files: docker/Dockerfile

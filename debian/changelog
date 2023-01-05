@@ -1,5 +1,15 @@
 libonvif (1.4.4-1) unstable; urgency=medium
 
+  * Update release (Supersedes version 1.4.3-1).
+  * Add record function
+  * Add file management
+
+  * Upload sponsored by Petter Reinholdtsen.
+
+ -- Stephen Rhodes <sr99622@gmail.com>  Thu, 05 Jan 2023 09:46:30 +0100
+
+libonvif (1.4.3-1) unstable; urgency=medium
+
   * Second release (Supersedes version 1.4.2-1).
   * Add custom gui
   * Add network selector

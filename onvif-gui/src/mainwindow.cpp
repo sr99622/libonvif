@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     Q_INIT_RESOURCE(resources);
     QIcon icon(":/onvif-gui.png");
     setWindowIcon(icon);
-    setWindowTitle("onvif-gui version 1.4.5");
+    setWindowTitle(QString("onvif-gui version %1").arg(VERSION));
     settings = new QSettings("libonvif", "onvif");
     //settings->clear();
     messagePanel = new MessagePanel(this);

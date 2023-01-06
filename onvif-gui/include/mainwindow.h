@@ -41,6 +41,8 @@
 #include <functional>
 #include "GLWidget.h"
 
+#define VERSION "1.4.5"
+
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
 class MainWindow : public QMainWindow

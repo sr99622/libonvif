@@ -11,7 +11,7 @@ libonvif is a multi platform library implementing the client side of the ONVIF
 specification for communicating with IP enabled compatible cameras.  It will
 compile on Linux and Windows.
 
-An utility program is included with libonvif that can be used as a maintenance
+A utility program is included with libonvif that can be used as a maintenance
 tool and will discover compatible cameras on the local network and may be used 
 to query each of them for device configuration such as RSTP connection uri 
 information or video settings.

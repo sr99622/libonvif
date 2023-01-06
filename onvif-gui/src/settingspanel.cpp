@@ -24,14 +24,8 @@
     #include <iphlpapi.h>
     #pragma comment(lib, "iphlpapi.lib")
 #else
-    #include <arpa/inet.h>
-    #include <sys/socket.h>
     #include <netdb.h>
     #include <ifaddrs.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <unistd.h>
-    #include <linux/if_link.h>
 #endif
 
 #include <cmath>

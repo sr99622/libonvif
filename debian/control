@@ -8,7 +8,7 @@ Build-Depends: debhelper-compat (= 13)
  , libavdevice-dev
  , libsdl2-dev
  , qtbase5-dev
-Standards-Version: 4.6.0
+Standards-Version: 4.5.1
 Section: libs
 Homepage: https://github.com/sr99622/libonvif/
 Vcs-Browser: https://github.com/sr99622/libonvif/
@@ -20,9 +20,10 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends: libonvif1 (= ${binary:Version}), ${misc:Depends}
-Description: ONVIF IP camera client library
- Implementing the client side of the ONVIF specification for communicating
- with IP enabled compatible cameras.
+Description: Developer Interface for libonif
+ Include files and link to binary lib needed to compile
+ programs that wish to link with libonvif for camera support
+ 
 
 Package: libonvif1
 Architecture: any

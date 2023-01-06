@@ -1,12 +1,9 @@
 libonvif.so.1 libonvif1 #MINVER#
- addHttpHeader@Base 1.3.0
- addUsernameDigestHeader@Base 1.3.0
  base64_encode_block@Base 1.3.0
  base64_encode_blockend@Base 1.3.0
  base64_encode_value@Base 1.3.0
  base64_init_encodestate@Base 1.3.0
  broadcast@Base 1.3.0
- checkForXmlErrorMsg@Base 1.3.0
  clearData@Base 1.3.0
  closeSession@Base 1.3.0
  continuousMove@Base 1.3.0
@@ -16,7 +13,6 @@ libonvif.so.1 libonvif1 #MINVER#
  extractOnvifService@Base 1.3.0
  extractXAddrs@Base 1.3.0
  fillRTSPn@Base 1.3.0
- getBase64@Base 1.3.0
  getCameraName@Base 1.3.0
  getCapabilities@Base 1.3.0
  getDeviceInformation@Base 1.3.0
@@ -28,8 +24,6 @@ libonvif.so.1 libonvif1 #MINVER#
  getIPAddress@Base 1.3.0
  getNetworkDefaultGateway@Base 1.3.0
  getNetworkInterfaces@Base 1.3.0
- getNodeAttributen@Base 1.3.0
- getNodeSet@Base 1.3.0
  getNTP@Base 1.3.0
  getOptions@Base 1.3.0
  getProfile@Base 1.3.0
@@ -37,10 +31,8 @@ libonvif.so.1 libonvif1 #MINVER#
  getScopeField@Base 1.3.0
  getStreamUri@Base 1.3.0
  getTimeOffset@Base 1.3.0
- getUUID@Base 1.3.0
  getVideoEncoderConfiguration@Base 1.3.0
  getVideoEncoderConfigurationOptions@Base 1.3.0
- getXmlValue@Base 1.3.0
  gotoPreset@Base 1.3.0
  hardReset@Base 1.3.0
  initializeSession@Base 1.3.0
@@ -55,7 +47,6 @@ libonvif.so.1 libonvif1 #MINVER#
  saveScopes@Base 1.3.0
  saveServiceCapabilities@Base 1.3.0
  saveSystemDateAndTime@Base 1.3.0
- sendCommandToCamera@Base 1.3.0
  setDNS@Base 1.3.0
  setHostname@Base 1.3.0
  setImagingSettings@Base 1.3.0

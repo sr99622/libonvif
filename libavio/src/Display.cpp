@@ -345,7 +345,7 @@ int Display::initAudio(int stream_sample_rate, AVSampleFormat stream_sample_form
                 result = name;
             std::cout << "ERROR: incompatible sample format: " << result << std::endl;
             std::cout << "supported formats: AV_SAMPLE_FMT_FLT, AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_U8" << std::endl;
-            std::exit(0);
+            //std::exit(0);
         }
 
         audio_buffer_len = av_samples_get_buffer_size(NULL, sdl.channels, sdl.samples, sdl_sample_format, 1);
@@ -370,7 +370,7 @@ int Display::initAudio(int stream_sample_rate, AVSampleFormat stream_sample_form
     }
     catch (const Exception& e) {
         ex.msg(e.what(), MsgPriority::CRITICAL, "Display::initAudio exception: ");
-        std::exit(0);
+        //std::exit(0);
     }
 
     return ret;

@@ -383,6 +383,8 @@ void GLWidget::start(void * parent)
 
         avio::Reader reader(widget->uri);
         widget->showStreamParameters(&reader);
+        const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(reader.pix_fmt());
+        if (!desc) throw Exception("No pixel format in video stream");
 
         if (widget->checkForStreamHeader(widget->uri)) {
             if (widget->vpq_size) reader.apq_max_size = widget->vpq_size;

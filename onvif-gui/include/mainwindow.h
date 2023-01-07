@@ -41,6 +41,8 @@
 #include <functional>
 #include "GLWidget.h"
 
+#define VERSION "1.4.5"
+
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
 class MainWindow : public QMainWindow
@@ -51,7 +53,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void showVersion() { std::cout << "1.4.4" << std::endl; }
+    void showVersion() { std::cout << "1.4.5" << std::endl; }
     QString getButtonStyle(const QString& name) const;
     void applyStyle(const ColorProfile& profile);
     void closeEvent(QCloseEvent* event) override;

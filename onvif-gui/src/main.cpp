@@ -25,11 +25,32 @@
 #include "mainwindow.h"
 #include <QApplication>
 
+#ifdef _WIN32
+#include "getopt-win.h"
+#else
+#include <getopt.h>
+#endif
+
+static struct option longopts[] = 
+{
+			 { "version",    no_argument,       NULL,      'v'},
+             { NULL,         0,                 NULL,       0 }
+};
+
 
 Q_DECLARE_METATYPE(std::string);
 
 int main(int argc, char *argv[])
 {
+   	int ch;
+	while ((ch = getopt_long(argc, argv, "v", longopts, NULL)) != -1) {
+		switch (ch) {
+			case 'v':
+				std::cout << "onvif-gui version " << VERSION << std::endl;
+				exit(0);
+		}
+	}
+
     qRegisterMetaType<std::string>();
 
     QApplication a(argc, argv);

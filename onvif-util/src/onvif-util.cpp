@@ -35,6 +35,7 @@
 #endif
 
 int longopt = 0;
+#define VERSION "1.4.5"
 
 static struct option longopts[] = {
              { "user",       required_argument, NULL,      'u'},
@@ -42,6 +43,7 @@ static struct option longopts[] = {
              { "all",        no_argument,       NULL,      'a'},
 			 { "safe_off",   no_argument,       NULL,      's'},
              { "help",       required_argument, NULL,      'h'},
+			 { "version",    no_argument,       NULL,      'v'},
              { NULL,         0,                 NULL,       0 }
      };
 
@@ -50,7 +52,7 @@ static const char *password = nullptr;
 
 static void usage()
 {
-	std::cout << "Usage: onvif-util [-ahs] [-u <user>] [-p <password>] [command]" << std::endl;
+	std::cout << "Usage: onvif-util [-ahsv] [-u <user>] [-p <password>] [command]" << std::endl;
 }
 
 static void showAll()
@@ -182,7 +184,7 @@ int main(int argc, char **argv)
 	bool safe_mode = true;
 
 	int ch;
-	while ((ch = getopt_long(argc, argv, "u:p:ahs", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "u:p:ahsv", longopts, NULL)) != -1) {
 		switch (ch) {
             case 'u':
 				username = optarg;
@@ -200,6 +202,9 @@ int main(int argc, char **argv)
 			case 's':
 				safe_mode = false;
 				break;
+			case 'v':
+				std::cout << "onvif-util version " << VERSION << std::endl;
+				exit(0);
 			case 0:
 				std::cout << optarg << std::endl;
 				break;

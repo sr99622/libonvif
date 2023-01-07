@@ -55,12 +55,20 @@ add_library(avio SHARED
     include/GLWidget.h
 )
 
-target_link_libraries(avio PRIVATE
-    Qt5::Widgets
-    FFmpeg::FFmpeg
-    SDL2::SDL2
-    pthread
-)
+if (WIN32)
+    target_link_libraries(avio PRIVATE
+        Qt5::Widgets
+        FFmpeg::FFmpeg
+        SDL2::SDL2
+    )
+else()
+    target_link_libraries(avio PRIVATE
+        Qt5::Widgets
+        FFmpeg::FFmpeg
+        SDL2::SDL2
+        pthread
+    )
+endif()
 
 set_target_properties(avio PROPERTIES
     SOVERSION 1

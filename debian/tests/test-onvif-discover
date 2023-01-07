@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Ask onvif-util to discover all cameras on the network.  Do not expect to find any
+# but this will exercise the library and binary as well as all dependencies.
+
+cd $AUTOPKGTEST_TMP
+
+if onvif-util -a ; then
+    echo success: onvif-util ran successfully
+else
+    echo error: onvif-util failed
+    exit 1
+fi

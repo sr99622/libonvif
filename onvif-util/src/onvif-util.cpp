@@ -730,7 +730,7 @@ int main(int argc, char **argv)
 			}
 			else { 
 				if (strcmp(kybd_buf, "quit"))
-					std::cout << " Unrecognized command, use onvif-util -h to see help\n" << std::endl;
+					std::cout << " Unrecognized command, type help to see help\n" << std::endl;
 			}
 		}
 		catch (std::exception& e) {

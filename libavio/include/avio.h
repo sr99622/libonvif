@@ -30,6 +30,8 @@
 #include "Filter.h"
 #include "Display.h"
 #include "GLWidget.h"
+#include <iomanip>
+
 
 #define P ((Process*)process)
 

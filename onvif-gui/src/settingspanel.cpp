@@ -40,8 +40,6 @@
 #include "settingspanel.h"
 #include "mainwindow.h"
 
-#define EulerConstant = 2.71828
-
 SettingsPanel::SettingsPanel(QMainWindow* parent)
 {
     mainWindow = parent;
@@ -122,45 +120,11 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     defaultFilename->setChecked(MW->settings->value(defFileKey, false).toBool());
     connect(defaultFilename, SIGNAL(clicked(bool)), this, SLOT(defaultFilenameClicked(bool)));
 
-    QLabel *lbl10 = new QLabel("Zoom");
-    zoom = new QSlider(Qt::Vertical);
-    zoom->setValue(0);
-    zoom->setStyleSheet(MW->style);
-    connect(zoom, SIGNAL(valueChanged(int)), this, SLOT(zoomMoved(int)));
-
-    QLabel *lbl11 = new QLabel("Pan X");
-    panX = new QSlider(Qt::Vertical);
-    panX->setValue(50);
-    connect(panX, SIGNAL(valueChanged(int)), this, SLOT(panXMoved(int)));
-
-    QLabel *lbl12 = new QLabel("Pan Y");
-    panY = new QSlider(Qt::Vertical);
-    panY->setValue(50);
-    connect(panY, SIGNAL(valueChanged(int)), this, SLOT(panYMoved(int)));
-
-    reset = new QPushButton("Reset");
-    connect(reset, SIGNAL(clicked()), this, SLOT(resetClicked()));
-
     style = new QPushButton("Style Colors");
     connect(style, SIGNAL(clicked()), this, SLOT(styleClicked()));
 
     clear = new QPushButton("Clear Settings");
     connect(clear, SIGNAL(clicked()), this, SLOT(clearClicked()));
-
-    QLabel *title = new QLabel("Digital Zoom");
-
-    QFrame *sliderFrame = new QFrame(this);
-    sliderFrame->setFrameShape(QFrame::Panel);
-    sliderFrame->setFrameShadow(QFrame::Plain);
-    QGridLayout *frameLayout = new QGridLayout(sliderFrame);
-    frameLayout->addWidget(title, 0, 0, 1, 4, Qt::AlignRight);
-    frameLayout->addWidget(zoom,  1, 0, 1, 1, Qt::AlignHCenter);
-    frameLayout->addWidget(panX,  1, 1, 1, 1, Qt::AlignHCenter);
-    frameLayout->addWidget(panY,  1, 2, 1, 1, Qt::AlignHCenter); 
-    frameLayout->addWidget(lbl10, 2, 0, 1, 1, Qt::AlignCenter);
-    frameLayout->addWidget(lbl11, 2, 1, 1, 1, Qt::AlignCenter);
-    frameLayout->addWidget(lbl12, 2, 2, 1, 1, Qt::AlignCenter);
-    frameLayout->addWidget(reset, 1, 3, 1, 1);
 
     QGroupBox *groupBox = new QGroupBox("Record Filename", this);
     QGridLayout *groupLayout = new QGridLayout(groupBox);
@@ -185,7 +149,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(groupBox,           10, 0, 1, 3);
     layout->addWidget(clear,              11, 0, 1, 1, Qt::AlignCenter);
     layout->addWidget(style,              11, 1, 1, 1, Qt::AlignCenter);
-    layout->addWidget(sliderFrame,        12, 0, 2, 3);
     setLayout(layout);
 
     autoDiscoveryClicked(autoDiscovery->isChecked());
@@ -248,37 +211,6 @@ void SettingsPanel::defaultFilenameClicked(bool clicked)
 {
     MW->settings->setValue(defFileKey, clicked);
     MW->settings->setValue(genFileKey, !clicked);
-}
-
-void SettingsPanel::zoomMoved(int arg)
-{
-    MW->glWidget->setZoomFactor(1 - (float)arg / 100.0f);
-    float scale = 10 * pow(10, MW->glWidget->zoom_factor() * -2.108);
-    float range_x = (50.0f - (float)panX->value()) / 50.0f;
-    MW->glWidget->setPanX(range_x * scale);
-    float range_y = (50.0f - (float)panY->value()) / 50.0f;
-    MW->glWidget->setPanY(range_y * scale);
-}
-
-void SettingsPanel::panXMoved(int arg)
-{
-    float scale = 10 * pow(10, MW->glWidget->zoom_factor() * -2.108);
-    float range = (50.0f - (float)arg) / 50.0f;
-    MW->glWidget->setPanX(range * scale);
-}
-
-void SettingsPanel::panYMoved(int arg)
-{
-    float scale = 10 * pow(10, MW->glWidget->zoom_factor() * -2.108);
-    float range = (50.0f - (float)arg) / 50.0f;
-    MW->glWidget->setPanY(range * scale);
-}
-
-void SettingsPanel::resetClicked()
-{
-    zoom->setValue(0);
-    panX->setValue(50);
-    panY->setValue(50);
 }
 
 void SettingsPanel::styleClicked()

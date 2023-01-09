@@ -20,7 +20,11 @@
 #ifndef READER_H
 #define READER_H
 
-#include <iomanip>
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+}
+
 #include "Exception.h"
 #include "Queue.h"
 

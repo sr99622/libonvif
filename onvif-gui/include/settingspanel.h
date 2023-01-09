@@ -56,10 +56,6 @@ public:
     QRadioButton *generateFilename;
     QRadioButton *defaultFilename;
     QCheckBox *disableAudio;
-    QSlider *zoom;
-    QSlider *panX;
-    QSlider *panY;
-    QPushButton *reset;
     QListWidget *interfaces;
     QComboBox *networkInterfaces;
     QSpinBox *keyframeCount;
@@ -94,10 +90,6 @@ public slots:
     void lowLatencyClicked();
     void hideToolTipsClicked();
     void decoderChanged(const QString&);
-    void zoomMoved(int);
-    void panXMoved(int);
-    void panYMoved(int);
-    void resetClicked();
     void styleClicked();
     void clearClicked();
     void generateFilenameClicked(bool);

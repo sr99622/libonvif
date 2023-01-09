@@ -25,7 +25,6 @@
 #include <SDL.h>
 #include <chrono>
 #include <deque>
-#include <functional>
 #include "Exception.h"
 #include "Queue.h"
 #include "Frame.h"
@@ -35,7 +34,6 @@
 #include "Reader.h"
 #include "Writer.h"
 #include "Encoder.h"
-#include "GLWidget.h"
 
 #define SDL_EVENT_LOOP_WAIT 10
 

@@ -19,6 +19,10 @@
 
 #include "Exception.h"
 
+extern "C" {
+#include <libavutil/avutil.h>
+}
+
 namespace avio
 {
 

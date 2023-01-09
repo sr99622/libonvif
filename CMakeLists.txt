@@ -25,7 +25,7 @@ project(libonvif-pkg VERSION 1.4.5)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if(WIN32)
     add_compile_options("/EHsc")
@@ -43,6 +43,7 @@ add_subdirectory(onvif-util)
 
 if (BUILD_GUI)
 
+    add_subdirectory(pybind11)
     add_subdirectory(libavio)
     add_subdirectory(onvif-gui)
 
@@ -74,5 +75,5 @@ else()
 endif()
 
 install(FILES libonvif/include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-INSTALL(FILES onvif-util/docs/onvif-util.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
-INSTALL(FILES onvif-gui/docs/onvif-gui.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
+install(FILES onvif-util/docs/onvif-util.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")
+install(FILES onvif-gui/docs/onvif-gui.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")

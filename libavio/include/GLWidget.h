@@ -21,25 +21,18 @@
 #define GLWIDGET_H
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QOpenGLBuffer>
-#include <QOpenGLShader>
 #include <QTimer>
+#include <QPainter>
+#include <QImage>
 #include <iostream>
-#include <functional>
 #include "Queue.h"
 #include "Frame.h"
 #include "Reader.h"
 
-QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
-QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
-
 namespace avio
 {
 
-//QT_FORWARD_DECLARE_CLASS(Process)
-
-class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class GLWidget : public QOpenGLWidget
 {
     Q_OBJECT
 
@@ -47,19 +40,13 @@ public:
     GLWidget();
     ~GLWidget();
 
-    void setZoomFactor(float);
-    void setPanX(float);
-    void setPanY(float);
-    void setFormat(QImage::Format);
     void setVolume(int arg);
     void setMute(bool arg);
     bool isMute() { return mute; }
     void togglePaused();
     bool isPaused();
-    void updateAspectRatio();
     void play(const QString& arg);
     void stop();
-    float zoom_factor() { return factor; }
     void showStreamParameters(avio::Reader* reader);
     void toggle_pipe_out(const std::string& filename);
     bool checkForStreamHeader(const char*);
@@ -80,9 +67,6 @@ public:
     void set_video_out(const std::string& name) { vfq_out_name = std::string(name); }
 
     int poll_interval = 1;
-    int tex_width = 0;
-    int tex_height = 0;
-    bool maintain_aspect_ratio = true;
     long media_duration = 0;
     long media_start_time = 0;
     bool running = false;
@@ -94,17 +78,6 @@ public:
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
     void* process = nullptr;
-    Reader* get_reader();
-
-    bool python_enabled = false;
-    std::string python_dir;
-    std::string python_file;
-    std::string python_class;
-    std::string python_args;
-    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
-    std::function<bool(avio::Frame&)> runPy = nullptr;
-    bool pyInitialized = false;
-
 
 signals:
     void timerStart();
@@ -122,33 +95,15 @@ public slots:
     void seek(float);
 
 protected:
-    void initializeGL() override;
-    void paintGL() override;
-    void resizeGL(int width, int height) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
-    QOpenGLTexture *texture = nullptr;
-    QOpenGLShaderProgram *program = nullptr;
-    QOpenGLBuffer vbo;
-    QOpenGLShader *vshader;
-    QOpenGLShader *fshader;
-
     Frame f;
-    std::mutex mutex;
-
-    float zoom   = 1.0f;
-    float factor = 1.0f;
-    float aspect = 1.0f;
-    float pan_x  = 0.0f;
-    float pan_y  = 0.0f;
-
     int volume = 100;
     bool mute = false;
-
     QImage::Format fmt = QImage::Format_RGB888;
-
     char uri[1024];
-
+    QImage img;
     QTimer *timer;
 
 };

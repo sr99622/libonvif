@@ -429,14 +429,9 @@ bool ProgressSlider::event(QEvent *e)
 
 void ProgressSlider::mousePressEvent(QMouseEvent *event)
 {
+    MainWindow* mainWindow = (MainWindow*)(((FilePanel*)filePanel)->mainWindow);
     float pct = event->pos().x() / (float)width();
-    avio::GLWidget* glWidget = ((MainWindow*)((FilePanel*)filePanel)->mainWindow)->glWidget;
-    avio::Reader* reader = glWidget->get_reader();
-    if (reader) {
-        if (reader->running) {
-            glWidget->seek(pct);
-        }
-    }
+    mainWindow->glWidget->seek(pct);
 }
 
 void ProgressSlider::mouseMoveEvent(QMouseEvent *e)

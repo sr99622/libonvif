@@ -22,6 +22,7 @@
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
 
+/*
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavdevice/avdevice.h>
@@ -32,6 +33,7 @@ extern "C" {
 #include <libavutil/avutil.h>
 #include <libavutil/pixdesc.h>
 }
+*/
 
 #include <exception>
 #include <iostream>

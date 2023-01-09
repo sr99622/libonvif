@@ -29,7 +29,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(WIN32)
     add_compile_options("/EHsc")
-#    find_package(Iconv REQUIRED)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     set(BUILD_SHARED_LIBS TRUE)
 endif()
@@ -37,6 +36,7 @@ endif()
 find_package(SDL2 REQUIRED)
 find_package(FFmpeg REQUIRED)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -77,3 +77,29 @@ set_target_properties(avio PROPERTIES
 target_include_directories(avio PUBLIC
     include
 )
+
+pybind11_add_module(pyavio 
+                        src/avio.cpp
+                        src/Reader.cpp
+                        src/Exception.cpp
+                        src/Frame.cpp
+                        src/Decoder.cpp
+                        src/Filter.cpp
+                        src/Clock.cpp
+                        src/Display.cpp
+                        src/Encoder.cpp
+                        src/Writer.cpp
+                        src/Pipe.cpp
+                    )
+                
+target_link_libraries(pyavio PRIVATE 
+                        Qt5::Widgets
+                        FFmpeg::FFmpeg
+                        SDL2::SDL2
+                        Python3::Python
+                        pthread
+                     )
+                     
+ target_include_directories(pyavio PUBLIC
+                                include
+                           )

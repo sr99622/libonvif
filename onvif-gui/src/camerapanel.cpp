@@ -118,6 +118,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
     connect(MW->glWidget, SIGNAL(connectFailed(const QString&)), this, SLOT(connectFailed(const QString&)));
     connect(MW->glWidget, SIGNAL(openWriterFailed(const std::string&)), this, SLOT(openWriterFailed(const std::string&)));
+    connect(MW->glWidget, SIGNAL(mediaPlayingFinished()), this, SLOT(mediaPlayingFinished()));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -375,3 +376,9 @@ void CameraPanel::openWriterFailed(const std::string& str)
     recording = false;
     recordButton->setStyleSheet(MW->getButtonStyle("record"));
 }
+
+void CameraPanel::mediaPlayingFinished()
+{
+    playButton->setStyleSheet(MW->getButtonStyle("play"));
+}
+

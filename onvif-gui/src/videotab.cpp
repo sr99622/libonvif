@@ -19,11 +19,11 @@
 *
 *******************************************************************************/
 
-#include "camerapanel.h"
-
+#include <iostream>
 #include <QLabel>
 #include <QGridLayout>
 #include <QThreadPool>
+#include "camerapanel.h"
 
 SpinBox::SpinBox(QLineEdit *editor)
 {
@@ -47,7 +47,7 @@ VideoTab::VideoTab(QWidget *parent)
 
     lblResolutions = new QLabel("Resolution");
     lblFrameRate = new QLabel("Frame Rate");
-    lblGovLength = new QLabel("Gov Length");
+    lblGovLength = new QLabel("GOP Length");
     lblBitrate = new QLabel("Bitrate");
 
     QGridLayout *layout = new QGridLayout();
@@ -73,21 +73,40 @@ VideoTab::VideoTab(QWidget *parent)
 void VideoTab::update()
 {
     OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
-    onvif_data->frame_rate = spinFrameRate->value();
-    onvif_data->gov_length = spinGovLength->value();
-    onvif_data->bitrate = spinBitrate->value();
-    char * resolution_buf = comboResolutions->currentText().toLatin1().data();
-    char * mark = strstr(resolution_buf, "x");
-    int length = strlen(resolution_buf);
-    int point = mark - resolution_buf;
-    char width_buf[128] = {0};
-    char height_buf[128] = {0};
-    for (int i=0; i<point-1; i++)
-        width_buf[i] = resolution_buf[i];
-    for (int i=point+2; i<length; i++)
-        height_buf[i-(point+2)] = resolution_buf[i];
-    onvif_data->width = atoi(width_buf);
-    onvif_data->height = atoi(height_buf);
+
+    QString res = QString("%1 x %2").arg(QString::number(onvif_data->width), QString::number(onvif_data->height));
+    if (comboResolutions->currentText() != res) {
+        QString str = "Resolution updated to ";
+        str += comboResolutions->currentText();
+        CP->emit msg(str);
+
+        QString comboSel = comboResolutions->currentText();
+        QString strHeight = comboSel.mid(comboSel.indexOf( " x ") + 3);
+        QString strWidth = comboSel.mid(0, comboSel.indexOf(" x "));
+        onvif_data->width = strWidth.toInt();
+        onvif_data->height = strHeight.toInt();
+    }
+
+    if (spinFrameRate->value() != onvif_data->frame_rate) {
+        QString str = "Frame Rate updated to ";
+        str += QString::number(spinFrameRate->value());
+        CP->emit msg(str);
+        onvif_data->frame_rate = spinFrameRate->value();
+    }
+
+    if (spinGovLength->value() != onvif_data->gov_length) {
+        QString str = "GOP length updated to ";
+        str += QString::number(spinGovLength->value());
+        CP->emit msg(str);
+        onvif_data->gov_length = spinGovLength->value();
+    }
+
+    if (spinBitrate->value() != onvif_data->bitrate) {
+        QString str = "Bitrate updated to ";
+        str += QString::number(spinBitrate->value());
+        CP->emit msg(str);
+        onvif_data->bitrate = spinBitrate->value();
+    }
 
     QThreadPool::globalInstance()->tryStart(updater);
 }

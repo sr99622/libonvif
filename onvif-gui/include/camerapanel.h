@@ -110,6 +110,7 @@ public slots:
     void connectFailed(const QString&);
     void openWriterFailed(const std::string&);
     void disableToolTips(bool);
+    void mediaPlayingFinished();
 
 };
 

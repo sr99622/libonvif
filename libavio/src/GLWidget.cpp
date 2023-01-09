@@ -272,6 +272,8 @@ void GLWidget::start(void * parent)
 
         process.run();
 
+        std::cout << "process done running" << std::endl;
+
         if (audioDecoder)
             delete audioDecoder;
 

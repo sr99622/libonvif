@@ -62,6 +62,7 @@ public:
 
     VideoUpdater *updater;
     bool updating = false;
+    QString updateSummary;
 
 public slots:
     void initialize();

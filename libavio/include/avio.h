@@ -544,6 +544,8 @@ public:
 
             while (display->display()) {}
 
+            std::cout << "display done" << std::endl;
+
             if (glWidget)
                 glWidget->emit timerStop();
 

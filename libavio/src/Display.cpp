@@ -167,12 +167,6 @@ void Display::videoPresentation()
     }
 }
 
-void Display::clearInputQueues()
-{
-	if (vfq_in) while (vfq_in->size() > 0) vfq_in->pop();
-	if (afq_in) while (afq_in->size() > 0) afq_in->pop();
-}
-
 PlayState Display::getEvents(std::vector<SDL_Event>* events)
 {
     PlayState state = PlayState::PLAY;
@@ -348,7 +342,6 @@ int Display::initAudio(int stream_sample_rate, AVSampleFormat stream_sample_form
         }
 
         audio_buffer_len = av_samples_get_buffer_size(NULL, sdl.channels, sdl.samples, sdl_sample_format, 1);
-        sdl_buffer.set_max_size(audio_buffer_len * 10);
 
         ex.ck(swr_ctx = swr_alloc_set_opts(NULL, stream_channel_layout, sdl_sample_format, stream_sample_rate,
             stream_channel_layout, stream_sample_format, stream_sample_rate, 0, NULL), SASO);
@@ -381,13 +374,14 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
     uint8_t* temp = (uint8_t*)malloc(len);
     memset(temp, 0, len);
     Frame f;
+    int ptr = 0;
 
     if (d->paused)
         return;
 
     try {
         while (len > 0) {
-            if (d->sdl_buffer.size() < d->audio_buffer_len) {
+            if (ptr < d->audio_buffer_len) {
                 d->afq_in->pop(f);
                 if (d->afq_out) d->afq_out->push(f);
 
@@ -404,8 +398,10 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
                     }
 
                     swr_convert(d->swr_ctx, &d->swr_buffer, nb_samples, data, nb_samples);
-                    for (int i = 0; i < d->swr_buffer_size; i++)
-                        d->sdl_buffer.push(d->swr_buffer[i]);
+                    int mark = std::min(len, d->swr_buffer_size);
+                    memcpy(temp + ptr, d->swr_buffer, mark);
+                    ptr += mark;
+                    len -= mark;
                 }
                 else {
                     std::cout << "audio callback revcd null eof" << std::endl;
@@ -420,11 +416,6 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
                     }
                     return;
                 }
-            }
-
-            while (d->sdl_buffer.size() > 0 && len > 0) {
-                temp[d->audio_buffer_len - len] = d->sdl_buffer.pop();
-                len--;
             }
 
             if (!d->mute)

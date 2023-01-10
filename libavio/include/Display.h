@@ -65,7 +65,6 @@ public:
     bool display();
     void pin_osd(bool arg);
     void enable_status(bool arg);
-    void clearInputQueues();
     void snapshot();
     
     bool paused = false;
@@ -120,7 +119,6 @@ public:
 
     uint8_t* swr_buffer = nullptr;
     int swr_buffer_size = 0;
-    Queue<char> sdl_buffer;
     int audio_buffer_len = 0;
     bool audio_eof = false;
     float volume = 1.0f;

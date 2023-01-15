@@ -43,7 +43,6 @@ add_subdirectory(onvif-util)
 
 if (BUILD_GUI)
 
-    add_subdirectory(pybind11)
     add_subdirectory(libavio)
     add_subdirectory(onvif-gui)
 

@@ -143,7 +143,7 @@ int Display::initVideo(int width, int height, AVPixelFormat pix_fmt)
 
 void Display::videoPresentation()
 {
-    if (!P->glWidget) {
+    //if (!P->glWidget) {
         if (f.m_frame->format == AV_PIX_FMT_YUV420P) {
             ex.ck(SDL_UpdateYUVTexture(texture, NULL,
                 f.m_frame->data[0], f.m_frame->linesize[0],
@@ -158,13 +158,13 @@ void Display::videoPresentation()
         SDL_RenderClear(renderer);
         ex.ck(SDL_RenderCopy(renderer, texture, NULL, NULL), SDL_GetError());
         SDL_RenderPresent(renderer);
-    }
-    else {
-        if (P->glWidget->media_duration) {
-            float pct = (float)f.m_rts / (float)P->glWidget->media_duration;
-            P->glWidget->emit progress(pct);
-        }
-    }
+    //}
+    //else {
+    //    if (P->glWidget->media_duration) {
+    //        float pct = (float)f.m_rts / (float)P->glWidget->media_duration;
+    //        P->glWidget->emit progress(pct);
+    //    }
+    //}
 }
 
 PlayState Display::getEvents(std::vector<SDL_Event>* events)
@@ -202,14 +202,6 @@ bool Display::display()
 
     while (true)
     {
-        /*
-        if (P->glWidget) {
-            if (!P->glWidget->running) {
-                playing = false;
-                break;
-            }
-        }
-        */
         if (!P->running) {
             playing = false;
             break;
@@ -251,7 +243,9 @@ bool Display::display()
                 }
                 
             }
-            videoPresentation();
+            if (!P->externalRenderer)
+                videoPresentation();
+
             SDL_Delay(SDL_EVENT_LOOP_WAIT);
 
             if (flag_out)
@@ -275,11 +269,17 @@ bool Display::display()
 
             paused_frame = f;
 
-            if (!P->glWidget)
-                ex.ck(initVideo(f.m_frame->width, f.m_frame->height, (AVPixelFormat)f.m_frame->format), "initVideo");
-
             SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
-            videoPresentation();
+            if (P->externalRenderer) {
+                //if (P->glWidget->media_duration) {
+                //    float pct = (float)f.m_rts / (float)P->glWidget->media_duration;
+                //    P->glWidget->emit progress(pct);
+                //}
+            }
+            else {
+                ex.ck(initVideo(f.m_frame->width, f.m_frame->height, (AVPixelFormat)f.m_frame->format), "initVideo");
+                videoPresentation();
+            }
             reader->last_video_pts = f.m_frame->pts;
 
             if (vfq_out) {

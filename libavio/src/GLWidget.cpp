@@ -230,6 +230,7 @@ void GLWidget::start(void * parent)
         avio::Process process;
         widget->process = &process;
         process.handleFrameQueues = std::function(handleFrameQueues);
+        process.externalRenderer = true;
 
         avio::Reader reader(widget->uri);
         widget->showStreamParameters(&reader);

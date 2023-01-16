@@ -32,6 +32,8 @@
 #include "GLWidget.h"
 #include <iomanip>
 #include <functional>
+#include <map>
+
 
 
 #define P ((Process*)process)
@@ -342,6 +344,7 @@ public:
     std::function<void(FRAME_Q_MAP&)> handleFrameQueues = nullptr;
 
     bool running = false;
+    bool externalRenderer = false;
 
     Process() { av_log_set_level(AV_LOG_PANIC); }
     ~Process() { }

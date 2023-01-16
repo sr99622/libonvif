@@ -25,6 +25,14 @@
 namespace avio
 {
 
+static void handleFrameQueues(FRAME_Q_MAP& frame_queues)
+{
+    std::cout << "this is it" << std::endl;
+    for (FRAME_Q_MAP::iterator q = frame_queues.begin(); q != frame_queues.end(); ++q) {
+        std::cout << "q first " << q->first << std::endl;
+    }
+}
+
 GLWidget::GLWidget()
 {
     timer = new QTimer(this);
@@ -106,7 +114,9 @@ void GLWidget::paintEvent(QPaintEvent* event)
 
 void GLWidget::poll()
 {
-    if (!running)
+    if (!process)
+        return;
+    if (!((Process*)process)->running)
         return;
 
     if (vfq_in) {
@@ -164,7 +174,8 @@ void GLWidget::seek(float arg)
 
 void GLWidget::stop()
 {
-    running = false;
+    if (process)
+        ((Process*)process)->running = false;
 
     while (process) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -217,6 +228,8 @@ void GLWidget::start(void * parent)
 
     try {
         avio::Process process;
+        widget->process = &process;
+        process.handleFrameQueues = std::function(handleFrameQueues);
 
         avio::Reader reader(widget->uri);
         widget->showStreamParameters(&reader);
@@ -267,10 +280,13 @@ void GLWidget::start(void * parent)
         process.add_display(display);
         process.add_widget(widget);
 
-        widget->running = true;
+        process.running = true;
         widget->emit mediaPlayingStarted();
+        widget->emit timerStart();
 
         process.run();
+
+        widget->emit timerStop();
 
         std::cout << "process done running" << std::endl;
 

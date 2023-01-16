@@ -69,7 +69,7 @@ public:
     int poll_interval = 1;
     long media_duration = 0;
     long media_start_time = 0;
-    bool running = false;
+    //bool running = false;
     bool disable_audio = false;
     int keyframe_cache_size = 1;
     int vpq_size = 0;

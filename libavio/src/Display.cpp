@@ -202,11 +202,17 @@ bool Display::display()
 
     while (true)
     {
+        /*
         if (P->glWidget) {
             if (!P->glWidget->running) {
                 playing = false;
                 break;
             }
+        }
+        */
+        if (!P->running) {
+            playing = false;
+            break;
         }
 
         std::vector<SDL_Event> events;

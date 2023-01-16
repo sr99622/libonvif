@@ -99,9 +99,9 @@ AVPacket* Reader::read()
             ex.msg(e.what(), MsgPriority::CRITICAL, "Reader::read exception: ");
             if (ret == AVERROR_EXIT || ret == AVERROR(ETIMEDOUT)) {
                 std::cout << "Camera connection timed out"  << std::endl;
-                if (P->glWidget) {
-                    P->glWidget->emit cameraTimeout();
-                }
+                //if (P->glWidget) {
+                //    P->glWidget->emit cameraTimeout();
+                //}
             }
         }
 
@@ -368,8 +368,8 @@ AVRational Reader::audio_time_base()
 int Reader::keyframe_cache_size()
 {
     int result = 1;
-    if (P->glWidget) 
-        result = P->glWidget->keyframe_cache_size;
+    //if (P->glWidget) 
+    //    result = P->glWidget->keyframe_cache_size;
     return result;
 }
 
@@ -399,8 +399,9 @@ void Reader::clear_decoders()
 
 void Reader::signal_eof()
 {
-    if (P->glWidget)
-        P->glWidget->running = false;
+    //if (P->glWidget)
+    //    P->glWidget->running = false;
+    P->running = false;
 }
 
 /*

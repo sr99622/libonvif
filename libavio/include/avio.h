@@ -31,6 +31,7 @@
 #include "Display.h"
 #include "GLWidget.h"
 #include <iomanip>
+#include <functional>
 
 
 #define P ((Process*)process)
@@ -338,6 +339,9 @@ public:
     std::string mux_audio_q_name;
 
     std::vector<std::thread*> ops;
+    std::function<void(FRAME_Q_MAP&)> handleFrameQueues = nullptr;
+
+    bool running = false;
 
     Process() { av_log_set_level(AV_LOG_PANIC); }
     ~Process() { }
@@ -406,9 +410,9 @@ public:
             frame_q_names.push_back(display->afq_out_name);
     }
 
+    /// ADD WIDGET
     void add_widget(GLWidget* widget_in)
     {
-        widget_in->process = (void*)this;
         glWidget = widget_in;
     }
 
@@ -476,6 +480,8 @@ public:
             }
         }
 
+        if (handleFrameQueues) handleFrameQueues(frame_queues);
+
         if (reader) {
             ops.push_back(new std::thread(read, reader,
                 reader->has_video() ? pkt_queues[reader->vpq_name] : nullptr, 
@@ -492,6 +498,7 @@ public:
                 frame_queues[videoFilter->q_in_name], frame_queues[videoFilter->q_out_name]));
         }
 
+        ///  ASSIGN QUEUES
         if (glWidget) {
             if (!glWidget->vfq_in_name.empty()) glWidget->vfq_in = frame_queues[glWidget->vfq_in_name];
             if (!glWidget->vfq_out_name.empty()) glWidget->vfq_out = frame_queues[glWidget->vfq_out_name];
@@ -539,15 +546,9 @@ public:
 
             display->init();
 
-            if (glWidget)
-                glWidget->emit timerStart();
-
             while (display->display()) {}
 
             std::cout << "display done" << std::endl;
-
-            if (glWidget)
-                glWidget->emit timerStop();
 
             // reader shutdown routine if downstream module shuts down process
             // there is probably a better way to handle this situation

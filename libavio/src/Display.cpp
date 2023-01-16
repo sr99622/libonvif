@@ -56,8 +56,8 @@ int Display::initVideo(int width, int height, AVPixelFormat pix_fmt)
 {
     int ret = 0;
 
-    if (P->glWidget)
-        return ret;
+    //if (P->glWidget)
+    //    return ret;
 
     try {
         Uint32 sdl_format = 0;
@@ -243,7 +243,7 @@ bool Display::display()
                 }
                 
             }
-            if (!P->externalRenderer)
+            if (!P->widget)
                 videoPresentation();
 
             SDL_Delay(SDL_EVENT_LOOP_WAIT);
@@ -270,11 +270,15 @@ bool Display::display()
             paused_frame = f;
 
             SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
-            if (P->externalRenderer) {
+            if (P->widget) {
                 //if (P->glWidget->media_duration) {
                 //    float pct = (float)f.m_rts / (float)P->glWidget->media_duration;
                 //    P->glWidget->emit progress(pct);
                 //}
+                if (reader->duration()) {
+                    float pct = (float)f.m_rts / (float)reader->duration();
+                    if (P->progressCallback) P->progressCallback(P, pct);
+                }
             }
             else {
                 ex.ck(initVideo(f.m_frame->width, f.m_frame->height, (AVPixelFormat)f.m_frame->format), "initVideo");

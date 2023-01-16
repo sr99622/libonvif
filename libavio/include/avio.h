@@ -29,7 +29,7 @@
 #include "Pipe.h"
 #include "Filter.h"
 #include "Display.h"
-#include "GLWidget.h"
+//#include "GLWidget.h"
 #include <iomanip>
 #include <functional>
 #include <map>
@@ -323,7 +323,8 @@ public:
     Encoder*  videoEncoder = nullptr;
     Encoder*  audioEncoder = nullptr;
     Display*  display      = nullptr;
-    GLWidget* glWidget     = nullptr;
+    //GLWidget* glWidget     = nullptr;
+    void*     widget       = nullptr;
 
     PKT_Q_MAP pkt_queues;
     FRAME_Q_MAP frame_queues;
@@ -341,10 +342,14 @@ public:
     std::string mux_audio_q_name;
 
     std::vector<std::thread*> ops;
-    std::function<void(FRAME_Q_MAP&)> handleFrameQueues = nullptr;
+
+    std::function<void(Process*)> assignFrameQueues = nullptr;
+    std::function<void(Process*, float)> progressCallback = nullptr;
+    std::function<void(Process*)> cameraTimeoutCallback = nullptr;
+    std::function<void(Process*, const std::string&)> openWriterFailedCallback = nullptr;
 
     bool running = false;
-    bool externalRenderer = false;
+    //bool externalRenderer = false;
 
     Process() { av_log_set_level(AV_LOG_PANIC); }
     ~Process() { }
@@ -414,10 +419,10 @@ public:
     }
 
     /// ADD WIDGET
-    void add_widget(GLWidget* widget_in)
-    {
-        glWidget = widget_in;
-    }
+    //void add_widget(GLWidget* widget_in)
+    //{
+    //    glWidget = widget_in;
+    //}
 
     void add_frame_drain(const std::string& frame_q_name)
     {
@@ -483,7 +488,7 @@ public:
             }
         }
 
-        if (handleFrameQueues) handleFrameQueues(frame_queues);
+        if (assignFrameQueues) assignFrameQueues(this);
 
         if (reader) {
             ops.push_back(new std::thread(read, reader,
@@ -502,10 +507,10 @@ public:
         }
 
         ///  ASSIGN QUEUES
-        if (glWidget) {
-            if (!glWidget->vfq_in_name.empty()) glWidget->vfq_in = frame_queues[glWidget->vfq_in_name];
-            if (!glWidget->vfq_out_name.empty()) glWidget->vfq_out = frame_queues[glWidget->vfq_out_name];
-        }
+        //if (glWidget) {
+        //    if (!glWidget->vfq_in_name.empty()) glWidget->vfq_in = frame_queues[glWidget->vfq_in_name];
+        //    if (!glWidget->vfq_out_name.empty()) glWidget->vfq_out = frame_queues[glWidget->vfq_out_name];
+        //}
 
         if (audioDecoder) {
             ops.push_back(new std::thread(decode, audioDecoder,

@@ -102,6 +102,8 @@ AVPacket* Reader::read()
                 //if (P->glWidget) {
                 //    P->glWidget->emit cameraTimeout();
                 //}
+                if (P->cameraTimeoutCallback)
+                    P->cameraTimeoutCallback(P);
             }
         }
 

@@ -108,8 +108,10 @@ bool Pipe::open(const std::string& filename)
         if (opened) 
             ex.ck(avio_closep(&fmt_ctx->pb), ACP);
 
-        if (P->glWidget)
-            P->glWidget->emit openWriterFailed(str.str());
+        //if (P->glWidget)
+        //    P->glWidget->emit openWriterFailed(str.str());
+        if (P->openWriterFailedCallback)
+            P->openWriterFailedCallback(P, str.str());
 
         return false;
     }

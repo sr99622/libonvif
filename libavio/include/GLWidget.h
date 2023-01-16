@@ -25,9 +25,11 @@
 #include <QPainter>
 #include <QImage>
 #include <iostream>
-#include "Queue.h"
-#include "Frame.h"
-#include "Reader.h"
+//#include "Queue.h"
+//#include "Frame.h"
+//#include "Reader.h"
+#include "avio.h"
+
 
 namespace avio
 {
@@ -52,6 +54,10 @@ public:
     bool checkForStreamHeader(const char*);
 
     static void start(void * parent);
+    static void assignFrameQueues(Process* process);
+    static void progressCallback(Process* process, float pct);
+    static void cameraTimeoutCallback(Process* process);
+    static void openWriterFailedCallback(Process* process, const std::string&);
 
     QSize sizeHint() const override;
 
@@ -77,7 +83,7 @@ public:
     std::string mediaShortName;
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
-    void* process = nullptr;
+    Process* process = nullptr;
 
 signals:
     void timerStart();

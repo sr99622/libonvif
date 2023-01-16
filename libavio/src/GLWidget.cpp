@@ -20,18 +20,9 @@
 #include "GLWidget.h"
 #include <iostream>
 #include <sstream>
-#include "avio.h"
 
 namespace avio
 {
-
-static void handleFrameQueues(FRAME_Q_MAP& frame_queues)
-{
-    std::cout << "this is it" << std::endl;
-    for (FRAME_Q_MAP::iterator q = frame_queues.begin(); q != frame_queues.end(); ++q) {
-        std::cout << "q first " << q->first << std::endl;
-    }
-}
 
 GLWidget::GLWidget()
 {
@@ -222,6 +213,33 @@ bool GLWidget::checkForStreamHeader(const char* name)
     return false;
 }
 
+void GLWidget::openWriterFailedCallback(Process* process, const std::string& str)
+{
+    GLWidget* widget = (GLWidget*)(process->widget);
+    widget->emit openWriterFailed(str);
+}
+
+void GLWidget::cameraTimeoutCallback(Process* process)
+{
+    GLWidget* widget = (GLWidget*)(process->widget);
+    widget->emit cameraTimeout();
+}
+
+void GLWidget::progressCallback(Process* process, float pct)
+{
+    GLWidget* widget = (GLWidget*)(process->widget);
+    widget->emit progress(pct);
+}
+
+void GLWidget::assignFrameQueues(Process* process)
+{
+    GLWidget* widget = (GLWidget*)(process->widget);
+    for (FRAME_Q_MAP::iterator q = process->frame_queues.begin(); q != process->frame_queues.end(); ++q) {
+        if (q->first == widget->video_in())
+            widget->vfq_in = q->second;
+    }
+}
+
 void GLWidget::start(void * parent)
 {
     GLWidget* widget = (GLWidget*)parent;
@@ -229,8 +247,13 @@ void GLWidget::start(void * parent)
     try {
         avio::Process process;
         widget->process = &process;
-        process.handleFrameQueues = std::function(handleFrameQueues);
-        process.externalRenderer = true;
+        process.widget = widget;
+        widget->set_video_in("vfq_display");
+        process.assignFrameQueues = std::function(GLWidget::assignFrameQueues);
+        process.progressCallback = std::function(GLWidget::progressCallback);
+        process.cameraTimeoutCallback = std::function(GLWidget::cameraTimeoutCallback);
+        process.openWriterFailedCallback = std::function(GLWidget::openWriterFailedCallback);
+        //process.externalRenderer = true;
 
         avio::Reader reader(widget->uri);
         widget->showStreamParameters(&reader);
@@ -279,7 +302,7 @@ void GLWidget::start(void * parent)
         process.add_decoder(videoDecoder);
         process.add_filter(videoFilter);
         process.add_display(display);
-        process.add_widget(widget);
+        //process.add_widget(widget);
 
         process.running = true;
         widget->emit mediaPlayingStarted();

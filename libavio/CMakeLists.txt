@@ -75,4 +75,6 @@ set_target_properties(avio PROPERTIES
 
 target_include_directories(avio PUBLIC
     include
+    ${FFMPEG_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIRS}
 )

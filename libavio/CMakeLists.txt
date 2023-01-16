@@ -35,9 +35,8 @@ endif()
 
 find_package(SDL2 REQUIRED)
 find_package(FFmpeg REQUIRED)
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
-
-set(CMAKE_AUTOMOC ON)
+#find_package(Qt5 COMPONENTS Widgets REQUIRED)
+#set(CMAKE_AUTOMOC ON)
 
 add_library(avio SHARED
     src/Reader.cpp
@@ -50,19 +49,19 @@ add_library(avio SHARED
     src/Encoder.cpp
     src/Writer.cpp
     src/Pipe.cpp
-    src/GLWidget.cpp
-    include/GLWidget.h
+    #src/GLWidget.cpp
+    #include/GLWidget.h
 )
 
 if (WIN32)
-    target_link_libraries(avio PRIVATE
-        Qt5::Widgets
+    target_link_libraries(avio PUBLIC
+        #Qt5::Widgets
         FFmpeg::FFmpeg
         SDL2::SDL2
     )
 else()
-    target_link_libraries(avio PRIVATE
-        Qt5::Widgets
+    target_link_libraries(avio PUBLIC
+        #Qt5::Widgets
         FFmpeg::FFmpeg
         SDL2::SDL2
         pthread

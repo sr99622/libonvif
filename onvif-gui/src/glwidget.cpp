@@ -84,13 +84,13 @@ void GLWidget::paintEvent(QPaintEvent* event)
     QOpenGLWidget::paintEvent(event);
     QPainter painter;
     painter.begin(this);
-    if (!img.isNull() && !img_lock) {
-        img_lock = true;
+    if (!img.isNull()) {
+        mutex.lock();
         QImage tmp = img.scaled(width(), height(), Qt::KeepAspectRatio);
         int dx = width() - tmp.width();
         int dy = height() - tmp.height();
         painter.drawImage(dx>>1, dy>>1, tmp);
-        img_lock = false;
+        mutex.unlock();
     }
     painter.end();
 }
@@ -102,14 +102,12 @@ void GLWidget::renderCallback(void* caller, const avio::Frame& frame)
         return;
     }
 
-
     GLWidget* g = (GLWidget*)caller;
-    while (g->img_lock) SDL_Delay(1);
-    g->img_lock = true;
+    g->mutex.lock();
     g->f = frame;
     g->img = QImage(g->f.m_frame->data[0], g->f.m_frame->width,
                         g->f.m_frame->height, QImage::Format_RGB888);
-    g->img_lock = false;
+    g->mutex.unlock();
     g->update();
 }
 

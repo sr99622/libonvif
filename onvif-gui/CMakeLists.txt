@@ -83,7 +83,6 @@ target_link_libraries(onvif-gui PRIVATE
 )
 
 target_include_directories(onvif-gui PUBLIC
-    #libonvif/include
     include
 )
 

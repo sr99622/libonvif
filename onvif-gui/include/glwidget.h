@@ -24,6 +24,7 @@
 #include <QTimer>
 #include <QPainter>
 #include <QImage>
+#include <QMutex>
 #include <iostream>
 #include "avio.h"
 
@@ -90,8 +91,8 @@ private:
     bool mute = false;
     QImage::Format fmt = QImage::Format_RGB888;
     char uri[1024];
-    bool img_lock = false;
     QImage img;
+    QMutex mutex;
 
 };
 

@@ -209,10 +209,10 @@ void GLWidget::cameraTimeoutCallback(Process* process)
     widget->emit cameraTimeout();
 }
 
-void GLWidget::progressCallback(Process* process, float pct)
+void GLWidget::progressCallback(void* caller, float pct)
 {
-    GLWidget* widget = (GLWidget*)(process->widget);
-    widget->emit progress(pct);
+    GLWidget* g = (GLWidget*)caller;
+    g->emit progress(pct);
 }
 
 void GLWidget::start(void * parent)
@@ -223,7 +223,7 @@ void GLWidget::start(void * parent)
         avio::Process process;
         widget->process = &process;
         process.widget = widget;
-        process.progressCallback = std::function(GLWidget::progressCallback);
+        //process.progressCallback = std::function(GLWidget::progressCallback);
         process.cameraTimeoutCallback = std::function(GLWidget::cameraTimeoutCallback);
         process.openWriterFailedCallback = std::function(GLWidget::openWriterFailedCallback);
 
@@ -255,8 +255,10 @@ void GLWidget::start(void * parent)
 
         avio::Display display(reader);
         display.set_video_in(videoFilter.video_out());
-        display.caller = parent;
+        display.renderCaller = parent;
         display.renderCallback = std::function(GLWidget::renderCallback);
+        display.progressCaller = parent;
+        display.progressCallback = std::function(GLWidget::progressCallback);
 
         avio::Decoder* audioDecoder = nullptr;
         if (reader.has_audio() && !widget->disable_audio) {

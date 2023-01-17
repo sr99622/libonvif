@@ -342,7 +342,7 @@ public:
     std::vector<std::thread*> ops;
 
     //std::function<void(Process*)> assignFrameQueues = nullptr;
-    std::function<void(Process*, float)> progressCallback = nullptr;
+    //std::function<void(Process*, float)> progressCallback = nullptr;
     std::function<void(Process*)> cameraTimeoutCallback = nullptr;
     std::function<void(Process*, const std::string&)> openWriterFailedCallback = nullptr;
 

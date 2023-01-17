@@ -234,7 +234,7 @@ bool Display::display()
             }
 
             if (renderCallback) {
-                //renderCallback(caller, f);
+                //renderCallback(renderCaller, f);
             }
             else {
                 videoPresentation();
@@ -265,7 +265,7 @@ bool Display::display()
             SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
 
             if (renderCallback) {
-                renderCallback(caller, f);
+                renderCallback(renderCaller, f);
             }
             else {
                 ex.ck(initVideo(f.m_frame->width, f.m_frame->height, (AVPixelFormat)f.m_frame->format), "initVideo");
@@ -273,10 +273,10 @@ bool Display::display()
             }
             reader->last_video_pts = f.m_frame->pts;
 
-            if (P->progressCallback) {
+            if (progressCallback) {
                 if (P->reader->duration()) {
                     float pct = (float)f.m_rts / (float)P->reader->duration();
-                    P->progressCallback(P, pct);
+                    progressCallback(progressCaller, pct);
                 }
             }
 

@@ -53,7 +53,7 @@ public:
 
     static void start(void * parent);
     static void renderCallback(void* caller, const avio::Frame& f);
-    static void progressCallback(Process* process, float pct);
+    static void progressCallback(void* caller, float pct);
     static void cameraTimeoutCallback(Process* process);
     static void openWriterFailedCallback(Process* process, const std::string&);
 

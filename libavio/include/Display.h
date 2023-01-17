@@ -78,8 +78,10 @@ public:
 
     Frame f;
 
-    void* caller;
+    void* renderCaller;
     std::function<void(void*, const Frame&)> renderCallback;
+    void* progressCaller;
+    std::function<void(void*, float)> progressCallback;
 
     std::string audioDeviceStatus() const;
     const char* sdlAudioFormatName(SDL_AudioFormat format) const;

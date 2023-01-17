@@ -167,6 +167,7 @@ void FilePanel::onBtnPlayClicked()
             QFileInfo fileInfo = model->fileInfo(index);
             std::cout << fileInfo.filePath().toLatin1().data() << std::endl;
             MW->currentStreamingMediaName = fileInfo.fileName();
+            MW->glWidget->setVolume(sldVolume->value());
             MW->glWidget->play(fileInfo.filePath());
         }
     }

@@ -24,12 +24,10 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 #include "libavutil/imgutils.h"
-#include "libavutil/pixdesc.h"
-#include "libavcodec/avcodec.h"
-#include "libavutil/avassert.h"
 }
 
-#include "Exception.h"
+#include <iostream>
+#include <sstream>
 
 namespace avio
 {
@@ -54,11 +52,9 @@ public:
 	void set_pts(AVStream* stream);  // called from Encoder::encode
 	std::string description() const;
 
-	AVFrame* m_frame = NULL;
+	AVFrame* m_frame = nullptr;
 	uint64_t m_rts;
 	bool m_faded = false;  // used by osd to avoid duplicate background fade
-
-	ExceptionHandler ex;
 
 };
 

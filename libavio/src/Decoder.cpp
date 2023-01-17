@@ -195,23 +195,20 @@ int Decoder::decode(AVPacket* pkt)
                 ex.ck(sws_scale(sws_ctx, sw_frame->data, sw_frame->linesize, 0, dec_ctx->height, 
                     cvt_frame->data, cvt_frame->linesize), SS);
                 cvt_frame->pts = sw_frame->pts;
+
                 f = Frame(cvt_frame);
+                cvt_frame->width = dec_ctx->width;
+                cvt_frame->height = dec_ctx->height;
+                cvt_frame->format = AV_PIX_FMT_YUV420P;
+                av_frame_get_buffer(cvt_frame, 0);
             }
             else {
-                if (sws_ctx) {
-                    ex.ck(sws_scale(sws_ctx, frame->data, frame->linesize, 0, dec_ctx->height,
-                        cvt_frame->data, cvt_frame->linesize), SS);
-                    cvt_frame->pts = frame->pts;
-                    f = Frame(cvt_frame);
-                }
-                else {
-                    f = Frame(frame);
-                }
+                f = Frame(frame);
             }
 
             f.set_rts(stream);
             if (show_frames) std::cout << strMediaType << " decoder " << f.description() << std::endl;
-            frame_q->push(f);
+            frame_q->push_move(f);
         }
     }
     catch (const Exception& e) {

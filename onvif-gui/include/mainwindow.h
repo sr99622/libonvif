@@ -39,7 +39,7 @@
 #include "filepanel.h"
 #include <iostream>
 #include <functional>
-#include "GLWidget.h"
+#include "glwidget.h"
 
 #define VERSION "1.4.5"
 

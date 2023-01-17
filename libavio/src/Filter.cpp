@@ -147,7 +147,7 @@ Filter::~Filter()
 	av_frame_free(&frame);
 }
 
-void Filter::filter(const Frame& f)
+void Filter::filter(Frame& f)
 {
     int ret = 0;
 
@@ -160,12 +160,11 @@ void Filter::filter(const Frame& f)
             if (ret < 0)
                 throw Exception("av_buffersink_get_frame");
 
-            tmp = Frame(frame);
-            tmp.m_rts = tmp.pts() * 1000 * av_q2d(av_buffersink_get_time_base(sink_ctx));
+            f.invalidate();
+            f = Frame(frame);
+            f.m_rts = f.pts() * 1000 * av_q2d(av_buffersink_get_time_base(sink_ctx));
             if (show_frames) std::cout << "filter " << f.description() << std::endl;
-
-            frame_out_q->push(tmp);
-            av_frame_unref(frame);
+            frame_out_q->push_move(f);
         }
     }
     catch (const Exception& e) {

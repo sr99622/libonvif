@@ -23,30 +23,48 @@ namespace avio
 {
 
 Frame::Frame() :
-	m_frame(NULL),
+	m_frame(nullptr),
 	m_rts(0)
 {
 
 }
 
 Frame::Frame(const Frame& other) :
-	m_frame(copyFrame(other.m_frame)),
-	m_rts(other.m_rts)
+	m_rts(other.m_rts),
+	m_frame(copyFrame(other.m_frame))
 {
 
 }
 
 Frame::Frame(Frame&& other) noexcept :
-	m_frame(copyFrame(other.m_frame)),
 	m_rts(other.m_rts)
 {
+	m_rts = other.m_rts;
+	m_frame = other.m_frame;
+	other.m_frame = nullptr;
+}
 
+Frame& Frame::operator=(const Frame& other)
+{
+	m_rts = other.m_rts;
+	av_frame_free(&m_frame);
+	m_frame = copyFrame(other.m_frame);
+	return *this;
+}
+
+Frame& Frame::operator=(Frame&& other) noexcept
+{
+	m_rts = other.m_rts;
+	m_frame = other.m_frame;
+	other.m_frame = nullptr;
+
+	return *this;
 }
 
 Frame::Frame(AVFrame* src)
 {
-	av_frame_free(&m_frame);
-	m_frame = copyFrame(src);
+	if (!m_frame) m_frame = av_frame_alloc();
+	av_frame_move_ref(m_frame, src);
 }
 
 Frame::Frame(int width, int height, AVPixelFormat pix_fmt)
@@ -82,48 +100,17 @@ Frame::~Frame()
 	av_frame_free(&m_frame);
 }
 
-Frame& Frame::operator=(const Frame& other)
-{
-	if (other.isValid()) {
-		m_rts = other.m_rts;
-		av_frame_free(&m_frame);
-		m_frame = av_frame_clone(other.m_frame);
-		av_frame_make_writable(m_frame);
-		m_faded = other.m_faded;
-	}
-	else {
-		invalidate();
-	}
-	return *this;
-}
-
-Frame& Frame::operator=(Frame&& other) noexcept
-{
-	if (other.isValid()) {
-		m_rts = other.m_rts;
-		av_frame_free(&m_frame);
-		m_frame = other.m_frame;
-		av_frame_make_writable(m_frame);
-		other.m_frame = NULL;
-		m_faded = other.m_faded;
-	}
-	else {
-		invalidate();
-	}
-	return *this;
-}
-
 void Frame::invalidate()
 {
 	av_frame_free(&m_frame);
-	m_frame = NULL;
+	m_frame = nullptr;
 	m_rts = 0;
 }
 
 AVFrame* Frame::copyFrame(AVFrame* src)
 {
 	if (!src)
-		return NULL;
+		return nullptr;
 
 	AVFrame* dst = av_frame_alloc();
 	dst->format = src->format;

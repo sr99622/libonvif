@@ -56,9 +56,6 @@ int Display::initVideo(int width, int height, AVPixelFormat pix_fmt)
 {
     int ret = 0;
 
-    //if (P->glWidget)
-    //    return ret;
-
     try {
         Uint32 sdl_format = 0;
         int w = width;
@@ -143,28 +140,20 @@ int Display::initVideo(int width, int height, AVPixelFormat pix_fmt)
 
 void Display::videoPresentation()
 {
-    //if (!P->glWidget) {
-        if (f.m_frame->format == AV_PIX_FMT_YUV420P) {
-            ex.ck(SDL_UpdateYUVTexture(texture, NULL,
-                f.m_frame->data[0], f.m_frame->linesize[0],
-                f.m_frame->data[1], f.m_frame->linesize[1],
-                f.m_frame->data[2], f.m_frame->linesize[2]), 
-                SDL_GetError());
-        }
-        else {
-            ex.ck(SDL_UpdateTexture(texture, NULL, f.m_frame->data[0], f.m_frame->linesize[0]), SDL_GetError());
-        }
+    if (f.m_frame->format == AV_PIX_FMT_YUV420P) {
+        ex.ck(SDL_UpdateYUVTexture(texture, NULL,
+            f.m_frame->data[0], f.m_frame->linesize[0],
+            f.m_frame->data[1], f.m_frame->linesize[1],
+            f.m_frame->data[2], f.m_frame->linesize[2]), 
+            SDL_GetError());
+    }
+    else {
+        ex.ck(SDL_UpdateTexture(texture, NULL, f.m_frame->data[0], f.m_frame->linesize[0]), SDL_GetError());
+    }
 
-        SDL_RenderClear(renderer);
-        ex.ck(SDL_RenderCopy(renderer, texture, NULL, NULL), SDL_GetError());
-        SDL_RenderPresent(renderer);
-    //}
-    //else {
-    //    if (P->glWidget->media_duration) {
-    //        float pct = (float)f.m_rts / (float)P->glWidget->media_duration;
-    //        P->glWidget->emit progress(pct);
-    //    }
-    //}
+    SDL_RenderClear(renderer);
+    ex.ck(SDL_RenderCopy(renderer, texture, NULL, NULL), SDL_GetError());
+    SDL_RenderPresent(renderer);
 }
 
 PlayState Display::getEvents(std::vector<SDL_Event>* events)
@@ -229,7 +218,7 @@ bool Display::display()
                         afq_in->pop();
                 }
                 
-                if (vfq_in->size() > 0) vfq_in->pop(f);
+                if (vfq_in->size() > 0) vfq_in->pop_move(f);
                 if (f.isValid()) {
                     if (f.m_frame->pts == reader->seek_found_pts) {
                         reader->seek_found_pts = AV_NOPTS_VALUE;
@@ -243,9 +232,13 @@ bool Display::display()
                 }
                 
             }
-            if (!P->widget)
-                videoPresentation();
 
+            if (renderCallback) {
+                //renderCallback(caller, f);
+            }
+            else {
+                videoPresentation();
+            }
             SDL_Delay(SDL_EVENT_LOOP_WAIT);
 
             if (flag_out)
@@ -255,7 +248,7 @@ bool Display::display()
         try 
         {
             if (vfq_in) {
-                vfq_in->pop(f);
+                vfq_in->pop_move(f);
                 if (!f.isValid()) {
                     playing = false;
                     break;
@@ -270,15 +263,9 @@ bool Display::display()
             paused_frame = f;
 
             SDL_Delay(rtClock.update(f.m_rts - reader->start_time()));
-            if (P->widget) {
-                //if (P->glWidget->media_duration) {
-                //    float pct = (float)f.m_rts / (float)P->glWidget->media_duration;
-                //    P->glWidget->emit progress(pct);
-                //}
-                if (reader->duration()) {
-                    float pct = (float)f.m_rts / (float)reader->duration();
-                    if (P->progressCallback) P->progressCallback(P, pct);
-                }
+
+            if (renderCallback) {
+                renderCallback(caller, f);
             }
             else {
                 ex.ck(initVideo(f.m_frame->width, f.m_frame->height, (AVPixelFormat)f.m_frame->format), "initVideo");
@@ -286,9 +273,19 @@ bool Display::display()
             }
             reader->last_video_pts = f.m_frame->pts;
 
+            if (P->progressCallback) {
+                if (P->reader->duration()) {
+                    float pct = (float)f.m_rts / (float)P->reader->duration();
+                    P->progressCallback(P, pct);
+                }
+            }
+
+
             if (vfq_out) {
-                if (vfq_out->size() == 0)
-                    vfq_out->push(f);
+                vfq_out->push_move(f);
+            }
+            else {
+                f.invalidate();
             }
 
         }
@@ -392,8 +389,7 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
     try {
         while (len > 0) {
             if (ptr < d->audio_buffer_len) {
-                d->afq_in->pop(f);
-                if (d->afq_out) d->afq_out->push(f);
+                d->afq_in->pop_move(f);
 
                 if (f.isValid()) {
                     uint64_t channels = f.m_frame->channels;
@@ -434,6 +430,11 @@ void Display::AudioCallback(void* userdata, uint8_t* audio_buffer, int len)
             d->rtClock.sync(f.m_rts); 
             d->reader->seek_found_pts = AV_NOPTS_VALUE;
 
+            if (d->afq_out)
+                d->afq_out->push_move(f);
+            else
+                f.invalidate();
+
         }
     }
     catch (const QueueClosedException& e) { }
@@ -462,10 +463,10 @@ void Display::toggleRecord()
     recording = !recording;
 
     if (P->writer) {
-        if (prepend_recent_write && recording) {
-            for (int i = 0; i < recent.size() - 1; i++)
-                vfq_out->push(recent[i]);
-        }
+        //if (prepend_recent_write && recording) {
+        //    for (int i = 0; i < recent.size() - 1; i++)
+        //        vfq_out->push(recent[i]);
+        //}
 
         P->writer->enabled = recording;
     }

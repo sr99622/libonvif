@@ -45,8 +45,10 @@ public:
 	Queue(size_t max_size = 1);
 
 	void push(T const&);
+	void push_move(T);
 	T pop();
 	void pop(T&);
+	void pop_move(T&);
 	T peek();
 	int size();
 	void close();
@@ -105,6 +107,35 @@ void Queue<T>::push(T const& element)
 }
 
 template <typename T>
+void Queue<T>::push_move(T element)
+{
+	std::unique_lock<std::mutex> lock(n_mutex);
+
+	while (full()) {
+		if (m_closed) break;
+		m_cond_push.wait(lock);
+	}
+
+	if (m_closed) throw QueueClosedException();
+
+	if (m_front == -1) m_front = m_rear = 0;
+	else if (m_rear == m_max_size - 1 && m_front != 0) m_rear = 0;
+	else m_rear++;
+
+	if (m_data.size() < m_rear + 1)	{
+		m_data.push_back(std::move(element));
+	}
+	else {
+		m_data[m_rear] = std::move(element);
+	}
+
+
+	m_size++;
+
+	m_cond_pop.notify_one();
+}
+
+template <typename T>
 T Queue<T>::pop()
 {
 	std::unique_lock<std::mutex> lock(n_mutex);
@@ -139,6 +170,27 @@ void Queue<T>::pop(T& arg)
 	if (m_closed) throw QueueClosedException();
 
 	arg = m_data[m_front];
+	if (m_front == m_rear) m_front = m_rear = -1;
+	else if (m_front == m_max_size - 1) m_front = 0;
+	else m_front++;
+	m_size--;
+
+	m_cond_push.notify_one();
+}
+
+template <typename T>
+void Queue<T>::pop_move(T& arg)
+{
+	std::unique_lock<std::mutex> lock(n_mutex);
+
+	while (empty()) {
+		if (m_closed) break;
+		m_cond_pop.wait(lock);
+	}
+
+	if (m_closed) throw QueueClosedException();
+
+	arg = std::move(m_data[m_front]);
 	if (m_front == m_rear) m_front = m_rear = -1;
 	else if (m_front == m_max_size - 1) m_front = 0;
 	else m_front++;

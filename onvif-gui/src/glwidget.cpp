@@ -17,7 +17,7 @@
 *
 *********************************************************************/
 
-#include "GLWidget.h"
+#include "glwidget.h"
 #include <iostream>
 #include <sstream>
 
@@ -26,28 +26,18 @@ namespace avio
 
 GLWidget::GLWidget()
 {
-    timer = new QTimer(this);
-    timer->setInterval(poll_interval);
-    connect(timer, SIGNAL(timeout()), this, SLOT(poll()));
-    connect(this, SIGNAL(timerStart()), timer, SLOT(start()));
-    connect(this, SIGNAL(timerStop()), timer, SLOT(stop()));
+
 }
 
 GLWidget::~GLWidget()
 {
-    emit timerStop();
-    delete timer;
+
 }
 
 QSize GLWidget::sizeHint() const
 {
     return QSize(640, 480);
 }
-
-//void GLWidget::setFormat(QImage::Format arg)
-//{
-//    fmt = arg;
-//}
 
 void GLWidget::setVolume(int arg)
 {
@@ -94,37 +84,33 @@ void GLWidget::paintEvent(QPaintEvent* event)
     QOpenGLWidget::paintEvent(event);
     QPainter painter;
     painter.begin(this);
-    if (!img.isNull()) {
+    if (!img.isNull() && !img_lock) {
+        img_lock = true;
         QImage tmp = img.scaled(width(), height(), Qt::KeepAspectRatio);
         int dx = width() - tmp.width();
         int dy = height() - tmp.height();
         painter.drawImage(dx>>1, dy>>1, tmp);
+        img_lock = false;
     }
     painter.end();
 }
 
-void GLWidget::poll()
+void GLWidget::renderCallback(void* caller, const avio::Frame& frame)
 {
-    if (!process)
+    if (!frame.isValid()) {
+        std::cout << "call recvd invalid frame" << std::endl;
         return;
-    if (!((Process*)process)->running)
-        return;
-
-    if (vfq_in) {
-        try {
-            if (vfq_in->size() > 0) {
-                vfq_in->pop(f);
-                if (f.isValid()) {
-                    img = QImage(f.m_frame->data[0], f.m_frame->width, f.m_frame->height, fmt);
-                }
-                update();
-            }
-        }
-        catch (const QueueClosedException& e) { }
-        catch (const std::runtime_error& e) {
-            std::cout << "GLWidget poll error: " << e.what() << std::endl;
-        }
     }
+
+
+    GLWidget* g = (GLWidget*)caller;
+    while (g->img_lock) SDL_Delay(1);
+    g->img_lock = true;
+    g->f = frame;
+    g->img = QImage(g->f.m_frame->data[0], g->f.m_frame->width,
+                        g->f.m_frame->height, QImage::Format_RGB888);
+    g->img_lock = false;
+    g->update();
 }
 
 void GLWidget::play(const QString& arg)
@@ -231,15 +217,6 @@ void GLWidget::progressCallback(Process* process, float pct)
     widget->emit progress(pct);
 }
 
-void GLWidget::assignFrameQueues(Process* process)
-{
-    GLWidget* widget = (GLWidget*)(process->widget);
-    for (FRAME_Q_MAP::iterator q = process->frame_queues.begin(); q != process->frame_queues.end(); ++q) {
-        if (q->first == widget->video_in())
-            widget->vfq_in = q->second;
-    }
-}
-
 void GLWidget::start(void * parent)
 {
     GLWidget* widget = (GLWidget*)parent;
@@ -248,12 +225,9 @@ void GLWidget::start(void * parent)
         avio::Process process;
         widget->process = &process;
         process.widget = widget;
-        widget->set_video_in("vfq_display");
-        process.assignFrameQueues = std::function(GLWidget::assignFrameQueues);
         process.progressCallback = std::function(GLWidget::progressCallback);
         process.cameraTimeoutCallback = std::function(GLWidget::cameraTimeoutCallback);
         process.openWriterFailedCallback = std::function(GLWidget::openWriterFailedCallback);
-        //process.externalRenderer = true;
 
         avio::Reader reader(widget->uri);
         widget->showStreamParameters(&reader);
@@ -283,8 +257,8 @@ void GLWidget::start(void * parent)
 
         avio::Display display(reader);
         display.set_video_in(videoFilter.video_out());
-        display.set_video_out("vfq_display");
-        widget->set_video_in(display.video_out());
+        display.caller = parent;
+        display.renderCallback = std::function(GLWidget::renderCallback);
 
         avio::Decoder* audioDecoder = nullptr;
         if (reader.has_audio() && !widget->disable_audio) {
@@ -293,7 +267,7 @@ void GLWidget::start(void * parent)
             audioDecoder->set_audio_in(reader.audio_out());
             audioDecoder->set_audio_out("afq_decoder");
             display.set_audio_in(audioDecoder->audio_out());
-            display.volume = widget->volume;
+            display.volume = (float)widget->volume / 100.0f;
             display.mute = widget->isMute();
             process.add_decoder(*audioDecoder);
         }
@@ -302,15 +276,11 @@ void GLWidget::start(void * parent)
         process.add_decoder(videoDecoder);
         process.add_filter(videoFilter);
         process.add_display(display);
-        //process.add_widget(widget);
 
         process.running = true;
         widget->emit mediaPlayingStarted();
-        widget->emit timerStart();
 
         process.run();
-
-        widget->emit timerStop();
 
         std::cout << "process done running" << std::endl;
 

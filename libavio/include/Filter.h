@@ -44,7 +44,7 @@ public:
 	void initVideo();
 	void initAudio();
 	~Filter();
-	void filter(const Frame& f);
+	void filter(Frame& f);
 	AVMediaType mediaType() { return decoder->mediaType; }
 
 	Decoder* decoder = NULL;

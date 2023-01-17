@@ -29,7 +29,6 @@
 #include "Pipe.h"
 #include "Filter.h"
 #include "Display.h"
-//#include "GLWidget.h"
 #include <iomanip>
 #include <functional>
 #include <map>
@@ -208,16 +207,16 @@ static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* fram
 static void filter(Filter* filter, Queue<Frame>* q_in, Queue<Frame>* q_out)
 {
     try {
-        Frame f;
         filter->frame_out_q = q_out;
         while (true)
         {
-            q_in->pop(f);
+            Frame f;
+            q_in->pop_move(f);
             filter->filter(f);
             if (!f.isValid())
                 break;
         }
-        filter->frame_out_q->push(Frame(nullptr));
+        filter->frame_out_q->push_move(Frame(nullptr));
     }
     catch (const QueueClosedException& e) {}
 }
@@ -323,7 +322,6 @@ public:
     Encoder*  videoEncoder = nullptr;
     Encoder*  audioEncoder = nullptr;
     Display*  display      = nullptr;
-    //GLWidget* glWidget     = nullptr;
     void*     widget       = nullptr;
 
     PKT_Q_MAP pkt_queues;
@@ -343,13 +341,12 @@ public:
 
     std::vector<std::thread*> ops;
 
-    std::function<void(Process*)> assignFrameQueues = nullptr;
+    //std::function<void(Process*)> assignFrameQueues = nullptr;
     std::function<void(Process*, float)> progressCallback = nullptr;
     std::function<void(Process*)> cameraTimeoutCallback = nullptr;
     std::function<void(Process*, const std::string&)> openWriterFailedCallback = nullptr;
 
     bool running = false;
-    //bool externalRenderer = false;
 
     Process() { av_log_set_level(AV_LOG_PANIC); }
     ~Process() { }
@@ -418,12 +415,6 @@ public:
             frame_q_names.push_back(display->afq_out_name);
     }
 
-    /// ADD WIDGET
-    //void add_widget(GLWidget* widget_in)
-    //{
-    //    glWidget = widget_in;
-    //}
-
     void add_frame_drain(const std::string& frame_q_name)
     {
         frame_q_drain_names.push_back(frame_q_name);
@@ -488,7 +479,7 @@ public:
             }
         }
 
-        if (assignFrameQueues) assignFrameQueues(this);
+        //if (assignFrameQueues) assignFrameQueues(this);
 
         if (reader) {
             ops.push_back(new std::thread(read, reader,
@@ -505,12 +496,6 @@ public:
             ops.push_back(new std::thread(filter, videoFilter,
                 frame_queues[videoFilter->q_in_name], frame_queues[videoFilter->q_out_name]));
         }
-
-        ///  ASSIGN QUEUES
-        //if (glWidget) {
-        //    if (!glWidget->vfq_in_name.empty()) glWidget->vfq_in = frame_queues[glWidget->vfq_in_name];
-        //    if (!glWidget->vfq_out_name.empty()) glWidget->vfq_out = frame_queues[glWidget->vfq_out_name];
-        //}
 
         if (audioDecoder) {
             ops.push_back(new std::thread(decode, audioDecoder,

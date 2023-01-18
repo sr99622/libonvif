@@ -41,42 +41,37 @@ QSize GLWidget::sizeHint() const
 
 void GLWidget::setVolume(int arg)
 {
+
     volume = arg;
-    if (process) {
-        if (((Process*)process)->display) {
-            ((Process*)process)->display->volume = (float)arg / 100.0f;
-        }
-    }
+    if (process) process->setVolume(arg);
 }
 
 void GLWidget::setMute(bool arg)
 {
     mute = arg;
-    if (process) {
-        if (((Process*)process)->display) {
-            ((Process*)process)->display->mute = arg;
-        }
-    }
+    if (process) process->setMute(arg);
 }
 
 void GLWidget::togglePaused()
 {
-    if (process) {
-        if (((Process*)process)->display) {
-            ((Process*)process)->display->togglePause();
-        }
-    }
+    if (process) process->togglePaused();
 }
 
 bool GLWidget::isPaused()
 {
     bool result = false;
-    if (process) {
-        if (((Process*)process)->display) {
-            result = ((Process*)process)->display->paused;
-        }
-    }
+    if (process) result = process->isPaused();
     return result;
+}
+
+void GLWidget::toggle_pipe_out(const std::string& filename)
+{
+    if (process) process->toggle_pipe_out(filename);
+}
+
+void GLWidget::seek(float arg)
+{
+    if (process) process->seek(arg);
 }
 
 void GLWidget::paintEvent(QPaintEvent* event)
@@ -127,30 +122,9 @@ void GLWidget::play(const QString& arg)
     }
 }
 
-void GLWidget::toggle_pipe_out(const std::string& filename)
-{
-    if (process) {
-        Reader* reader = ((Process*)process)->reader;
-        if (reader) {
-            reader->pipe_out_filename = filename;
-            reader->request_pipe_write = !reader->request_pipe_write;
-        }
-    }
-}
-
-void GLWidget::seek(float arg)
-{
-    if (process) {
-        if (((Process*)process)->reader) {
-            ((Process*)process)->reader->request_seek(arg);
-        }
-    }
-}
-
 void GLWidget::stop()
 {
-    if (process)
-        ((Process*)process)->running = false;
+    if (process) process->running = false;
 
     while (process) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

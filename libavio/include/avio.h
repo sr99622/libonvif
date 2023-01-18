@@ -351,6 +351,41 @@ public:
     Process() { av_log_set_level(AV_LOG_PANIC); }
     ~Process() { }
 
+    bool isPaused()
+    {
+        bool result = false;
+        if (display) result = display->paused;
+        return result;
+    }
+
+    void setMute(bool arg)
+    {
+        if (display) display->mute = arg;
+    }
+
+    void setVolume(int arg)
+    {
+        if (display) display->volume = (float)arg / 100.0f;
+    }
+
+    void togglePaused()
+    {
+        if (display) display->togglePause();
+    }
+
+    void seek(float arg)
+    {
+        if (reader) reader->request_seek(arg);
+    }
+
+    void toggle_pipe_out(const std::string& filename)
+    {
+        if (reader) {
+            reader->pipe_out_filename = filename;
+            reader->request_pipe_write = !reader->request_pipe_write;
+        }
+    }
+
     void key_event(int keyCode)
     {
         SDL_Event event;

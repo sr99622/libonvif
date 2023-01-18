@@ -280,7 +280,6 @@ bool Display::display()
                 }
             }
 
-
             if (vfq_out) {
                 vfq_out->push_move(f);
             }

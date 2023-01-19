@@ -21,6 +21,7 @@
 #define GLWIDGET_H
 
 #include <QOpenGLWidget>
+#include <QMainWindow>
 #include <QTimer>
 #include <QPainter>
 #include <QImage>
@@ -37,7 +38,7 @@ class GLWidget : public QOpenGLWidget
     Q_OBJECT
 
 public:
-    GLWidget();
+    GLWidget(QMainWindow* parent);
     ~GLWidget();
 
     void setVolume(int arg);
@@ -50,6 +51,7 @@ public:
     void showStreamParameters(avio::Reader* reader);
     void toggle_pipe_out(const std::string& filename);
     bool checkForStreamHeader(const char*);
+    bool audioDisabled();
 
     static void start(void * parent);
     static void renderCallback(void* caller, const avio::Frame& f);
@@ -58,6 +60,8 @@ public:
     static void openWriterFailedCallback(Process* process, const std::string&);
 
     QSize sizeHint() const override;
+
+    QMainWindow* mainWindow;
 
     long media_duration = 0;
     long media_start_time = 0;

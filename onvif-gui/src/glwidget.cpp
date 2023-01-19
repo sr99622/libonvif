@@ -17,16 +17,16 @@
 *
 *********************************************************************/
 
-#include "glwidget.h"
 #include <iostream>
 #include <sstream>
-
+#include "glwidget.h"
+#include "mainwindow.h"
 namespace avio
 {
 
-GLWidget::GLWidget()
+GLWidget::GLWidget(QMainWindow* parent)
 {
-
+    mainWindow = parent;
 }
 
 GLWidget::~GLWidget()
@@ -72,6 +72,11 @@ void GLWidget::toggle_pipe_out(const std::string& filename)
 void GLWidget::seek(float arg)
 {
     if (process) process->seek(arg);
+}
+
+bool GLWidget::audioDisabled()
+{
+    return MW->settingsPanel->disableAudio->isChecked();
 }
 
 void GLWidget::paintEvent(QPaintEvent* event)
@@ -235,7 +240,7 @@ void GLWidget::start(void * parent)
         display.progressCallback = std::function(GLWidget::progressCallback);
 
         avio::Decoder* audioDecoder = nullptr;
-        if (reader.has_audio() && !widget->disable_audio) {
+        if (reader.has_audio() && !widget->audioDisabled()) {
             reader.set_audio_out("apq_reader");
             audioDecoder = new avio::Decoder(reader, AVMEDIA_TYPE_AUDIO);
             audioDecoder->set_audio_in(reader.audio_out());

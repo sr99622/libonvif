@@ -256,7 +256,6 @@ void GLWidget::start(void * parent)
         process.add_filter(videoFilter);
         process.add_display(display);
 
-        process.running = true;
         widget->emit mediaPlayingStarted();
 
         process.run();

@@ -63,8 +63,10 @@ Frame& Frame::operator=(Frame&& other) noexcept
 
 Frame::Frame(AVFrame* src)
 {
-	if (!m_frame) m_frame = av_frame_alloc();
-	av_frame_move_ref(m_frame, src);
+	if (src) {
+		if (!m_frame) m_frame = av_frame_alloc();
+		av_frame_move_ref(m_frame, src);
+	}
 }
 
 Frame::Frame(int width, int height, AVPixelFormat pix_fmt)
@@ -87,7 +89,13 @@ Frame::Frame(int width, int height, AVPixelFormat pix_fmt)
 	case AV_PIX_FMT_BGR24:
 		memset(m_frame->data[0], 0, data_size * 3);
 		break;
+	case AV_PIX_FMT_RGB24:
+		memset(m_frame->data[0], 0, data_size * 3);
+		break;
 	case AV_PIX_FMT_BGRA:
+		memset(m_frame->data[0], 0, data_size * 4);
+		break;
+	case AV_PIX_FMT_RGBA:
 		memset(m_frame->data[0], 0, data_size * 4);
 		break;
 	default:

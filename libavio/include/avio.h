@@ -190,7 +190,7 @@ static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* fram
             decoder->decode(pkt);
             av_packet_free(&pkt);
         }
-        decoder->decode(NULL);
+        decoder->decode(nullptr);
         decoder->frame_q->push(Frame(nullptr));
     }
     catch (const QueueClosedException& e) { }
@@ -199,7 +199,7 @@ static void decode(Decoder* decoder, Queue<AVPacket*>* pkt_q, Queue<Frame>* fram
         str << decoder->strMediaType << " decoder failed: " << e.what();
         std::cout << str.str() << std::endl;
         decoder->reader->exit_error_msg = str.str();
-        decoder->decode(NULL);
+        decoder->decode(nullptr);
         decoder->frame_q->push(Frame(nullptr));
     }
 }
@@ -328,7 +328,6 @@ public:
     FRAME_Q_MAP frame_queues;
     std::vector<std::string> pkt_q_names;
     std::vector<std::string> frame_q_names;
-    std::map<std::string, std::string> display_q_names;
     std::vector<std::string> frame_q_drain_names;
     std::vector<std::string> pkt_q_drain_names;
     std::vector<std::string> merge_filenames;
@@ -341,8 +340,6 @@ public:
 
     std::vector<std::thread*> ops;
 
-    //std::function<void(Process*)> assignFrameQueues = nullptr;
-    //std::function<void(Process*, float)> progressCallback = nullptr;
     std::function<void(Process*)> cameraTimeoutCallback = nullptr;
     std::function<void(Process*, const std::string&)> openWriterFailedCallback = nullptr;
 
@@ -500,6 +497,8 @@ public:
 
     void run()
     {
+        running = true;
+
         for (const std::string& name : pkt_q_names) {
             if (!name.empty()) {
                 if (pkt_queues.find(name) == pkt_queues.end())

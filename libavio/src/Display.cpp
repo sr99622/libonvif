@@ -191,10 +191,10 @@ bool Display::display()
 
     while (true)
     {
-        if (!P->running) {
-            playing = false;
-            break;
-        }
+        //if (!P->running) {
+        //    playing = false;
+        //    break;
+        //}
 
         std::vector<SDL_Event> events;
         PlayState state = getEvents(&events);

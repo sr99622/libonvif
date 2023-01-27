@@ -65,7 +65,7 @@ public:
     StyleDialog* styleDialog;
     FilePanel* filePanel;
     QSettings* settings;
-    avio::GLWidget* glWidget;
+    GLWidget* glWidget;
     QSplitter* split;
 
     const QString splitKey = "MainWindow/splitKey";

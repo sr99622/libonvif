@@ -1,105 +1,69 @@
-/********************************************************************
-* libavio/include/GLWidget.h
-*
-* Copyright (c) 2022  Stephen Rhodes
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-*********************************************************************/
-
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
 #include <QOpenGLWidget>
-#include <QMainWindow>
-#include <QTimer>
-#include <QPainter>
 #include <QImage>
 #include <QMutex>
-#include <iostream>
+#include <QPaintEvent>
 #include "avio.h"
-
-
-namespace avio
-{
 
 class GLWidget : public QOpenGLWidget
 {
     Q_OBJECT
 
 public:
-    GLWidget(QMainWindow* parent);
+    GLWidget();
     ~GLWidget();
-
-    void setVolume(int arg);
-    void setMute(bool arg);
-    bool isMute() { return mute; }
-    void togglePaused();
-    bool isPaused();
     void play(const QString& arg);
     void stop();
-    void showStreamParameters(avio::Reader* reader);
-    void toggle_pipe_out(const std::string& filename);
-    bool checkForStreamHeader(const char*);
-    bool audioDisabled();
-
-    static void start(void * parent);
-    static void renderCallback(void* caller, const avio::Frame& f);
-    static void progressCallback(void* caller, float pct);
-    static void cameraTimeoutCallback(Process* process);
-    static void openWriterFailedCallback(Process* process, const std::string&);
-
+    void setMute(bool arg);
+    void setVolume(int arg);
+    void toggle_pipe_out(const QString& filename);
+    qint64 media_duration();
+    bool isPaused();
+    void togglePaused();
+    bool checkForStreamHeader(const char* name);
+    
     QSize sizeHint() const override;
 
-    QMainWindow* mainWindow;
+    static void start(void* widget);
+    static void renderCallback(void* caller, const avio::Frame& f);
+    static void progressCallback(void* caller, float pct);
+    static void infoCallback(void* caller, const std::string& msg);
+    static void errorCallback(void* caller, const std::string& msg);
 
-    long media_duration = 0;
-    long media_start_time = 0;
+    char uri[1024];
+
+    QImage img;
+    avio::Frame f;
+    QMutex mutex;
+    avio::Process* process = nullptr;
+
     bool disable_audio = false;
-    int keyframe_cache_size = 1;
+    bool disable_video = false;
+
+    int volume = 100;
+    bool mute = false;
+
     int vpq_size = 0;
     int apq_size = 0;
-    std::string mediaShortName;
+
+    int keyframe_cache_size;
     AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
 
-    Process* process = nullptr;
-
 signals:
-    void cameraTimeout();
-    void connectFailed(const QString&);
-    void openWriterFailed(const std::string&);
-    void msg(const QString&);
-    void progress(float);
-    void mediaPlayingFinished();
-    void mediaPlayingStarted();
+    void mediaPlayingStarted(qint64);
+    void mediaPlayingStopped();
+    void mediaProgress(float);
+    void criticalError(const QString&);
+    void infoMessage(const QString&);
+
+protected:
+    void paintEvent(QPaintEvent* event) override;
 
 public slots:
     void seek(float);
 
-protected:
-    void paintEvent(QPaintEvent *event) override;
-
-private:
-    Frame f;
-    int volume = 100;
-    bool mute = false;
-    QImage::Format fmt = QImage::Format_RGB888;
-    char uri[1024];
-    QImage img;
-    QMutex mutex;
-
 };
 
-}
-
-#endif
+#endif // GLWIDGET_H

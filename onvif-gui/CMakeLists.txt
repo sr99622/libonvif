@@ -49,6 +49,7 @@ add_executable(onvif-gui
     src/messagepanel.cpp
     src/networktab.cpp
     src/onvifmanager.cpp
+    src/progress.cpp
     src/ptztab.cpp
     src/settingspanel.cpp
     src/stylepanel.cpp
@@ -68,6 +69,7 @@ add_executable(onvif-gui
     include/messagepanel.h
     include/networktab.h
     include/onvifmanager.h
+    include/progress.h
     include/ptztab.h
     include/settingspanel.h
     include/stylepanel.h
@@ -79,7 +81,7 @@ add_executable(onvif-gui
 target_link_libraries(onvif-gui PRIVATE
     Qt5::Widgets
     onvif
-    avio
+    libavio
 )
 
 target_include_directories(onvif-gui PUBLIC

@@ -76,7 +76,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     btnMute = new QPushButton();
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
-    if (MW->glWidget->isMute())
+    if (MW->glWidget->mute)
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
@@ -114,11 +114,11 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     applyButton->setEnabled(false);
 
     connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
-    connect(MW->glWidget, SIGNAL(timerStart()), this, SLOT(streamStarting()));
+    connect(MW->glWidget, SIGNAL(mediaPlayingStarted(qint64)), this, SLOT(mediaPlayingStarted(qint64)));
     connect(MW->glWidget, SIGNAL(cameraTimeout()), this, SLOT(cameraTimeout()));
     connect(MW->glWidget, SIGNAL(connectFailed(const QString&)), this, SLOT(connectFailed(const QString&)));
     connect(MW->glWidget, SIGNAL(openWriterFailed(const std::string&)), this, SLOT(openWriterFailed(const std::string&)));
-    connect(MW->glWidget, SIGNAL(mediaPlayingFinished()), this, SLOT(mediaPlayingFinished()));
+    connect(MW->glWidget, SIGNAL(mediaPlayingStopped()), this, SLOT(mediaPlayingStopped()));
 
     CameraListModel *cameraListModel = cameraList->cameraListModel;
     connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
@@ -158,7 +158,7 @@ void CameraPanel::discoverButtonClicked()
 
 void CameraPanel::onBtnMuteClicked()
 {
-    if (MW->glWidget->isMute()) {
+    if (MW->glWidget->mute) {
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
         MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     }
@@ -167,8 +167,8 @@ void CameraPanel::onBtnMuteClicked()
         MW->filePanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
 
-    MW->glWidget->setMute(!MW->glWidget->isMute());
-    MW->settings->setValue(muteKey, MW->glWidget->isMute());
+    MW->glWidget->setMute(!MW->glWidget->mute);
+    MW->settings->setValue(muteKey, MW->glWidget->mute);
 }
 
 void CameraPanel::cameraListDoubleClicked()
@@ -194,7 +194,7 @@ void CameraPanel::cameraListDoubleClicked()
             MW->glWidget->apq_size = 100;
         }
         MW->glWidget->disable_audio = MW->settingsPanel->disableAudio->isChecked();
-        MW->glWidget->mediaShortName = MW->currentStreamingMediaName.toLatin1().data();
+        //MW->glWidget->mediaShortName = MW->currentStreamingMediaName.toLatin1().data();
         MW->glWidget->play(uri.c_str());
         MW->setWindowTitle("connecting to " + MW->currentStreamingMediaName);
         playButton->setStyleSheet(MW->getButtonStyle("stop"));
@@ -271,7 +271,7 @@ void CameraPanel::recordButtonClicked()
     else 
         filename.append("/").append("out.mp4");
 
-    MW->glWidget->toggle_pipe_out(filename.toLatin1().data());
+    MW->glWidget->toggle_pipe_out(filename);
 }
 
 void CameraPanel::disableToolTips(bool arg)
@@ -340,7 +340,7 @@ void CameraPanel::adjustVolume(int value)
     MW->filePanel->sldVolume->setValue(value);
 }
 
-void CameraPanel::streamStarting()
+void CameraPanel::mediaPlayingStarted(qint64 duration)
 {
     connecting = false;
     MW->glWidget->setVolume(volumeSlider->value());
@@ -377,7 +377,7 @@ void CameraPanel::openWriterFailed(const std::string& str)
     recordButton->setStyleSheet(MW->getButtonStyle("record"));
 }
 
-void CameraPanel::mediaPlayingFinished()
+void CameraPanel::mediaPlayingStopped()
 {
     playButton->setStyleSheet(MW->getButtonStyle("play"));
 }

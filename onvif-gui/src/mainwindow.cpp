@@ -37,8 +37,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     //settings->clear();
     messagePanel = new MessagePanel(this);
 
-    glWidget = new avio::GLWidget(this);
-    connect(glWidget, SIGNAL(msg(const QString&)), this, SLOT(msg(const QString&)));
+    glWidget = new GLWidget();
+    connect(glWidget, SIGNAL(infoMessage(const QString&)), this, SLOT(msg(const QString&)));
 
     styleDialog = new StyleDialog(this);
 

@@ -52,7 +52,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     btnMute = new QPushButton();
 
     MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
-    if (MW->glWidget->isMute())
+    if (MW->glWidget->mute)
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
@@ -62,27 +62,11 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     sldVolume->setValue(MW->settings->value(volumeKey, 80).toInt());
     connect(sldVolume, SIGNAL(sliderMoved(int)), this, SLOT(onSldVolumeMoved(int)));
 
-    sldProgress = new ProgressSlider(Qt::Horizontal, this);
-    sldProgress->setMaximum(1000);
-    connect(MW->glWidget, SIGNAL(progress(float)), this, SLOT(progress(float)));
-    connect(MW->glWidget, SIGNAL(mediaPlayingFinished()), this, SLOT(mediaPlayingFinished()));
-    connect(MW->glWidget, SIGNAL(mediaPlayingStarted()), this, SLOT(mediaPlayingStarted()));
-    //connect(sldProgress, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
-    lblProgress = new QLabel("0:00", this);
-    lblProgress->setFont(QFont("courier", 12, QFont::Bold));
-    lblDuration = new QLabel("-:--", this);
-    lblDuration->setFont(QFont("courier", 12, QFont::Bold));
-    lblSeek = new ProgressLabel(this);
-    lblSeek->setFont(QFont("courier", 12, QFont::Bold));
-
-    QWidget *progressPanel = new QWidget(this);
-    QGridLayout *progressLayout = new QGridLayout(progressPanel);
-    progressLayout->addWidget(lblSeek,         0, 1, 1, 7);
-    progressLayout->addWidget(lblProgress,     1, 0, 1, 1);
-    progressLayout->addWidget(sldProgress,     1, 1, 1, 7);
-    progressLayout->addWidget(lblDuration,     1, 8, 1, 1);
-    progressLayout->setContentsMargins(0, 0, 0, 0);
-    progressLayout->setColumnStretch(1, 20);
+    progressPanel = new Progress(this);
+    connect(MW->glWidget, SIGNAL(mediaProgress(float)), this, SLOT(mediaProgress(float)));
+    connect(MW->glWidget, SIGNAL(mediaPlayingStopped()), this, SLOT(mediaPlayingStopped()));
+    connect(MW->glWidget, SIGNAL(mediaPlayingStarted(qint64)), this, SLOT(mediaPlayingStarted(qint64)));
+    connect(progressPanel, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
@@ -188,16 +172,17 @@ void FilePanel::doubleClicked(const QModelIndex& index)
     }
 }
 
-void FilePanel::mediaPlayingFinished()
+void FilePanel::mediaPlayingStopped()
 {
-    progress(0);
+    mediaProgress(0);
     btnPlay->setStyleSheet(MW->getButtonStyle("play"));
 }
 
-void FilePanel::mediaPlayingStarted()
+void FilePanel::mediaPlayingStarted(qint64 duration)
 {
+    progressPanel->setDuration(duration);
     btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
-    int duration_in_seconds = MW->glWidget->media_duration / 1000;
+    int duration_in_seconds = MW->glWidget->media_duration() / 1000;
     int hours = duration_in_seconds / 3600;
     int minutes = (duration_in_seconds - (hours * 3600)) / 60;
     int seconds = (duration_in_seconds - (hours * 3600) - (minutes * 60));
@@ -208,29 +193,12 @@ void FilePanel::mediaPlayingStarted()
         sprintf(buf, "%d:%02d", minutes, seconds);
 
     QString output(buf);
-    lblDuration->setText(output);
+    //lblDuration->setText(output);
 }
 
-void FilePanel::progress(float pct)
+void FilePanel::mediaProgress(float pct)
 {
-    sldProgress->setValue(sldProgress->maximum() * pct);
-
-    double position = 0;
-    if (MW->glWidget->media_duration)
-        position = pct * MW->glWidget->media_duration;
-
-    int position_in_seconds = position / 1000;
-    int hours = position_in_seconds / 3600;
-    int minutes = (position_in_seconds - (hours * 3600)) / 60;
-    int seconds = (position_in_seconds - (hours * 3600) - (minutes * 60));
-    char buf[32] = {0};
-    if (hours > 0)
-        sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
-    else 
-        sprintf(buf, "%d:%02d", minutes, seconds);
-
-    QString output(buf);
-    lblProgress->setText(output);
+    progressPanel->setProgress(pct);
 }
 
 void FilePanel::headerChanged(int arg1, int arg2, int arg3)
@@ -242,12 +210,12 @@ void FilePanel::onBtnStopClicked()
 {
     MW->glWidget->stop();
     btnPlay->setStyleSheet(MW->getButtonStyle("play"));
-    lblProgress->setText("0:00");
+    //lblProgress->setText("0:00");
 }
 
 void FilePanel::onBtnMuteClicked()
 {
-    if (MW->glWidget->isMute()) {
+    if (MW->glWidget->mute) {
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
         MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
     }
@@ -256,8 +224,8 @@ void FilePanel::onBtnMuteClicked()
         MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
 
-    MW->glWidget->setMute(!MW->glWidget->isMute());
-    MW->settings->setValue(muteKey, MW->glWidget->isMute());
+    MW->glWidget->setMute(!MW->glWidget->mute);
+    MW->settings->setValue(muteKey, MW->glWidget->mute);
 }
 
 void FilePanel::onSldVolumeMoved(int value)
@@ -412,64 +380,4 @@ void DirectorySetter::selectDirectory()
         text->setText(directory);
         emit directorySet(directory);
     }
-}
-
-ProgressSlider::ProgressSlider(Qt::Orientation o, QWidget *parent) : QSlider(o, parent)
-{
-    setMouseTracking(true); 
-    filePanel = parent;
-}
-
-bool ProgressSlider::event(QEvent *e)
-{
-    if (e->type() == QEvent::Leave)
-        ((FilePanel*)filePanel)->lblSeek->setText("");
-
-    return QSlider::event(e);
-}
-
-void ProgressSlider::mousePressEvent(QMouseEvent *event)
-{
-    MainWindow* mainWindow = (MainWindow*)(((FilePanel*)filePanel)->mainWindow);
-    float pct = event->pos().x() / (float)width();
-    mainWindow->glWidget->seek(pct);
-}
-
-void ProgressSlider::mouseMoveEvent(QMouseEvent *e)
-{
-    MainWindow* mainWindow = (MainWindow*)(((FilePanel*)filePanel)->mainWindow);
-
-    if (mainWindow->glWidget->media_duration) {
-        double percentage = e->pos().x() / (double)width();
-        double position = percentage * MW->glWidget->media_duration;
-
-        int position_in_seconds = position / 1000;
-        int hours = position_in_seconds / 3600;
-        int minutes = (position_in_seconds - (hours * 3600)) / 60;
-        int seconds = (position_in_seconds - (hours * 3600) - (minutes * 60));
-        char buf[32] = {0};
-        if (hours > 0)
-            sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
-        else 
-            sprintf(buf, "%d:%02d", minutes, seconds);
-
-        QString output(buf);
-
-        ((FilePanel*)filePanel)->lblSeek->x_pos = e->pos().x();
-        ((FilePanel*)filePanel)->lblSeek->setText(output);
-    }
-}
-
-ProgressLabel::ProgressLabel(QWidget *parent) : QLabel(parent)
-{
-
-}
-
-void ProgressLabel::paintEvent(QPaintEvent *event)
-{
-    QPainter painter(this);
-    QFontMetrics metrics = fontMetrics();
-    QRect rect = metrics.boundingRect(text());
-    int x = std::min(width() - rect.width(), x_pos);
-    painter.drawText(QPoint(x, height()), text());
 }

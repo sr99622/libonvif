@@ -48,14 +48,14 @@ if (BUILD_GUI)
 
     install(TARGETS onvif-gui DESTINATION bin)
     if (WIN32)
-        install(TARGETS avio 
+        install(TARGETS libavio 
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
             RUNTIME DESTINATION bin
             COMPONENT library
         )
     else()
-        install(TARGETS avio DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+        install(TARGETS libavio DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
     endif()
 
 endif()

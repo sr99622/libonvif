@@ -35,37 +35,7 @@
 #include <QIcon>
 #include <QLabel>
 
-class ProgressLabel : public QLabel
-{
-    Q_OBJECT
-
-public:
-    ProgressLabel(QWidget *parent);
-    void paintEvent(QPaintEvent *event) override;
-
-    QWidget *filePanel;
-    int x_pos;
-
-};
-
-class ProgressSlider : public QSlider
-{
-    Q_OBJECT
-
-public:
-    ProgressSlider(Qt::Orientation o, QWidget *parent);
-    bool event(QEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-
-    QWidget* filePanel;
-
-    int last_position_x;
-
-signals:
-    void seek(float);
-
-};
+#include "progress.h"
 
 class DirectorySetter : public QWidget
 {
@@ -123,10 +93,7 @@ public:
     QIcon icnPause;
     QIcon icnStop;
 
-    ProgressLabel *lblSeek;
-    ProgressSlider *sldProgress;
-    QLabel *lblProgress;
-    QLabel *lblDuration;
+    Progress *progressPanel;
     QSlider *sldVolume;
 
     const QString dirKey    = "FilePanel/dir";
@@ -150,9 +117,9 @@ public slots:
     void onBtnStopClicked();
     void onBtnMuteClicked();
     void onSldVolumeMoved(int);
-    void progress(float);
-    void mediaPlayingFinished();
-    void mediaPlayingStarted();
+    void mediaProgress(float);
+    void mediaPlayingStopped();
+    void mediaPlayingStarted(qint64);
     void disableToolTips(bool);
 
 };

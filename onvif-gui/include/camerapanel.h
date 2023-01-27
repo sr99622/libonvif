@@ -104,13 +104,13 @@ public slots:
     void playButtonClicked();
     void discoveryFinished();
     void adjustVolume(int);
-    void streamStarting();
     void onBtnMuteClicked();
     void cameraTimeout();
     void connectFailed(const QString&);
     void openWriterFailed(const std::string&);
     void disableToolTips(bool);
-    void mediaPlayingFinished();
+    void mediaPlayingStopped();
+    void mediaPlayingStarted(qint64);
 
 };
 

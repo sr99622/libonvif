@@ -136,14 +136,19 @@ void FilePanel::setDirectory(const QString& path)
     MW->settings->setValue(dirKey, path);
 }
 
+void FilePanel::setPlayButton()
+{
+    if (MW->glWidget->isPaused())
+        btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+    else 
+        btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+}
+
 void FilePanel::onBtnPlayClicked()
 {
     if (MW->glWidget->process) {
         MW->glWidget->togglePaused();
-        if (MW->glWidget->isPaused())
-            btnPlay->setStyleSheet(MW->getButtonStyle("play"));
-        else
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+        setPlayButton();
     }
     else {
         QModelIndex index = tree->currentIndex();
@@ -153,6 +158,7 @@ void FilePanel::onBtnPlayClicked()
             MW->currentStreamingMediaName = fileInfo.fileName();
             MW->glWidget->setVolume(sldVolume->value());
             MW->glWidget->play(fileInfo.filePath());
+            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
         }
     }
 }
@@ -166,34 +172,27 @@ void FilePanel::doubleClicked(const QModelIndex& index)
             tree->setExpanded(index, !expanded);
         }
         else {
+            MW->glWidget->setVolume(sldVolume->value());
             MW->glWidget->play(fileInfo.filePath());
             MW->currentStreamingMediaName = fileInfo.fileName();
+            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
         }
     }
+    //setPlayButton();
 }
 
 void FilePanel::mediaPlayingStopped()
 {
     mediaProgress(0);
     btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+    //setPlayButton();
 }
 
 void FilePanel::mediaPlayingStarted(qint64 duration)
 {
     progressPanel->setDuration(duration);
     btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
-    int duration_in_seconds = MW->glWidget->media_duration() / 1000;
-    int hours = duration_in_seconds / 3600;
-    int minutes = (duration_in_seconds - (hours * 3600)) / 60;
-    int seconds = (duration_in_seconds - (hours * 3600) - (minutes * 60));
-    char buf[32] = {0};
-    if (hours > 0)
-        sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
-    else 
-        sprintf(buf, "%d:%02d", minutes, seconds);
-
-    QString output(buf);
-    //lblDuration->setText(output);
+    //setPlayButton();
 }
 
 void FilePanel::mediaProgress(float pct)
@@ -211,6 +210,7 @@ void FilePanel::onBtnStopClicked()
     MW->glWidget->stop();
     btnPlay->setStyleSheet(MW->getButtonStyle("play"));
     //lblProgress->setText("0:00");
+    //setPlayButton();
 }
 
 void FilePanel::onBtnMuteClicked()

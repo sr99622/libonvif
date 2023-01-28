@@ -66,23 +66,28 @@ void GLWidget::errorCallback(void* caller, const std::string& msg)
 
 void GLWidget::stop()
 {
-    std::cout << "GLWidget::stop" << std::endl;
     if (process) {
         process->running = false;
         if (process->isPaused()) {
-            std::cout << "process paused" << std::endl;
             SDL_Event event;
             event.type = SDL_QUIT;
             SDL_PushEvent(&event);
         }
     }
-    std::cout << "stop finish" << std::endl;
+
+    while (process) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    //process = nullptr;
 }
 
 void GLWidget::play(const QString& arg)
 {
     try {
-        stop();
+        //if (process) {
+            stop();
+        //}
 
         memset(uri, 0, 1024);
         strcpy(uri, arg.toLatin1().data());
@@ -224,19 +229,25 @@ void GLWidget::start(void* widget)
 
         glWidget->emit mediaPlayingStarted(reader.duration());
         process.run();
-        glWidget->process = nullptr;
-        glWidget->emit mediaPlayingStopped();
-
-        if (videoDecoder) delete videoDecoder;
+        display.close();
+        reader.close();
         if (videoFilter) delete videoFilter;
+        if (videoDecoder) delete videoDecoder;
         if (audioDecoder) delete audioDecoder;
+
+        glWidget->emit mediaPlayingStopped();
+        //glWidget->process = nullptr;
+
     }
     catch (const avio::Exception& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
         glWidget->stop();
-        glWidget->process = nullptr;
+        //glWidget->process = nullptr;
         glWidget->emit criticalError(e.what());
     }
+
+    glWidget->process = nullptr;
+    std::cout << "process done" << std::endl;
 }
 
 QSize GLWidget::sizeHint() const

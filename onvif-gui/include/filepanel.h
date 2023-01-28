@@ -77,6 +77,7 @@ class FilePanel : public QWidget
 
 public:
     FilePanel(QMainWindow *mainWindow);
+    void setPlayButton();
 
     QMainWindow *mainWindow;
     DirectorySetter *directorySetter;
@@ -87,11 +88,6 @@ public:
     QPushButton *btnMute;
     QPushButton *btnPlay;
     QPushButton *btnStop;
-    QIcon icnAudioOn;
-    QIcon icnAudioOff;
-    QIcon icnPlay;
-    QIcon icnPause;
-    QIcon icnStop;
 
     Progress *progressPanel;
     QSlider *sldVolume;

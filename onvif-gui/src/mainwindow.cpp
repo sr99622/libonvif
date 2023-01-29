@@ -26,6 +26,7 @@
 #include <QScreen>
 #include <QResource>
 #include <QIcon>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -39,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     glWidget = new GLWidget();
     connect(glWidget, SIGNAL(infoMessage(const QString&)), this, SLOT(msg(const QString&)));
+    connect(glWidget, SIGNAL(criticalError(const QString&)), this, SLOT(criticalError(const QString&)));
 
     styleDialog = new StyleDialog(this);
 
@@ -102,6 +104,13 @@ void MainWindow::msg(const QString& str)
 void MainWindow::onSplitterMoved(int pos, int index)
 {
     settings->setValue(splitKey, split->saveState());
+}
+
+void MainWindow::criticalError(const QString& str) 
+{
+    QMessageBox msgBox(QMessageBox::Critical, "Critical Error", str, QMessageBox::Close, this);
+    msgBox.exec();
+    msg(str);
 }
 
 QString MainWindow::getButtonStyle(const QString& name) const

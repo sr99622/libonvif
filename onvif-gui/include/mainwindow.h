@@ -78,6 +78,7 @@ public:
 public slots:
     void msg(const QString&);
     void onSplitterMoved(int pos, int index);
+    void criticalError(const QString&);
 
 };
 #endif // MAINWINDOW_H

@@ -162,6 +162,9 @@ void GLWidget::start(void* widget)
 {
 
     GLWidget* glWidget = (GLWidget*)widget;
+    avio::Decoder* videoDecoder = nullptr;
+    avio::Filter* videoFilter = nullptr;
+    avio::Decoder* audioDecoder = nullptr;
 
     try {
         avio::Process process;
@@ -195,8 +198,6 @@ void GLWidget::start(void* widget)
         display.volume = (float)glWidget->volume / 100.0f;
         display.mute = glWidget->mute;
 
-        avio::Decoder* videoDecoder = nullptr;
-        avio::Filter* videoFilter = nullptr;
         if (reader.has_video() && !glWidget->disable_video) {
             reader.set_video_out("vpq_reader");
             //reader.show_video_pkts = true;
@@ -213,7 +214,6 @@ void GLWidget::start(void* widget)
             display.set_video_in(videoFilter->video_out());
         }
 
-        avio::Decoder* audioDecoder = nullptr;
         if (reader.has_audio() && !glWidget->disable_audio) {
             reader.set_audio_out("apq_reader");
             audioDecoder = new avio::Decoder(reader, AVMEDIA_TYPE_AUDIO);
@@ -229,23 +229,20 @@ void GLWidget::start(void* widget)
 
         glWidget->emit mediaPlayingStarted(reader.duration());
         process.run();
-        display.close();
-        reader.close();
-        if (videoFilter) delete videoFilter;
-        if (videoDecoder) delete videoDecoder;
-        if (audioDecoder) delete audioDecoder;
-
         glWidget->emit mediaPlayingStopped();
         //glWidget->process = nullptr;
 
     }
     catch (const avio::Exception& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
-        glWidget->stop();
+        //glWidget->stop();
         //glWidget->process = nullptr;
         glWidget->emit criticalError(e.what());
     }
 
+    if (videoFilter) delete videoFilter;
+    if (videoDecoder) delete videoDecoder;
+    if (audioDecoder) delete audioDecoder;
     glWidget->process = nullptr;
     std::cout << "process done" << std::endl;
 }

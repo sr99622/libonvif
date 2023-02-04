@@ -27,17 +27,13 @@ public:
     QSize sizeHint() const override;
 
     static void start(void* widget);
-    static void renderCallback(void* caller, const avio::Frame& f);
-    static void progressCallback(void* caller, float pct);
-    static void infoCallback(void* caller, const std::string& msg);
-    static void errorCallback(void* caller, const std::string& msg);
 
     char uri[1024];
 
     QImage img;
     avio::Frame f;
     QMutex mutex;
-    avio::Process* process = nullptr;
+    avio::Player* player = nullptr;
 
     bool disable_audio = false;
     bool disable_video = false;

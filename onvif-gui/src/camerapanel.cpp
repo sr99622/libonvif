@@ -203,7 +203,7 @@ void CameraPanel::cameraListDoubleClicked()
 
 void CameraPanel::playButtonClicked()
 {
-    if (MW->glWidget->process){
+    if (MW->glWidget->player){
         if (recording)
             recordButtonClicked();
         recordButton->setEnabled(false);

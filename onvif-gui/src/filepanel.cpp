@@ -146,7 +146,7 @@ void FilePanel::setPlayButton()
 
 void FilePanel::onBtnPlayClicked()
 {
-    if (MW->glWidget->process) {
+    if (MW->glWidget->player) {
         MW->glWidget->togglePaused();
         setPlayButton();
     }

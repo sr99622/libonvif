@@ -29,65 +29,29 @@ void GLWidget::paintEvent(QPaintEvent* event)
     painter.end();
 }
 
-void GLWidget::renderCallback(void* caller, const avio::Frame& frame)
-{
-    if (!frame.isValid()) {
-        std::cout << "call recvd invalid frame" << std::endl;
-        return;
-    }
-
-    GLWidget* g = (GLWidget*)caller;
-    g->mutex.lock();
-    g->f = frame;
-    g->img = QImage(g->f.m_frame->data[0], g->f.m_frame->width,
-                        g->f.m_frame->height, QImage::Format_RGB888);
-    g->mutex.unlock();
-    g->update();
-        
-}
-
-void GLWidget::progressCallback(void* caller, float pct)
-{
-    GLWidget* g = (GLWidget*)caller;
-    g->emit mediaProgress(pct);
-}
-
-void GLWidget::infoCallback(void* caller, const std::string& msg)
-{
-    GLWidget* glWidget = (GLWidget*)caller;
-    glWidget->emit infoMessage(msg.c_str());
-}
-
-void GLWidget::errorCallback(void* caller, const std::string& msg)
-{
-    GLWidget* glWidget = (GLWidget*)caller;
-    glWidget->emit criticalError(msg.c_str());
-}
-
 void GLWidget::stop()
 {
-    if (process) {
-        process->running = false;
-        if (process->isPaused()) {
+    if (player) {
+        player->running = false;
+        if (player->isPaused()) {
             SDL_Event event;
             event.type = SDL_QUIT;
             SDL_PushEvent(&event);
         }
+        else {
+            std::cout << "player not paused" << std::endl;
+        }
     }
 
-    while (process) {
+    while (player) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-
-    //process = nullptr;
 }
 
 void GLWidget::play(const QString& arg)
 {
     try {
-        //if (process) {
-            stop();
-        //}
+        stop();
 
         memset(uri, 0, 1024);
         strcpy(uri, arg.toLatin1().data());
@@ -102,22 +66,22 @@ void GLWidget::play(const QString& arg)
 
 void GLWidget::togglePaused()
 {
-    if (process) process->togglePaused();
+    if (player) player->togglePaused();
 }
 
 bool GLWidget::isPaused()
 {
     bool result = false;
-    if (process) result = process->isPaused();
+    if (player) result = player->isPaused();
     return result;
 }
 
 qint64 GLWidget::media_duration()
 {
     qint64 result = 0;
-    if (process) {
-        if (process->reader) {
-            result = process->reader->duration();
+    if (player) {
+        if (player->reader) {
+            result = player->reader->duration();
         }
     }
     return result;
@@ -125,25 +89,25 @@ qint64 GLWidget::media_duration()
 
 void GLWidget::toggle_pipe_out(const QString& filename)
 {
-    if (process) process->toggle_pipe_out(filename.toLatin1().data());
+    if (player) player->toggle_pipe_out(filename.toLatin1().data());
 }
 
 void GLWidget::seek(float arg)
 {
     std::cout << "GLWidget::seek: " << arg << std::endl;
-    if (process) process->seek(arg);
+    if (player) player->seek(arg);
 }
 
 void GLWidget::setMute(bool arg)
 {
     mute = arg;
-    if (process) process->setMute(arg);
+    if (player) player->setMute(arg);
 }
 
 void GLWidget::setVolume(int arg)
 {
     volume = arg;
-    if (process) process->setVolume(arg);
+    if (player) player->setVolume(arg);
 }
 
 bool GLWidget::checkForStreamHeader(const char* name)
@@ -166,16 +130,42 @@ void GLWidget::start(void* widget)
     avio::Filter* videoFilter = nullptr;
     avio::Decoder* audioDecoder = nullptr;
 
+    std::function<void(const std::string&)> infoCallback = [&](const std::string& arg)
+    {
+        glWidget->emit infoMessage(arg.c_str());
+    };
+
+    std::function<void(const std::string&)> errorCallback = [&](const std::string& arg)
+    {
+        glWidget->emit criticalError(arg.c_str());
+    };
+
+    std::function<void(float)> progressCallback = [&](float arg)
+    {
+        glWidget->emit mediaProgress(arg);
+    };
+
+    std::function<void(const avio::Frame& frame)> renderCallback = [&](const avio::Frame& frame)
+    {
+        if (!frame.isValid()) {
+            glWidget->emit infoMessage("render callback recvd invalid Frame");
+            return;
+        }
+        glWidget->mutex.lock();
+        glWidget->f = frame;
+        glWidget->img = QImage(glWidget->f.m_frame->data[0], glWidget->f.m_frame->width,
+                               glWidget->f.m_frame->height, QImage::Format_RGB888);
+        glWidget->mutex.unlock();
+        glWidget->update();
+    };
+
     try {
-        avio::Process process;
-        process.infoCaller = widget;
-        process.infoCallback = std::function(GLWidget::infoCallback);
-        process.errorCaller = widget;
-        process.errorCallback = std::function(GLWidget::errorCallback);
-        glWidget->process = &process;
+        avio::Player player;
+        glWidget->player = &player;
 
         avio::Reader reader(glWidget->uri);
-        reader.process = &process;
+        reader.infoCallback = infoCallback;
+        reader.errorCallback = errorCallback;
         reader.showStreamParameters();
 
         const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(reader.pix_fmt());
@@ -191,10 +181,10 @@ void GLWidget::start(void* widget)
         }
 
         avio::Display display(reader);
-        display.renderCaller = widget;
-        display.renderCallback = std::function(GLWidget::renderCallback);
-        display.progressCaller = widget;
-        display.progressCallback = std::function(GLWidget::progressCallback);
+        display.renderCallback = renderCallback;
+        display.progressCallback = progressCallback;
+        display.infoCallback = infoCallback;
+        display.errorCallback = errorCallback;
         display.volume = (float)glWidget->volume / 100.0f;
         display.mute = glWidget->mute;
 
@@ -202,49 +192,50 @@ void GLWidget::start(void* widget)
             reader.set_video_out("vpq_reader");
             //reader.show_video_pkts = true;
             videoDecoder = new avio::Decoder(reader, AVMEDIA_TYPE_VIDEO, AV_HWDEVICE_TYPE_NONE);
-            videoDecoder->process = &process;
+            videoDecoder->infoCallback = infoCallback;
+            videoDecoder->errorCallback = errorCallback;
             videoDecoder->set_video_in(reader.video_out());
             videoDecoder->set_video_out("vfq_decoder");
-            process.add_decoder(*videoDecoder);
+            player.add_decoder(*videoDecoder);
+            
             videoFilter = new avio::Filter(*videoDecoder, "format=rgb24");
-            videoFilter->process = &process;
+            videoFilter->infoCallback = infoCallback;
+            videoFilter->errorCallback = errorCallback;
             videoFilter->set_video_in(videoDecoder->video_out());
             videoFilter->set_video_out("vfq_filter");
-            process.add_filter(*videoFilter);
+            player.add_filter(*videoFilter);
             display.set_video_in(videoFilter->video_out());
         }
 
         if (reader.has_audio() && !glWidget->disable_audio) {
             reader.set_audio_out("apq_reader");
             audioDecoder = new avio::Decoder(reader, AVMEDIA_TYPE_AUDIO);
-            audioDecoder->process = &process;
+            audioDecoder->infoCallback = infoCallback;
+            audioDecoder->errorCallback = errorCallback;
             audioDecoder->set_audio_in(reader.audio_out());
             audioDecoder->set_audio_out("afq_decoder");
             display.set_audio_in(audioDecoder->audio_out());
-            process.add_decoder(*audioDecoder);
+            player.add_decoder(*audioDecoder);
         }
 
-        process.add_reader(reader);
-        process.add_display(display);
+        player.add_reader(reader);
+        player.add_display(display);
 
         glWidget->emit mediaPlayingStarted(reader.duration());
-        process.run();
+        player.run();
         glWidget->emit mediaPlayingStopped();
-        //glWidget->process = nullptr;
 
     }
     catch (const avio::Exception& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
-        //glWidget->stop();
-        //glWidget->process = nullptr;
         glWidget->emit criticalError(e.what());
     }
 
     if (videoFilter) delete videoFilter;
     if (videoDecoder) delete videoDecoder;
     if (audioDecoder) delete audioDecoder;
-    glWidget->process = nullptr;
-    std::cout << "process done" << std::endl;
+    glWidget->player = nullptr;
+    std::cout << "player done" << std::endl;
 }
 
 QSize GLWidget::sizeHint() const

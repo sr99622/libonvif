@@ -50,9 +50,8 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     connect(btnStop, SIGNAL(clicked()), this, SLOT(onBtnStopClicked()));
 
     btnMute = new QPushButton();
-
-    MW->glWidget->setMute(MW->settings->value(muteKey, false).toBool());
-    if (MW->glWidget->mute)
+    mute = MW->settings->value(muteKey, false).toBool();
+    if (mute)
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     else 
         btnMute->setStyleSheet(MW->getButtonStyle("audio"));
@@ -62,11 +61,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     sldVolume->setValue(MW->settings->value(volumeKey, 80).toInt());
     connect(sldVolume, SIGNAL(sliderMoved(int)), this, SLOT(onSldVolumeMoved(int)));
 
-    progressPanel = new Progress(this);
-    connect(MW->glWidget, SIGNAL(mediaProgress(float)), this, SLOT(mediaProgress(float)));
-    connect(MW->glWidget, SIGNAL(mediaPlayingStopped()), this, SLOT(mediaPlayingStopped()));
-    connect(MW->glWidget, SIGNAL(mediaPlayingStarted(qint64)), this, SLOT(mediaPlayingStarted(qint64)));
-    connect(progressPanel, SIGNAL(seek(float)), MW->glWidget, SLOT(seek(float)));
+    progress = new Progress(this);
 
     QWidget *controlPanel = new QWidget(this);
     QGridLayout *controlLayout = new QGridLayout(controlPanel);
@@ -74,7 +69,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     controlLayout->addWidget(btnStop,         0, 1, 1, 1);
     controlLayout->addWidget(btnMute,         0, 3, 1, 1);
     controlLayout->addWidget(sldVolume,       0, 4, 1, 2);
-    controlLayout->addWidget(progressPanel,   1, 0, 1, 8);
+    controlLayout->addWidget(progress,        1, 0, 1, 8);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(directorySetter,      0, 0, 1, 1);
@@ -113,6 +108,7 @@ FilePanel::FilePanel(QMainWindow *parent) : QWidget(parent)
     disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
 
     connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
+    connect(this, SIGNAL(updateUI()), this, SLOT(onUpdateUI()));
 }
 
 void FilePanel::disableToolTips(bool arg) {
@@ -138,17 +134,53 @@ void FilePanel::setDirectory(const QString& path)
 
 void FilePanel::setPlayButton()
 {
-    if (MW->glWidget->isPaused())
+    if (player) {
+        if (player->isPaused()) 
+            btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+        else
+            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+    }
+    else {
         btnPlay->setStyleSheet(MW->getButtonStyle("play"));
-    else 
-        btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+    }
+}
+
+void FilePanel::onUpdateUI()
+{
+    std::cout << "onUpdateUI" << std::endl;
+    setPlayButton();
+}
+
+void FilePanel::stopPlayer()
+{
+    if (player) {
+        player->running = false;
+        if (player->isPaused()) player->togglePaused();
+        while (playing) std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        player = nullptr;
+    }
+}
+
+void FilePanel::startPlayer(const QString& uri)
+{
+    stopPlayer();
+    player = new avio::Player();
+    player->uri = uri.toLatin1().data();
+    player->hWnd = MW->avWidget->winId();
+    player->cbWidth = [&]() { return MW->avWidget->width(); };
+    player->cbHeight = [&]() { return MW->avWidget->height(); };
+    player->cbProgress = [&](float pct) { progress->setProgress(pct); };
+    player->cbMediaPlayingStarted = [&](int64_t duration) { mediaPlayingStarted(duration); };
+    player->cbMediaPlayingStopped = [&]() { mediaPlayingStopped(); };
+    player->setMute(mute);
+    playing = true;
+    player->start();
 }
 
 void FilePanel::onBtnPlayClicked()
 {
-    if (MW->glWidget->player) {
-        MW->glWidget->togglePaused();
-        setPlayButton();
+    if (player) {
+        player->togglePaused();
     }
     else {
         QModelIndex index = tree->currentIndex();
@@ -156,11 +188,10 @@ void FilePanel::onBtnPlayClicked()
             QFileInfo fileInfo = model->fileInfo(index);
             std::cout << fileInfo.filePath().toLatin1().data() << std::endl;
             MW->currentStreamingMediaName = fileInfo.fileName();
-            MW->glWidget->setVolume(sldVolume->value());
-            MW->glWidget->play(fileInfo.filePath());
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+            startPlayer(fileInfo.filePath());
         }
     }
+    onUpdateUI();
 }
 
 void FilePanel::doubleClicked(const QModelIndex& index)
@@ -172,32 +203,24 @@ void FilePanel::doubleClicked(const QModelIndex& index)
             tree->setExpanded(index, !expanded);
         }
         else {
-            MW->glWidget->setVolume(sldVolume->value());
-            MW->glWidget->play(fileInfo.filePath());
             MW->currentStreamingMediaName = fileInfo.fileName();
-            btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
+            startPlayer(fileInfo.filePath());
         }
     }
-    //setPlayButton();
+    onUpdateUI();
 }
 
 void FilePanel::mediaPlayingStopped()
 {
-    mediaProgress(0);
-    btnPlay->setStyleSheet(MW->getButtonStyle("play"));
-    //setPlayButton();
+    progress->setProgress(0);
+    playing = false;
+    emit updateUI();
 }
 
 void FilePanel::mediaPlayingStarted(qint64 duration)
 {
-    progressPanel->setDuration(duration);
-    btnPlay->setStyleSheet(MW->getButtonStyle("pause"));
-    //setPlayButton();
-}
-
-void FilePanel::mediaProgress(float pct)
-{
-    progressPanel->setProgress(pct);
+    progress->setDuration(duration);
+    emit updateUI();
 }
 
 void FilePanel::headerChanged(int arg1, int arg2, int arg3)
@@ -207,32 +230,32 @@ void FilePanel::headerChanged(int arg1, int arg2, int arg3)
 
 void FilePanel::onBtnStopClicked()
 {
-    MW->glWidget->stop();
-    btnPlay->setStyleSheet(MW->getButtonStyle("play"));
-    //lblProgress->setText("0:00");
-    //setPlayButton();
+    stopPlayer();
 }
 
 void FilePanel::onBtnMuteClicked()
 {
-    if (MW->glWidget->mute) {
-        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
-        MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
-    }
-    else {
+    mute = !mute;
+    if (mute) {
         btnMute->setStyleSheet(MW->getButtonStyle("mute"));
         MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("mute"));
     }
+    else {
+        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+        MW->cameraPanel->btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+    }
 
-    MW->glWidget->setMute(!MW->glWidget->mute);
-    MW->settings->setValue(muteKey, MW->glWidget->mute);
+    if (player) player->setMute(mute);
+    MW->settings->setValue(muteKey, mute);
 }
 
 void FilePanel::onSldVolumeMoved(int value)
 {
+    /*
     MW->glWidget->setVolume(value);
     MW->settings->setValue(volumeKey, value);
     MW->cameraPanel->volumeSlider->setValue(value);
+    */
 }
 
 void FilePanel::showContextMenu(const QPoint &pos)

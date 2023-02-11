@@ -39,7 +39,8 @@
 #include "filepanel.h"
 #include <iostream>
 #include <functional>
-#include "glwidget.h"
+#include "avio.h"
+//#include "glwidget.h"
 
 #define VERSION "1.4.5"
 
@@ -65,7 +66,7 @@ public:
     StyleDialog* styleDialog;
     FilePanel* filePanel;
     QSettings* settings;
-    GLWidget* glWidget;
+    QLabel* avWidget;
     QSplitter* split;
 
     const QString splitKey = "MainWindow/splitKey";

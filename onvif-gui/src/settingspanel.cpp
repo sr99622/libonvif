@@ -152,7 +152,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     setLayout(layout);
 
     autoDiscoveryClicked(autoDiscovery->isChecked());
+    /*
     MW->glWidget->keyframe_cache_size = keyframeCount->value();
+    */
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -162,8 +164,10 @@ void SettingsPanel::autoDiscoveryClicked(bool checked)
 
 void SettingsPanel::keyframeCountChanged(int value)
 {
+    /*
     MW->glWidget->keyframe_cache_size = value;
     MW->settings->setValue(keyCountKey, value);
+    */
 }
 
 void SettingsPanel::usernameUpdated()
@@ -178,6 +182,7 @@ void SettingsPanel::passwordUpdated()
 
 void SettingsPanel::lowLatencyClicked()
 {
+    /*
     MW->settings->setValue(lowLatencyKey, lowLatency->isChecked());
     if (lowLatency->isChecked()) {
         MW->glWidget->vpq_size = 1;
@@ -187,6 +192,7 @@ void SettingsPanel::lowLatencyClicked()
         MW->glWidget->vpq_size = 100;
         MW->glWidget->apq_size = 100;
     }
+    */
 }
 
 void SettingsPanel::hideToolTipsClicked()
@@ -250,7 +256,9 @@ void SettingsPanel::decoderChanged(const QString& name)
         result = AV_HWDEVICE_TYPE_MEDIACODEC;
 
     MW->settings->setValue(decoderKey, name);    
+    /*
     MW->glWidget->hardwareDecoder = result;
+    */
 }
 
 void SettingsPanel::netIntfChanged(const QString& arg)

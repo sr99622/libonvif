@@ -36,6 +36,7 @@
 #include <QLabel>
 
 #include "progress.h"
+#include "avio.h"
 
 class DirectorySetter : public QWidget
 {
@@ -77,7 +78,11 @@ class FilePanel : public QWidget
 
 public:
     FilePanel(QMainWindow *mainWindow);
+    void startPlayer(const QString&);
+    void stopPlayer();
     void setPlayButton();
+    void mediaPlayingStopped();
+    void mediaPlayingStarted(qint64);
 
     QMainWindow *mainWindow;
     DirectorySetter *directorySetter;
@@ -89,7 +94,10 @@ public:
     QPushButton *btnPlay;
     QPushButton *btnStop;
 
-    Progress *progressPanel;
+    avio::Player *player = nullptr;
+    bool playing = false;
+    bool mute = false;
+    Progress *progress;
     QSlider *sldVolume;
 
     const QString dirKey    = "FilePanel/dir";
@@ -99,6 +107,7 @@ public:
 
 signals:
     void msg(const QString&);
+    void updateUI();
 
 public slots:
     void setDirectory(const QString&);
@@ -113,10 +122,8 @@ public slots:
     void onBtnStopClicked();
     void onBtnMuteClicked();
     void onSldVolumeMoved(int);
-    void mediaProgress(float);
-    void mediaPlayingStopped();
-    void mediaPlayingStarted(qint64);
     void disableToolTips(bool);
+    void onUpdateUI();
 
 };
 

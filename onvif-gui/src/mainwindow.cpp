@@ -38,9 +38,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     //settings->clear();
     messagePanel = new MessagePanel(this);
 
+    avWidget = new QLabel();
+    /*
     glWidget = new GLWidget();
     connect(glWidget, SIGNAL(infoMessage(const QString&)), this, SLOT(msg(const QString&)));
     connect(glWidget, SIGNAL(criticalError(const QString&)), this, SLOT(criticalError(const QString&)));
+    */
 
     styleDialog = new StyleDialog(this);
 
@@ -58,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QGridLayout* layout = new QGridLayout(layoutPanel);
 
     split = new QSplitter;
-    split->addWidget(glWidget);
+    split->addWidget(avWidget);
     split->addWidget(tabWidget);
     split->restoreState(settings->value(splitKey).toByteArray());
     connect(split, SIGNAL(splitterMoved(int, int)), this, SLOT(onSplitterMoved(int, int)));
@@ -91,7 +94,10 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent* e)
 {
     Q_UNUSED(e);
+    /*
     glWidget->stop();
+    */
+    filePanel->stopPlayer();
     settings->setValue("geometry", geometry());
 }
 

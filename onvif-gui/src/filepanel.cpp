@@ -173,6 +173,7 @@ void FilePanel::startPlayer(const QString& uri)
     player->cbMediaPlayingStarted = [&](int64_t duration) { mediaPlayingStarted(duration); };
     player->cbMediaPlayingStopped = [&]() { mediaPlayingStopped(); };
     player->setMute(mute);
+    player->setVolume(sldVolume->value());
     playing = true;
     player->start();
 }
@@ -251,11 +252,9 @@ void FilePanel::onBtnMuteClicked()
 
 void FilePanel::onSldVolumeMoved(int value)
 {
-    /*
-    MW->glWidget->setVolume(value);
+    if (player) player->setVolume(value);
     MW->settings->setValue(volumeKey, value);
     MW->cameraPanel->volumeSlider->setValue(value);
-    */
 }
 
 void FilePanel::showContextMenu(const QPoint &pos)

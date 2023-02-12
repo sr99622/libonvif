@@ -105,12 +105,19 @@ void Discovery::discover()
 
         for (int i=0; i<number_of_cameras; i++) {
             if (running) {
+std::cout << "XXX test 1" << std::endl;
                 OnvifData *onvif_data = (OnvifData*)malloc(sizeof(OnvifData));
+std::cout << "test 2" << std::endl;
                 memset(onvif_data, 0, sizeof(OnvifData));
+std::cout << "test 3" << std::endl;
                 prepareOnvifData(i, onvif_session, onvif_data);
+std::cout << "test 4" << std::endl;
                 emit msg(QString("Connecting to camera %1 at %2").arg(onvif_data->camera_name, onvif_data->xaddrs));
+std::cout << "test 5" << std::endl;
                 QString username = settingsPanel->commonUsername->text();
+std::cout << "test 6" << std::endl;
                 QString password = settingsPanel->commonPassword->text();
+std::cout << "test 7" << std::endl;
                 strncpy(onvif_data->username, username.toLatin1(), username.length());
                 strncpy(onvif_data->password, password.toLatin1(), password.length());
 

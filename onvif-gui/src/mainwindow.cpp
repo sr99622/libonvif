@@ -38,12 +38,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     //settings->clear();
     messagePanel = new MessagePanel(this);
 
-    avWidget = new QLabel();
-    /*
     glWidget = new GLWidget();
-    connect(glWidget, SIGNAL(infoMessage(const QString&)), this, SLOT(msg(const QString&)));
-    connect(glWidget, SIGNAL(criticalError(const QString&)), this, SLOT(criticalError(const QString&)));
-    */
 
     styleDialog = new StyleDialog(this);
 
@@ -61,13 +56,23 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QGridLayout* layout = new QGridLayout(layoutPanel);
 
     split = new QSplitter;
-    split->addWidget(avWidget);
+    split->addWidget(glWidget);
     split->addWidget(tabWidget);
     split->restoreState(settings->value(splitKey).toByteArray());
     connect(split, SIGNAL(splitterMoved(int, int)), this, SLOT(onSplitterMoved(int, int)));
 
+    connect(this, SIGNAL(showError(const QString&)), this, SLOT(onShowError(const QString&)));
+
     layout->addWidget(split,  0, 0, 1, 1);
     setCentralWidget(layoutPanel);
+
+    mute = settings->value(muteKey, false).toBool();
+    filePanel->setMuteButton(mute);
+    cameraPanel->setMuteButton(mute);
+
+    volume = settings->value(volumeKey, 80).toInt();
+    filePanel->sldVolume->setValue(volume);
+    cameraPanel->sldVolume->setValue(volume);
 
     QRect savedGeometry = settings->value("geometry").toRect();
     if (savedGeometry.isValid()) {
@@ -94,11 +99,26 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent* e)
 {
     Q_UNUSED(e);
-    /*
-    glWidget->stop();
-    */
-    filePanel->stopPlayer();
+    playerStop();
     settings->setValue("geometry", geometry());
+}
+
+void MainWindow::mediaPlayingStopped()
+{
+    delete player;
+    player = nullptr;
+    glWidget->clear();
+    filePanel->progress->setProgress(0);
+    setWindowTitle(QString("onvif-gui version %1").arg(VERSION));
+    emit updateUI();
+}
+
+void MainWindow::mediaPlayingStarted(qint64 duration)
+{
+    filePanel->progress->setDuration(duration);
+    cameraPanel->connecting = false;
+    setWindowTitle(currentMedia);
+    emit updateUI();
 }
 
 void MainWindow::msg(const QString& str)
@@ -110,6 +130,76 @@ void MainWindow::msg(const QString& str)
 void MainWindow::onSplitterMoved(int pos, int index)
 {
     settings->setValue(splitKey, split->saveState());
+}
+
+void MainWindow::onShowError(const QString& msg)
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Critical Error");
+    msgBox.setText(msg);
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    mediaPlayingStopped();
+    cameraPanel->connecting = false;
+}
+
+void MainWindow::errorMessage(const QString& msg)
+{
+    std::cout << "MainWindow::errorMessage: " << msg.toLatin1().data() << std::endl;
+    emit showError(msg);
+}
+
+void MainWindow::infoMessage(const QString& msg)
+{
+    std::cout << "MainWindow::infoMessage: " << msg.toLatin1().data() << std::endl;
+}
+
+void MainWindow::playerStart(const QString& uri)
+{
+    playerStop();
+    player = new avio::Player();
+    player->uri = uri.toLatin1().data();
+    player->video_filter = "format=rgb24";
+    player->width = [&]() { return glWidget->width(); };
+    player->height = [&]() { return glWidget->height(); };
+    if (!settingsPanel->lowLatency->isChecked()) {
+        player->vpq_size = 100;
+        player->apq_size = 100;
+    }
+    player->progressCallback = [&](float pct) { filePanel->progress->setProgress(pct); };
+    player->renderCallback = [&](const avio::Frame& frame) { glWidget->renderCallback(frame); };
+    player->cbMediaPlayingStarted = [&](int64_t duration) { mediaPlayingStarted(duration); };
+    player->cbMediaPlayingStopped = [&]() { mediaPlayingStopped(); };
+    player->errorCallback = [&](const std::string& msg) { errorMessage(msg.c_str()); };
+    player->infoCallback = [&](const std::string& msg) { infoMessage(msg.c_str()); };
+    player->setMute(mute);
+    player->setVolume(volume);
+    player->start();
+    setWindowTitle(QString("Connecting to " ) + currentMedia);
+}
+
+void MainWindow::playerStop()
+{
+    if (player) player->running = false;
+    while (player) std::this_thread::sleep_for(std::chrono::milliseconds(1));
+}
+
+void MainWindow::setPlayerVolume(int arg)
+{
+    volume = arg;
+    if (player) player->setVolume(arg);
+    filePanel->sldVolume->setValue(arg);
+    cameraPanel->sldVolume->setValue(arg);
+    settings->setValue(volumeKey, arg);
+}
+
+void MainWindow::togglePlayerMute()
+{
+    mute = !mute;
+    if (player) player->setMute(mute);
+    filePanel->setMuteButton(mute);
+    cameraPanel->setMuteButton(mute);
+    settings->setValue(muteKey, mute);
 }
 
 void MainWindow::criticalError(const QString& str) 
@@ -156,6 +246,4 @@ void MainWindow::applyStyle(const ColorProfile& profile)
 
         setStyleSheet(style);
     }
-
 }
-

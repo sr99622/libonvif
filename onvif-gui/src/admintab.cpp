@@ -88,7 +88,7 @@ void AdminTab::update()
     strncpy(onvif_data->camera_name, camera_name.toLatin1(), camera_name.length());
     onvif_data->camera_name[camera_name.length()] = '\0';
     setUser(textAdminPassword->text().toLatin1().data(), onvif_data);
-    CP->applyButton->setEnabled(false);
+    CP->btnApply->setEnabled(false);
     CP->refreshList();
     CP->cameraNames->setValue(onvif_data->serial_number, onvif_data->camera_name);
     QString password = textAdminPassword->text();
@@ -198,7 +198,7 @@ void AdminTab::doneResetting()
 void AdminTab::onTextChanged(const QString &)
 {
     if (hasBeenEdited())
-        CP->applyButton->setEnabled(true);
+        CP->btnApply->setEnabled(true);
     else
-        CP->applyButton->setEnabled(false);
+        CP->btnApply->setEnabled(false);
 }

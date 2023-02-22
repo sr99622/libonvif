@@ -40,6 +40,8 @@
 #include <QMainWindow>
 #include <QSettings>
 
+#include "avio.h"
+
 #define CP dynamic_cast<CameraPanel*>(cameraPanel)
 
 class CameraPanel : public QWidget
@@ -50,22 +52,18 @@ public:
     CameraPanel(QMainWindow *parent);
     ~CameraPanel();
     void refreshList();
-    void saveUsername();
-    void savePassword();
-    void saveAutoDiscovery();
-    void saveMultiBroadcast();
-    void saveNetIntf(const QString& name);
-    void autoLoadClicked(bool checked);
-    void autoCameraChanged(int index);
-    void saveBroadcastRepeat(int value);
+    void setMuteButton(bool);
+    void setPlayButton();
+    void setRecordButton();
 
     Camera *camera;
     QTabWidget *tabWidget;
-    QSlider* volumeSlider;
-    QPushButton *applyButton;
-    QPushButton *discoverButton;
-    QPushButton *recordButton;
-    QPushButton *playButton;
+    QSlider* sldVolume;
+    QPushButton *btnApply;
+    QPushButton *btnDiscover;
+    QPushButton *btnRecord;
+    QPushButton *btnPlay;
+    QPushButton *btnMute;
     VideoTab *videoTab;
     ImageTab *imageTab;
     NetworkTab *networkTab;
@@ -78,12 +76,7 @@ public:
     LoginDialog *loginDialog = nullptr;
     QSettings *cameraNames;
     OnvifSession *onvif_session;
-    QPushButton *btnMute;
 
-    const QString volumeKey     = "Application/volume";
-    const QString muteKey       = "Application/mute";
-
-    //QString MW->currentStreamingMediaName;
     bool connecting = false;
     bool recording = false;
     std::string uri;
@@ -91,26 +84,21 @@ public:
 
 signals:
     void msg(QString str);
+    void showError(const QString&);
 
 public slots:
     void fillData();
     void showData();
     void receiveOnvifData(OnvifData*);
     void showLoginDialog(Credential*);
-    void applyButtonClicked();
-    void discoverButtonClicked();
+    void btnApplyClicked();
+    void btnDiscoverClicked();
+    void btnPlayClicked();
+    void btnRecordClicked();
     void cameraListDoubleClicked();
-    void recordButtonClicked();
-    void playButtonClicked();
     void discoveryFinished();
-    void adjustVolume(int);
-    void onBtnMuteClicked();
-    void cameraTimeout();
-    void connectFailed(const QString&);
-    void openWriterFailed(const std::string&);
     void disableToolTips(bool);
-    void mediaPlayingStopped();
-    void mediaPlayingStarted(qint64);
+    void onUpdateUI();
 
 };
 

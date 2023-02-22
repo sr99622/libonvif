@@ -40,7 +40,7 @@
 #include <iostream>
 #include <functional>
 #include "avio.h"
-//#include "glwidget.h"
+#include "glwidget.h"
 
 #define VERSION "1.4.5"
 
@@ -58,6 +58,8 @@ public:
     QString getButtonStyle(const QString& name) const;
     void applyStyle(const ColorProfile& profile);
     void closeEvent(QCloseEvent* event) override;
+    void playerStop();
+    void playerStart(const QString& uri);
 
     CameraPanel* cameraPanel;
     SettingsPanel* settingsPanel;
@@ -66,20 +68,36 @@ public:
     StyleDialog* styleDialog;
     FilePanel* filePanel;
     QSettings* settings;
-    QLabel* avWidget;
+    GLWidget* glWidget;
     QSplitter* split;
 
-    const QString splitKey = "MainWindow/splitKey";
+    avio::Player* player = nullptr;
+    int volume = 80;
+    bool mute = false;
+
+    const QString splitKey  = "MainWindow/splitKey";
+    const QString volumeKey = "MainWindow/volume";
+    const QString muteKey   = "MainWindow/mute";
 
     QString style;
-    QString currentStreamingMediaName;
-    std::function<int(const std::string&, const std::string&, const std::string&, const std::string&)> initPy = nullptr;
-    std::function<bool(avio::Frame&, const std::string&)> runPy = nullptr;
+    QString currentMedia;
+
+signals:
+    void updateUI();
+    void showError(const QString&);
 
 public slots:
     void msg(const QString&);
     void onSplitterMoved(int pos, int index);
     void criticalError(const QString&);
+    void mediaPlayingStopped();
+    void mediaPlayingStarted(qint64);
+    void togglePlayerMute();
+    void setPlayerVolume(int);
+    void errorMessage(const QString&);
+    void infoMessage(const QString&);
+    void onShowError(const QString&);
 
 };
+
 #endif // MAINWINDOW_H

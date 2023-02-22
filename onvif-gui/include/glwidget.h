@@ -1,10 +1,29 @@
+/********************************************************************
+* libavio/samples/gui/include/glwidget.h
+*
+* Copyright (c) 2023  Stephen Rhodes
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*********************************************************************/
+
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
 #include <QOpenGLWidget>
-#include <QImage>
 #include <QMutex>
-#include <QPaintEvent>
+#include <QRect>
+#include <QImage>
 #include "avio.h"
 
 class GLWidget : public QOpenGLWidget
@@ -14,51 +33,17 @@ class GLWidget : public QOpenGLWidget
 public:
     GLWidget();
     ~GLWidget();
-    void play(const QString& arg);
-    void stop();
-    void setMute(bool arg);
-    void setVolume(int arg);
-    void toggle_pipe_out(const QString& filename);
-    qint64 media_duration();
-    bool isPaused();
-    void togglePaused();
-    bool checkForStreamHeader(const char* name);
-    
+    void renderCallback(const avio::Frame& frame);
     QSize sizeHint() const override;
+    QRect getImageRect(const QImage& img) const;
+    void clear();
 
-    static void start(void* widget);
-
-    char uri[1024];
-
-    QImage img;
     avio::Frame f;
+    QImage img;
     QMutex mutex;
-    avio::Player* player = nullptr;
-
-    bool disable_audio = false;
-    bool disable_video = false;
-
-    int volume = 100;
-    bool mute = false;
-
-    int vpq_size = 0;
-    int apq_size = 0;
-
-    int keyframe_cache_size;
-    AVHWDeviceType hardwareDecoder = AV_HWDEVICE_TYPE_NONE;
-
-signals:
-    void mediaPlayingStarted(qint64);
-    void mediaPlayingStopped();
-    void mediaProgress(float);
-    void criticalError(const QString&);
-    void infoMessage(const QString&);
 
 protected:
-    void paintEvent(QPaintEvent* event) override;
-
-public slots:
-    void seek(float);
+    void paintGL() override;
 
 };
 

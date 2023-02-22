@@ -78,11 +78,8 @@ class FilePanel : public QWidget
 
 public:
     FilePanel(QMainWindow *mainWindow);
-    void startPlayer(const QString&);
-    void stopPlayer();
+    void setMuteButton(bool);
     void setPlayButton();
-    void mediaPlayingStopped();
-    void mediaPlayingStarted(qint64);
 
     QMainWindow *mainWindow;
     DirectorySetter *directorySetter;
@@ -94,20 +91,16 @@ public:
     QPushButton *btnPlay;
     QPushButton *btnStop;
 
-    avio::Player *player = nullptr;
-    bool playing = false;
-    bool mute = false;
     Progress *progress;
     QSlider *sldVolume;
 
     const QString dirKey    = "FilePanel/dir";
     const QString headerKey = "FilePanel/header";
-    const QString volumeKey = "Application/volume";
-    const QString muteKey   = "Application/mute";
 
 signals:
     void msg(const QString&);
     void updateUI();
+    void showError(const QString&);
 
 public slots:
     void setDirectory(const QString&);
@@ -120,10 +113,9 @@ public slots:
     void onMenuPlay();
     void onBtnPlayClicked();
     void onBtnStopClicked();
-    void onBtnMuteClicked();
-    void onSldVolumeMoved(int);
     void disableToolTips(bool);
     void onUpdateUI();
+    void seek(float);
 
 };
 

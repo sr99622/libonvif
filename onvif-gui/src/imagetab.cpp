@@ -132,14 +132,14 @@ void ImageTab::initialize()
     sliderSaturation->setValue(onvif_data->saturation);
     sliderContrast->setValue(onvif_data->contrast);
     sliderSharpness->setValue(onvif_data->sharpness);
-    ((CameraPanel *)cameraPanel)->applyButton->setEnabled(false);
+    ((CameraPanel *)cameraPanel)->btnApply->setEnabled(false);
 }
 
 void ImageTab::onValueChanged(int value)
 {
     Q_UNUSED(value);
     if (hasBeenEdited())
-        ((CameraPanel *)cameraPanel)->applyButton->setEnabled(true);
+        ((CameraPanel *)cameraPanel)->btnApply->setEnabled(true);
     else
-        ((CameraPanel *)cameraPanel)->applyButton->setEnabled(false);
+        ((CameraPanel *)cameraPanel)->btnApply->setEnabled(false);
 }

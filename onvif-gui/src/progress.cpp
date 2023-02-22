@@ -1,3 +1,24 @@
+/*******************************************************************************
+* progress.cpp
+*
+* Copyright (c) 2020 Stephen Rhodes
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*
+*******************************************************************************/
+
 #include <iostream>
 #include <QGridLayout>
 #include <QFontMetrics>
@@ -16,7 +37,7 @@ Progress::Progress(QWidget* parent) : QWidget(parent)
     setLabelWidth(lblDuration);
 
     lblPosition = new PositionLabel(this);
-
+    setLabelHeight(lblPosition);
 
     QGridLayout* lytMain = new QGridLayout(this);
     lytMain->addWidget(lblPosition,   0, 1, 1, 1);
@@ -29,23 +50,13 @@ Progress::Progress(QWidget* parent) : QWidget(parent)
 
 void Progress::setLabelWidth(QLabel* lbl) 
 {
-    QFont font("Arial");
-    //font.setStyleHint(QFont::Monospace);
-    lbl->setFont(font);
-    QFontMetrics metrics = lbl->fontMetrics();
-    QRect rect = metrics.boundingRect("00:00:00");
-    lbl->setFixedWidth(rect.width());
+    lbl->setFixedWidth(lbl->fontMetrics().boundingRect("00:00:00").width());
     lbl->setAlignment(Qt::AlignCenter);
 }
 
 void Progress::setLabelHeight(QLabel* lbl) 
 {
-    QFont font("Arial");
-    lbl->setFont(font);
-    QFontMetrics metrics = lbl->fontMetrics();
-    QRect rect = metrics.boundingRect("00:00:00");
-    lbl->setFixedHeight(rect.height());
-    //lbl->setAlignment(Qt::AlignCenter);
+    lbl->setFixedHeight(lbl->fontMetrics().boundingRect("00:00:00").height());
 }
 
 QString Progress::getTimeString(qint64 milliseconds) const
@@ -67,8 +78,10 @@ QString Progress::getTimeString(qint64 milliseconds) const
 
 void Progress::setDuration(qint64 arg) 
 {
-    m_duration = arg;
-    lblDuration->setText(getTimeString(arg));
+    if (arg > 0) {
+        m_duration = arg;
+        lblDuration->setText(getTimeString(arg));
+    }
 }
 
 void Progress::setProgress(float pct) 

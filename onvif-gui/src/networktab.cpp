@@ -156,21 +156,21 @@ void NetworkTab::dhcpChecked()
     textDefaultGateway->setEnabled(!used);
     textDNS->setEnabled(!used);
     if (hasBeenEdited())
-        ((CameraPanel *)cameraPanel)->applyButton->setEnabled(true);
+        ((CameraPanel *)cameraPanel)->btnApply->setEnabled(true);
     else
-        ((CameraPanel *)cameraPanel)->applyButton->setEnabled(false);
+        ((CameraPanel *)cameraPanel)->btnApply->setEnabled(false);
 }
 
 void NetworkTab::onTextChanged(const QString &)
 {
     if (hasBeenEdited())
-        ((CameraPanel *)cameraPanel)->applyButton->setEnabled(true);
+        ((CameraPanel *)cameraPanel)->btnApply->setEnabled(true);
     else
-        ((CameraPanel *)cameraPanel)->applyButton->setEnabled(false);
+        ((CameraPanel *)cameraPanel)->btnApply->setEnabled(false);
 }
 
 void NetworkTab::doneUpdating()
 {
     fprintf(stderr, "done updating\n");
-    ((CameraPanel *)cameraPanel)->applyButton->setEnabled(false);
+    ((CameraPanel *)cameraPanel)->btnApply->setEnabled(false);
 }

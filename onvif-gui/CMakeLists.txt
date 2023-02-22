@@ -41,7 +41,7 @@ add_executable(onvif-gui
     src/camerapanel.cpp
     src/discovery.cpp
     src/filepanel.cpp
-    #src/glwidget.cpp
+    src/glwidget.cpp
     src/imagetab.cpp
     src/logindialog.cpp
     src/main.cpp
@@ -62,7 +62,7 @@ add_executable(onvif-gui
     include/camerapanel.h
     include/discovery.h
     include/filepanel.h
-    #include/glwidget.h
+    include/glwidget.h
     include/imagetab.h
     include/logindialog.h
     include/mainwindow.h

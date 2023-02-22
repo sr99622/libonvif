@@ -1,5 +1,5 @@
 /*******************************************************************************
-* onvif-util.c
+* onvif-util.cpp
 *
 * Copyright (c) 2022 Stephen Rhodes 
 * Code contributions by Brian D Scott and Petter Reinholdtsen

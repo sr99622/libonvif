@@ -181,7 +181,7 @@ void VideoTab::initialize()
     spinGovLength->setValue(onvif_data->gov_length);
     spinFrameRate->setValue(onvif_data->frame_rate);
     spinBitrate->setValue(onvif_data->bitrate);
-    CP->applyButton->setEnabled(false);
+    CP->btnApply->setEnabled(false);
 
 }
 
@@ -207,16 +207,16 @@ bool VideoTab::hasBeenEdited() {
 void VideoTab::onCurrentIndexChanged(int index) {
     Q_UNUSED(index);
     if (hasBeenEdited())
-        CP->applyButton->setEnabled(true);
+        CP->btnApply->setEnabled(true);
     else
-        CP->applyButton->setEnabled(false);
+        CP->btnApply->setEnabled(false);
 }
 
 void VideoTab::onValueChanged(int index) {
     Q_UNUSED(index);
     if (hasBeenEdited())
-        CP->applyButton->setEnabled(true);
+        CP->btnApply->setEnabled(true);
     else
-        CP->applyButton->setEnabled(false);
+        CP->btnApply->setEnabled(false);
 }
 

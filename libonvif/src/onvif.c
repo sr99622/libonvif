@@ -142,7 +142,7 @@ int getNetworkInterfaces(struct OnvifData *onvif_data) {
             }
         }
         if (enabled != NULL) {
-            free(enabled);
+            xmlFree(enabled);
         }
         xmlXPathFreeObject(xml_result);
 
@@ -603,9 +603,9 @@ int getVideoEncoderConfigurationOptions(struct OnvifData *onvif_data) {
                 }
 
                 if (width != NULL)
-                    free(width);
+                    xmlFree(width);
                 if (height != NULL)
-                    free(height);
+                    xmlFree(height);
             }
             xmlXPathFreeObject(xml_result);
         }
@@ -1758,7 +1758,7 @@ int getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_length) {
         if (keyword != NULL) {
             if (strlen((char*) keyword) > buf_length-1) {
                 xmlXPathFreeObject(result);
-                free(keyword);
+                xmlFree(keyword);
                 return -4;
             } else {
                 for (int i=0; i<buf_length; i++)
@@ -1770,7 +1770,7 @@ int getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_length) {
 
     xmlXPathFreeObject(result);
     if (keyword != NULL)
-        free(keyword);
+        xmlFree(keyword);
     return 0;
 }
 
@@ -1808,7 +1808,7 @@ int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char b
         if (keyword != NULL) {
             if (strlen((char*) keyword) > buf_length-1) {
                 xmlXPathFreeObject(result);
-                free(keyword);
+                xmlFree(keyword);
                 return -4;
             } else {
                 for (int i=0; i<buf_length; i++)
@@ -1820,7 +1820,7 @@ int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char b
 
     xmlXPathFreeObject(result);
     if (keyword != NULL)
-        free(keyword);
+        xmlFree(keyword);
     return 0;
 }
 

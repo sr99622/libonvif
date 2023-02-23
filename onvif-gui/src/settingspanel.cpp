@@ -182,17 +182,7 @@ void SettingsPanel::passwordUpdated()
 
 void SettingsPanel::lowLatencyClicked()
 {
-    /*
     MW->settings->setValue(lowLatencyKey, lowLatency->isChecked());
-    if (lowLatency->isChecked()) {
-        MW->glWidget->vpq_size = 1;
-        MW->glWidget->apq_size = 1;
-    }
-    else {
-        MW->glWidget->vpq_size = 100;
-        MW->glWidget->apq_size = 100;
-    }
-    */
 }
 
 void SettingsPanel::hideToolTipsClicked()
@@ -231,8 +221,9 @@ void SettingsPanel::clearClicked()
         MW->settings->clear();
 }
 
-void SettingsPanel::decoderChanged(const QString& name)
+AVHWDeviceType SettingsPanel::getHardwareDecoder() const
 {
+    QString name = hardwareDecoders->currentText();
     AVHWDeviceType result = AV_HWDEVICE_TYPE_NONE;
     if (name == "VDPAU")
         result = AV_HWDEVICE_TYPE_VDPAU;
@@ -255,10 +246,12 @@ void SettingsPanel::decoderChanged(const QString& name)
     else if (name == "MEDIACODEC")
         result = AV_HWDEVICE_TYPE_MEDIACODEC;
 
+    return result;
+}
+
+void SettingsPanel::decoderChanged(const QString& name)
+{
     MW->settings->setValue(decoderKey, name);    
-    /*
-    MW->glWidget->hardwareDecoder = result;
-    */
 }
 
 void SettingsPanel::netIntfChanged(const QString& arg)

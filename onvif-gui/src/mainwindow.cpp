@@ -36,12 +36,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setWindowTitle(QString("onvif-gui version %1").arg(VERSION));
     settings = new QSettings("libonvif", "onvif");
     //settings->clear();
-    messagePanel = new MessagePanel(this);
-
-    glWidget = new GLWidget();
 
     styleDialog = new StyleDialog(this);
 
+    messagePanel = new MessagePanel(this);
     settingsPanel = new SettingsPanel(this);
     cameraPanel = new CameraPanel(this);
     filePanel = new FilePanel(this);
@@ -52,17 +50,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     tabWidget->addTab(messagePanel, "Messages");
     setMinimumWidth(840);
 
-    QWidget* layoutPanel = new QWidget();
-    QGridLayout* layout = new QGridLayout(layoutPanel);
-
     split = new QSplitter;
+#ifdef _WIN32
+    label = new Label();
+    split->addWidget(label);
+#else
+    glWidget = new GLWidget();
     split->addWidget(glWidget);
+#endif
     split->addWidget(tabWidget);
     split->restoreState(settings->value(splitKey).toByteArray());
     connect(split, SIGNAL(splitterMoved(int, int)), this, SLOT(onSplitterMoved(int, int)));
 
-    connect(this, SIGNAL(showError(const QString&)), this, SLOT(onShowError(const QString&)));
-
+    QWidget* layoutPanel = new QWidget();
+    QGridLayout* layout = new QGridLayout(layoutPanel);
     layout->addWidget(split,  0, 0, 1, 1);
     setCentralWidget(layoutPanel);
 
@@ -89,6 +90,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     StylePanel *stylePanel = (StylePanel*)styleDialog->panel;
     const ColorProfile profile = stylePanel->getProfile();
     applyStyle(profile);
+
+    connect(this, SIGNAL(showError(const QString&)), this, SLOT(onShowError(const QString&)));
+    connect(this, SIGNAL(playerStarted(qint64)), this, SLOT(onPlayerStarted(qint64)));
+    connect(this, SIGNAL(playerStopped()), this, SLOT(onPlayerStopped()));
 }
 
 MainWindow::~MainWindow()
@@ -103,22 +108,32 @@ void MainWindow::closeEvent(QCloseEvent* e)
     settings->setValue("geometry", geometry());
 }
 
-void MainWindow::mediaPlayingStopped()
+void MainWindow::onPlayerStopped()
 {
-    delete player;
-    player = nullptr;
-    glWidget->clear();
+    if (glWidget) glWidget->clear();
     filePanel->progress->setProgress(0);
     setWindowTitle(QString("onvif-gui version %1").arg(VERSION));
     emit updateUI();
 }
 
-void MainWindow::mediaPlayingStarted(qint64 duration)
+void MainWindow::mediaPlayingStopped()
+{
+    delete player;
+    player = nullptr;
+    emit playerStopped();
+}
+
+void MainWindow::onPlayerStarted(qint64 duration)
 {
     filePanel->progress->setDuration(duration);
     cameraPanel->connecting = false;
     setWindowTitle(currentMedia);
     emit updateUI();
+}
+
+void MainWindow::mediaPlayingStarted(qint64 duration)
+{
+    emit playerStarted(duration);
 }
 
 void MainWindow::msg(const QString& str)
@@ -159,15 +174,21 @@ void MainWindow::playerStart(const QString& uri)
     playerStop();
     player = new avio::Player();
     player->uri = uri.toLatin1().data();
+#ifdef _WIN32
+    player->width = [&]() { return label->width(); };
+    player->height = [&]() { return label->height(); };
+    player->hWnd = label->winId();
+#else
     player->video_filter = "format=rgb24";
     player->width = [&]() { return glWidget->width(); };
     player->height = [&]() { return glWidget->height(); };
+    player->renderCallback = [&](const avio::Frame& frame) { glWidget->renderCallback(frame); };
+#endif
     if (!settingsPanel->lowLatency->isChecked()) {
         player->vpq_size = 100;
         player->apq_size = 100;
     }
     player->progressCallback = [&](float pct) { filePanel->progress->setProgress(pct); };
-    player->renderCallback = [&](const avio::Frame& frame) { glWidget->renderCallback(frame); };
     player->cbMediaPlayingStarted = [&](int64_t duration) { mediaPlayingStarted(duration); };
     player->cbMediaPlayingStopped = [&]() { mediaPlayingStopped(); };
     player->errorCallback = [&](const std::string& msg) { errorMessage(msg.c_str()); };
@@ -175,6 +196,7 @@ void MainWindow::playerStart(const QString& uri)
     player->setMute(mute);
     player->setVolume(volume);
     player->start();
+    player->hw_device_type = settingsPanel->getHardwareDecoder();
     setWindowTitle(QString("Connecting to " ) + currentMedia);
 }
 

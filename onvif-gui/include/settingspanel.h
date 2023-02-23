@@ -22,6 +22,10 @@
 #ifndef SETTINGSPANEL_H
 #define SETTINGSPANEL_H
 
+extern "C" {
+    #include <libavutil/hwcontext.h>
+}
+
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPushButton>
@@ -43,6 +47,7 @@ public:
     SettingsPanel(QMainWindow *parent);
     void getActiveNetworkInterfaces();
     void getCurrentlySelectedIP(char *buffer);
+    AVHWDeviceType getHardwareDecoder() const;
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;

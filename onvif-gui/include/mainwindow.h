@@ -46,6 +46,12 @@
 
 #define MW dynamic_cast<MainWindow*>(mainWindow)
 
+class Label : public QLabel
+{
+public:
+    QSize sizeHint() const override { return QSize(640, 480); }
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -60,6 +66,10 @@ public:
     void closeEvent(QCloseEvent* event) override;
     void playerStop();
     void playerStart(const QString& uri);
+    void errorMessage(const QString&);
+    void infoMessage(const QString&);
+    void mediaPlayingStopped();
+    void mediaPlayingStarted(qint64);
 
     CameraPanel* cameraPanel;
     SettingsPanel* settingsPanel;
@@ -68,8 +78,10 @@ public:
     StyleDialog* styleDialog;
     FilePanel* filePanel;
     QSettings* settings;
-    GLWidget* glWidget;
     QSplitter* split;
+
+    GLWidget* glWidget = nullptr;
+    Label *label = nullptr;
 
     avio::Player* player = nullptr;
     int volume = 80;
@@ -85,18 +97,18 @@ public:
 signals:
     void updateUI();
     void showError(const QString&);
+    void playerStarted(qint64);
+    void playerStopped();
 
 public slots:
     void msg(const QString&);
     void onSplitterMoved(int pos, int index);
     void criticalError(const QString&);
-    void mediaPlayingStopped();
-    void mediaPlayingStarted(qint64);
     void togglePlayerMute();
     void setPlayerVolume(int);
-    void errorMessage(const QString&);
-    void infoMessage(const QString&);
     void onShowError(const QString&);
+    void onPlayerStarted(qint64);
+    void onPlayerStopped();
 
 };
 

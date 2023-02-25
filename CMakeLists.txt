@@ -70,15 +70,8 @@ if (WIN32)
         RUNTIME DESTINATION bin
         COMPONENT library
     )
-    install(TARGETS onvifboss
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        COMPONENT library
-    )
 else()
     install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
-    install(TARGETS libonvifboss DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 endif()
 
 install(FILES libonvif/include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")

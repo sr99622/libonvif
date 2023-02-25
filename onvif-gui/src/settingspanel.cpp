@@ -396,6 +396,12 @@ bool SettingsPanel::getCredential(onvif::Data& onvif_data)
 
 }
 
+void SettingsPanel::getData(onvif::Data& onvif_data)
+{
+    std::cout << "getData: " << onvif_data->host << std::endl;
+    devices.push_back(onvif_data);
+}
+
 void SettingsPanel::discoverFinished()
 {
     std::cout << "discoveryFinished: " << devices.size() << std::endl;
@@ -409,6 +415,8 @@ void SettingsPanel::testClicked()
     std::cout << "testclicked" << std::endl;
     onvif::Manager onvifBoss;
     devices.clear();
-    onvifBoss.startDiscover(&devices, [&]() { discoverFinished(); },
-                            [&](onvif::Data& data) { return getCredential(data); });
+    onvifBoss.startDiscover(/*&devices, */ [&]() { discoverFinished(); },
+                            [&](onvif::Data& data) { return getCredential(data); },
+                            [&](onvif::Data& data) { return getData(data); }
+                            );
 }

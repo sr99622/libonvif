@@ -110,8 +110,8 @@ class Manager
 public:
     Manager();
     ~Manager();
-    static void discover(std::vector<Data>*, std::function<void()>, std::function<bool(Data&)>);
-    void startDiscover(std::vector<Data>*, std::function<void()>, std::function<bool(Data&)>);
+    static void discover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
+    void startDiscover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
 
 };
 

@@ -14,15 +14,15 @@ Manager::~Manager()
 
 }
 
-void Manager::startDiscover(std::vector<Data>* devices, std::function<void()> discoverFinished, 
-                            std::function<bool(Data&)>getCredential)
+void Manager::startDiscover(std::function<void()> discoverFinished, 
+                        std::function<bool(Data&)>getCredential, std::function<void(Data&)> getData)
 {
-    std::thread thread(discover, devices, discoverFinished, getCredential);
+    std::thread thread(discover, discoverFinished, getCredential, getData);
     thread.detach();
 }
 
-void Manager::discover(std::vector<Data>* devices, std::function<void()> discoverFinished,
-                        std::function<bool(Data&)>getCredential)
+void Manager::discover(std::function<void()> discoverFinished,
+                    std::function<bool(Data&)>getCredential, std::function<void(Data&)> getData)
 {
     Session session;
     int number_of_devices = broadcast(session);
@@ -35,7 +35,8 @@ void Manager::discover(std::vector<Data>* devices, std::function<void()> discove
                     if (fillRTSP(data) == 0) {
                         getProfile(data);
                         getDeviceInformation(data);
-                        devices->push_back(data);
+                        getData(data);
+
                         std::cout << "log in success" << std::endl;
                         break;
                     }

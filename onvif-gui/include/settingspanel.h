@@ -52,6 +52,7 @@ public:
     AVHWDeviceType getHardwareDecoder() const;
     void discoverFinished();
     bool getCredential(onvif::Data&);
+    void getData(onvif::Data&);
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;

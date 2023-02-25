@@ -64,13 +64,17 @@ static void showAll()
 	int n = broadcast(onvif_session);
 	std::cout << "Found " << n << " cameras" << std::endl;
 	for (int i = 0; i < n; i++) {
-		prepareOnvifData(i, onvif_session, onvif_data);
-		char host[128];
-		extractHost(onvif_data->xaddrs, host);
-		getHostname(onvif_data);
-		printf("%s %s(%s)\n",host,
-			onvif_data->host_name,
-			onvif_data->camera_name);
+		if (prepareOnvifData(i, onvif_session, onvif_data)) {
+			char host[128];
+			extractHost(onvif_data->xaddrs, host);
+			getHostname(onvif_data);
+			printf("%s %s(%s)\n",host,
+				onvif_data->host_name,
+				onvif_data->camera_name);
+		}
+		else {
+			std::cout << "found invalid xaddrs in device repsonse" << std::endl;
+		}
 	}
 	closeSession(onvif_session);
 	free(onvif_session);

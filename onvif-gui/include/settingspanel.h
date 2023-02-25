@@ -38,6 +38,8 @@ extern "C" {
 #include <QRadioButton>
 #include <QMainWindow>
 #include <QListWidget>
+#include "onvifboss.h"
+#include "logindialog.h"
 
 class SettingsPanel : public QWidget
 {
@@ -48,11 +50,14 @@ public:
     void getActiveNetworkInterfaces();
     void getCurrentlySelectedIP(char *buffer);
     AVHWDeviceType getHardwareDecoder() const;
+    void discoverFinished();
+    bool getCredential(onvif::Data&);
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
     QPushButton *style;
     QPushButton *clear;
+    QPushButton* test;
     QLineEdit *commonUsername;
     QLineEdit *commonPassword;
     QCheckBox *lowLatency;
@@ -69,6 +74,10 @@ public:
     QStringList decoders;
     QListWidget *listDecoders;
     QLabel *lblDecoders;
+
+    std::vector<onvif::Data> devices;
+    LoginDialog* loginDlg = nullptr;
+
 
     const QString usernameKey   = "SettingsPanel/username";
     const QString passwordKey   = "SettingsPanel/password";
@@ -87,6 +96,7 @@ public:
 
 signals:
     void msg(const QString&);
+    void showLogin();
 
 public slots:
     void usernameUpdated();
@@ -102,6 +112,8 @@ public slots:
     void disableAudioClicked(bool);
     void netIntfChanged(const QString&);
     void keyframeCountChanged(int);
+    void testClicked();
+    void onShowLogin();
 
 };
 

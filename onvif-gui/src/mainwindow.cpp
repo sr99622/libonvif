@@ -51,13 +51,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setMinimumWidth(840);
 
     split = new QSplitter;
-#ifdef _WIN32
-    label = new Label();
-    split->addWidget(label);
-#else
+//#ifdef _WIN32
+//    label = new Label();
+//    split->addWidget(label);
+//#else
     glWidget = new GLWidget();
     split->addWidget(glWidget);
-#endif
+//#endif
     split->addWidget(tabWidget);
     split->restoreState(settings->value(splitKey).toByteArray());
     connect(split, SIGNAL(splitterMoved(int, int)), this, SLOT(onSplitterMoved(int, int)));
@@ -174,16 +174,16 @@ void MainWindow::playerStart(const QString& uri)
     playerStop();
     player = new avio::Player();
     player->uri = uri.toLatin1().data();
-#ifdef _WIN32
-    player->width = [&]() { return label->width(); };
-    player->height = [&]() { return label->height(); };
-    player->hWnd = label->winId();
-#else
+//#ifdef _WIN32
+//    player->width = [&]() { return label->width(); };
+//    player->height = [&]() { return label->height(); };
+//    player->hWnd = label->winId();
+//#else
     player->video_filter = "format=rgb24";
     player->width = [&]() { return glWidget->width(); };
     player->height = [&]() { return glWidget->height(); };
     player->renderCallback = [&](const avio::Frame& frame) { glWidget->renderCallback(frame); };
-#endif
+//#endif
     if (!settingsPanel->lowLatency->isChecked()) {
         player->vpq_size = 100;
         player->apq_size = 100;

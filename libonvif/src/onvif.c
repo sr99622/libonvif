@@ -2666,7 +2666,8 @@ void getCameraName(int ordinal, struct OnvifSession *onvif_session, struct Onvif
     xmlFreeDoc(xml_input);
 }
 
-void extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
+bool extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
+    bool result = false;
     xmlDocPtr xml_input = xmlParseMemory(onvif_session->buf[ordinal], onvif_session->len[ordinal]);
     if (getXmlValue(xml_input, BAD_CAST "//s:Body//d:ProbeMatches//d:ProbeMatch//d:XAddrs", onvif_data->xaddrs, 1024) == 0) {
         char *sub = strstr(onvif_data->xaddrs, " ");
@@ -2675,8 +2676,10 @@ void extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct Onvif
             onvif_data->xaddrs[mark] = '\0';
         }
         strcpy(onvif_data->device_service, onvif_data->xaddrs);
+        result = true;
     }
     xmlFreeDoc(xml_input);
+    return result;
 }
 
 void clearData(struct OnvifData *onvif_data) {
@@ -2709,6 +2712,7 @@ void clearData(struct OnvifData *onvif_data) {
     	onvif_data->timezone[i] = '\0';
     	onvif_data->ntp_type[i] = '\0';
     	onvif_data->ntp_addr[i] = '\0';
+        onvif_data->host[i] = '\0';
     }
     for (int i=0; i<1024; i++) {
         onvif_data->xaddrs[i] = '\0';
@@ -2760,6 +2764,88 @@ void clearData(struct OnvifData *onvif_data) {
     onvif_data->ntp_dhcp = false;
 }
 
+void copyData(struct OnvifData *dst, struct OnvifData *src) {
+    for (int i=0; i<16; i++) {
+        for (int j=0; j<128; j++) {
+            dst->resolutions_buf[i][j] = src->resolutions_buf[i][j];
+        }
+    }
+    for (int i=0; i<128; i++) {
+        dst->videoEncoderConfigurationToken[i] = src->videoEncoderConfigurationToken[i];
+        dst->networkInterfaceToken[i] = src->networkInterfaceToken[i];
+        dst->networkInterfaceName[i] = src->networkInterfaceName[i];
+        dst->ip_address_buf[i] = src->ip_address_buf[i];
+        dst->default_gateway_buf[i] = src->default_gateway_buf[i];
+        dst->dns_buf[i] = src->dns_buf[i];
+        dst->videoSourceConfigurationToken[i] = src->videoSourceConfigurationToken[i];
+        dst->video_encoder_name_buf[i] = src->video_encoder_name_buf[i];
+        dst->h264_profile_buf[i] = src->h264_profile_buf[i];
+        dst->multicast_address_type_buf[i] = src->multicast_address_type_buf[i];
+        dst->multicast_address_buf[i] = src->multicast_address_buf[i];
+        dst->session_time_out_buf[i] = src->session_time_out_buf[i];
+        dst->media_service[i] = src->media_service[i];
+        dst->imaging_service[i] = src->imaging_service[i];
+        dst->ptz_service[i] = src->ptz_service[i];
+        dst->event_service[i] = src->event_service[i];
+        dst->profileToken[i] = src->profileToken[i];
+        dst->username[i] = src->username[i];
+        dst->password[i] = src->password[i];
+        dst->encoding[i] = src->encoding[i];
+    	dst->timezone[i] = src->timezone[i];
+    	dst->ntp_type[i] = src->ntp_type[i];
+    	dst->ntp_addr[i] = src->ntp_addr[i];
+        dst->host[i] = src->host[i];
+    }
+    for (int i=0; i<1024; i++) {
+        dst->xaddrs[i] = src->xaddrs[i];
+        dst->device_service[i] = src->device_service[i];
+        dst->stream_uri[i] = src->stream_uri[i];
+        dst->camera_name[i] = src->camera_name[i];
+        dst->host_name[i] = src->host_name[i];
+    }
+    dst->gov_length_min = src->gov_length_min;
+    dst->gov_length_max = src->gov_length_max;
+    dst->frame_rate_min = src->frame_rate_min;
+    dst->frame_rate_max = src->frame_rate_max;
+    dst->bitrate_min = src->bitrate_min;
+    dst->bitrate_max = src->bitrate_max;
+    dst->width = src->width;
+    dst->height = src->height;
+    dst->gov_length = src->gov_length;
+    dst->frame_rate = src->frame_rate;
+    dst->bitrate = src->bitrate;
+    dst->use_count = src->use_count;
+    dst->quality = src->quality;
+    dst->multicast_port = src->multicast_port;
+    dst->multicast_ttl = src->multicast_ttl;
+    dst->autostart = src->autostart;
+    dst->prefix_length = src->prefix_length;
+    dst->dhcp_enabled = src->dhcp_enabled;
+    dst->brightness_min = src->brightness_min;
+    dst->brightness_max = src->brightness_max;
+    dst->saturation_min = src->saturation_min;
+    dst->saturation_max = src->saturation_max;
+    dst->contrast_min = src->contrast_min;
+    dst->contrast_max = src->contrast_max;
+    dst->sharpness_min = src->sharpness_min;
+    dst->sharpness_max = src->sharpness_max;
+    dst->brightness = src->brightness;
+    dst->saturation = src->saturation;
+    dst->contrast = src->contrast;
+    dst->sharpness = src->sharpness;
+    dst->time_offset = src->time_offset;
+    dst->event_listen_port = src->event_listen_port;
+    dst->guaranteed_frame_rate = src->guaranteed_frame_rate;
+    dst->conf_width = src->conf_width;
+    dst->conf_height = src->conf_height;
+    dst->conf_frame_rate_limit = src->conf_frame_rate_limit;
+    dst->conf_encoding_interval = src->conf_encoding_interval;
+    dst->conf_bitrate_limit = src->conf_bitrate_limit;
+    dst->datetimetype = src->datetimetype;
+    dst->dst = src->dst;
+    dst->ntp_dhcp = src->ntp_dhcp;
+}
+
 void initializeSession(struct OnvifSession *onvif_session) {
     getUUID(onvif_session->uuid);
     onvif_session->discovery_msg_id = 1;
@@ -2778,12 +2864,15 @@ void closeSession(struct OnvifSession *onvif_session) {
     xmlCleanupParser ();
 }
 
-void prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
+bool prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
     clearData(onvif_data);
     getCameraName(ordinal, onvif_session, onvif_data);
-    extractXAddrs(ordinal, onvif_session, onvif_data);
+    if (!extractXAddrs(ordinal, onvif_session, onvif_data))
+        return false;
     extractOnvifService(onvif_data->device_service, true);
+    extractHost(onvif_data->xaddrs, onvif_data->host);
     getTimeOffset(onvif_data);
+    return true;
 }
 
 int fillRTSPn(struct OnvifData *onvif_data, int profileIndex) {

@@ -55,7 +55,6 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
         networkInterfaces->setCurrentText(netIntf);
     connect(networkInterfaces, SIGNAL(currentTextChanged(const QString&)), this, SLOT(netIntfChanged(const QString&)));
 
-
     autoDiscovery = new QCheckBox("Auto Discovery");
     connect(autoDiscovery, SIGNAL(clicked(bool)), this, SLOT(autoDiscoveryClicked(bool)));
     autoDiscovery->setChecked(MW->settings->value(autoDiscKey, false).toBool());
@@ -126,6 +125,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     clear = new QPushButton("Clear Settings");
     connect(clear, SIGNAL(clicked()), this, SLOT(clearClicked()));
 
+    test = new QPushButton("Test");
+    connect(test, SIGNAL(clicked()), this, SLOT(testClicked()));
+
     QGroupBox *groupBox = new QGroupBox("Record Filename", this);
     QGridLayout *groupLayout = new QGridLayout(groupBox);
     groupLayout->addWidget(generateFilename,  0, 0, 1, 1);
@@ -149,12 +151,16 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     layout->addWidget(groupBox,           10, 0, 1, 3);
     layout->addWidget(clear,              11, 0, 1, 1, Qt::AlignCenter);
     layout->addWidget(style,              11, 1, 1, 1, Qt::AlignCenter);
+    layout->addWidget(test,               12, 0, 1, 1, Qt::AlignCenter);
     setLayout(layout);
 
     autoDiscoveryClicked(autoDiscovery->isChecked());
     /*
     MW->glWidget->keyframe_cache_size = keyframeCount->value();
     */
+
+    loginDlg = new LoginDialog();
+    connect(this, SIGNAL(showLogin()), this, SLOT(onShowLogin()));
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -354,4 +360,55 @@ void SettingsPanel::getCurrentlySelectedIP(char *buffer)
         buffer[i] = selected.toLatin1().data()[i];
     }
     buffer[i] = '\0';
+}
+
+void SettingsPanel::onShowLogin()
+{
+    std::cout << "onShowLogin: " << std::endl;
+    loginDlg->setStyleSheet(MW->style);
+    if (!loginDlg->exec())
+        loginDlg->cancelled = true;
+    loginDlg->active = false;
+}
+
+bool SettingsPanel::getCredential(onvif::Data& onvif_data)
+{
+    std::cout << "getCredential" << std::endl;
+    std::cout << onvif_data->camera_name << std::endl;
+    std::cout << onvif_data->host << std::endl;
+
+    loginDlg->active = true;
+    emit showLogin();
+
+    while (loginDlg->active)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    if (!loginDlg->cancelled) {
+        QString username = loginDlg->username->text();
+        QString password = loginDlg->password->text();
+        strncpy(onvif_data->username, username.toLatin1(), username.length());
+        strncpy(onvif_data->password, password.toLatin1(), password.length());
+        return true;
+    }
+    else {
+        return false;
+    }
+
+}
+
+void SettingsPanel::discoverFinished()
+{
+    std::cout << "discoveryFinished: " << devices.size() << std::endl;
+    for (onvif::Data onvif_data : devices) {
+        std::cout << onvif_data->stream_uri << std::endl;
+    }
+}
+
+void SettingsPanel::testClicked()
+{
+    std::cout << "testclicked" << std::endl;
+    onvif::Manager onvifBoss;
+    devices.clear();
+    onvifBoss.startDiscover(&devices, [&]() { discoverFinished(); },
+                            [&](onvif::Data& data) { return getCredential(data); });
 }

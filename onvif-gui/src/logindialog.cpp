@@ -51,20 +51,19 @@ LoginDialog::LoginDialog(QWidget *parent)
 
 int LoginDialog::exec()
 {
-    QRect rect = CP->geometry();
-
-    setMinimumWidth(300);
-
-    QPoint global = CP->mapToGlobal(QPoint(rect.x(), rect.y()));
-
-    int x = global.x() + rect.width() / 2 - 150;
-    int y = global.y() + rect.height() / 2 - 150;
-
-    move(x, y);
+    if (cameraPanel) {
+        QRect rect = CP->geometry();
+        setMinimumWidth(300);
+        QPoint global = CP->mapToGlobal(QPoint(rect.x(), rect.y()));
+        int x = global.x() + rect.width() / 2 - 150;
+        int y = global.y() + rect.height() / 2 - 150;
+        move(x, y);
+    }
 
     username->setText("");
     password->setText("");
     username->setFocus();
+    cancelled = false;
     return QDialog::exec();
 }
 

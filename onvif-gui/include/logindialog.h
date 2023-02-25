@@ -45,7 +45,7 @@ class LoginDialog : public QDialog
     Q_OBJECT
 
 public:
-    LoginDialog(QWidget *parent);
+    LoginDialog(QWidget *parent = nullptr);
     int exec() override;
 
     QWidget *cameraPanel;
@@ -55,6 +55,9 @@ public:
     QLineEdit *username;
     QLineEdit *password;
     Credential credential;
+
+    bool active = false;
+    bool cancelled = false;
 
 };
 

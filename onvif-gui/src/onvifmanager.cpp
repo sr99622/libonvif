@@ -31,7 +31,7 @@ Filler::Filler(QWidget *parent)
 
 void Filler::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     getCapabilities(onvif_data);
     getNetworkInterfaces(onvif_data);
     getNetworkDefaultGateway(onvif_data);
@@ -52,7 +52,7 @@ VideoUpdater::VideoUpdater(QWidget *parent)
 
 void VideoUpdater::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     setVideoEncoderConfiguration(onvif_data);
     getProfile(onvif_data);
     getVideoEncoderConfigurationOptions(onvif_data);
@@ -68,7 +68,7 @@ ImageUpdater::ImageUpdater(QWidget *parent)
 
 void ImageUpdater::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     setImagingSettings(onvif_data);
     getOptions(onvif_data);
     getImagingSettings(onvif_data);
@@ -83,7 +83,7 @@ NetworkUpdater::NetworkUpdater(QWidget *parent)
 
 void NetworkUpdater::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     setNetworkInterfaces(onvif_data);
     setDNS(onvif_data);
     setNetworkDefaultGateway(onvif_data);
@@ -98,7 +98,7 @@ Rebooter::Rebooter(QWidget *parent)
 
 void Rebooter::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     rebootCamera(onvif_data);
     emit done();
 }
@@ -111,7 +111,7 @@ Resetter::Resetter(QWidget *parent)
 
 void Resetter::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     hardReset(onvif_data);
     emit done();
 }
@@ -124,7 +124,7 @@ Timesetter::Timesetter(QWidget *parent)
 
 void Timesetter::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     setSystemDateAndTime(onvif_data);
     emit done();
 }
@@ -142,7 +142,7 @@ void PTZMover::set(float x_arg, float y_arg, float z_arg)
 
 void PTZMover::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     continuousMove(x, y, z, onvif_data);
 }
 
@@ -159,7 +159,7 @@ void PTZStopper::set(int type_arg)
 
 void PTZStopper::run()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     moveStop(type, onvif_data);
 }
 
@@ -178,7 +178,7 @@ void PTZGoto::run()
 {
     char pos[128] = {0};
     sprintf(pos, "%d", position);
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     gotoPreset(pos, onvif_data);
 }
 
@@ -197,6 +197,6 @@ void PTZSetPreset::run()
 {
     char pos[128] = {0};
     sprintf(pos, "%d", position);
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     setPreset(pos, onvif_data);
 }

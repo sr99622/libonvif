@@ -83,7 +83,7 @@ AdminTab::AdminTab(QWidget *parent)
 
 void AdminTab::update()
 {
-    OnvifData *onvif_data = CP->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     QString camera_name = textCameraName->text();
     strncpy(onvif_data->camera_name, camera_name.toLatin1(), camera_name.length());
     onvif_data->camera_name[camera_name.length()] = '\0';
@@ -119,7 +119,7 @@ bool AdminTab::hasBeenEdited()
 {
     bool result = false;
 
-    OnvifData *onvif_data = CP->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     QString camera_name = onvif_data->camera_name;
     if (camera_name != textCameraName->text())
         result = true;
@@ -132,7 +132,7 @@ bool AdminTab::hasBeenEdited()
 
 void AdminTab::initialize()
 {
-    OnvifData *onvif_data = CP->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     textCameraName->setText(tr(onvif_data->camera_name));
     buttonReboot->setEnabled(false);
     buttonHardReset->setEnabled(false);
@@ -142,7 +142,7 @@ void AdminTab::initialize()
 
 void AdminTab::launchBrowserClicked()
 {
-    OnvifData *onvif_data = CP->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     char host[128];
     extractHost(onvif_data->xaddrs, host);
 #ifdef _WIN32

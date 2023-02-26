@@ -117,6 +117,8 @@ struct OnvifData {
     char serial_number[128];
     char host_name[1024];
     char host[128];
+    bool logged_in;
+    bool filled;
     /*error*/
     char last_error[1024];
 	/*date/time*/
@@ -225,6 +227,7 @@ LIBRARY_API void prefix2mask(int prefix, char mask_buf[128]);
 LIBRARY_API int mask2prefix(char * mask_buf);
 LIBRARY_API void getIPAddress(char buf[128]);
 LIBRARY_API void copyData(struct OnvifData* dts, struct OnvifData* src);
+LIBRARY_API bool hasPTZ(struct OnvifData* onvif_data);
 
 LIBRARY_API void dumpConfigAll (struct OnvifData *onvif_data);
 

@@ -34,12 +34,12 @@ set(CMAKE_AUTORCC ON)
 
 add_executable(onvif-gui
     src/admintab.cpp
-    src/camera.cpp
+    #src/camera.cpp
     src/cameradialogtab.cpp
-    src/cameralistmodel.cpp
-    src/cameralistview.cpp
+    #src/cameralistmodel.cpp
+    #src/cameralistview.cpp
     src/camerapanel.cpp
-    src/discovery.cpp
+    #src/discovery.cpp
     src/filepanel.cpp
     src/glwidget.cpp
     src/imagetab.cpp
@@ -55,12 +55,12 @@ add_executable(onvif-gui
     src/stylepanel.cpp
     src/videotab.cpp
     include/admintab.h
-    include/camera.h
+    #include/camera.h
     include/cameradialogtab.h
-    include/cameralistmodel.h
-    include/cameralistview.h
+    #include/cameralistmodel.h
+    #include/cameralistview.h
     include/camerapanel.h
-    include/discovery.h
+    #include/discovery.h
     include/filepanel.h
     include/glwidget.h
     include/imagetab.h

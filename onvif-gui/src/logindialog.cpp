@@ -29,15 +29,15 @@
 LoginDialog::LoginDialog(QWidget *parent)
 {
     cameraPanel = parent;
-    setWindowTitle("Login");
+    setWindowTitle("Login To Camera");
     cameraIP = new QLabel();
-    cameraName = new QLabel("Camera Name:");
+    cameraName = new QLabel();
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     username = new QLineEdit;
     password = new QLineEdit;
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(cameraIP,               0, 0, 1, 2);
-    layout->addWidget(cameraName,             1, 0, 1, 2);
+    layout->addWidget(cameraName,             0, 0, 1, 2, Qt::AlignCenter);
+    layout->addWidget(cameraIP,               1, 0, 1, 2, Qt::AlignCenter);
     layout->addWidget(new QLabel("Username"), 2, 0, 1, 1);
     layout->addWidget(username,               2, 1, 1, 1);
     layout->addWidget(new QLabel("Password"), 3, 0, 1, 1);
@@ -51,15 +51,6 @@ LoginDialog::LoginDialog(QWidget *parent)
 
 int LoginDialog::exec()
 {
-    if (cameraPanel) {
-        QRect rect = CP->geometry();
-        setMinimumWidth(300);
-        QPoint global = CP->mapToGlobal(QPoint(rect.x(), rect.y()));
-        int x = global.x() + rect.width() / 2 - 150;
-        int y = global.y() + rect.height() / 2 - 150;
-        move(x, y);
-    }
-
     username->setText("");
     password->setText("");
     username->setFocus();

@@ -36,8 +36,6 @@ void Manager::discover(std::function<void()> discoverFinished,
                         getProfile(data);
                         getDeviceInformation(data);
                         getData(data);
-
-                        std::cout << "log in success" << std::endl;
                         break;
                     }
                 } 

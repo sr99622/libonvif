@@ -23,7 +23,7 @@
 #define IMAGETAB_H
 
 #include "cameradialogtab.h"
-#include "onvifmanager.h"
+//#include "onvifmanager.h"
 
 #include <QSlider>
 #include <QLabel>

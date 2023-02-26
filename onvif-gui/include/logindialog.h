@@ -26,19 +26,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QDialogButtonBox>
-#include <QMainWindow>
 #include <QLabel>
-#include <QCheckBox>
-
-class Credential
-{
-public:
-    char camera_name[1024];
-    char username[128];
-    char password[128];
-    char host_name[1024];
-    bool accept_requested;
-};
 
 class LoginDialog : public QDialog
 {
@@ -54,7 +42,6 @@ public:
     QDialogButtonBox *buttonBox;
     QLineEdit *username;
     QLineEdit *password;
-    Credential credential;
 
     bool active = false;
     bool cancelled = false;

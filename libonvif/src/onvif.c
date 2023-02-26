@@ -2762,6 +2762,8 @@ void clearData(struct OnvifData *onvif_data) {
     onvif_data->datetimetype = '\0';
     onvif_data->dst = false;
     onvif_data->ntp_dhcp = false;
+    onvif_data->logged_in = false;
+    onvif_data->filled = false;
 }
 
 void copyData(struct OnvifData *dst, struct OnvifData *src) {
@@ -2844,6 +2846,8 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
     dst->datetimetype = src->datetimetype;
     dst->dst = src->dst;
     dst->ntp_dhcp = src->ntp_dhcp;
+    dst->logged_in = src->logged_in;
+    dst->filled = dst->filled;
 }
 
 void initializeSession(struct OnvifSession *onvif_session) {
@@ -2887,6 +2891,13 @@ int fillRTSPn(struct OnvifData *onvif_data, int profileIndex) {
     return result;
 }
 
+bool hasPTZ(struct OnvifData* onvif_data) {
+    if (strcmp(onvif_data->ptz_service, "") == 0)
+        return false;
+    else
+        return true;
+
+}
 
 void dumpXmlNode (xmlDocPtr doc, xmlNodePtr cur_node, char *prefix) {
     const char *name;

@@ -28,9 +28,6 @@
 #include "ptztab.h"
 #include "admintab.h"
 #include "onvifmanager.h"
-#include "camera.h"
-#include "cameralistview.h"
-#include "discovery.h"
 #include "logindialog.h"
 
 #include <QObject>
@@ -39,8 +36,12 @@
 #include <QPushButton>
 #include <QMainWindow>
 #include <QSettings>
+#include <QListWidget>
+#include <QListWidgetItem>
 
 #include "avio.h"
+#include "onvifboss.h"
+
 
 #define CP dynamic_cast<CameraPanel*>(cameraPanel)
 
@@ -56,7 +57,6 @@ public:
     void setPlayButton();
     void setRecordButton();
 
-    Camera *camera;
     QTabWidget *tabWidget;
     QSlider* sldVolume;
     QPushButton *btnApply;
@@ -70,35 +70,42 @@ public:
     PTZTab *ptzTab;
     AdminTab *adminTab;
     QMainWindow *mainWindow;
-    Filler *filler;
-    CameraListView *cameraList;
-    Discovery *discovery;
-    LoginDialog *loginDialog = nullptr;
+    QListWidget *cameraList;
     QSettings *cameraNames;
-    OnvifSession *onvif_session;
 
     bool connecting = false;
     bool recording = false;
     std::string uri;
     char buf[256];
 
+
+    std::vector<onvif::Data> devices;
+    LoginDialog* loginDlg = nullptr;
+    onvif::Data last_data;
+
+    void discoverFinished();
+    bool getCredential(onvif::Data&);
+    void getData(onvif::Data&);
+    int currentStreamingRow = -1;
+    int currentDataRow = -1;
+
 signals:
     void msg(QString str);
     void showError(const QString&);
+    void showLogin();
 
 public slots:
     void fillData();
     void showData();
-    void receiveOnvifData(OnvifData*);
-    void showLoginDialog(Credential*);
     void btnApplyClicked();
     void btnDiscoverClicked();
     void btnPlayClicked();
     void btnRecordClicked();
-    void cameraListDoubleClicked();
-    void discoveryFinished();
+    void cameraListDoubleClicked(QListWidgetItem*);
+    void cameraListClicked(QListWidgetItem*);
     void disableToolTips(bool);
     void onUpdateUI();
+    void onShowLogin();
 
 };
 

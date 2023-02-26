@@ -72,7 +72,7 @@ VideoTab::VideoTab(QWidget *parent)
 
 void VideoTab::update()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
 
     QString res = QString("%1 x %2").arg(QString::number(onvif_data->width), QString::number(onvif_data->height));
     if (comboResolutions->currentText() != res) {
@@ -139,7 +139,7 @@ void VideoTab::setActive(bool active)
 
 void VideoTab::initialize()
 {
-    OnvifData *onvif_data = CP->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
 
     comboResolutions->clear();
 
@@ -186,7 +186,7 @@ void VideoTab::initialize()
 }
 
 bool VideoTab::hasBeenEdited() {
-    OnvifData *onvif_data = CP->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     bool result = false;
     if (strcmp(comboResolutions->currentText().toLatin1().data(), "") != 0) {
         if (spinGovLength->value() != onvif_data->gov_length)

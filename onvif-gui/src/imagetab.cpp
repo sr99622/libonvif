@@ -62,7 +62,8 @@ ImageTab::ImageTab(QWidget *parent)
 
 void ImageTab::update()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    //OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     onvif_data->brightness = sliderBrightness->value();
     onvif_data->saturation = sliderSaturation->value();
     onvif_data->contrast = sliderContrast->value();
@@ -103,7 +104,7 @@ void ImageTab::setActive(bool active)
 
 bool ImageTab::hasBeenEdited()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     bool result = false;
     if (sliderBrightness->value() != onvif_data->brightness)
         result = true;
@@ -118,7 +119,7 @@ bool ImageTab::hasBeenEdited()
 
 void ImageTab::initialize()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     sliderBrightness->setMinimum(onvif_data->brightness_min);
     sliderBrightness->setMaximum(onvif_data->brightness_max);
     sliderSaturation->setMinimum(onvif_data->saturation_min);

@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 #include <iostream>
+#include <string.h>
 #include "onvif.h"
 
 namespace onvif
@@ -47,6 +48,14 @@ public:
         return *this;
     }
 
+    bool operator==(const Data& other)
+    {
+        if (strcmp(data->xaddrs, other.data->xaddrs))
+            return false;
+        else
+            return true;
+    }
+
     ~Data() 
     {
         free(data);
@@ -66,7 +75,6 @@ public:
 
 private:
     OnvifData* data;
-    int cunt = 0;
 
 };
 

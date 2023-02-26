@@ -20,6 +20,7 @@
 *******************************************************************************/
 
 #include <sstream>
+#include <algorithm>
 #include "camerapanel.h"
 #include "mainwindow.h"
 #include <QGridLayout>
@@ -70,25 +71,21 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     QGridLayout* controlLayout = new QGridLayout(controlPanel);
     controlLayout->addWidget(btnPlay,      0, 0, 1, 1);
     controlLayout->addWidget(btnRecord,    0, 1, 1, 1);
-    controlLayout->addWidget(btnMute,         0, 2, 1, 1);
+    controlLayout->addWidget(btnMute,      0, 2, 1, 1);
     controlLayout->addWidget(sldVolume,    0, 3, 1, 1);
     controlLayout->addWidget(btnDiscover,  0, 4, 1, 1);
     controlLayout->addWidget(btnApply,     0, 5, 1 ,1);
     controlPanel->setMaximumHeight(60);
 
-    cameraList = new CameraListView(mainWindow);
+    cameraList = new QListWidget(this);
+    connect(cameraList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(cameraListDoubleClicked(QListWidgetItem*)));
+    connect(cameraList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(cameraListClicked(QListWidgetItem*)));
 
-    QGridLayout *layout = new QGridLayout();
-
+    QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(cameraList,     0, 0, 1, 1);
     layout->addWidget(tabWidget,      1, 0, 1, 1);
     layout->addWidget(controlPanel,   2, 0, 1, 1);
     layout->setRowStretch(0, 10);
-
-    setLayout(layout);
-
-    filler = new Filler(this);
-    connect(filler, SIGNAL(done()), this, SLOT(showData()));
 
     videoTab->setActive(false);
     imageTab->setActive(false);
@@ -100,85 +97,70 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     connect(MW, SIGNAL(updateUI()), this, SLOT(onUpdateUI()));
     connect(this, SIGNAL(msg(const QString&)), mainWindow, SLOT(msg(const QString&)));
 
-    CameraListModel *cameraListModel = cameraList->cameraListModel;
-    connect(cameraListModel, SIGNAL(showCameraData()), this, SLOT(showData()));
-    connect(cameraListModel, SIGNAL(getCameraData()), this, SLOT(fillData()));
+    //cameraNames = new QSettings("Onvif", "Camera Names");
+    //foreach(QString key, cameraNames->allKeys()) {
+        //discovery->cameraAlias.insert(key, cameraNames->value(key).toString());
+    //}
 
-    onvif_session = (OnvifSession*)calloc(sizeof(OnvifSession), 1);
-    initializeSession(onvif_session);
-    discovery = new Discovery(this, MW->settingsPanel);
-    connect(discovery, SIGNAL(stopping()), this, SLOT(discoveryFinished()));
-    cameraNames = new QSettings("Onvif", "Camera Names");
-    foreach(QString key, cameraNames->allKeys()) {
-        discovery->cameraAlias.insert(key, cameraNames->value(key).toString());
-    }
+    loginDlg = new LoginDialog();
+    connect(this, SIGNAL(showLogin()), this, SLOT(onShowLogin()));
 
     disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
 
-    if (MW->settingsPanel->autoDiscovery->isChecked()) {
-        discovery->start();
-    }
+    if (MW->settingsPanel->autoDiscovery->isChecked())
+        btnDiscoverClicked();
 }
 
 CameraPanel::~CameraPanel()
 {
-    closeSession(onvif_session);
-    free(onvif_session);
-}
 
-void CameraPanel::receiveOnvifData(OnvifData *onvif_data)
-{
-    cameraList->cameraListModel->pushCamera(onvif_data);
-}
-
-void CameraPanel::btnDiscoverClicked()
-{
-    discovery->start();
 }
 
 void CameraPanel::setPlayButton()
 {
-    if (MW->player) 
-        btnPlay->setStyleSheet(MW->getButtonStyle("stop"));
-    else
-        btnPlay->setStyleSheet(MW->getButtonStyle("play"));
+    if (MW->player) btnPlay->setStyleSheet(MW->getButtonStyle("stop"));
+    else btnPlay->setStyleSheet(MW->getButtonStyle("play"));
 }
 
 void CameraPanel::setMuteButton(bool mute)
 {
-    if (mute)
-        btnMute->setStyleSheet(MW->getButtonStyle("mute"));
-    else
-        btnMute->setStyleSheet(MW->getButtonStyle("audio"));
+    if (mute) btnMute->setStyleSheet(MW->getButtonStyle("mute"));
+    else btnMute->setStyleSheet(MW->getButtonStyle("audio"));
 }
 
 void CameraPanel::setRecordButton()
 {
     if (MW->player) {
-        if (MW->player->isPiping()) {
-            btnRecord->setStyleSheet(MW->getButtonStyle("recording"));
-        }
-        else {
-            btnRecord->setStyleSheet(MW->getButtonStyle("record"));
-        }
+        if (MW->player->isPiping()) btnRecord->setStyleSheet(MW->getButtonStyle("recording"));
+        else btnRecord->setStyleSheet(MW->getButtonStyle("record"));
     }
     else {
         btnRecord->setStyleSheet(MW->getButtonStyle("record"));
     }
 }
 
-void CameraPanel::cameraListDoubleClicked()
+void CameraPanel::cameraListClicked(QListWidgetItem* item)
+{
+    std::cout << "cameraListClicked" << std::endl;
+    currentDataRow = cameraList->row(item);
+}
+
+void CameraPanel::cameraListDoubleClicked(QListWidgetItem* item)
 {
     if (connecting) {
         std::cout << "currently attempting to connect to " << MW->currentMedia.toLatin1().data() << " please wait" << std::endl;
     }
     else {
-        MW->currentMedia = cameraList->getCurrentCamera()->getCameraName();
-        std::cout << "attempting to connect to " << MW->currentMedia.toLatin1().data() << std::endl;
+        currentStreamingRow = cameraList->row(item);
+        currentDataRow = currentStreamingRow;
+        std::cout << "currentStreamingRow: " << currentStreamingRow << std::endl;
+        std::cout << "devices size: " << devices.size() << std::endl;
+        onvif::Data data = devices[currentStreamingRow];
+        std::cout << data->camera_name << std::endl;
+        MW->currentMedia = data->camera_name;
         std::stringstream ss_uri;
-        OnvifData* onvif_data = cameraList->getCurrentCamera()->onvif_data;
-        std::string uri(onvif_data->stream_uri);
-        ss_uri << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
+        std::string uri(data->stream_uri);
+        ss_uri << uri.substr(0, 7) << data->username << ":" << data->password << "@" << uri.substr(7);
         uri = ss_uri.str();
         connecting = true;
         MW->playerStart(uri.c_str());
@@ -188,6 +170,7 @@ void CameraPanel::cameraListDoubleClicked()
 void CameraPanel::btnPlayClicked()
 {
     std::cout << "btnPlayClicked" << std::endl;
+    /*
     if (MW->player) {
         MW->playerStop();
     }
@@ -197,38 +180,7 @@ void CameraPanel::btnPlayClicked()
             cameraListDoubleClicked();
         }
     }
-}
-
-void CameraPanel::showLoginDialog(Credential *credential)
-{
-    if (loginDialog == nullptr)
-        loginDialog = new LoginDialog(this);
-
-    loginDialog->setStyleSheet(MW->style);
-
-    QString host = QString(credential->host_name);
-    int start = host.indexOf("//") + 2;
-    int stop = host.indexOf("/", start);
-    int len = stop - start;
-    QString ip = host.mid(start, len);
-
-    loginDialog->cameraIP->setText(QString("Camera IP: ").append(ip));
-    loginDialog->cameraName->setText(QString("Camera Name: ").append(credential->camera_name));
-    
-    if (loginDialog->exec()) {
-        QString username = loginDialog->username->text();
-        strncpy(credential->username, username.toLatin1(), username.length());
-        QString password = loginDialog->password->text();
-        strncpy(credential->password, password.toLatin1(), password.length());
-        credential->accept_requested = true;
-    }
-    else {
-        emit msg("login cancelled");
-        memset(credential->username, 0, 128);
-        memset(credential->password, 0, 128);
-        credential->accept_requested = false;
-    }
-    discovery->resume();
+    */
 }
 
 void CameraPanel::btnApplyClicked()
@@ -283,7 +235,7 @@ void CameraPanel::fillData()
     networkTab->setActive(false);
     adminTab->setActive(false);
     btnApply->setEnabled(false);
-    QThreadPool::globalInstance()->tryStart(filler);
+    //QThreadPool::globalInstance()->tryStart(filler);
 }
 
 void CameraPanel::showData()
@@ -297,22 +249,80 @@ void CameraPanel::showData()
     imageTab->setActive(true);
     networkTab->setActive(true);
     adminTab->setActive(true);
-    ptzTab->setActive(camera->hasPTZ());
-    camera->onvif_data_read = true;
+    if (currentDataRow > -1) ptzTab->setActive(hasPTZ(devices[currentDataRow]));
     btnApply->setEnabled(false);   
-}
-
-void CameraPanel::discoveryFinished()
-{
-    emit msg("discovery is completed");
 }
 
 void CameraPanel::refreshList()
 {
-    cameraList->refresh();
+    //cameraList->refresh();
 }
 
 void CameraPanel::onUpdateUI()
 {
     setPlayButton();
+}
+
+void CameraPanel::btnDiscoverClicked()
+{
+    onvif::Manager onvifBoss;
+    onvifBoss.startDiscover([&]() { discoverFinished(); },
+                            [&](onvif::Data& data) { return getCredential(data); },
+                            [&](onvif::Data& data) { return getData(data); }
+                            );
+    btnDiscover->setEnabled(false);
+
+}
+
+void CameraPanel::getData(onvif::Data& onvif_data)
+{
+    if (std::find(devices.begin(), devices.end(), onvif_data) == devices.end()) {
+        onvif_data->logged_in = true;
+        devices.push_back(onvif_data);
+        cameraList->addItem(onvif_data->camera_name);
+    }
+}
+
+void CameraPanel::onShowLogin()
+{
+    loginDlg->setStyleSheet(MW->style);
+    if (!loginDlg->exec())
+        loginDlg->cancelled = true;
+    loginDlg->active = false;
+}
+
+bool CameraPanel::getCredential(onvif::Data& onvif_data)
+{
+    if (onvif_data->logged_in) return false;
+
+    QString username = MW->settingsPanel->commonUsername->text();
+    QString password = MW->settingsPanel->commonPassword->text();
+
+    if (username.length() == 0 || last_data == onvif_data) 
+    {
+        loginDlg->active = true;
+        loginDlg->cameraIP->setText(onvif_data->host);
+        loginDlg->cameraName->setText(onvif_data->camera_name);
+        emit showLogin();
+
+        while (loginDlg->active)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));  
+
+        if (loginDlg->cancelled) return false;
+
+        username = loginDlg->username->text();
+        password = loginDlg->password->text();
+    }
+
+    strncpy(onvif_data->username, username.toLatin1(), username.length());
+    strncpy(onvif_data->password, password.toLatin1(), password.length());
+
+    last_data = onvif_data;
+    
+    return true;
+}
+
+void CameraPanel::discoverFinished()
+{
+    btnDiscover->setEnabled(true);
 }

@@ -68,7 +68,7 @@ NetworkTab::NetworkTab(QWidget *parent)
 
 void NetworkTab::update()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     onvif_data->dhcp_enabled = checkDHCP->isChecked();
     QString ip_address = textIPAddress->text();
     strncpy(onvif_data->ip_address_buf, ip_address.toLatin1(), ip_address.length());
@@ -109,7 +109,7 @@ void NetworkTab::setActive(bool active)
 bool NetworkTab::hasBeenEdited()
 {
     bool result = false;
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
 
     if (strcmp(textIPAddress->text().toLatin1().data(), "") != 0) {
         if (checkDHCP->isChecked() != onvif_data->dhcp_enabled)
@@ -129,7 +129,7 @@ bool NetworkTab::hasBeenEdited()
 
 void NetworkTab::initialize()
 {
-    OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
+    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     textIPAddress->setText(tr(onvif_data->ip_address_buf));
     char mask_buf[128] = {0};
     prefix2mask(onvif_data->prefix_length, mask_buf);

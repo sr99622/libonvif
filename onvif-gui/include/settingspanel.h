@@ -50,9 +50,8 @@ public:
     void getActiveNetworkInterfaces();
     void getCurrentlySelectedIP(char *buffer);
     AVHWDeviceType getHardwareDecoder() const;
-    void discoverFinished();
-    bool getCredential(onvif::Data&);
-    void getData(onvif::Data&);
+
+    void fillData(onvif::Data&, int);
 
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
@@ -76,10 +75,6 @@ public:
     QListWidget *listDecoders;
     QLabel *lblDecoders;
 
-    std::vector<onvif::Data> devices;
-    LoginDialog* loginDlg = nullptr;
-
-
     const QString usernameKey   = "SettingsPanel/username";
     const QString passwordKey   = "SettingsPanel/password";
     const QString playerKey     = "SettingsPanel/player";
@@ -98,6 +93,7 @@ public:
 signals:
     void msg(const QString&);
     void showLogin();
+    void initTabs();
 
 public slots:
     void usernameUpdated();
@@ -114,7 +110,7 @@ public slots:
     void netIntfChanged(const QString&);
     void keyframeCountChanged(int);
     void testClicked();
-    void onShowLogin();
+    void onInitTabs();
 
 };
 

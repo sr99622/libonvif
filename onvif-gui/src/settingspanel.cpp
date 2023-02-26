@@ -159,8 +159,9 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
     MW->glWidget->keyframe_cache_size = keyframeCount->value();
     */
 
-    loginDlg = new LoginDialog();
-    connect(this, SIGNAL(showLogin()), this, SLOT(onShowLogin()));
+    //loginDlg = new LoginDialog();
+    //connect(this, SIGNAL(showLogin()), this, SLOT(onShowLogin()));
+    connect(this, SIGNAL(initTabs()), this, SLOT(onInitTabs()));
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -362,61 +363,19 @@ void SettingsPanel::getCurrentlySelectedIP(char *buffer)
     buffer[i] = '\0';
 }
 
-void SettingsPanel::onShowLogin()
+void SettingsPanel::onInitTabs()
 {
-    std::cout << "onShowLogin: " << std::endl;
-    loginDlg->setStyleSheet(MW->style);
-    if (!loginDlg->exec())
-        loginDlg->cancelled = true;
-    loginDlg->active = false;
+    MW->cameraPanel->showData();
 }
 
-bool SettingsPanel::getCredential(onvif::Data& onvif_data)
+void SettingsPanel::fillData(onvif::Data& onvif_data, int index)
 {
-    std::cout << "getCredential" << std::endl;
-    std::cout << onvif_data->camera_name << std::endl;
-    std::cout << onvif_data->host << std::endl;
-
-    loginDlg->active = true;
-    emit showLogin();
-
-    while (loginDlg->active)
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-    if (!loginDlg->cancelled) {
-        QString username = loginDlg->username->text();
-        QString password = loginDlg->password->text();
-        strncpy(onvif_data->username, username.toLatin1(), username.length());
-        strncpy(onvif_data->password, password.toLatin1(), password.length());
-        return true;
-    }
-    else {
-        return false;
-    }
-
-}
-
-void SettingsPanel::getData(onvif::Data& onvif_data)
-{
-    std::cout << "getData: " << onvif_data->host << std::endl;
-    devices.push_back(onvif_data);
-}
-
-void SettingsPanel::discoverFinished()
-{
-    std::cout << "discoveryFinished: " << devices.size() << std::endl;
-    for (onvif::Data onvif_data : devices) {
-        std::cout << onvif_data->stream_uri << std::endl;
-    }
+    MW->cameraPanel->devices[index] = onvif_data;
+    emit initTabs();
 }
 
 void SettingsPanel::testClicked()
 {
-    std::cout << "testclicked" << std::endl;
     onvif::Manager onvifBoss;
-    devices.clear();
-    onvifBoss.startDiscover(/*&devices, */ [&]() { discoverFinished(); },
-                            [&](onvif::Data& data) { return getCredential(data); },
-                            [&](onvif::Data& data) { return getData(data); }
-                            );
+    onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, MW->cameraPanel->devices, 0);
 }

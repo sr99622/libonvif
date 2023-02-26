@@ -48,5 +48,27 @@ void Manager::discover(std::function<void()> discoverFinished,
 
     discoverFinished();
 }
+
+void Manager::startFill(std::function<void(Data&, int)> fcn, std::vector<Data> devices, int index)
+{
+    std::thread thread(fill, fcn, devices, index);
+    thread.detach();
+}
+
+void Manager::fill(std::function<void(Data&, int)> fcn, std::vector<Data> devices, int index)
+{
+    std::cout << "Manager::fill" << std::endl;
+    Data onvif_data = devices[index];
+    getCapabilities(onvif_data);
+    getNetworkInterfaces(onvif_data);
+    getNetworkDefaultGateway(onvif_data);
+    getDNS(onvif_data);
+    getVideoEncoderConfigurationOptions(onvif_data);
+    getVideoEncoderConfiguration(onvif_data);
+    getOptions(onvif_data);
+    getImagingSettings(onvif_data);
+
+    fcn(onvif_data, index);
+}
     
 }

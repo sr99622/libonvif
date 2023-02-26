@@ -102,17 +102,6 @@ private:
     OnvifSession* session;
 };
 
-class Credential
-{
-public:
-    Credential() {}
-    Credential(std::string username, std::string password) : username(username), password(password) {}
-
-    std::string username;
-    std::string password;
-    bool abort;
-};
-
 class Manager
 {
 public:
@@ -120,6 +109,9 @@ public:
     ~Manager();
     static void discover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
     void startDiscover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
+
+    static void fill(std::function<void(Data&, int)>, std::vector<Data>, int);
+    void startFill(std::function<void(Data&, int)>, std::vector<Data>, int);
 
 };
 

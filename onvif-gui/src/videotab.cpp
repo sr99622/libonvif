@@ -139,8 +139,9 @@ void VideoTab::setActive(bool active)
 
 void VideoTab::initialize()
 {
+    std::cout << "VideoTab::initialize start: " << std::endl;
     onvif::Data onvif_data = CP->devices[CP->currentDataRow];
-
+std::cout << "test 1: " << std::endl;
     comboResolutions->clear();
 
     int size = 0;
@@ -156,6 +157,7 @@ void VideoTab::initialize()
         }
     }
 
+std::cout << "test 2" << std::endl;
     if (resolutions) delete resolutions;
     resolutions = new QListWidget(this);
 
@@ -164,10 +166,12 @@ void VideoTab::initialize()
         args.push_back(onvif_data->resolutions_buf[i]);
     }
 
+std::cout << "test 3" << std::endl;
     resolutions->addItems(args);
     comboResolutions->setModel(resolutions->model());
     comboResolutions->setView(resolutions);
 
+std::cout << "test 4" << std::endl;
     spinGovLength->setMinimum(onvif_data->gov_length_min);
     spinGovLength->setMaximum(onvif_data->gov_length_max);
     spinFrameRate->setMinimum(onvif_data->frame_rate_min);
@@ -175,6 +179,7 @@ void VideoTab::initialize()
     spinBitrate->setMinimum(onvif_data->bitrate_min);
     spinBitrate->setMaximum(onvif_data->bitrate_max);
 
+std::cout << "test 5" << std::endl;
     char res[128] = {0};
     sprintf(res, "%d x %d", onvif_data->width, onvif_data->height);
     comboResolutions->setCurrentText(tr(res));
@@ -183,6 +188,7 @@ void VideoTab::initialize()
     spinBitrate->setValue(onvif_data->bitrate);
     CP->btnApply->setEnabled(false);
 
+    std::cout << "VideoTab::initialize start: " << std::endl;
 }
 
 bool VideoTab::hasBeenEdited() {

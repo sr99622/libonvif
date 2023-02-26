@@ -104,6 +104,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
 
     loginDlg = new LoginDialog();
     connect(this, SIGNAL(showLogin()), this, SLOT(onShowLogin()));
+    connect(this, SIGNAL(initTabs()), this, SLOT(onInitTabs()));
 
     disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
 
@@ -137,12 +138,6 @@ void CameraPanel::setRecordButton()
     else {
         btnRecord->setStyleSheet(MW->getButtonStyle("record"));
     }
-}
-
-void CameraPanel::cameraListClicked(QListWidgetItem* item)
-{
-    std::cout << "cameraListClicked" << std::endl;
-    currentDataRow = cameraList->row(item);
 }
 
 void CameraPanel::cameraListDoubleClicked(QListWidgetItem* item)
@@ -326,3 +321,30 @@ void CameraPanel::discoverFinished()
 {
     btnDiscover->setEnabled(true);
 }
+
+
+void CameraPanel::cameraListClicked(QListWidgetItem* item)
+{
+    std::cout << "cameraListClicked" << std::endl;
+    currentDataRow = cameraList->row(item);
+    onvif::Manager onvifBoss;
+    onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, devices, currentDataRow);
+}
+
+void CameraPanel::onInitTabs()
+{
+    showData();
+}
+
+void CameraPanel::fillData(onvif::Data& onvif_data, int index)
+{
+    std::cout << "CameraPanel::fillData" << std::endl;
+    MW->cameraPanel->devices[index] = onvif_data;
+    emit initTabs();
+}
+
+//void CameraPanel::testClicked()
+//{
+//    onvif::Manager onvifBoss;
+//    onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, MW->cameraPanel->devices, 0);
+//}

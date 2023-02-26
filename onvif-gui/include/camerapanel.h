@@ -78,7 +78,6 @@ public:
     std::string uri;
     char buf[256];
 
-
     std::vector<onvif::Data> devices;
     LoginDialog* loginDlg = nullptr;
     onvif::Data last_data;
@@ -86,6 +85,7 @@ public:
     void discoverFinished();
     bool getCredential(onvif::Data&);
     void getData(onvif::Data&);
+    void fillData(onvif::Data&, int);
     int currentStreamingRow = -1;
     int currentDataRow = -1;
 
@@ -93,6 +93,7 @@ signals:
     void msg(QString str);
     void showError(const QString&);
     void showLogin();
+    void initTabs();
 
 public slots:
     void fillData();
@@ -106,6 +107,7 @@ public slots:
     void disableToolTips(bool);
     void onUpdateUI();
     void onShowLogin();
+    void onInitTabs();
 
 };
 

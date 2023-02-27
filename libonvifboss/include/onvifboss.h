@@ -118,8 +118,8 @@ public:
     static void fill(std::function<void(Data&, int)>, std::vector<Data>, int);
     void startFill(std::function<void(Data&, int)>, std::vector<Data>, int);
 
-    static void updateVideo(std::function<void()>, std::vector<Data>, int);
-    void startUpdateVideo(std::function<void()>, std::vector<Data>, int);
+    static void updateVideo(std::function<void()>, std::vector<Data>);
+    void startUpdateVideo(std::function<void()>, std::vector<Data>);
 
 };
 

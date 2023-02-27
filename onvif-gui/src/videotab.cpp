@@ -108,11 +108,11 @@ void VideoTab::update()
         onvif_data->bitrate = spinBitrate->value();
     }
 
-    //QThreadPool::globalInstance()->tryStart(updater);
     wrap.clear();
     wrap.push_back(onvif::Data(onvif_data));
     onvif::Manager onvifBoss;
-    onvifBoss.startUpdateVideo([&]() { updateFinished(); }, wrap, 0);
+    onvifBoss.startUpdateVideo([&]() { updateFinished(); }, wrap);
+    CP->btnApply->setEnabled(false);
     std::cout << "VideoTab::update" << std::endl;
 }
 

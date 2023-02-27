@@ -51,8 +51,6 @@ public:
     void getCurrentlySelectedIP(char *buffer);
     AVHWDeviceType getHardwareDecoder() const;
 
-    void fillData(onvif::Data&, int);
-
     QMainWindow *mainWindow;
     QCheckBox *autoDiscovery;
     QPushButton *style;
@@ -93,7 +91,6 @@ public:
 signals:
     void msg(const QString&);
     void showLogin();
-    void initTabs();
 
 public slots:
     void usernameUpdated();
@@ -110,7 +107,6 @@ public slots:
     void netIntfChanged(const QString&);
     void keyframeCountChanged(int);
     void testClicked();
-    void onInitTabs();
 
 };
 

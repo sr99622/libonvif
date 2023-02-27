@@ -161,7 +161,7 @@ SettingsPanel::SettingsPanel(QMainWindow* parent)
 
     //loginDlg = new LoginDialog();
     //connect(this, SIGNAL(showLogin()), this, SLOT(onShowLogin()));
-    connect(this, SIGNAL(initTabs()), this, SLOT(onInitTabs()));
+    //connect(this, SIGNAL(initTabs()), this, SLOT(onInitTabs()));
 }
 
 void SettingsPanel::autoDiscoveryClicked(bool checked)
@@ -363,19 +363,7 @@ void SettingsPanel::getCurrentlySelectedIP(char *buffer)
     buffer[i] = '\0';
 }
 
-void SettingsPanel::onInitTabs()
-{
-    MW->cameraPanel->showData();
-}
-
-void SettingsPanel::fillData(onvif::Data& onvif_data, int index)
-{
-    MW->cameraPanel->devices[index] = onvif_data;
-    emit initTabs();
-}
-
 void SettingsPanel::testClicked()
 {
-    onvif::Manager onvifBoss;
-    onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, MW->cameraPanel->devices, 0);
+
 }

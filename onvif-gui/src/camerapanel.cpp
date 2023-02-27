@@ -105,6 +105,7 @@ CameraPanel::CameraPanel(QMainWindow *parent)
     loginDlg = new LoginDialog();
     connect(this, SIGNAL(showLogin()), this, SLOT(onShowLogin()));
     connect(this, SIGNAL(initTabs()), this, SLOT(onInitTabs()));
+    connect(this, SIGNAL(enableDiscoverButton()), this, SLOT(onEnableDiscoverButton()));
 
     disableToolTips(MW->settingsPanel->hideToolTips->isChecked());
 
@@ -260,6 +261,7 @@ void CameraPanel::onUpdateUI()
 
 void CameraPanel::btnDiscoverClicked()
 {
+    std::cout << "start discover" << std::endl;
     onvif::Manager onvifBoss;
     onvifBoss.startDiscover([&]() { discoverFinished(); },
                             [&](onvif::Data& data) { return getCredential(data); },
@@ -271,6 +273,7 @@ void CameraPanel::btnDiscoverClicked()
 
 void CameraPanel::getData(onvif::Data& onvif_data)
 {
+    std::cout << "get data" << std::endl;
     if (std::find(devices.begin(), devices.end(), onvif_data) == devices.end()) {
         onvif_data->logged_in = true;
         devices.push_back(onvif_data);
@@ -288,6 +291,7 @@ void CameraPanel::onShowLogin()
 
 bool CameraPanel::getCredential(onvif::Data& onvif_data)
 {
+    std::cout << "get credential" << std::endl;
     if (onvif_data->logged_in) return false;
 
     QString username = MW->settingsPanel->commonUsername->text();
@@ -317,18 +321,27 @@ bool CameraPanel::getCredential(onvif::Data& onvif_data)
     return true;
 }
 
-void CameraPanel::discoverFinished()
+void CameraPanel::onEnableDiscoverButton()
 {
     btnDiscover->setEnabled(true);
 }
 
+void CameraPanel::discoverFinished()
+{
+    emit enableDiscoverButton();
+}
 
 void CameraPanel::cameraListClicked(QListWidgetItem* item)
 {
     std::cout << "cameraListClicked" << std::endl;
     currentDataRow = cameraList->row(item);
-    onvif::Manager onvifBoss;
-    onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, devices, currentDataRow);
+    if (!devices[currentDataRow]->filled) {
+        onvif::Manager onvifBoss;
+        onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, devices, currentDataRow);
+    }
+    else {
+        showData();
+    }
 }
 
 void CameraPanel::onInitTabs()
@@ -340,11 +353,6 @@ void CameraPanel::fillData(onvif::Data& onvif_data, int index)
 {
     std::cout << "CameraPanel::fillData" << std::endl;
     MW->cameraPanel->devices[index] = onvif_data;
+    MW->cameraPanel->devices[index]->filled = true;
     emit initTabs();
 }
-
-//void CameraPanel::testClicked()
-//{
-//    onvif::Manager onvifBoss;
-//    onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, MW->cameraPanel->devices, 0);
-//}

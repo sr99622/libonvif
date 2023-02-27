@@ -57,7 +57,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr, bool clearSettings = false);
     ~MainWindow();
 
     void showVersion() { std::cout << "1.4.5" << std::endl; }
@@ -86,6 +86,8 @@ public:
     avio::Player* player = nullptr;
     int volume = 80;
     bool mute = false;
+
+    bool clearSettings = false;
 
     const QString splitKey  = "MainWindow/splitKey";
     const QString volumeKey = "MainWindow/volume";

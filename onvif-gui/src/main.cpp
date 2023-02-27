@@ -34,6 +34,7 @@
 static struct option longopts[] = 
 {
 			 { "version",    no_argument,       NULL,      'v'},
+			 { "clear",      no_argument,       NULL,      'c'},
              { NULL,         0,                 NULL,       0 }
 };
 
@@ -42,20 +43,33 @@ Q_DECLARE_METATYPE(std::string);
 
 int main(int argc, char *argv[])
 {
+	//std::string clearSettings;
+	//if (argc > 1)
+	//	clearSettings = argv[1];
+	bool clear = false;
+
    	int ch;
-	while ((ch = getopt_long(argc, argv, "v", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "vc", longopts, NULL)) != -1) {
 		switch (ch) {
 			case 'v':
 				std::cout << "onvif-gui version " << VERSION << std::endl;
 				exit(0);
+			case 'c':
+				clear = true;
+				break;
 		}
 	}
 
     qRegisterMetaType<std::string>();
 
     QApplication a(argc, argv);
-    MainWindow w;
+	//if (!clearSettings.empty()) {
+	//	if (clearSettings == "clear") {
+	//		clear = true;
+	//	}
+	//}
 
+    MainWindow w(nullptr, clear);
 	w.show();
     return a.exec();
 }

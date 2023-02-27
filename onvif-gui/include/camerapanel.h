@@ -94,6 +94,7 @@ signals:
     void showError(const QString&);
     void showLogin();
     void initTabs();
+    void enableDiscoverButton();
 
 public slots:
     void fillData();
@@ -108,6 +109,7 @@ public slots:
     void onUpdateUI();
     void onShowLogin();
     void onInitTabs();
+    void onEnableDiscoverButton();
 
 };
 

@@ -70,5 +70,24 @@ void Manager::fill(std::function<void(Data&, int)> fcn, std::vector<Data> device
 
     fcn(onvif_data, index);
 }
+
+void Manager::startUpdateVideo(std::function<void()> fcn, std::vector<Data> devices, int index)
+{
+    std::cout << "startupdatevideo" << std::endl;
+    std::thread thread(updateVideo, fcn, devices, index);
+    thread.detach();
+}
+
+void Manager::updateVideo(std::function<void()> fcn, std::vector<Data> devices, int index)
+{
+    Data onvif_data = devices[index];
+    std::cout << "updateVideo w: " << onvif_data->width << " h: " << onvif_data->height << std::endl;
+    setVideoEncoderConfiguration(onvif_data);
+    getProfile(onvif_data);
+    getVideoEncoderConfigurationOptions(onvif_data);
+    getVideoEncoderConfiguration(onvif_data);
+    fcn();
+
+}
     
 }

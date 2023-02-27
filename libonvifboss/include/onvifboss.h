@@ -20,6 +20,11 @@ public:
         clearData(data);
     }
 
+    Data(OnvifData* onvif_data)
+    {
+        data = onvif_data;
+    }
+
     Data(const Data& other)
     {
         data = (OnvifData*)calloc(sizeof(OnvifData), 1);
@@ -112,6 +117,9 @@ public:
 
     static void fill(std::function<void(Data&, int)>, std::vector<Data>, int);
     void startFill(std::function<void(Data&, int)>, std::vector<Data>, int);
+
+    static void updateVideo(std::function<void()>, std::vector<Data>, int);
+    void startUpdateVideo(std::function<void()>, std::vector<Data>, int);
 
 };
 

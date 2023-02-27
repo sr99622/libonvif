@@ -108,7 +108,18 @@ void VideoTab::update()
         onvif_data->bitrate = spinBitrate->value();
     }
 
-    QThreadPool::globalInstance()->tryStart(updater);
+    //QThreadPool::globalInstance()->tryStart(updater);
+    wrap.clear();
+    wrap.push_back(onvif::Data(onvif_data));
+    onvif::Manager onvifBoss;
+    onvifBoss.startUpdateVideo([&]() { updateFinished(); }, wrap, 0);
+    std::cout << "VideoTab::update" << std::endl;
+}
+
+void VideoTab::updateFinished()
+{
+    std::cout << "VideoTab::updateFinished" << std::endl;
+    CP->devices[CP->currentDataRow] = wrap[0];
 }
 
 void VideoTab::clear()
@@ -218,4 +229,6 @@ void VideoTab::onValueChanged(int index) {
     else
         CP->btnApply->setEnabled(false);
 }
+
+
 

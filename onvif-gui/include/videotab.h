@@ -24,6 +24,7 @@
 
 #include "cameradialogtab.h"
 #include "onvifmanager.h"
+#include "onvifboss.h"
 
 #include <QComboBox>
 #include <QSpinBox>
@@ -48,6 +49,7 @@ public:
     void clear() override;
     void setActive(bool active) override;
     bool hasBeenEdited() override;
+    void updateFinished();
 
     QWidget *cameraPanel;
     QListWidget *resolutions = nullptr;
@@ -63,6 +65,8 @@ public:
     VideoUpdater *updater;
     bool updating = false;
     QString updateSummary;
+
+    std::vector<onvif::Data> wrap;
 
 public slots:
     void initialize();

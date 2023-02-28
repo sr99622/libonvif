@@ -61,9 +61,6 @@ public:
     QLabel *lblGovLength;
     QLabel *lblBitrate;
 
-    bool updating = false;
-    QString updateSummary;
-
 signals:
     void updateFinished();
 
@@ -72,6 +69,7 @@ public slots:
     void onCurrentIndexChanged(int index);
     void onValueChanged(int value);
     void onUpdateFinished();
+    
 };
 
 #endif // VIDEOTAB_H

@@ -34,12 +34,8 @@ set(CMAKE_AUTORCC ON)
 
 add_executable(onvif-gui
     src/admintab.cpp
-    #src/camera.cpp
     src/cameradialogtab.cpp
-    #src/cameralistmodel.cpp
-    #src/cameralistview.cpp
     src/camerapanel.cpp
-    #src/discovery.cpp
     src/filepanel.cpp
     src/glwidget.cpp
     src/imagetab.cpp
@@ -48,19 +44,14 @@ add_executable(onvif-gui
     src/mainwindow.cpp
     src/messagepanel.cpp
     src/networktab.cpp
-    #src/onvifmanager.cpp
     src/progress.cpp
     src/ptztab.cpp
     src/settingspanel.cpp
     src/stylepanel.cpp
     src/videotab.cpp
     include/admintab.h
-    #include/camera.h
     include/cameradialogtab.h
-    #include/cameralistmodel.h
-    #include/cameralistview.h
     include/camerapanel.h
-    #include/discovery.h
     include/filepanel.h
     include/glwidget.h
     include/imagetab.h
@@ -68,7 +59,6 @@ add_executable(onvif-gui
     include/mainwindow.h
     include/messagepanel.h
     include/networktab.h
-    #include/onvifmanager.h
     include/progress.h
     include/ptztab.h
     include/settingspanel.h
@@ -81,7 +71,6 @@ add_executable(onvif-gui
 target_link_libraries(onvif-gui PRIVATE
     Qt5::Widgets
     onvif
-    onvifboss
     libavio
 )
 

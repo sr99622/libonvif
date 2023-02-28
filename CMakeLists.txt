@@ -39,7 +39,6 @@ include(GNUInstallDirs)
 set(CMAKE_INSTALL_INCLUDEDIR "include/${CMAKE_LIBRARY_ARCHITECTURE}")
 
 add_subdirectory(libonvif)
-add_subdirectory(libonvifboss)
 add_subdirectory(onvif-util)
 
 if (BUILD_GUI)
@@ -74,6 +73,6 @@ else()
     install(TARGETS onvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
 endif()
 
-install(FILES libonvif/include/onvif.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(FILES libonvif/include/onvif.h onvifboss.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(FILES onvif-util/docs/onvif-util.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")
 install(FILES onvif-gui/docs/onvif-gui.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")

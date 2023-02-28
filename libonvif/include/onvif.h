@@ -213,6 +213,7 @@ LIBRARY_API int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attri
 #define getNodeAttribute(doc,xpath,attribute,buf,buf_length) getNodeAttributen(doc,xpath,attribute,buf,buf_length,0)
 LIBRARY_API xmlXPathObjectPtr getNodeSet (xmlDocPtr doc, xmlChar *xpath);
 */
+
 LIBRARY_API void getDiscoveryXml(char buffer[], int buf_size, char uuid[47]);
 LIBRARY_API void getDiscoveryXml2(char buffer[], int buf_size);
 LIBRARY_API void getScopeField(char *, char *, char[1024]);
@@ -220,7 +221,6 @@ LIBRARY_API void getCameraName(int ordinal, struct OnvifSession *onvif_session, 
 LIBRARY_API bool extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
 LIBRARY_API void extractOnvifService(char service[1024], bool post);
 LIBRARY_API void extractHost(char * xaddrs, char host[128]);
-
 
 LIBRARY_API int setSocketOptions(int socket);
 LIBRARY_API void prefix2mask(int prefix, char mask_buf[128]);

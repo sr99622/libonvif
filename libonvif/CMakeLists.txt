@@ -36,6 +36,7 @@ add_library(onvif SHARED
     src/onvif.c
     src/cencode.c
     src/sha1.c
+    src/onvifboss.cpp
 )
 
 target_link_libraries(onvif PRIVATE

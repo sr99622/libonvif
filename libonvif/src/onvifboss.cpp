@@ -51,7 +51,6 @@ void Manager::discover(std::function<void()> discoverFinished,
 
 void Manager::startFill(const Data& onvif_data, std::function<void(const Data&)> fcn)
 {
-    std::cout << "startFill" << std::endl;
     std::thread thread(fill, onvif_data, fcn);
     thread.detach();
 }
@@ -71,7 +70,6 @@ void Manager::fill(const Data& onvif_data, std::function<void(const Data&)> fcn)
 
 void Manager::startUpdateVideo(const Data& onvif_data, std::function<void(const Data&)> fcn)
 {
-    std::cout << "startupdatevideo" << std::endl;
     std::thread thread(updateVideo, onvif_data, fcn);
     thread.detach();
 }
@@ -87,7 +85,6 @@ void Manager::updateVideo(const Data& onvif_data, std::function<void(const Data&
 
 void Manager::startUpdateImage(const Data& onvif_data, std::function<void(const Data&)> fcn)
 {
-    std::cout << "startUpdateImage()" << std::endl;
     std::thread thread(updateImage, onvif_data, fcn);
     thread.detach();
 }
@@ -102,14 +99,12 @@ void Manager::updateImage(const Data& onvif_data, std::function<void(const Data&
 
 void Manager::startUpdateNetwork(const Data& onvif_data, std::function<void(const Data&)> fcn)
 {
-    std::cout << "startUpdateNetwork" << std::endl;
     std::thread thread(updateNetwork, onvif_data, fcn);
     thread.detach();   
 }
 
 void Manager::updateNetwork(const Data& onvif_data, std::function<void(const Data&)> fcn)
 {
-    std::cout << "update network threading" << std::endl;
     setNetworkInterfaces(onvif_data.data);
     setDNS(onvif_data.data);
     setNetworkDefaultGateway(onvif_data.data);
@@ -121,14 +116,12 @@ void Manager::updateNetwork(const Data& onvif_data, std::function<void(const Dat
 
 void Manager::startUpdateTime(const Data& onvif_data, std::function<void(const Data&)> fcn)
 {
-    std::cout << "start update time" << std::endl;
     std::thread thread(updateTime, onvif_data, fcn);
     thread.detach();
 }
 
 void Manager::updateTime(const Data& onvif_data, std::function<void(const Data&)> fcn)
 {
-    std::cout << "update time" << std::endl;
     setSystemDateAndTime(onvif_data.data);
     fcn(onvif_data);
 }

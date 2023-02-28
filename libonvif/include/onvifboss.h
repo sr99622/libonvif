@@ -78,7 +78,13 @@ public:
 
     bool isValid() const { return data ? true : false; }    
 
-//private:
+    std::string stream_uri() { return data->stream_uri; } const
+    void setStreamUri(const std::string& arg) { strncpy(data->stream_uri, arg.c_str(), arg.length()); }
+    std::string username() { return data->username; } const
+    void setUsername(const std::string& arg) { strncpy(data->username, arg.c_str(), arg.length()); }
+    std::string password() { return data->password; } const
+    void setPassword(const std::string& arg) { strncpy(data->password, arg.c_str(), arg.length()); }
+
     OnvifData* data;
 
 };
@@ -107,11 +113,78 @@ private:
     OnvifSession* session;
 };
 
+
 class Manager
 {
 public:
     Manager();
     ~Manager();
+
+    int quack = 0;
+
+    std::function<void()> finished = nullptr;
+
+    void test();
+    void startTest();
+    void puke();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     static void discover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
     void startDiscover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
 

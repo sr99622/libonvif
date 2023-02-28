@@ -70,7 +70,7 @@ add_executable(onvif-gui
 
 target_link_libraries(onvif-gui PRIVATE
     Qt5::Widgets
-    onvif
+    libonvif
     libavio
 )
 

@@ -31,7 +31,7 @@ add_executable(onvif-util
 )
 
 target_link_libraries(onvif-util PRIVATE
-    onvif
+    libonvif
 )
 
 target_include_directories(onvif-util PUBLIC

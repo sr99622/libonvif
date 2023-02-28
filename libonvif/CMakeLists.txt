@@ -31,8 +31,37 @@ if(WIN32)
 endif()
 
 find_package(LibXml2 REQUIRED)
+find_package(Python3 COMPONENTS Intrepreter Development NumPy)
 
-add_library(onvif SHARED
+add_library(libonvif SHARED
+    src/onvif.c
+    src/cencode.c
+    src/sha1.c
+    src/onvifboss.cpp
+)
+
+target_link_libraries(libonvif PRIVATE
+    ${LIBXML2_LIBRARIES}
+)
+
+if (LINUX)
+    set_target_properties(libonvif PROPERTIES
+        OUTPUT_NAME onvif
+        SOVERSION 1
+    )
+endif()
+
+target_include_directories(libonvif PUBLIC
+    include
+    ${Iconv_INCLUDE_DIRS}
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+
+add_subdirectory(pybind11)
+
+pybind11_add_module(onvif
+    src/onvif.cpp
     src/onvif.c
     src/cencode.c
     src/sha1.c
@@ -40,11 +69,8 @@ add_library(onvif SHARED
 )
 
 target_link_libraries(onvif PRIVATE
+    Python3::Python
     ${LIBXML2_LIBRARIES}
-)
-
-set_target_properties(onvif PROPERTIES
-    SOVERSION 1
 )
 
 target_include_directories(onvif PUBLIC

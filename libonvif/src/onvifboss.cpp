@@ -4,6 +4,14 @@
 namespace onvif
 {
 
+static void tranq(Manager* mgr)
+{
+    std::cout << "tranq: " << mgr->quack << std::endl;
+    //mgr->callback();
+    mgr->quack = 1;
+    std::cout << "fuck me: " << mgr->quack << std::endl;
+}
+
 Manager::Manager()
 {
 
@@ -13,6 +21,86 @@ Manager::~Manager()
 {
 
 }
+
+void Manager::startTest()
+{
+    std::cout << "startTest: " << std::endl;
+    std::thread thread([&]() { test(); });
+    thread.detach();
+}
+
+void Manager::test()
+{
+    std::cout << "Manager::test A" << std::endl;
+    finished();
+    std::cout << "Manager::test B" << std::endl;
+}
+
+void Manager::puke()
+{
+    std::cout << "puke" << std::endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void Manager::startDiscover(std::function<void()> discoverFinished, 
                         std::function<bool(Data&)>getCredential, std::function<void(Data&)> getData)

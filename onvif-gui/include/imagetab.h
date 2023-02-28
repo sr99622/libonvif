@@ -23,7 +23,7 @@
 #define IMAGETAB_H
 
 #include "cameradialogtab.h"
-//#include "onvifmanager.h"
+#include "onvifboss.h"
 
 #include <QSlider>
 #include <QLabel>
@@ -34,6 +34,11 @@ class ImageTab : public CameraDialogTab
 
 public:
     ImageTab(QWidget *parent);
+    void update() override;
+    void clear() override;
+    void setActive(bool active) override;
+    bool hasBeenEdited() override;
+    void updated(const onvif::Data&);
 
     QSlider *sliderBrightness;
     QSlider *sliderSaturation;
@@ -47,18 +52,13 @@ public:
 
     QWidget *cameraPanel;
 
-    ImageUpdater *updater;
-
-    void update() override;
-    void clear() override;
-    void setActive(bool active) override;
-    bool hasBeenEdited() override;
+signals:
+    void updateFinished();
 
 public slots:
     void initialize();
-
-private slots:
     void onValueChanged(int value);
+    void onUpdateFinished();
 };
 
 #endif // IMAGETAB_H

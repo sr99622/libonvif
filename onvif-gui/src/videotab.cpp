@@ -66,13 +66,13 @@ VideoTab::VideoTab(QWidget *parent)
     connect(spinGovLength, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged(int)));
     connect(spinBitrate, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged(int)));
 
-    updater = new VideoUpdater(cameraPanel);
-    connect(updater, SIGNAL(done()), this, SLOT(initialize()));
+    connect(this, SIGNAL(updateFinished()), this, SLOT(onUpdateFinished()));
+
 }
 
 void VideoTab::update()
 {
-    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
+    OnvifData* onvif_data = CP->devices[CP->currentDataRow];
 
     QString res = QString("%1 x %2").arg(QString::number(onvif_data->width), QString::number(onvif_data->height));
     if (comboResolutions->currentText() != res) {
@@ -108,18 +108,29 @@ void VideoTab::update()
         onvif_data->bitrate = spinBitrate->value();
     }
 
-    wrap.clear();
-    wrap.push_back(onvif::Data(onvif_data));
     onvif::Manager onvifBoss;
-    onvifBoss.startUpdateVideo([&]() { updateFinished(); }, wrap);
+    onvifBoss.startUpdateVideo(CP->devices[CP->currentDataRow], 
+                        [&](const onvif::Data& onvif_data) { updated(onvif_data); });
+
     CP->btnApply->setEnabled(false);
+    CP->cameraList->setEnabled(false);
+    setActive(false);
+
     std::cout << "VideoTab::update" << std::endl;
 }
 
-void VideoTab::updateFinished()
+void VideoTab::updated(const onvif::Data& onvif_data)
 {
-    std::cout << "VideoTab::updateFinished" << std::endl;
-    CP->devices[CP->currentDataRow] = wrap[0];
+    CP->devices[CP->currentDataRow] = onvif_data;
+    emit updateFinished();
+    std::cout << "video update finished" << std::endl;
+}
+
+void VideoTab::onUpdateFinished()
+{
+    initialize();
+    CP->cameraList->setEnabled(true);
+    setActive(true);
 }
 
 void VideoTab::clear()

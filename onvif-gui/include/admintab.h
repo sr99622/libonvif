@@ -23,7 +23,7 @@
 #define ADMINTAB_H
 
 #include "cameradialogtab.h"
-#include "onvifmanager.h"
+#include "onvifboss.h"
 
 #include <QLineEdit>
 #include <QPushButton>
@@ -37,6 +37,12 @@ class AdminTab : public CameraDialogTab
 
 public:
     AdminTab(QWidget *parent);
+    void update() override;
+    void clear() override;
+    void setActive(bool active) override;
+    bool hasBeenEdited()override;
+    void initialize();
+    void updated(const onvif::Data&);
 
     QLineEdit *textCameraName;
     QLineEdit *textAdminPassword;
@@ -52,23 +58,14 @@ public:
 
     QWidget *cameraPanel;
 
-    Rebooter *rebooter;
-    Resetter *resetter;
-    Timesetter *timesetter;
-
     QProcess process;
 
-    void update() override;
-    void clear() override;
-    void setActive(bool active) override;
-    bool hasBeenEdited()override;
-    void initialize();
+signals:
+    void updateFinished();
 
 public slots:
     void doneRebooting();
     void doneResetting();
-
-private slots:
     void launchBrowserClicked();
     void enableRebootChecked();
     void enableResetChecked();
@@ -76,6 +73,7 @@ private slots:
     void hardResetClicked();
     void syncTimeClicked();
     void onTextChanged(const QString &);
+    void onUpdateFinished();
 };
 
 #endif // ADMINTAB_H

@@ -23,7 +23,6 @@
 #define NETWORKTAB_H
 
 #include "cameradialogtab.h"
-#include "onvifmanager.h"
 
 #include <QCheckBox>
 #include <QLineEdit>
@@ -35,6 +34,13 @@ class NetworkTab : public CameraDialogTab
 
 public:
     NetworkTab(QWidget *parent);
+    void update() override;
+    void clear() override;
+    void setActive(bool active) override;
+    bool hasBeenEdited() override;
+    void initialize();
+    void setDHCP(bool used);
+    void updated(const onvif::Data&);
 
     QCheckBox *checkDHCP;
     QLineEdit *textIPAddress;
@@ -49,19 +55,14 @@ public:
 
     QWidget *cameraPanel;
 
-    NetworkUpdater *updater;
+signals:
+    void updateFinished();
 
-    void update() override;
-    void clear() override;
-    void setActive(bool active) override;
-    bool hasBeenEdited() override;
-    void initialize();
-    void setDHCP(bool used);
-
-private slots:
+public slots:
     void dhcpChecked();
     void onTextChanged(const QString &);
     void doneUpdating();
+    void onUpdateFinished();
 };
 
 #endif // NETWORKTAB_H

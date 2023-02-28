@@ -23,7 +23,6 @@
 #define VIDEOTAB_H
 
 #include "cameradialogtab.h"
-#include "onvifmanager.h"
 #include "onvifboss.h"
 
 #include <QComboBox>
@@ -49,7 +48,7 @@ public:
     void clear() override;
     void setActive(bool active) override;
     bool hasBeenEdited() override;
-    void updateFinished();
+    void updated(const onvif::Data&);
 
     QWidget *cameraPanel;
     QListWidget *resolutions = nullptr;
@@ -62,18 +61,17 @@ public:
     QLabel *lblGovLength;
     QLabel *lblBitrate;
 
-    VideoUpdater *updater;
     bool updating = false;
     QString updateSummary;
 
-    std::vector<onvif::Data> wrap;
+signals:
+    void updateFinished();
 
 public slots:
     void initialize();
-
-private slots:
     void onCurrentIndexChanged(int index);
     void onValueChanged(int value);
+    void onUpdateFinished();
 };
 
 #endif // VIDEOTAB_H

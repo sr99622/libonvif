@@ -23,7 +23,7 @@
 #define PTZTAB_H
 
 #include "cameradialogtab.h"
-#include "onvifmanager.h"
+#include "onvifboss.h"
 
 #include <QCheckBox>
 #include <QTextEdit>
@@ -62,10 +62,10 @@ public:
 
     QWidget *cameraPanel;
 
-    PTZMover *ptzMover;
-    PTZStopper *ptzStopper;
-    PTZGoto *ptzGoto;
-    PTZSetPreset *ptzSetPreset;
+    //PTZMover *ptzMover;
+    //PTZStopper *ptzStopper;
+    //PTZGoto *ptzGoto;
+    //PTZSetPreset *ptzSetPreset;
 
     void update() override;
     void setActive(bool active) override;

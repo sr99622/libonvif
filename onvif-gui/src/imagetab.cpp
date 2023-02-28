@@ -55,22 +55,41 @@ ImageTab::ImageTab(QWidget *parent)
     connect(sliderContrast, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged(int)));
     connect(sliderSharpness, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged(int)));
 
-    updater = new ImageUpdater(cameraPanel);
-    connect(updater, SIGNAL(done()), this, SLOT(initialize()));
+    connect(this, SIGNAL(updateFinished()), this, SLOT(onUpdateFinished()));
 
 }
 
 void ImageTab::update()
 {
-    //OnvifData *onvif_data = ((CameraPanel *)cameraPanel)->camera->onvif_data;
-    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
+    OnvifData* onvif_data = CP->devices[CP->currentDataRow];
     onvif_data->brightness = sliderBrightness->value();
     onvif_data->saturation = sliderSaturation->value();
     onvif_data->contrast = sliderContrast->value();
     onvif_data->sharpness = sliderSharpness->value();
-    setImagingSettings(onvif_data);
 
-    QThreadPool::globalInstance()->tryStart(updater);
+    onvif::Manager onvifBoss;
+    onvifBoss.startUpdateImage(CP->devices[CP->currentDataRow], 
+                        [&](const onvif::Data& onvif_data) { updated(onvif_data); });
+
+    CP->btnApply->setEnabled(false);
+    CP->cameraList->setEnabled(false);
+    setActive(false);
+
+    std::cout << "ImageTab::update" << std::endl;
+}
+
+void ImageTab::updated(const onvif::Data& onvif_data)
+{
+    CP->devices[CP->currentDataRow] = onvif_data;
+    emit updateFinished();
+    std::cout << "ImageTab::updateFinished" << std::endl;
+}
+
+void ImageTab::onUpdateFinished()
+{
+    initialize();
+    CP->cameraList->setEnabled(true);
+    setActive(true);
 }
 
 void ImageTab::clear()

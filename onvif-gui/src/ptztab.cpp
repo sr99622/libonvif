@@ -19,7 +19,7 @@
 *
 *******************************************************************************/
 
-//#include "camerapanel.h"
+#include "camerapanel.h"
 //#include "mainwindow.h"
 #include "onvif.h"
 #include "ptztab.h"
@@ -120,10 +120,10 @@ PTZTab::PTZTab(QWidget *parent)
     layout->addWidget(labelSpeed,    5, 2, 1, 2);
     layout->addWidget(comboSpeed,    5, 4, 1, 2);
 
-    ptzMover = new PTZMover(cameraPanel);
-    ptzStopper = new PTZStopper(cameraPanel);
-    ptzGoto = new PTZGoto(cameraPanel);
-    ptzSetPreset = new PTZSetPreset(cameraPanel);
+    //ptzMover = new PTZMover(cameraPanel);
+    //ptzStopper = new PTZStopper(cameraPanel);
+    //ptzGoto = new PTZGoto(cameraPanel);
+    //ptzSetPreset = new PTZSetPreset(cameraPanel);
 }
 
 void PTZTab::update()
@@ -159,13 +159,13 @@ bool PTZTab::hasBeenEdited()
 void PTZTab::preset(int arg)
 {
     if (checkPreset->isChecked()) {
-        ptzSetPreset->set(arg);
-        QThreadPool::globalInstance()->tryStart(ptzSetPreset);
+        onvif::Manager onvifBoss;
+        onvifBoss.startSetPresetPTZ(CP->devices[CP->currentDataRow], arg);
         checkPreset->setChecked(false);
     }
     else {
-        ptzGoto->set(arg);
-        QThreadPool::globalInstance()->tryStart(ptzGoto);
+        onvif::Manager onvifBoss;
+        onvifBoss.startSetPTZ(CP->devices[CP->currentDataRow], arg);
     }
 }
 
@@ -180,19 +180,19 @@ void PTZTab::userPreset()
 
 void PTZTab::move(float x, float y, float z)
 {
-    ptzMover->set(x, y, z);
-    QThreadPool::globalInstance()->tryStart(ptzMover);
+    onvif::Manager onvifBoss;
+    onvifBoss.startMovePTZ(CP->devices[CP->currentDataRow], x, y, z);
 }
 
 void PTZTab::stopPanTilt()
 {
-    ptzStopper->set(PAN_TILT_STOP);
-    QThreadPool::globalInstance()->tryStart(ptzStopper);
+    onvif::Manager onvifBoss;
+    onvifBoss.startStopPTZ(CP->devices[CP->currentDataRow], PAN_TILT_STOP);
 }
 
 void PTZTab::stopZoom()
 {
-    ptzStopper->set(ZOOM_STOP);
-    QThreadPool::globalInstance()->tryStart(ptzStopper);
+    onvif::Manager onvifBoss;
+    onvifBoss.startStopPTZ(CP->devices[CP->currentDataRow], ZOOM_STOP);
 }
 

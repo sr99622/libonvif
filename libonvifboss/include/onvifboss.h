@@ -78,7 +78,7 @@ public:
 
     bool isValid() const { return data ? true : false; }    
 
-private:
+//private:
     OnvifData* data;
 
 };
@@ -115,11 +115,38 @@ public:
     static void discover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
     void startDiscover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
 
-    static void fill(std::function<void(Data&, int)>, std::vector<Data>, int);
-    void startFill(std::function<void(Data&, int)>, std::vector<Data>, int);
+    static void fill(const Data&, std::function<void(const Data&)>);
+    void startFill(const Data&, std::function<void(const Data&)>);
 
-    static void updateVideo(std::function<void()>, std::vector<Data>);
-    void startUpdateVideo(std::function<void()>, std::vector<Data>);
+    static void updateVideo(const Data&, std::function<void(const Data&)>);
+    void startUpdateVideo(const Data&, std::function<void(const Data&)>);
+
+    static void updateImage(const Data&, std::function<void(const Data&)>);
+    void startUpdateImage(const Data&, std::function<void(const Data&)>);
+
+    static void updateNetwork(const Data&, std::function<void(const Data&)>);
+    void startUpdateNetwork(const Data&, std::function<void(const Data&)>);
+
+    static void updateTime(const Data&, std::function<void(const Data&)>);
+    void startUpdateTime(const Data&, std::function<void(const Data&)>);
+
+    static void reboot(const Data&, std::function<void(const Data&)>);
+    void startReboot(const Data&, std::function<void(const Data&)>);
+
+    static void reset(const Data&, std::function<void(const Data&)>);
+    void startReset(const Data&, std::function<void(const Data&)>);
+
+    static void setPTZ(const Data&, int);
+    void startSetPTZ(const Data&, int);
+
+    static void setPresetPTZ(const Data&, int);
+    void startSetPresetPTZ(const Data&, int);
+
+    static void movePTZ(const Data&, float, float, float);
+    void startMovePTZ(const Data&, float, float, float);
+
+    static void stopPTZ(const Data&, int);
+    void startStopPTZ(const Data&, int);
 
 };
 

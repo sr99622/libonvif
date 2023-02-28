@@ -74,11 +74,8 @@ AdminTab::AdminTab(QWidget *parent)
     connect(textCameraName, SIGNAL(textChanged(const QString &)), this, SLOT(onTextChanged(const QString&)));
     connect(textAdminPassword, SIGNAL(textChanged(const QString &)), this, SLOT(onTextChanged(const QString&)));
 
-    rebooter = new Rebooter(cameraPanel);
-    connect(rebooter, SIGNAL(done()), this, SLOT(doneRebooting()));
-    resetter = new Resetter(cameraPanel);
-    connect(resetter, SIGNAL(done()), this, SLOT(doneResetting()));
-    timesetter = new Timesetter(cameraPanel);
+    connect(this, SIGNAL(updateFinished()), this, SLOT(onUpdateFinished()));
+
 }
 
 void AdminTab::update()
@@ -93,6 +90,20 @@ void AdminTab::update()
     CP->cameraNames->setValue(onvif_data->serial_number, onvif_data->camera_name);
     QString password = textAdminPassword->text();
     strncpy(onvif_data->password, password.toLatin1(), password.length());
+}
+
+void AdminTab::updated(const onvif::Data& onvif_data)
+{
+    CP->devices[CP->currentDataRow] = onvif_data;
+    emit updateFinished();
+    std::cout << "amdin update finished" << std::endl;
+}
+
+void AdminTab::onUpdateFinished()
+{
+    initialize();
+    CP->cameraList->setEnabled(true);
+    setActive(true);
 }
 
 void AdminTab::clear()
@@ -167,20 +178,40 @@ void AdminTab::enableResetChecked()
 void AdminTab::rebootClicked()
 {
     QMessageBox::StandardButton result = QMessageBox::question(this, "onvif-gui", "You are about to reboot the camera\nAre you sure you want to do this");
-    if (result == QMessageBox::Yes)
-        QThreadPool::globalInstance()->tryStart(rebooter);
+    if (result == QMessageBox::Yes) {
+        onvif::Manager onvifBoss;
+        onvifBoss.startReboot(CP->devices[CP->currentDataRow],
+                            [&](const onvif::Data& onvif_data) { updated(onvif_data); });
+
+        CP->btnApply->setEnabled(false);
+        CP->cameraList->setEnabled(false);
+        setActive(false);
+    }
 }
 
 void AdminTab::hardResetClicked()
 {
     QMessageBox::StandardButton result = QMessageBox::question(this, "onvif-gui", "You are about to HARD RESET the camera\nAll settings will be returned to default factory configuration\nAre you sure you want to do this");
-    if (result == QMessageBox::Yes)
-        QThreadPool::globalInstance()->tryStart(resetter);
+    if (result == QMessageBox::Yes) {
+        onvif::Manager onvifBoss;
+        onvifBoss.startReset(CP->devices[CP->currentDataRow],
+                            [&](const onvif::Data& onvif_data) { updated(onvif_data); });
+
+        CP->btnApply->setEnabled(false);
+        CP->cameraList->setEnabled(false);
+        setActive(false);
+    }
 }
 
 void AdminTab::syncTimeClicked()
 {
-    QThreadPool::globalInstance()->tryStart(timesetter);
+    onvif::Manager onvifBoss;
+    onvifBoss.startUpdateTime(CP->devices[CP->currentDataRow],
+                        [&](const onvif::Data& onvif_data) { updated(onvif_data); });
+
+    CP->btnApply->setEnabled(false);
+    CP->cameraList->setEnabled(false);
+    setActive(false);
 }
 
 void AdminTab::doneRebooting()

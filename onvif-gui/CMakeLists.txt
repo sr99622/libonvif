@@ -48,7 +48,7 @@ add_executable(onvif-gui
     src/mainwindow.cpp
     src/messagepanel.cpp
     src/networktab.cpp
-    src/onvifmanager.cpp
+    #src/onvifmanager.cpp
     src/progress.cpp
     src/ptztab.cpp
     src/settingspanel.cpp
@@ -68,7 +68,7 @@ add_executable(onvif-gui
     include/mainwindow.h
     include/messagepanel.h
     include/networktab.h
-    include/onvifmanager.h
+    #include/onvifmanager.h
     include/progress.h
     include/ptztab.h
     include/settingspanel.h

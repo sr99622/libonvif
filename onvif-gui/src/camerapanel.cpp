@@ -220,6 +220,7 @@ void CameraPanel::disableToolTips(bool arg)
     }
 }
 
+/*
 void CameraPanel::fillData()
 {
     videoTab->clear();
@@ -233,6 +234,7 @@ void CameraPanel::fillData()
     btnApply->setEnabled(false);
     //QThreadPool::globalInstance()->tryStart(filler);
 }
+*/
 
 void CameraPanel::showData()
 {
@@ -337,7 +339,15 @@ void CameraPanel::cameraListClicked(QListWidgetItem* item)
     currentDataRow = cameraList->row(item);
     if (!devices[currentDataRow]->filled) {
         onvif::Manager onvifBoss;
-        onvifBoss.startFill([&](onvif::Data& onvif_data, int index) { fillData(onvif_data, index); }, devices, currentDataRow);
+        onvifBoss.startFill(devices[currentDataRow], 
+                        [&](const onvif::Data& onvif_data) { fillData(onvif_data); });
+
+        cameraList->setEnabled(false);
+        videoTab->setActive(false);
+        imageTab->setActive(false);
+        networkTab->setActive(false);
+        ptzTab->setActive(false);
+        adminTab->setActive(false);
     }
     else {
         showData();
@@ -347,12 +357,13 @@ void CameraPanel::cameraListClicked(QListWidgetItem* item)
 void CameraPanel::onInitTabs()
 {
     showData();
+    cameraList->setEnabled(true);
 }
 
-void CameraPanel::fillData(onvif::Data& onvif_data, int index)
+void CameraPanel::fillData(const onvif::Data& onvif_data)
 {
     std::cout << "CameraPanel::fillData" << std::endl;
-    MW->cameraPanel->devices[index] = onvif_data;
-    MW->cameraPanel->devices[index]->filled = true;
+    devices[currentDataRow] = onvif_data;
+    devices[currentDataRow]->filled = true;
     emit initTabs();
 }

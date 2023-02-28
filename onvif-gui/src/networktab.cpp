@@ -62,13 +62,18 @@ NetworkTab::NetworkTab(QWidget *parent)
     connect(textDNS, SIGNAL(textChanged(const QString &)), this, SLOT(onTextChanged(const QString &)));
     connect(textSubnetMask, SIGNAL(textChanged(const QString &)), this, SLOT(onTextChanged(const QString &)));
 
-    updater = new NetworkUpdater(cameraPanel);
-    connect(updater, SIGNAL(done()), this, SLOT(doneUpdating()));
+    //updater = new NetworkUpdater(cameraPanel);
+    //connect(updater, SIGNAL(done()), this, SLOT(doneUpdating()));
+
+    connect(this, SIGNAL
+    (updateFinished()), this, SLOT(onUpdateFinished()));
 }
 
 void NetworkTab::update()
 {
-    onvif::Data onvif_data = CP->devices[CP->currentDataRow];
+    OnvifData* onvif_data = CP->devices[CP->currentDataRow];
+
+    //onvif::Data onvif_data = CP->devices[CP->currentDataRow];
     onvif_data->dhcp_enabled = checkDHCP->isChecked();
     QString ip_address = textIPAddress->text();
     strncpy(onvif_data->ip_address_buf, ip_address.toLatin1(), ip_address.length());
@@ -81,7 +86,30 @@ void NetworkTab::update()
     onvif_data->dns_buf[dns.length()] = '\0';
     onvif_data->prefix_length = mask2prefix(textSubnetMask->text().toLatin1().data());
 
-    QThreadPool::globalInstance()->tryStart(updater);
+    //QThreadPool::globalInstance()->tryStart(updater);
+    onvif::Manager onvifBoss;
+    onvifBoss.startUpdateNetwork(CP->devices[CP->currentDataRow],
+                            [&](const onvif::Data& onvif_data) { updated(onvif_data); });
+
+    CP->btnApply->setEnabled(false);
+    CP->cameraList->setEnabled(false);
+    setActive(false);
+
+    std::cout << "NetworkTab::update" << std::endl;
+}
+
+void NetworkTab::updated(const onvif::Data& onvif_data)
+{
+    CP->devices[CP->currentDataRow] = onvif_data;
+    emit updateFinished();
+    std::cout << "network update finished" << std::endl;
+}
+
+void NetworkTab::onUpdateFinished()
+{
+    initialize();
+    CP->cameraList->setEnabled(true);
+    setActive(true);
 }
 
 void NetworkTab::clear()

@@ -27,7 +27,6 @@
 #include "networktab.h"
 #include "ptztab.h"
 #include "admintab.h"
-#include "onvifmanager.h"
 #include "logindialog.h"
 
 #include <QObject>
@@ -85,7 +84,7 @@ public:
     void discoverFinished();
     bool getCredential(onvif::Data&);
     void getData(onvif::Data&);
-    void fillData(onvif::Data&, int);
+    void fillData(const onvif::Data&);
     int currentStreamingRow = -1;
     int currentDataRow = -1;
 
@@ -97,7 +96,6 @@ signals:
     void enableDiscoverButton();
 
 public slots:
-    void fillData();
     void showData();
     void btnApplyClicked();
     void btnDiscoverClicked();

@@ -76,16 +76,55 @@ public:
         return data;
     }
 
+    OnvifData* data;
+
     bool isValid() const { return data ? true : false; }    
 
-    std::string stream_uri() { return data->stream_uri; } const
-    void setStreamUri(const std::string& arg) { strncpy(data->stream_uri, arg.c_str(), arg.length()); }
     std::string username() { return data->username; } const
     void setUsername(const std::string& arg) { strncpy(data->username, arg.c_str(), arg.length()); }
     std::string password() { return data->password; } const
     void setPassword(const std::string& arg) { strncpy(data->password, arg.c_str(), arg.length()); }
 
-    OnvifData* data;
+    std::string xaddrs() { return data->xaddrs; } const
+    std::string stream_uri() { return data->stream_uri; } const
+    std::string serial_number() { return data->serial_number; } const
+    std::string camera_name() { return data->camera_name; } const
+
+    //VIDEO
+    std::string resolutions_buf(int arg) { return data->resolutions_buf[arg]; }
+    int width() { return data->width; }
+    int height() { return data->height; }
+    int frame_rate_max() { return data->frame_rate_max; }
+    int frame_rate_min() { return data->frame_rate_min; }
+    int frame_rate() { return data->frame_rate; }
+    int gov_length_max() { return data->gov_length_max; }
+    int gov_length_min() { return data->gov_length_min; }
+    int gov_length() { return data->gov_length; }
+    int bitrate_max() { return data->bitrate_max; }
+    int bitrate_min() { return data->bitrate_min; }
+    int bitrate() { return data->bitrate; }
+
+    //IMAGE
+    int brightness_max() { return data->brightness_max; }
+    int brightness_min() { return data->brightness_min; }
+    int brightness() { return data->brightness; }
+    int saturation_max() { return data->saturation_max; }
+    int saturation_min() { return data->saturation_min; }
+    int saturation() { return data->saturation; }
+    int contrast_max() { return data->contrast_max; }
+    int contrast_min() { return data->contrast_min; }
+    int contrast() { return data->contrast; }
+    int sharpness_max() { return data->sharpness_max; }
+    int sharpness_min() { return data->sharpness_min; }
+    int sharpness() { return data->sharpness; }
+
+    //NETWORK
+    bool dhcp_enabled() { return data->dhcp_enabled; }
+    std::string ip_address_buf() { return data->ip_address_buf; } const
+    std::string default_gateway_buf() { return data->default_gateway_buf; } const
+    std::string dns_buf() { return data->dns_buf; } const
+    int prefix_length() { return data->prefix_length; }
+
 
 };
 
@@ -120,70 +159,33 @@ public:
     Manager();
     ~Manager();
 
-    int quack = 0;
+    std::function<void()> discovered = nullptr;
+    std::function<Data(Data&)> getCredential = nullptr;
+    std::function<void(Data&)> getData = nullptr;
+    std::function<void(Data&)> filled = nullptr;
 
-    std::function<void()> finished = nullptr;
+    void pyDiscover();
+    void startPyDiscover();
 
-    void test();
-    void startTest();
-    void puke();
+    void pySet();
+    void startPySet();
 
+    void pySetPreset();
+    void startPySetPreset();
 
+    void pyFill();
+    void startPyFill();
 
+    void pyMove();
+    void startPyMove();
 
+    void pyStop();
+    void startPyStop();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Data onvif_data;
+    int preset;
+    int stop_type;
+    float x, y, z;
 
     static void discover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
     void startDiscover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);

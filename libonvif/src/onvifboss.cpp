@@ -4,14 +4,6 @@
 namespace onvif
 {
 
-static void tranq(Manager* mgr)
-{
-    std::cout << "tranq: " << mgr->quack << std::endl;
-    //mgr->callback();
-    mgr->quack = 1;
-    std::cout << "fuck me: " << mgr->quack << std::endl;
-}
-
 Manager::Manager()
 {
 
@@ -22,85 +14,118 @@ Manager::~Manager()
 
 }
 
-void Manager::startTest()
+void Manager::startPyStop()
 {
-    std::cout << "startTest: " << std::endl;
-    std::thread thread([&]() { test(); });
+    std::cout << "startPyStop" << std::endl;
+    std::thread thread([&]() { pyStop(); });
     thread.detach();
 }
 
-void Manager::test()
+void Manager::pyStop()
 {
-    std::cout << "Manager::test A" << std::endl;
-    finished();
-    std::cout << "Manager::test B" << std::endl;
+    std::cout << "pyStop" << std::endl;
+    moveStop(stop_type, onvif_data.data);
 }
 
-void Manager::puke()
+void Manager::startPyMove()
 {
-    std::cout << "puke" << std::endl;
+    std::cout << "startPyMove" << std::endl;
+    std::thread thread([&]() { pyMove(); });
+    thread.detach();
 }
 
+void Manager::pyMove()
+{
+    std::cout << "pyMove" << std::endl;
+    continuousMove(x, y, z, onvif_data.data);
+}
 
+void Manager::startPySet()
+{
+    std::cout << "startPySet" << std::endl;
+    std::thread thread([&]() { pySet(); });
+    thread.detach();
+}
 
+void Manager::pySet()
+{
+    std::cout << "pySet" << std::endl;
+    char pos[128] = {0};
+    sprintf(pos, "%d", preset);
+    gotoPreset(pos, onvif_data.data);
+}
 
+void Manager::startPySetPreset()
+{
+    std::cout << "startPySetPreset()" << std::endl;
+    char pos[128] = {0};
+    sprintf(pos, "%d", preset);
+    setPreset(pos, onvif_data.data);
+}
 
+void Manager::startPyFill()
+{
+    std::cout << "startPyFill" << std::endl;
+    std::thread thread([&]() { pyFill(); });
+    thread.detach();
+}
 
+void Manager::pyFill()
+{
+    std::cout << "PyFill start" << std::endl;
+    getCapabilities(onvif_data.data);
+    getNetworkInterfaces(onvif_data.data);
+    getNetworkDefaultGateway(onvif_data.data);
+    getDNS(onvif_data.data);
+    getVideoEncoderConfigurationOptions(onvif_data.data);
+    getVideoEncoderConfiguration(onvif_data.data);
+    getOptions(onvif_data.data);
+    getImagingSettings(onvif_data.data);
+    std::cout << "PyFill mid: " << onvif_data.data->serial_number << std::endl;
+    filled(onvif_data);
+    std::cout << "PyFill finish" << std::endl;
+}
 
+void Manager::startPyDiscover()
+{
+    std::cout << "startPyDiscover: " << std::endl;
+    std::thread thread([&]() { pyDiscover(); });
+    thread.detach();
+}
 
+void Manager::pyDiscover()
+{
+    Session session;
+    int number_of_devices = broadcast(session);
+    std::cout << "n: " << number_of_devices << std::endl;
 
+    for (int i = 0; i < number_of_devices; i++) {
+        Data data;
+        if (prepareOnvifData(i, session, data)) {
+            std::cout << "recvd data: " << data.data->xaddrs << std::endl;
+            //std::string username = "admin";
+            //strncpy(data.data->username, username.c_str(), username.length() );
+            data = getCredential(data);
+            std::cout << "recvd username: " << data.data->username << std::endl;
+            std::cout << "recvd password: " << data.data->password << std::endl;
+            while (true) {
+                if (getCredential(data)) {
+                    if (fillRTSP(data) == 0) {
+                        getProfile(data);
+                        getDeviceInformation(data);
+                        getData(data);
+                        break;
+                    }
+                } 
+                else {
+                    break;
+                }
+            }
+        }
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    discovered();
+}
 
 void Manager::startDiscover(std::function<void()> discoverFinished, 
                         std::function<bool(Data&)>getCredential, std::function<void(Data&)> getData)

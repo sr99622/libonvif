@@ -16,44 +16,33 @@ class PTZTab(QWidget):
         self.mw = mw
 
         self.btn1 = QPushButton("1")
-        self.btn1.setMaximumWidth(50)
         self.btn1.pressed.connect(lambda val=1: self.presetButtonClicked(val))
         self.btn2 = QPushButton("2")
-        self.btn2.setMaximumWidth(50)
         self.btn2.pressed.connect(lambda val=2: self.presetButtonClicked(val))
         self.btn3 = QPushButton("3")
-        self.btn3.setMaximumWidth(50)
         self.btn3.pressed.connect(lambda val=3: self.presetButtonClicked(val))
         self.btn4 = QPushButton("4")
-        self.btn4.setMaximumWidth(50)
         self.btn4.pressed.connect(lambda val=4: self.presetButtonClicked(val))
         self.btn5 = QPushButton("5")
-        self.btn5.setMaximumWidth(50)
         self.btn5.pressed.connect(lambda val=5: self.presetButtonClicked(val))
 
         self.btnLeft = QPushButton("<")
-        self.btnLeft.setMaximumWidth(50)
         self.btnLeft.pressed.connect(   lambda x=-0.5, y=0.0,  z=0.0 : self.move(x, y, z))
         self.btnLeft.released.connect(self.stopPanTilt)
         self.btnRight = QPushButton(">")
-        self.btnRight.setMaximumWidth(50)
         self.btnRight.pressed.connect(  lambda x=0.5,  y=0.0,  z=0.0 : self.move(x, y, z))
         self.btnRight.released.connect(self.stopPanTilt)
         self.btnUp = QPushButton("^")
-        self.btnUp.setMaximumWidth(50)
         self.btnUp.pressed.connect(     lambda x=0.0,  y=0.5,  z=0.0 : self.move(x, y, z))
         self.btnUp.released.connect(self.stopPanTilt)
         self.btnDown = QPushButton("v")
-        self.btnDown.setMaximumWidth(50)
         self.btnDown.pressed.connect(   lambda x=0.0,  y=-0.5, z=0.0 : self.move(x, y, z))
         self.btnDown.released.connect(self.stopPanTilt)
         self.btnZoomIn = QPushButton("+")
-        self.btnZoomIn.setMaximumWidth(50)
-        self.btnZoomIn.pressed.connect( lambda x=0.0, y=0.0,  z=0.5 : self.move(x, y, z))
+        self.btnZoomIn.pressed.connect( lambda x=0.0,  y=0.0,  z=0.5 : self.move(x, y, z))
         self.btnZoomIn.released.connect(self.stopZoom)
         self.btnZoomOut = QPushButton("-")
-        self.btnZoomOut.setMaximumWidth(50)
-        self.btnZoomOut.pressed.connect(lambda x=0.0, y=0.0, z=-0.5 : self.move(x, y, z))
+        self.btnZoomOut.pressed.connect(lambda x=0.0,  y=0.0, z=-0.5 : self.move(x, y, z))
         self.btnZoomOut.released.connect(self.stopZoom)
 
         self.chkSet = QCheckBox("Set Preset Position")
@@ -69,13 +58,13 @@ class PTZTab(QWidget):
         lytMain.addWidget(self.btnUp,      0, 3, 1, 1)
         lytMain.addWidget(self.btnDown,    2, 3, 1, 1)
         lytMain.addWidget(self.btnRight,   1, 4, 1, 1)
+
         lytMain.addWidget(self.btnZoomOut, 4, 4, 1, 1)
         lytMain.addWidget(self.btnZoomIn,  3, 4, 1, 1)
 
         lytMain.addWidget(self.chkSet,     4, 1, 1, 3)
 
     def presetButtonClicked(self, n):
-        print("current row", self.mw.lstCamera.currentRow())
         row = self.mw.lstCamera.currentRow()
         if row > -1:
             if self.chkSet.isChecked():
@@ -89,10 +78,8 @@ class PTZTab(QWidget):
                 onvifBoss.onvif_data = self.mw.devices[row]
                 onvifBoss.preset = n
                 onvifBoss.startPySet()
-        print("preset button clicked", n)
 
     def move(self, x, y, z):
-        print("move", x, y, z)
         row = self.mw.lstCamera.currentRow()
         if row > -1:
             onvifBoss = onvif.Manager()
@@ -103,7 +90,6 @@ class PTZTab(QWidget):
             onvifBoss.startPyMove()
 
     def stopPanTilt(self):
-        print("stopPanTilt")
         row = self.mw.lstCamera.currentRow()
         if row > -1:
             onvifBoss = onvif.Manager()
@@ -112,10 +98,12 @@ class PTZTab(QWidget):
             onvifBoss.startPyStop()
 
     def stopZoom(self):
-        print("stopZoom")
         row = self.mw.lstCamera.currentRow()
         if row > -1:
             onvifBoss = onvif.Manager()
             onvifBoss.onvif_data = self.mw.devices[row]
             onvifBoss.stop_type = 1
             onvifBoss.startPyStop()
+
+    def fill(self, onvif_data):
+        self.setEnabled(True)

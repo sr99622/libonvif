@@ -4,16 +4,17 @@ import numpy as np
 import cv2
 from time import sleep
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, \
-QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
+QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QSplitter, \
 QTabWidget
-from PyQt6.QtCore import Qt, pyqtSignal, QObject
-from videotab import VideoTab
-from imagetab import ImageTab
-from networktab import NetworkTab
-from ptztab import PTZTab
+from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings
+from camerapanel import CameraPanel
+from settingspanel import SettingsPanel
+from glwidget import GLWidget
 
 sys.path.append("../build/libonvif")
 import onvif
+sys.path.append("../build/libavio")
+import avio
 
 class Signals(QObject):
     fill = pyqtSignal(onvif.Data)
@@ -21,81 +22,72 @@ class Signals(QObject):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.boss = onvif.Manager()
-        self.devices = []
 
-        self.btnDiscover = QPushButton("discover")
-        self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
+        self.settings = QSettings()
 
-        self.btnFill = QPushButton("fill")
-        self.btnFill.clicked.connect(self.btnFillClicked)
+        self.player = avio.Player()
+        self.playing = False
 
-        self.lstCamera = QListWidget()
+        self.tab = QTabWidget()
+        self.cameraPanel = CameraPanel(self)
+        self.settingsPanel = SettingsPanel(self)
+        self.tab.addTab(self.cameraPanel, "Cameras")
+        self.tab.addTab(self.settingsPanel, "Settings")
+        self.glWidget = GLWidget()
+        split = QSplitter()
+        split.addWidget(self.glWidget)
+        split.addWidget(self.tab)
+        split.setStretchFactor(0, 4)
+        self.setCentralWidget(split)
 
-        self.tabOnvif = QTabWidget()
-        self.tabVideo = VideoTab()
-        self.tabImage = ImageTab()
-        self.tabNetwork = NetworkTab()
-        self.ptzTab = PTZTab(self)
-        self.tabOnvif.addTab(self.tabVideo, "Video")
-        self.tabOnvif.addTab(self.tabImage, "Image")
-        self.tabOnvif.addTab(self.tabNetwork, "Network")
-        self.tabOnvif.addTab(self.ptzTab, "PTZ")
+        if self.settingsPanel.chkAutoDiscover.isChecked():
+            self.cameraPanel.btnDiscoverClicked()
 
-        self.signals = Signals()
-        self.signals.fill.connect(self.tabVideo.fill)
-        self.signals.fill.connect(self.tabImage.fill)
-        self.signals.fill.connect(self.tabNetwork.fill)
+    def playMedia(self, uri):
+        print("main window play", uri)
+        self.stopMedia()
+        self.player = avio.Player()
+        self.player.uri = uri
+        self.player.width = lambda : self.glWidget.width()
+        self.player.height = lambda : self.glWidget.height()
+        #self.player.progressCallback = lambda f : self.progressCallback(f)
+        #self.player.hWnd = self.glWidget.winId()
+        self.player.video_filter = "format=rgb24"
+        self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
+        #self.player.pythonCallback = lambda F : self.pythonCallback(F)
+        self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
+        self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
+        self.player.errorCallback = lambda s : self.errorCallback(s)
+        self.player.infoCallback = lambda s : self.infoCallback(s)
+        #self.player.setVolume(self.sldVolume.value())
+        #self.player.setMute(self.mute)
+        #self.player.disable_video = True
+        #self.player.hw_device_type = avio.AV_HWDEVICE_TYPE_CUDA
+        self.player.start()
+        self.cameraPanel.setEnabled(False)
+        print("oops")
 
-        pnlMain = QWidget()
-        lytMain = QGridLayout(pnlMain)
-        lytMain.addWidget(self.lstCamera,   0, 0, 1, 4)
-        lytMain.addWidget(self.tabOnvif,    1, 0, 1, 4)
-        lytMain.addWidget(self.btnDiscover, 2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.btnFill,     2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.setRowStretch(0, 10)
-        self.setCentralWidget(pnlMain)
+    def stopMedia(self):
+        print("stopMedia")
+        self.player.running = False
+        while self.playing:
+            sleep(0.01)
 
-    def btnFillClicked(self):
-        print("btnFillClicked")
-        print("current row", self.lstCamera.currentRow())
-        print("devices length", len(self.devices))
-        self.boss.onvif_data = self.devices[self.lstCamera.currentRow()]
-        self.boss.filled = lambda D : self.filled(D)
-        self.boss.startPyFill()
+    def mediaPlayingStarted(self, n):
+        print("mediaPlayingStarted", n)
+        self.playing = True
+        self.cameraPanel.setEnabled(True)
+        self.cameraPanel.lstCamera.setFocus()
 
-    def btnDiscoverClicked(self):
-        print("btnDiscoverClicked")
-        self.boss.discovered = lambda : self.discovered()
-        self.boss.getCredential = lambda D : self.getCredential(D)
-        self.boss.getData = lambda D : self.getData(D)
-        self.boss.startPyDiscover()
+    def mediaPlayingStopped(self):
+        print("mediaPlayingStopped")
+        self.playing = False
 
-    def filled(self, D):
-        print("filled", D.resolutions_buf(0))
-        i = 0
-        while len(D.resolutions_buf(i)) > 0:
-            print("res", D.resolutions_buf(i))
-            i += 1
-        print("res print done")
-        #self.tabVideo.fill(D)
-        self.signals.fill.emit(D)
+    def infoCallback(self, s):
+        print("info", s)
 
-    def discovered(self):
-        print("python discovered")
-
-    def getCredential(self, D):
-        print("getCredential", D.xaddrs())
-        D.setUsername("admin")
-        D.setPassword("admin123")
-        return D
-    
-    def getData(self, D):
-        print("stream_uri", D.stream_uri())
-        print("width", D.width())
-        print("height", D.height())
-        self.devices.append(D)
-        self.lstCamera.addItem(D.camera_name())
+    def errorCallback(self, s):
+        print("error", s)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

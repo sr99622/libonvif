@@ -11,8 +11,9 @@ sys.path.append("../build/libonvif")
 import onvif
 
 class NetworkTab(QWidget):
-    def __init__(self):
+    def __init__(self, mw):
         super().__init__()
+        self.mw = mw
 
         self.chkDHCP = QCheckBox("DHCP enabled")
         self.txtIPAddress = QLineEdit()
@@ -35,8 +36,9 @@ class NetworkTab(QWidget):
         lytMain.addWidget(lblDNS,                 4, 0, 1, 1)
         lytMain.addWidget(self.txtDNS,            4, 1, 1, 1)
 
-    def fill(self, D):
-        self.chkDHCP.setChecked(D.dhcp_enabled())
-        self.txtIPAddress.setText(D.ip_address_buf())
-        self.txtDefaultGateway.setText(D.default_gateway_buf())
-        self.txtDNS.setText(D.dns_buf())
+    def fill(self, onvif_data):
+        self.chkDHCP.setChecked(onvif_data.dhcp_enabled())
+        self.txtIPAddress.setText(onvif_data.ip_address_buf())
+        self.txtDefaultGateway.setText(onvif_data.default_gateway_buf())
+        self.txtDNS.setText(onvif_data.dns_buf())
+        self.setEnabled(True)

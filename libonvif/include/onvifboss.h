@@ -29,12 +29,16 @@ public:
     {
         data = (OnvifData*)calloc(sizeof(OnvifData), 1);
         copyData(data, other.data);
+        cancelled = other.cancelled;
+        filled = other.filled;
     }
 
     Data(Data&& other) noexcept
     {
         data = other.data;
         other.data = nullptr;
+        cancelled = other.cancelled;
+        filled = other.filled;
     }
 
     Data& operator=(const Data& other)
@@ -42,6 +46,8 @@ public:
         if (data) free(data);
         data = (OnvifData*)calloc(sizeof(OnvifData), 1);
         copyData(data, other.data);
+        cancelled = other.cancelled;
+        filled = other.filled;
         return *this;
     }
 
@@ -49,16 +55,50 @@ public:
     {
         if (data) free(data);
         data = other.data;
+        cancelled = other.cancelled;
+        filled = other.filled;
         other.data = nullptr;
         return *this;
     }
 
-    bool operator==(const Data& other)
+    bool operator==(const Data& rhs)
     {
-        if (strcmp(data->xaddrs, other.data->xaddrs))
+        if (strcmp(data->xaddrs, rhs.data->xaddrs)) {
             return false;
-        else
+        }
+        else {
             return true;
+        }
+    }
+
+    bool operator!=(const Data& rhs)
+    {
+        if (strcmp(data->xaddrs, rhs.data->xaddrs)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    bool friend operator==(const Data& lhs, const Data& rhs)
+    {
+        if (strcmp(lhs.data->xaddrs, rhs.data->xaddrs)) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    bool friend operator!=(const Data& lhs, const Data& rhs)
+    {
+        if (strcmp(lhs.data->xaddrs, rhs.data->xaddrs)) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     ~Data() 
@@ -77,18 +117,28 @@ public:
     }
 
     OnvifData* data;
+    bool cancelled = false;
+    bool filled = false;
 
-    bool isValid() const { return data ? true : false; }    
+    bool isValid() const { return data ? true : false; }
 
     std::string username() { return data->username; } const
-    void setUsername(const std::string& arg) { strncpy(data->username, arg.c_str(), arg.length()); }
+    void setUsername(const std::string& arg) { 
+        memset(data->username, 0, 128);
+        strncpy(data->username, arg.c_str(), arg.length()); 
+    }
+
     std::string password() { return data->password; } const
-    void setPassword(const std::string& arg) { strncpy(data->password, arg.c_str(), arg.length()); }
+    void setPassword(const std::string& arg) { 
+        memset(data->password, 0, 128);
+        strncpy(data->password, arg.c_str(), arg.length()); 
+    }
 
     std::string xaddrs() { return data->xaddrs; } const
     std::string stream_uri() { return data->stream_uri; } const
     std::string serial_number() { return data->serial_number; } const
     std::string camera_name() { return data->camera_name; } const
+    std::string host() { return data->host; } const
 
     //VIDEO
     std::string resolutions_buf(int arg) { return data->resolutions_buf[arg]; }

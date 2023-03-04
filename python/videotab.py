@@ -16,8 +16,9 @@ class SpinBox(QSpinBox):
         self.setLineEdit(qle)
 
 class VideoTab(QWidget):
-    def __init__(self):
+    def __init__(self, mw):
         super().__init__()
+        self.mw = mw
         self.cmbResolutions = QComboBox()
         lblResolutions = QLabel("Resolution")
 
@@ -43,23 +44,27 @@ class VideoTab(QWidget):
         lytMain.addWidget(lblBitrate,          3, 0, 1, 1)
         lytMain.addWidget(self.spnBitrate,     3, 1, 1, 1)
 
-    def fill(self, D):
-        print("video tab fill", D.resolutions_buf(0))
+    def fill(self, onvif_data):
         self.cmbResolutions.clear()
         i = 0
-        while len(D.resolutions_buf(i)) > 0:
-            self.cmbResolutions.addItem(D.resolutions_buf(i))
+        while len(onvif_data.resolutions_buf(i)) > 0:
+            self.cmbResolutions.addItem(onvif_data.resolutions_buf(i))
             i += 1
 
-        self.spnFrameRate.setMaximum(D.frame_rate_max())
-        self.spnFrameRate.setMinimum(D.frame_rate_min())
-        self.spnFrameRate.setValue(D.frame_rate())
+        current_resolution = str(onvif_data.width()) + " x " + str(onvif_data.height())
+        self.cmbResolutions.setCurrentText(current_resolution)
 
-        self.spnGovLength.setMaximum(D.gov_length_max())
-        self.spnGovLength.setMinimum(D.gov_length_min())
-        self.spnGovLength.setValue(D.gov_length())
+        self.spnFrameRate.setMaximum(onvif_data.frame_rate_max())
+        self.spnFrameRate.setMinimum(onvif_data.frame_rate_min())
+        self.spnFrameRate.setValue(onvif_data.frame_rate())
 
-        self.spnBitrate.setMaximum(D.bitrate_max())
-        self.spnBitrate.setMinimum(D.bitrate_min())
-        self.spnBitrate.setValue(D.bitrate())
+        self.spnGovLength.setMaximum(onvif_data.gov_length_max())
+        self.spnGovLength.setMinimum(onvif_data.gov_length_min())
+        self.spnGovLength.setValue(onvif_data.gov_length())
+
+        self.spnBitrate.setMaximum(onvif_data.bitrate_max())
+        self.spnBitrate.setMinimum(onvif_data.bitrate_min())
+        self.spnBitrate.setValue(onvif_data.bitrate())
+
+        self.setEnabled(True)
 

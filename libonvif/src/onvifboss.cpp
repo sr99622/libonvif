@@ -72,7 +72,6 @@ void Manager::startPyFill()
 
 void Manager::pyFill()
 {
-    std::cout << "PyFill start" << std::endl;
     getCapabilities(onvif_data.data);
     getNetworkInterfaces(onvif_data.data);
     getNetworkDefaultGateway(onvif_data.data);
@@ -81,9 +80,8 @@ void Manager::pyFill()
     getVideoEncoderConfiguration(onvif_data.data);
     getOptions(onvif_data.data);
     getImagingSettings(onvif_data.data);
-    std::cout << "PyFill mid: " << onvif_data.data->serial_number << std::endl;
+    onvif_data.filled = true;
     filled(onvif_data);
-    std::cout << "PyFill finish" << std::endl;
 }
 
 void Manager::startPyDiscover()
@@ -97,28 +95,26 @@ void Manager::pyDiscover()
 {
     Session session;
     int number_of_devices = broadcast(session);
-    std::cout << "n: " << number_of_devices << std::endl;
+    std::vector<Data> devices;
 
     for (int i = 0; i < number_of_devices; i++) {
         Data data;
         if (prepareOnvifData(i, session, data)) {
-            std::cout << "recvd data: " << data.data->xaddrs << std::endl;
-            //std::string username = "admin";
-            //strncpy(data.data->username, username.c_str(), username.length() );
-            data = getCredential(data);
-            std::cout << "recvd username: " << data.data->username << std::endl;
-            std::cout << "recvd password: " << data.data->password << std::endl;
-            while (true) {
-                if (getCredential(data)) {
-                    if (fillRTSP(data) == 0) {
-                        getProfile(data);
-                        getDeviceInformation(data);
-                        getData(data);
+            if (std::find(devices.begin(), devices.end(), data) == devices.end()) {
+                devices.push_back(data);
+                while (true) {
+                    data = getCredential(data);
+                    if (!data.cancelled) {
+                        if (fillRTSP(data) == 0) {
+                            getProfile(data);
+                            getDeviceInformation(data);
+                            getData(data);
+                            break;
+                        }
+                    } 
+                    else {
                         break;
                     }
-                } 
-                else {
-                    break;
                 }
             }
         }

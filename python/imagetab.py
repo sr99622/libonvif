@@ -11,8 +11,9 @@ sys.path.append("../build/libonvif")
 import onvif
 
 class ImageTab(QWidget):
-    def __init__(self):
+    def __init__(self, mw):
         super().__init__()
+        self.mw = mw
 
         self.sldBrightness = QSlider(Qt.Orientation.Horizontal)
         self.sldSaturation = QSlider(Qt.Orientation.Horizontal)
@@ -34,17 +35,18 @@ class ImageTab(QWidget):
         lytMain.addWidget(lblSharpness,       3, 0, 1, 1)
         lytMain.addWidget(self.sldSharpness,  3, 1, 1, 1)        
         
-    def fill(self, D):
-        self.sldBrightness.setMaximum(D.brightness_max())
-        self.sldBrightness.setMinimum(D.brightness_min())
-        self.sldBrightness.setValue(D.brightness())
-        self.sldContrast.setMaximum(D.contrast_max())
-        self.sldContrast.setMinimum(D.contrast_min())
-        self.sldContrast.setValue(D.contrast())
-        self.sldSaturation.setMaximum(D.saturation_max())
-        self.sldSaturation.setMinimum(D.saturation_min())
-        self.sldSaturation.setValue(D.saturation())
-        self.sldSharpness.setMaximum(D.sharpness_max())
-        self.sldSharpness.setMinimum(D.sharpness_min())
-        self.sldSharpness.setValue(D.sharpness())
+    def fill(self, onvif_data):
+        self.sldBrightness.setMaximum(onvif_data.brightness_max())
+        self.sldBrightness.setMinimum(onvif_data.brightness_min())
+        self.sldBrightness.setValue(onvif_data.brightness())
+        self.sldContrast.setMaximum(onvif_data.contrast_max())
+        self.sldContrast.setMinimum(onvif_data.contrast_min())
+        self.sldContrast.setValue(onvif_data.contrast())
+        self.sldSaturation.setMaximum(onvif_data.saturation_max())
+        self.sldSaturation.setMinimum(onvif_data.saturation_min())
+        self.sldSaturation.setValue(onvif_data.saturation())
+        self.sldSharpness.setMaximum(onvif_data.sharpness_max())
+        self.sldSharpness.setMinimum(onvif_data.sharpness_min())
+        self.sldSharpness.setValue(onvif_data.sharpness())
+        self.setEnabled(True)
         

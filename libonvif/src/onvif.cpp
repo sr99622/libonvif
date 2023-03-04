@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/operators.h>
 #include <pybind11/functional.h>
 #include "onvifboss.h"
 
@@ -36,6 +37,7 @@ PYBIND11_MODULE(onvif, m)
         .def("stream_uri", &Data::stream_uri)
         .def("serial_number", &Data::serial_number)
         .def("camera_name", &Data::camera_name)
+        .def("host", &Data::host)
         .def("resolutions_buf", &Data::resolutions_buf)
         .def("width", &Data::width)
         .def("height", &Data::height)
@@ -68,7 +70,10 @@ PYBIND11_MODULE(onvif, m)
         .def("username", &Data::username)
         .def("setUsername", &Data::setUsername)
         .def("password", &Data::password)
-        .def("setPassword", &Data::setPassword);
+        .def("setPassword", &Data::setPassword)
+        .def(py::self == py::self)
+        .def_readwrite("filled", &Data::filled)
+        .def_readwrite("cancelled", &Data::cancelled);
 
     m.attr("__version__") = "dev-00";
 }

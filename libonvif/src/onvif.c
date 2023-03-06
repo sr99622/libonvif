@@ -2713,6 +2713,7 @@ void clearData(struct OnvifData *onvif_data) {
     	onvif_data->ntp_type[i] = '\0';
     	onvif_data->ntp_addr[i] = '\0';
         onvif_data->host[i] = '\0';
+        onvif_data->serial_number[i] = '\0';
     }
     for (int i=0; i<1024; i++) {
         onvif_data->xaddrs[i] = '\0';
@@ -2797,6 +2798,7 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
     	dst->ntp_type[i] = src->ntp_type[i];
     	dst->ntp_addr[i] = src->ntp_addr[i];
         dst->host[i] = src->host[i];
+        dst->serial_number[i] = src->serial_number[i];
     }
     for (int i=0; i<1024; i++) {
         dst->xaddrs[i] = src->xaddrs[i];
@@ -2804,6 +2806,7 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
         dst->stream_uri[i] = src->stream_uri[i];
         dst->camera_name[i] = src->camera_name[i];
         dst->host_name[i] = src->host_name[i];
+        dst->last_error[i] = src->last_error[i];
     }
     dst->gov_length_min = src->gov_length_min;
     dst->gov_length_max = src->gov_length_max;

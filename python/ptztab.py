@@ -11,9 +11,9 @@ sys.path.append("../build/libonvif")
 import onvif
 
 class PTZTab(QWidget):
-    def __init__(self, mw):
+    def __init__(self, cp):
         super().__init__()
-        self.mw = mw
+        self.cp = cp
 
         self.btn1 = QPushButton("1")
         self.btn1.pressed.connect(lambda val=1: self.presetButtonClicked(val))
@@ -65,43 +65,43 @@ class PTZTab(QWidget):
         lytMain.addWidget(self.chkSet,     4, 1, 1, 3)
 
     def presetButtonClicked(self, n):
-        row = self.mw.lstCamera.currentRow()
+        row = self.cp.lstCamera.currentRow()
         if row > -1:
             if self.chkSet.isChecked():
-                print(self.mw.devices[row].stream_uri())
+                print(self.cp.devices[row].stream_uri())
                 onvifBoss = onvif.Manager()
-                onvifBoss.onvif_data = self.mw.devices[row]
+                onvifBoss.onvif_data = self.cp.devices[row]
                 onvifBoss.preset = n
                 onvifBoss.startPySetPreset()
             else:
                 onvifBoss = onvif.Manager()
-                onvifBoss.onvif_data = self.mw.devices[row]
+                onvifBoss.onvif_data = self.cp.devices[row]
                 onvifBoss.preset = n
                 onvifBoss.startPySet()
 
     def move(self, x, y, z):
-        row = self.mw.lstCamera.currentRow()
+        row = self.cp.lstCamera.currentRow()
         if row > -1:
             onvifBoss = onvif.Manager()
-            onvifBoss.onvif_data = self.mw.devices[row]
+            onvifBoss.onvif_data = self.cp.devices[row]
             onvifBoss.x = x
             onvifBoss.y = y
             onvifBoss.z = z
             onvifBoss.startPyMove()
 
     def stopPanTilt(self):
-        row = self.mw.lstCamera.currentRow()
+        row = self.cp.lstCamera.currentRow()
         if row > -1:
             onvifBoss = onvif.Manager()
-            onvifBoss.onvif_data = self.mw.devices[row]
+            onvifBoss.onvif_data = self.cp.devices[row]
             onvifBoss.stop_type = 0
             onvifBoss.startPyStop()
 
     def stopZoom(self):
-        row = self.mw.lstCamera.currentRow()
+        row = self.cp.lstCamera.currentRow()
         if row > -1:
             onvifBoss = onvif.Manager()
-            onvifBoss.onvif_data = self.mw.devices[row]
+            onvifBoss.onvif_data = self.cp.devices[row]
             onvifBoss.stop_type = 1
             onvifBoss.startPyStop()
 

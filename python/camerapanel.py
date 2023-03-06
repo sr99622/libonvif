@@ -6,7 +6,7 @@ from time import sleep
 from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
 QGridLayout, QWidget, QDialog, QLabel, QMessageBox, QListWidget, \
 QTabWidget
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QEvent
+from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings
 from videotab import VideoTab
 from imagetab import ImageTab
 from networktab import NetworkTab
@@ -47,15 +47,15 @@ class LoginDialog(QDialog):
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
-    def exec(self, D):
-        self.lblCameraName.setText(D.camera_name())
-        self.lblCameraIP.setText(D.host())
+    def exec(self, onvif_data):
+        self.lblCameraName.setText(onvif_data.camera_name())
+        self.lblCameraIP.setText(onvif_data.host())
         self.txtUsername.setText("")
         self.txtPassword.setText("")
         self.txtUsername.setFocus()
-        D.cancelled = not super().exec()
-        D.setUsername(self.txtUsername.text())
-        D.setPassword(self.txtPassword.text())
+        onvif_data.cancelled = not super().exec()
+        onvif_data.setUsername(self.txtUsername.text())
+        onvif_data.setPassword(self.txtPassword.text())
         self.active = False
 
 class CameraList(QListWidget):
@@ -71,19 +71,23 @@ class CameraList(QListWidget):
 class CameraPanel(QWidget):
     def __init__(self, mw):
         super().__init__()
-        self.boss = onvif.Manager()
         self.devices = []
         self.mw = mw
         self.dlgLogin = LoginDialog(self)
+        self.settings = QSettings("onvif", "alias")
 
-        self.btnDiscover = QPushButton("discover")
+        self.boss = onvif.Manager()
+        self.boss.discovered = lambda : self.discovered()
+        self.boss.getCredential = lambda D : self.getCredential(D)
+        self.boss.getData = lambda D : self.getData(D)
+        self.boss.filled = lambda D : self.filled(D)
+
+        self.btnDiscover = QPushButton("Discover")
         self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
 
-        self.btnFill = QPushButton("fill")
-        self.btnFill.clicked.connect(self.btnFillClicked)
-
-        self.btnTest = QPushButton("test")
-        self.btnTest.clicked.connect(self.btnTestClicked)
+        self.btnApply = QPushButton("Apply")
+        self.btnApply.clicked.connect(self.btnApplyClicked)
+        self.btnApply.setEnabled(False)
 
         self.lstCamera = CameraList()
         self.lstCamera.currentRowChanged.connect(self.onCurrentRowChanged)
@@ -112,66 +116,62 @@ class CameraPanel(QWidget):
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.lstCamera,   0, 0, 1, 4)
         lytMain.addWidget(self.tabOnvif,    1, 0, 1, 4)
-        lytMain.addWidget(self.btnDiscover, 2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.btnFill,     2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.btnTest,     2, 2, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnDiscover, 2, 2, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnApply,    2, 3, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.setRowStretch(0, 10)
 
-    def btnTestClicked(self):
-        print("btnTestClicked")
-
-    def btnFillClicked(self):
-        print("btnFillClicked")
-
     def btnDiscoverClicked(self):
-        self.boss.discovered = lambda : self.discovered()
-        self.boss.getCredential = lambda D : self.getCredential(D)
-        self.boss.getData = lambda D : self.getData(D)
         self.boss.startPyDiscover()
         self.btnDiscover.setEnabled(False)
 
     def filled(self, onvif_data):
+        if len(onvif_data.last_error()) > 0:
+            print("ERROR:", onvif_data.last_error())
         self.devices[self.lstCamera.currentRow()] = onvif_data
         self.signals.fill.emit(onvif_data)
+        self.btnApply.setEnabled(False)
 
     def discovered(self):
         print("discover finished")
         self.btnDiscover.setEnabled(True)
 
-    def getCredential(self, D):
+    def getCredential(self, onvif_data):
         for d in self.devices:
-            if d == D:
-                D.cancelled = True
-                return D
-
-        if len(self.mw.settingsPanel.txtPassword.text()) > 0:
-            D.setUsername(self.mw.settingsPanel.txtUsername.text())
-            D.setPassword(self.mw.settingsPanel.txtPassword.text())
+            if d == onvif_data:
+                onvif_data.cancelled = True
+                return onvif_data
+            
+        if len(self.mw.settingsPanel.txtPassword.text()) > 0 and \
+                len(onvif_data.last_error()) == 0:
+            onvif_data.setUsername(self.mw.settingsPanel.txtUsername.text())
+            onvif_data.setPassword(self.mw.settingsPanel.txtPassword.text())
         else:
+            onvif_data.clearLastError()
             self.dlgLogin.active = True
-            self.signals.login.emit(D)
+            self.signals.login.emit(onvif_data)
             while self.dlgLogin.active:
                 sleep(0.01)
 
-        return D
+        return onvif_data
     
     def onShowLogin(self, onvif_data):
         self.dlgLogin.exec(onvif_data)
     
     def getData(self, onvif_data):
+        onvif_data.alias = self.settings.value(onvif_data.serial_number(), onvif_data.camera_name())
         self.devices.append(onvif_data)
-        self.lstCamera.addItem(onvif_data.camera_name())
+        self.lstCamera.addItem(onvif_data.alias)
 
     def onCurrentRowChanged(self, row):
         print("row changed", row)
         onvif_data = self.devices[self.lstCamera.currentRow()]
         if onvif_data.filled:
+            self.setTabsEnabled(False)
             self.signals.fill.emit(onvif_data)
         else:
             self.boss.onvif_data = onvif_data
-            self.boss.filled = lambda D : self.filled(D)
-            self.boss.startPyFill()
             self.setTabsEnabled(False)
+            self.boss.startPyFill()
 
     def onItemDoubleClicked(self, item):
         onvif_data = self.devices[self.lstCamera.currentRow()]
@@ -185,3 +185,22 @@ class CameraPanel(QWidget):
         self.tabNetwork.setEnabled(enabled)
         self.ptzTab.setEnabled(enabled)
         self.adminTab.setEnabled(enabled)
+
+    def btnApplyClicked(self):
+        onvif_data = self.devices[self.lstCamera.currentRow()]
+        self.tabVideo.update(onvif_data)
+        self.tabImage.update(onvif_data)
+        self.tabNetwork.update(onvif_data)
+        self.adminTab.update(onvif_data)
+
+    def onEdit(self):
+        onvif_data = self.devices[self.lstCamera.currentRow()]
+        if self.tabVideo.edited(onvif_data) or \
+                self.tabImage.edited(onvif_data) or \
+                self.tabNetwork.edited(onvif_data) or \
+                self.adminTab.edited(onvif_data):
+            self.btnApply.setEnabled(True)
+        else:
+            self.btnApply.setEnabled(False)
+
+       

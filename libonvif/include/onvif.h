@@ -83,6 +83,7 @@ struct OnvifData {
     char default_gateway_buf[128];
     char dns_buf[128];
     int prefix_length;
+    char mask_buf[128];
     /*image*/
     char videoSourceConfigurationToken[128];
     int brightness_min;

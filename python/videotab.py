@@ -16,22 +16,27 @@ class SpinBox(QSpinBox):
         self.setLineEdit(qle)
 
 class VideoTab(QWidget):
-    def __init__(self, mw):
+    def __init__(self, cp):
         super().__init__()
-        self.mw = mw
+        self.cp = cp
+
         self.cmbResolutions = QComboBox()
+        self.cmbResolutions.currentTextChanged.connect(self.cp.onEdit)
         lblResolutions = QLabel("Resolution")
 
         txtFrameRate = QLineEdit()
         self.spnFrameRate = SpinBox(txtFrameRate)
+        self.spnFrameRate.textChanged.connect(self.cp.onEdit)
         lblFrameRate = QLabel("Frame Rate")
 
         txtGovLength = QLineEdit()
         self.spnGovLength = SpinBox(txtGovLength)
+        self.spnGovLength.textChanged.connect(self.cp.onEdit)
         lblGovLength = QLabel("GOP Length")
 
         txtBitrate = QLineEdit()
         self.spnBitrate = SpinBox(txtBitrate)
+        self.spnBitrate.textChanged.connect(self.cp.onEdit)
         lblBitrate = QLabel("Bitrate")
 
         lytMain = QGridLayout(self)
@@ -67,4 +72,33 @@ class VideoTab(QWidget):
         self.spnBitrate.setValue(onvif_data.bitrate())
 
         self.setEnabled(True)
+
+    def edited(self, onvif_data):
+        result = False
+        if self.isEnabled():
+            current_resolution = str(onvif_data.width()) + " x " + str(onvif_data.height())
+            if not current_resolution == self.cmbResolutions.currentText():
+                result = True
+            if not onvif_data.frame_rate() == self.spnFrameRate.value():
+                result = True
+            if not onvif_data.gov_length() == self.spnGovLength.value():
+                result = True
+            if not onvif_data.bitrate() == self.spnBitrate.value():
+                result = True
+        return result
+
+    def update(self, onvif_data):
+        if self.edited(onvif_data):
+            print("video tab update")
+            onvif_data.setFrameRate(self.spnFrameRate.value())
+            onvif_data.setGovLength(self.spnGovLength.value())
+            onvif_data.setBitrate(self.spnBitrate.value())
+            dims = self.cmbResolutions.currentText().split('x')
+            onvif_data.setWidth(int(dims[0]))
+            onvif_data.setHeight(int(dims[1]))
+            self.cp.boss.onvif_data = onvif_data
+            self.cp.boss.startPyUpdateVideo()
+
+
+
 

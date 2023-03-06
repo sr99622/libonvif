@@ -50,6 +50,8 @@ class MainWindow(QMainWindow):
         self.player.uri = uri
         self.player.width = lambda : self.glWidget.width()
         self.player.height = lambda : self.glWidget.height()
+        self.player.vpq_size = 100
+        self.player.apq_size = 100
         #self.player.progressCallback = lambda f : self.progressCallback(f)
         #self.player.hWnd = self.glWidget.winId()
         self.player.video_filter = "format=rgb24"
@@ -65,7 +67,6 @@ class MainWindow(QMainWindow):
         #self.player.hw_device_type = avio.AV_HWDEVICE_TYPE_CUDA
         self.player.start()
         self.cameraPanel.setEnabled(False)
-        print("oops")
 
     def stopMedia(self):
         print("stopMedia")

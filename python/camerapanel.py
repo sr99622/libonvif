@@ -43,6 +43,8 @@ class CameraPanel(QWidget):
         self.icnApply = QIcon("image:apply.png")
         self.icnMute = QIcon('image:mute.png')
         self.icnAudio = QIcon('image:audio.png')
+        self.icnRecord = QIcon("image:record.png")
+        self.icnRecording = QIcon("image:recording.png")
 
         self.boss = onvif.Manager()
         self.boss.discovered = lambda : self.discovered()
@@ -50,19 +52,39 @@ class CameraPanel(QWidget):
         self.boss.getData = lambda D : self.getData(D)
         self.boss.filled = lambda D : self.filled(D)
 
+        self.btnRecord = QPushButton()
+        self.btnRecord.setIcon(self.icnRecord)
+        self.btnRecord.setToolTip("Record")
+        self.btnRecord.setToolTipDuration(2000)
+        self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 2)
+        self.btnRecord.clicked.connect(self.btnRecordClicked)
+
         self.btnMute = QPushButton()
-        self.btnMute.setIcon(self.icnMute)
+        if self.mw.mute:
+            self.btnMute.setIcon(self.icnMute)
+        else:
+            self.btnMute.setIcon(self.icnAudio)
+        self.btnMute.setToolTip("Mute")
+        self.btnMute.setToolTipDuration(2000)
         self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 2)
+        self.btnMute.clicked.connect(self.btnMuteClicked)
 
         self.sldVolume = QSlider(Qt.Orientation.Horizontal)
+        self.sldVolume.setValue(self.mw.volume)
         self.sldVolume.valueChanged.connect(self.sldVolumeChanged)
 
-        self.btnDiscover = QPushButton("Discover")
+        self.btnDiscover = QPushButton()
         self.btnDiscover.setIcon(self.icnDiscover)
+        self.btnDiscover.setToolTip("Discover")
+        self.btnDiscover.setToolTipDuration(2000)
+        self.btnDiscover.setMinimumWidth(self.icnDiscover.availableSizes()[0].width() * 2)
         self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
 
-        self.btnApply = QPushButton("Apply")
+        self.btnApply = QPushButton()
         self.btnApply.setIcon(self.icnApply)
+        self.btnApply.setToolTip("Apply")
+        self.btnApply.setToolTipDuration(2000)
+        self.btnApply.setMinimumWidth(self.icnApply.availableSizes()[0].width() * 2)
         self.btnApply.clicked.connect(self.btnApplyClicked)
         self.btnApply.setEnabled(False)
         
@@ -91,12 +113,13 @@ class CameraPanel(QWidget):
         self.signals.login.connect(self.onShowLogin)
 
         lytMain = QGridLayout(self)
-        lytMain.addWidget(self.lstCamera,   0, 0, 1, 4)
-        lytMain.addWidget(self.tabOnvif,    1, 0, 1, 4)
-        lytMain.addWidget(self.btnMute,     2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.sldVolume,   2, 1, 1, 1)
-        lytMain.addWidget(self.btnDiscover, 2, 2, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.btnApply,    2, 3, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.lstCamera,   0, 0, 1, 5)
+        lytMain.addWidget(self.tabOnvif,    1, 0, 1, 5)
+        lytMain.addWidget(self.btnRecord,   2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnMute,     2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.sldVolume,   2, 2, 1, 1)
+        lytMain.addWidget(self.btnDiscover, 2, 3, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnApply,    2, 4, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.setRowStretch(0, 10)
 
     def btnDiscoverClicked(self):
@@ -192,5 +215,19 @@ class CameraPanel(QWidget):
             self.mw.setWindowTitle(self.lstCamera.currentItem().text())
 
     def sldVolumeChanged(self, value):
-        print("sldVolumeChanged", value)
+        self.mw.filePanel.control.sldVolume.setValue(value)
+        self.mw.setVolume(value)
+
+    def setBtnMute(self):
+        if self.mw.mute:
+            self.btnMute.setIcon(self.icnMute)
+        else:
+            self.btnMute.setIcon(self.icnAudio)
        
+    def btnMuteClicked(self):
+        self.mw.toggleMute()
+        self.setBtnMute()
+        self.mw.filePanel.control.setBtnMute()
+
+    def btnRecordClicked(self):
+        print("btnRecordClicked")

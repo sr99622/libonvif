@@ -5,8 +5,8 @@ import cv2
 from time import sleep
 from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
-QTabWidget, QTreeView, QFileDialog
-from PyQt6.QtGui import QFileSystemModel, QIcon
+QTabWidget, QTreeView, QFileDialog, QMenu
+from PyQt6.QtGui import QFileSystemModel, QIcon, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QStandardPaths
 from progress import Progress
 
@@ -15,7 +15,6 @@ class TreeView(QTreeView):
         super().__init__()
 
     def keyPressEvent(self, event):
-        print(event.key())
         if event.key() == Qt.Key.Key_Return:
             self.doubleClicked.emit(self.currentIndex())
         return super().keyPressEvent(event)
@@ -52,11 +51,15 @@ class FileControlPanel(QWidget):
 
         self.btnPlay = QPushButton()
         self.btnPlay.setIcon(self.icnPlay)
+        self.btnPlay.setToolTip("Play")
+        self.btnPlay.setToolTipDuration(2000)
         self.btnPlay.setMinimumWidth(self.icnPlay.availableSizes()[0].width() * 2)
         self.btnPlay.clicked.connect(self.btnPlayClicked)
         
         self.btnStop = QPushButton()
         self.btnStop.setIcon(self.icnStop)
+        self.btnStop.setToolTip("Stop")
+        self.btnStop.setToolTipDuration(2000)
         self.btnStop.setMinimumWidth(self.icnStop.availableSizes()[0].width() * 2)
         self.btnStop.clicked.connect(self.btnStopClicked)
 
@@ -64,11 +67,17 @@ class FileControlPanel(QWidget):
         spacer.setMinimumWidth(self.btnStop.minimumWidth())
         
         self.btnMute = QPushButton()
-        self.btnMute.setIcon(self.icnAudio)
+        if self.mw.mute:
+            self.btnMute.setIcon(self.icnMute)
+        else:
+            self.btnMute.setIcon(self.icnAudio)
+        self.btnMute.setToolTip("Mute")
+        self.btnMute.setToolTipDuration(2000)
         self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 2)
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
         self.sldVolume = QSlider(Qt.Orientation.Horizontal)
+        self.sldVolume.setValue(self.mw.volume)
         self.sldVolume.valueChanged.connect(self.sldVolumeChanged)
         
         lytMain =  QGridLayout(self)
@@ -96,16 +105,23 @@ class FileControlPanel(QWidget):
 
     def btnStopClicked(self):
         self.mw.stopMedia()
+        self.btnPlay.setIcon(self.icnPlay)
+        self.mw.filePanel.tree.setFocus()
 
-    def btnMuteClicked(self):
-        self.mw.toggleMute()
+    def setBtnMute(self):
         if self.mw.mute:
             self.btnMute.setIcon(self.icnMute)
         else:
             self.btnMute.setIcon(self.icnAudio)
 
+    def btnMuteClicked(self):
+        self.mw.toggleMute()
+        self.setBtnMute()
+        self.mw.cameraPanel.setBtnMute()
+
     def sldVolumeChanged(self, value):
-        print("sldVolumeChanged", value)
+        self.mw.cameraPanel.sldVolume.setValue(value)
+        self.mw.setVolume(value)
 
 class FilePanel(QWidget):
     def __init__(self, mw):
@@ -129,6 +145,9 @@ class FilePanel(QWidget):
         if not headerState is None:
             self.tree.header().restoreState(headerState)
 
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self.showContextMenu)
+
         self.progress = Progress(mw)
         self.control = FileControlPanel(mw)
 
@@ -141,6 +160,20 @@ class FilePanel(QWidget):
 
         self.dirSetter.txtDirectory.textEdited.connect(self.dirChanged)
         self.dirChanged(self.dirSetter.txtDirectory.text())
+
+        self.menu = QMenu("Context Menu", self)
+        remove = QAction("Delete", self)
+        rename = QAction("Rename", self)
+        info = QAction("Info", self)
+        play = QAction("Play", self)
+        remove.triggered.connect(self.onMenuRemove)
+        rename.triggered.connect(self.onMenuRename)
+        info.triggered.connect(self.onMenuInfo)
+        play.triggered.connect(self.onMenuPlay)
+        self.menu.addAction(remove)
+        self.menu.addAction(rename)
+        self.menu.addAction(info)
+        self.menu.addAction(play)
 
     def dirChanged(self, path):
         self.model.setRootPath(path)
@@ -175,3 +208,21 @@ class FilePanel(QWidget):
     def onMediaProgress(self, pct):
         if pct >= 0.0 and pct <= 1.0:
             self.progress.updateProgress(pct)
+
+    def showContextMenu(self, pos):
+        index = self.tree.indexAt(pos)
+        if index.isValid():
+            self.menu.exec(self.mapToGlobal(pos))
+
+    def onMenuRemove(self):
+        print("onMenuRemove")
+
+    def onMenuRename(self):
+        print("onMenuRename")
+
+    def onMenuInfo(self):
+        print("onMenuInfo")
+
+    def onMenuPlay(self):
+        print("onMenuPlay")
+

@@ -31,12 +31,20 @@ class MainWindow(QMainWindow):
         QDir.addSearchPath('image', 'resources/')
         self.setWindowTitle("onvif gui version 2.0.0")
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
+
         self.settings = QSettings("onvif", "gui")
+        self.volumeKey = "MainWindow/volume"
+        self.muteKey = "MainWindow/mute"
 
         self.player = avio.Player()
         self.playing = False
         self.connecting = False
-        self.mute = False
+        self.volume = self.settings.value(self.volumeKey, 80)
+
+        if self.settings.value(self.muteKey, 0) == 0:
+            self.mute = False
+        else:
+            self.mute = True
 
         self.signals = MainWindowSignals()
 
@@ -81,7 +89,7 @@ class MainWindow(QMainWindow):
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
         self.player.errorCallback = lambda s : self.errorCallback(s)
         self.player.infoCallback = lambda s : self.infoCallback(s)
-        #self.player.setVolume(self.sldVolume.value())
+        self.player.setVolume(self.volume)
         self.player.setMute(self.mute)
         #self.player.disable_video = True
         #self.player.hw_device_type = avio.AV_HWDEVICE_TYPE_CUDA
@@ -95,7 +103,16 @@ class MainWindow(QMainWindow):
 
     def toggleMute(self):
         self.mute = not self.mute
+        if self.mute:
+            self.settings.setValue(self.muteKey, 1)
+        else:
+            self.settings.setValue(self.muteKey, 0)
         self.player.setMute(self.mute)
+
+    def setVolume(self, value):
+        self.volume = value
+        self.settings.setValue(self.volumeKey, value)
+        self.player.setVolume(value)
 
     def closeEvent(self, e):
         self.stopMedia()

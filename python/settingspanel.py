@@ -19,14 +19,14 @@ class SettingsPanel(QWidget):
         self.passwordKey = "settings/password"
 
         self.chkAutoDiscover = QCheckBox("Enable Auto Discovery")
-        self.chkAutoDiscover.setChecked(int(mw.settings.value(self.autoDiscoverKey)))
+        self.chkAutoDiscover.setChecked(mw.settings.value(self.autoDiscoverKey, 0))
         self.chkAutoDiscover.stateChanged.connect(self.autoDiscoverChecked)
         self.txtUsername = QLineEdit()
-        self.txtUsername.setText(mw.settings.value(self.usernameKey))
+        self.txtUsername.setText(mw.settings.value(self.usernameKey, ""))
         self.txtUsername.textChanged.connect(self.usernameChanged)
         lblUsername = QLabel("Common Username")
         self.txtPassword = QLineEdit()
-        self.txtPassword.setText(mw.settings.value(self.passwordKey))
+        self.txtPassword.setText(mw.settings.value(self.passwordKey, ""))
         self.txtPassword.textChanged.connect(self.passwordChanged)
         lblPassword = QLabel("Common Password")
 

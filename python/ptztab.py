@@ -69,41 +69,36 @@ class PTZTab(QWidget):
         if row > -1:
             if self.chkSet.isChecked():
                 print(self.cp.devices[row].stream_uri())
-                onvifBoss = onvif.Manager()
-                onvifBoss.onvif_data = self.cp.devices[row]
-                onvifBoss.preset = n
-                onvifBoss.startPySetPreset()
+                self.cp.boss.onvif_data = self.cp.devices[row]
+                self.cp.boss.preset = n
+                self.cp.boss.startPySetPreset()
             else:
-                onvifBoss = onvif.Manager()
-                onvifBoss.onvif_data = self.cp.devices[row]
-                onvifBoss.preset = n
-                onvifBoss.startPySet()
+                self.cp.boss.onvif_data = self.cp.devices[row]
+                self.cp.boss.preset = n
+                self.cp.boss.startPySet()
 
     def move(self, x, y, z):
         row = self.cp.lstCamera.currentRow()
         if row > -1:
-            onvifBoss = onvif.Manager()
-            onvifBoss.onvif_data = self.cp.devices[row]
-            onvifBoss.x = x
-            onvifBoss.y = y
-            onvifBoss.z = z
-            onvifBoss.startPyMove()
+            self.cp.boss.onvif_data = self.cp.devices[row]
+            self.cp.boss.x = x
+            self.cp.boss.y = y
+            self.cp.boss.z = z
+            self.cp.boss.startPyMove()
 
     def stopPanTilt(self):
         row = self.cp.lstCamera.currentRow()
         if row > -1:
-            onvifBoss = onvif.Manager()
-            onvifBoss.onvif_data = self.cp.devices[row]
-            onvifBoss.stop_type = 0
-            onvifBoss.startPyStop()
+            self.cp.boss.onvif_data = self.cp.devices[row]
+            self.cp.boss.stop_type = 0
+            self.cp.boss.startPyStop()
 
     def stopZoom(self):
         row = self.cp.lstCamera.currentRow()
         if row > -1:
-            onvifBoss = onvif.Manager()
-            onvifBoss.onvif_data = self.cp.devices[row]
-            onvifBoss.stop_type = 1
-            onvifBoss.startPyStop()
+            self.cp.boss.onvif_data = self.cp.devices[row]
+            self.cp.boss.stop_type = 1
+            self.cp.boss.startPyStop()
 
     def fill(self, onvif_data):
         self.setEnabled(True)

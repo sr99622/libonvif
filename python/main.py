@@ -1,37 +1,55 @@
 import os
-import sys
 import numpy as np
 import cv2
 from time import sleep
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QSplitter, \
 QTabWidget
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings
+from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QDir
+from PyQt6.QtGui import QIcon
 from camerapanel import CameraPanel
+from filepanel import FilePanel
 from settingspanel import SettingsPanel
 from glwidget import GLWidget
+
+import sys
+sys.argv += ['-platform', 'windows:darkmode=2']
 
 sys.path.append("../build/libonvif")
 import onvif
 sys.path.append("../build/libavio")
 import avio
 
-class Signals(QObject):
-    fill = pyqtSignal(onvif.Data)
+class MainWindowSignals(QObject):
+    started = pyqtSignal(int)
+    stopped = pyqtSignal()
+    progress = pyqtSignal(float)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
-        self.settings = QSettings()
+        QDir.addSearchPath('image', 'resources/')
+        self.setWindowTitle("onvif gui version 2.0.0")
+        self.setWindowIcon(QIcon('image:onvif-gui.png'))
+        self.settings = QSettings("onvif", "gui")
 
         self.player = avio.Player()
         self.playing = False
+        self.connecting = False
+        self.mute = False
+
+        self.signals = MainWindowSignals()
 
         self.tab = QTabWidget()
         self.cameraPanel = CameraPanel(self)
+        self.signals.started.connect(self.cameraPanel.onMediaStarted)
+        self.filePanel = FilePanel(self)
+        self.signals.started.connect(self.filePanel.onMediaStarted)
+        self.signals.stopped.connect(self.filePanel.onMediaStopped)
+        self.signals.progress.connect(self.filePanel.onMediaProgress)
         self.settingsPanel = SettingsPanel(self)
         self.tab.addTab(self.cameraPanel, "Cameras")
+        self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
         self.glWidget = GLWidget()
         split = QSplitter()
@@ -40,11 +58,12 @@ class MainWindow(QMainWindow):
         split.setStretchFactor(0, 4)
         self.setCentralWidget(split)
 
+        self.signals.stopped.connect(self.onMediaStopped)
+
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
 
     def playMedia(self, uri):
-        print("main window play", uri)
         self.stopMedia()
         self.player = avio.Player()
         self.player.uri = uri
@@ -52,7 +71,8 @@ class MainWindow(QMainWindow):
         self.player.height = lambda : self.glWidget.height()
         self.player.vpq_size = 100
         self.player.apq_size = 100
-        #self.player.progressCallback = lambda f : self.progressCallback(f)
+        self.player.progressCallback = lambda f : self.mediaProgress(f)
+        #self.player.progressCallback = lambda f : self.filePanel.progress.updateProgress(f)
         #self.player.hWnd = self.glWidget.winId()
         self.player.video_filter = "format=rgb24"
         self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
@@ -62,36 +82,52 @@ class MainWindow(QMainWindow):
         self.player.errorCallback = lambda s : self.errorCallback(s)
         self.player.infoCallback = lambda s : self.infoCallback(s)
         #self.player.setVolume(self.sldVolume.value())
-        #self.player.setMute(self.mute)
+        self.player.setMute(self.mute)
         #self.player.disable_video = True
         #self.player.hw_device_type = avio.AV_HWDEVICE_TYPE_CUDA
         self.player.start()
         self.cameraPanel.setEnabled(False)
 
     def stopMedia(self):
-        print("stopMedia")
         self.player.running = False
         while self.playing:
             sleep(0.01)
 
+    def toggleMute(self):
+        self.mute = not self.mute
+        self.player.setMute(self.mute)
+
+    def closeEvent(self, e):
+        self.stopMedia()
+
     def mediaPlayingStarted(self, n):
-        print("mediaPlayingStarted", n)
         self.playing = True
-        self.cameraPanel.setEnabled(True)
-        self.cameraPanel.lstCamera.setFocus()
+        self.connecting = False
+        self.signals.started.emit(n)
 
     def mediaPlayingStopped(self):
-        print("mediaPlayingStopped")
         self.playing = False
+        self.signals.stopped.emit()
 
-    def infoCallback(self, s):
-        print("info", s)
+    def mediaProgress(self, f):
+        self.signals.progress.emit(f)
+
+    def onMediaStopped(self):
+        self.glWidget.clear()
+
+    def infoCallback(self, msg):
+        print(msg)
 
     def errorCallback(self, s):
         print("error", s)
 
+    def onMediaStopped(self):
+        self.glWidget.clear()
+        self.setWindowTitle("onvif gui version 2.0.0")
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyle('Fusion')
     window = MainWindow()
     window.show()
     app.exec()

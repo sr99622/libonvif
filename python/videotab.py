@@ -89,7 +89,7 @@ class VideoTab(QWidget):
 
     def update(self, onvif_data):
         if self.edited(onvif_data):
-            print("video tab update")
+            self.setEnabled(False)
             onvif_data.setFrameRate(self.spnFrameRate.value())
             onvif_data.setGovLength(self.spnGovLength.value())
             onvif_data.setBitrate(self.spnBitrate.value())

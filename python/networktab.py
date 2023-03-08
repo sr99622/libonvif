@@ -57,8 +57,9 @@ class NetworkTab(QWidget):
         self.txtDefaultGateway.setText(onvif_data.default_gateway_buf())
         self.txtDNS.setText(onvif_data.dns_buf())
         self.txtSubnetMask.setText(onvif_data.mask_buf())
-        self.setEnabled(True)
         self.onChkDHCPChecked()
+
+        self.setEnabled(True)
 
     def edited(self, onvif_data):
         result = False

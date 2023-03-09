@@ -7,16 +7,25 @@ from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
 QTabWidget, QTreeView, QFileDialog, QMenu
 from PyQt6.QtGui import QFileSystemModel, QIcon, QAction
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QStandardPaths
+from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QStandardPaths, QFile
 from progress import Progress
 
+sys.path.append("../build/libavio")
+import avio
+
 class TreeView(QTreeView):
-    def __init__(self):
+    def __init__(self, mw):
         super().__init__()
+        self.mw = mw
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Return:
-            self.doubleClicked.emit(self.currentIndex())
+            if self.model().isReadOnly():
+                self.doubleClicked.emit(self.currentIndex())
+        if event.key() == Qt.Key.Key_F2:
+            self.mw.filePanel.onMenuRename()
+        if event.key() == Qt.Key.Key_Delete:
+            self.mw.filePanel.onMenuRemove()
         return super().keyPressEvent(event)
     
 class DirectorySetter(QWidget):
@@ -25,6 +34,7 @@ class DirectorySetter(QWidget):
         self.mw = mw
         self.txtDirectory = QLineEdit()
         self.btnSelect = QPushButton("...")
+        self.btnSelect.setMaximumWidth(52)
         self.btnSelect.clicked.connect(self.btnSelectClicked)
         self.dlgFile = QFileDialog()
         lytMain = QGridLayout(self)
@@ -136,7 +146,8 @@ class FilePanel(QWidget):
         self.dirSetter.txtDirectory.setText(mw.settings.value(self.dirKey, dirs[0]))
 
         self.model = QFileSystemModel()
-        self.tree = TreeView()
+        self.model.fileRenamed.connect(self.onFileRenamed)
+        self.tree = TreeView(mw)
         self.tree.setModel(self.model)
         self.tree.doubleClicked.connect(self.treeDoubleClicked)
         self.tree.header().sectionResized.connect(self.headerChanged)
@@ -162,18 +173,18 @@ class FilePanel(QWidget):
         self.dirChanged(self.dirSetter.txtDirectory.text())
 
         self.menu = QMenu("Context Menu", self)
-        remove = QAction("Delete", self)
-        rename = QAction("Rename", self)
-        info = QAction("Info", self)
-        play = QAction("Play", self)
-        remove.triggered.connect(self.onMenuRemove)
-        rename.triggered.connect(self.onMenuRename)
-        info.triggered.connect(self.onMenuInfo)
-        play.triggered.connect(self.onMenuPlay)
-        self.menu.addAction(remove)
-        self.menu.addAction(rename)
-        self.menu.addAction(info)
-        self.menu.addAction(play)
+        self.remove = QAction("Delete", self)
+        self.rename = QAction("Rename", self)
+        self.info = QAction("Info", self)
+        self.play = QAction("Play", self)
+        self.remove.triggered.connect(self.onMenuRemove)
+        self.rename.triggered.connect(self.onMenuRename)
+        self.info.triggered.connect(self.onMenuInfo)
+        self.play.triggered.connect(self.onMenuPlay)
+        self.menu.addAction(self.remove)
+        self.menu.addAction(self.rename)
+        self.menu.addAction(self.info)
+        self.menu.addAction(self.play)
 
     def dirChanged(self, path):
         self.model.setRootPath(path)
@@ -210,19 +221,78 @@ class FilePanel(QWidget):
             self.progress.updateProgress(pct)
 
     def showContextMenu(self, pos):
+        self.remove.setDisabled(self.mw.playing)
+        self.rename.setDisabled(self.mw.playing)
         index = self.tree.indexAt(pos)
         if index.isValid():
             self.menu.exec(self.mapToGlobal(pos))
 
     def onMenuRemove(self):
         print("onMenuRemove")
+        index = self.tree.currentIndex()
+        if index.isValid():
+            ret = QMessageBox.warning(self, "onvif-gui",
+                                        "You are about to delete this file.\n"
+                                        "Are you sure you want to continue?",
+                                        QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+            if ret == QMessageBox.StandardButton.Ok:
+                QFile.remove(self.model.filePath(self.tree.currentIndex()))
 
     def onMenuRename(self):
         print("onMenuRename")
+        index = self.tree.currentIndex()
+        if index.isValid():
+            self.model.setReadOnly(False)
+            self.tree.edit(index)
+
+    def onFileRenamed(self, path, oldName, newName):
+        print("data changed")
+        self.model.setReadOnly(True)
 
     def onMenuInfo(self):
         print("onMenuInfo")
+        index = self.tree.currentIndex()
+        if (index.isValid()):
+            info = self.model.fileInfo(index)
+            strInfo = ""
+            strInfo += "Filename: " + info.absoluteFilePath()
+            strInfo += "\nLast Modified: " + info.lastModified().toString()
+
+            reader = avio.Reader(info.absoluteFilePath())
+            duration = reader.duration()
+            time_in_seconds = int(duration / 1000)
+            hours = int(time_in_seconds / 3600)
+            minutes = int((time_in_seconds - (hours * 3600)) / 60)
+            seconds = int((time_in_seconds - (hours * 3600) - (minutes * 60)))
+            strInfo += "\nDuration: " + str(minutes) + ":" + str(seconds)
+
+            if (reader.has_video()):
+                strInfo += "\n\nVideo Stream:"
+                strInfo += "\n    Resolution: " + str(reader.width()) + " x " + str(reader.height())
+                strInfo += "\n    Frame Rate: " + str(reader.frame_rate().num / reader.frame_rate().den)
+                strInfo += "\n    Video Codec: " + reader.str_video_codec()
+                strInfo += "\n    Pixel Format: " + reader.str_pix_fmt()
+            
+            if (reader.has_audio()):
+                strInfo += "\n\nAudio Stream:"
+                strInfo += "\n    Channel Layout: " + reader.str_channel_layout()
+                strInfo += "\n    Audio Codec: " + reader.str_audio_codec()
+                strInfo += "\n    Sample Rate: " + str(reader.sample_rate())
+            
+        else:
+            strInfo = "Invalid Index"
+
+        msgBox = QMessageBox(self)
+        msgBox.setWindowTitle("File Info")
+        msgBox.setText(strInfo)
+        msgBox.exec()
 
     def onMenuPlay(self):
         print("onMenuPlay")
+        index = self.tree.currentIndex()
+        if (index.isValid()):
+            info = self.model.fileInfo(index)
+            self.mw.playMedia(info.absoluteFilePath())
+
 

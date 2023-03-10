@@ -46,6 +46,7 @@ class MainWindow(QMainWindow):
         self.player = avio.Player()
         self.playing = False
         self.connecting = False
+        self.piping = False
         self.volume = self.settings.value(self.volumeKey, 80)
 
         if self.settings.value(self.muteKey, 0) == 0:

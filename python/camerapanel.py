@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import cv2
 from time import sleep
+import datetime
 from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
 QTabWidget
@@ -235,4 +236,12 @@ class CameraPanel(QWidget):
         self.mw.filePanel.control.setBtnMute()
 
     def btnRecordClicked(self):
-        print("btnRecordClicked")
+        filename = "output.mp4"
+        if self.mw.settingsPanel.radGenerateFilename.isChecked():
+            filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
+        filename = self.mw.filePanel.dirSetter.txtDirectory.text() + "/" + filename
+        self.mw.player.togglePiping(filename)
+        if self.mw.player.isPiping():
+            self.btnRecord.setIcon(self.icnRecording)
+        else:
+            self.btnRecord.setIcon(self.icnRecord)

@@ -114,7 +114,6 @@ class FileControlPanel(QWidget):
             if index.isValid():
                 fileInfo = self.mw.filePanel.model.fileInfo(index)
                 self.mw.playMedia(fileInfo.filePath())
-                self.btnPlay.setIcon(self.icnPause)
 
     def btnStopClicked(self):
         self.mw.stopMedia()
@@ -199,7 +198,6 @@ class FilePanel(QWidget):
             if fileInfo.isDir():
                 self.tree.setExpanded(index, self.tree.isExpanded(index))
             else:
-                self.control.btnPlay.setIcon(self.control.icnPause)
                 self.mw.playMedia(self.model.filePath(index))
 
     def headerChanged(self, a, b, c):
@@ -208,6 +206,7 @@ class FilePanel(QWidget):
     def onMediaStarted(self, duration):
         if self.mw.tab.currentIndex() == 1:
             self.progress.updateDuration(duration)
+            self.control.btnPlay.setIcon(self.control.icnPause)
             self.tree.setFocus()
             index = self.tree.currentIndex()
             if index.isValid():

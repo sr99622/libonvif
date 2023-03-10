@@ -28,7 +28,7 @@ class SettingsPanel(QWidget):
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
         self.chkAutoDiscover = QCheckBox("Enable Auto Discovery")
-        self.chkAutoDiscover.setChecked(mw.settings.value(self.autoDiscoverKey, 0))
+        self.chkAutoDiscover.setChecked(int(mw.settings.value(self.autoDiscoverKey, 0)))
         self.chkAutoDiscover.stateChanged.connect(self.autoDiscoverChecked)
         
         self.txtUsername = QLineEdit()
@@ -48,25 +48,31 @@ class SettingsPanel(QWidget):
         lblDecoders = QLabel("Hardware Decoder")
         
         self.chkLowLatency = QCheckBox("Enable Low Latency Buffering")
-        self.chkLowLatency.setChecked(mw.settings.value(self.latencyKey, 0))
+        self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
         self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
 
         self.chkDirectRender = QCheckBox("Direct Rendering (Windows)")
-        self.render = mw.settings.value(self.renderKey, 0)
+        self.render = int(mw.settings.value(self.renderKey, 0))
         self.chkDirectRender.setChecked(self.render)
         self.chkDirectRender.clicked.connect(self.directRenderChecked)
 
+        if sys.platform == "windows":
+            self.chkDirectRender.setEnabled(True)
+        else:
+            self.chkDirectRender.setEnabled(False)
+
         self.chkConvert2RGB = QCheckBox("Convert to RGB")
-        self.chkConvert2RGB.setChecked(mw.settings.value(self.convertKey, 1))
+        self.chkConvert2RGB.setChecked(int(mw.settings.value(self.convertKey, 1)))
         self.chkConvert2RGB.stateChanged.connect(self.convert2RGBChecked)
         self.chkConvert2RGB.setEnabled(self.chkDirectRender.isChecked())
+
 
         self.txtVideoFilter = QLineEdit()
         lblVideoFilter = QLabel("Video Filter")
 
-        self.radGenerateFilename = QRadioButton("Generate Unique Filename")
+        self.radGenerateFilename = QRadioButton("Generate Unique")
         self.radGenerateFilename.clicked.connect(self.radioFilenameChecked)
-        self.radDefaultFilename = QRadioButton("Use Default Filename")
+        self.radDefaultFilename = QRadioButton("Use Default")
         self.radDefaultFilename.clicked.connect(self.radioFilenameChecked)
         self.grpRecordFilename = QGroupBox("Record Filename")
         lytRecordFilename = QGridLayout(self.grpRecordFilename)
@@ -92,11 +98,11 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
         lytMain.addWidget(self.chkLowLatency,     4, 0, 1, 2)
         lytMain.addWidget(self.chkDirectRender,   5, 0, 1, 2)
-        lytMain.addWidget(self.chkConvert2RGB,    5, 2, 1, 2)
-        lytMain.addWidget(pnlFilter,              6, 0, 1, 4)
-        lytMain.addWidget(self.grpRecordFilename, 7, 0, 1, 4)
-        lytMain.addWidget(QLabel(),               8, 0, 1, 4)
-        lytMain.setRowStretch(8, 10)
+        lytMain.addWidget(self.chkConvert2RGB,    6, 1, 1, 2)
+        lytMain.addWidget(pnlFilter,              7, 0, 1, 4)
+        lytMain.addWidget(self.grpRecordFilename, 8, 0, 1, 4)
+        lytMain.addWidget(QLabel(),               9, 0, 1, 4)
+        lytMain.setRowStretch(9, 10)
 
     def autoDiscoverChecked(self, state):
         self.mw.settings.setValue(self.autoDiscoverKey, state)

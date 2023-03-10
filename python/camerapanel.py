@@ -99,6 +99,7 @@ class CameraPanel(QWidget):
         self.lstCamera.itemDoubleClicked.connect(self.onItemDoubleClicked)
 
         self.tabOnvif = QTabWidget()
+        self.tabOnvif.setUsesScrollButtons(False)
         self.tabVideo = VideoTab(self)
         self.tabImage = ImageTab(self)
         self.tabNetwork = NetworkTab(self)

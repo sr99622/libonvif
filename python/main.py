@@ -13,7 +13,6 @@ from settingspanel import SettingsPanel
 from glwidget import GLWidget
 
 import sys
-sys.argv += ['-platform', 'windows:darkmode=2']
 
 sys.path.append("../build/libonvif")
 import onvif
@@ -172,6 +171,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("onvif gui version 2.0.0")
 
 if __name__ == '__main__':
+    print("PLATFORM", sys.platform)
+    if sys.platform == "windows":
+        sys.argv += ['-platform', 'windows:darkmode=2']
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     window = MainWindow()

@@ -57,6 +57,7 @@ class CameraPanel(QWidget):
         self.btnRecord.setToolTip("Record")
         self.btnRecord.setToolTipDuration(2000)
         self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 2)
+        self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRecord.clicked.connect(self.btnRecordClicked)
 
         self.btnMute = QPushButton()
@@ -67,10 +68,12 @@ class CameraPanel(QWidget):
         self.btnMute.setToolTip("Mute")
         self.btnMute.setToolTipDuration(2000)
         self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 2)
+        self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
         self.sldVolume = QSlider(Qt.Orientation.Horizontal)
         self.sldVolume.setValue(self.mw.volume)
+        self.sldVolume.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.sldVolume.valueChanged.connect(self.sldVolumeChanged)
 
         self.btnDiscover = QPushButton()
@@ -78,6 +81,7 @@ class CameraPanel(QWidget):
         self.btnDiscover.setToolTip("Discover")
         self.btnDiscover.setToolTipDuration(2000)
         self.btnDiscover.setMinimumWidth(self.icnDiscover.availableSizes()[0].width() * 2)
+        self.btnDiscover.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
 
         self.btnApply = QPushButton()
@@ -85,6 +89,7 @@ class CameraPanel(QWidget):
         self.btnApply.setToolTip("Apply")
         self.btnApply.setToolTipDuration(2000)
         self.btnApply.setMinimumWidth(self.icnApply.availableSizes()[0].width() * 2)
+        self.btnApply.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnApply.clicked.connect(self.btnApplyClicked)
         self.btnApply.setEnabled(False)
         

@@ -5,7 +5,7 @@ from time import sleep
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QSplitter, \
 QTabWidget
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QDir
+from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QDir, QSize
 from PyQt6.QtGui import QIcon
 from camerapanel import CameraPanel
 from filepanel import FilePanel
@@ -24,6 +24,13 @@ class MainWindowSignals(QObject):
     started = pyqtSignal(int)
     stopped = pyqtSignal()
     progress = pyqtSignal(float)
+
+class ViewLabel(QLabel):
+    def __init__(self):
+        super().__init__()
+
+    def sizeHint(self):
+        return QSize(640, 480)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -59,7 +66,12 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
-        self.glWidget = GLWidget()
+
+        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
+            self.glWidget = GLWidget()
+        else:
+            self.glWidget = ViewLabel()
+
         split = QSplitter()
         split.addWidget(self.glWidget)
         split.addWidget(self.tab)
@@ -77,13 +89,29 @@ class MainWindow(QMainWindow):
         self.player.uri = uri
         self.player.width = lambda : self.glWidget.width()
         self.player.height = lambda : self.glWidget.height()
-        self.player.vpq_size = 100
-        self.player.apq_size = 100
+        if not self.settingsPanel.chkLowLatency.isChecked():
+            self.player.vpq_size = 100
+            self.player.apq_size = 100
         self.player.progressCallback = lambda f : self.mediaProgress(f)
-        #self.player.progressCallback = lambda f : self.filePanel.progress.updateProgress(f)
-        #self.player.hWnd = self.glWidget.winId()
-        self.player.video_filter = "format=rgb24"
-        self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
+
+        video_filter = self.settingsPanel.txtVideoFilter.text()
+        if self.settingsPanel.chkConvert2RGB.isChecked():
+            self.player.video_filter = "format=rgb24"
+            if len(video_filter) > 0:
+                self.player.video_filter += "," + video_filter
+        else:
+            if len(video_filter) > 0:
+                self.player.video_filter = video_filter
+            else:
+                self.player.video_filter = "null"
+
+        print("video filter", self.player.video_filter)
+
+        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
+            self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
+        else:
+            self.player.hWnd = self.glWidget.winId()
+
         #self.player.pythonCallback = lambda F : self.pythonCallback(F)
         self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
@@ -92,7 +120,7 @@ class MainWindow(QMainWindow):
         self.player.setVolume(self.volume)
         self.player.setMute(self.mute)
         #self.player.disable_video = True
-        #self.player.hw_device_type = avio.AV_HWDEVICE_TYPE_CUDA
+        self.player.hw_device_type = self.settingsPanel.getDecoder()
         self.player.start()
         self.cameraPanel.setEnabled(False)
 

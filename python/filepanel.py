@@ -64,6 +64,7 @@ class FileControlPanel(QWidget):
         self.btnPlay.setToolTip("Play")
         self.btnPlay.setToolTipDuration(2000)
         self.btnPlay.setMinimumWidth(self.icnPlay.availableSizes()[0].width() * 2)
+        self.btnPlay.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnPlay.clicked.connect(self.btnPlayClicked)
         
         self.btnStop = QPushButton()
@@ -71,6 +72,7 @@ class FileControlPanel(QWidget):
         self.btnStop.setToolTip("Stop")
         self.btnStop.setToolTipDuration(2000)
         self.btnStop.setMinimumWidth(self.icnStop.availableSizes()[0].width() * 2)
+        self.btnStop.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnStop.clicked.connect(self.btnStopClicked)
 
         spacer = QLabel()
@@ -84,10 +86,12 @@ class FileControlPanel(QWidget):
         self.btnMute.setToolTip("Mute")
         self.btnMute.setToolTipDuration(2000)
         self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 2)
+        self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
         self.sldVolume = QSlider(Qt.Orientation.Horizontal)
         self.sldVolume.setValue(self.mw.volume)
+        self.sldVolume.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.sldVolume.valueChanged.connect(self.sldVolumeChanged)
         
         lytMain =  QGridLayout(self)
@@ -97,7 +101,6 @@ class FileControlPanel(QWidget):
         lytMain.addWidget(spacer,         0, 2, 1, 1)
         lytMain.addWidget(self.btnMute,   0, 3, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.addWidget(self.sldVolume, 0, 4, 1, 1)
-        self.setContentsMargins(0, 0, 0, 0)
 
     def btnPlayClicked(self):
         if self.mw.playing:
@@ -155,7 +158,6 @@ class FilePanel(QWidget):
         headerState = self.mw.settings.value(self.headerKey)
         if not headerState is None:
             self.tree.header().restoreState(headerState)
-
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.showContextMenu)
 
@@ -215,6 +217,7 @@ class FilePanel(QWidget):
     def onMediaStopped(self):
         self.progress.updateProgress(0.0)
         self.progress.updateDuration(0)
+        self.control.btnPlay.setIcon(self.control.icnPlay)
 
     def onMediaProgress(self, pct):
         if pct >= 0.0 and pct <= 1.0:
@@ -228,7 +231,6 @@ class FilePanel(QWidget):
             self.menu.exec(self.mapToGlobal(pos))
 
     def onMenuRemove(self):
-        print("onMenuRemove")
         index = self.tree.currentIndex()
         if index.isValid():
             ret = QMessageBox.warning(self, "onvif-gui",
@@ -240,18 +242,18 @@ class FilePanel(QWidget):
                 QFile.remove(self.model.filePath(self.tree.currentIndex()))
 
     def onMenuRename(self):
-        print("onMenuRename")
+        if self.mw.playing:
+            self.mw.infoCallback("Please stop playing file to rename")
+            return
         index = self.tree.currentIndex()
         if index.isValid():
             self.model.setReadOnly(False)
             self.tree.edit(index)
 
     def onFileRenamed(self, path, oldName, newName):
-        print("data changed")
         self.model.setReadOnly(True)
 
     def onMenuInfo(self):
-        print("onMenuInfo")
         index = self.tree.currentIndex()
         if (index.isValid()):
             info = self.model.fileInfo(index)
@@ -289,10 +291,7 @@ class FilePanel(QWidget):
         msgBox.exec()
 
     def onMenuPlay(self):
-        print("onMenuPlay")
         index = self.tree.currentIndex()
         if (index.isValid()):
             info = self.model.fileInfo(index)
             self.mw.playMedia(info.absoluteFilePath())
-
-

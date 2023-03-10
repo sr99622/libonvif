@@ -18,7 +18,7 @@
 #*********************************************************************/
 
 from PyQt6.QtWidgets import QSlider, QLabel, QWidget, QGridLayout
-from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtCore import Qt, QPoint, QObject, pyqtSignal
 from PyQt6.QtGui import QPainter
 
 class Slider(QSlider):
@@ -27,6 +27,7 @@ class Slider(QSlider):
         self.P = P
         if P.showPosition:
             self.setMouseTracking(True)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     def leaveEvent(self, e):
         self.P.updatePosition(-1, 0)

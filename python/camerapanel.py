@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import cv2
 from time import sleep
 import datetime
 from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \

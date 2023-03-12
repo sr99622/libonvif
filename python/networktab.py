@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import cv2
 from time import sleep
 from PyQt6.QtWidgets import QCheckBox, QLineEdit, QSpinBox, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget

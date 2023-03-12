@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import cv2
 from time import sleep
 from PyQt6.QtWidgets import QMessageBox, QLineEdit, QGroupBox, \
 QGridLayout, QWidget, QCheckBox, QLabel, QRadioButton, QComboBox
@@ -24,6 +23,10 @@ class SettingsPanel(QWidget):
         self.generateKey = "settings/generate"
         self.renderKey = "settings/render"
         self.convertKey = "settings/convert"
+        self.disableAudioKey = "settings/disableAudio"
+        self.disableVideoKey = "settings/disableVideo"
+        self.postEncodeKey = "settings/postEncode"
+        self.hardwareEncodeKey = "settings/hardwareEncode"
 
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
@@ -51,12 +54,12 @@ class SettingsPanel(QWidget):
         self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
         self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
 
-        self.chkDirectRender = QCheckBox("Direct Rendering (Windows)")
+        self.chkDirectRender = QCheckBox("Direct Rendering")
         self.render = int(mw.settings.value(self.renderKey, 0))
         self.chkDirectRender.setChecked(self.render)
         self.chkDirectRender.clicked.connect(self.directRenderChecked)
 
-        if sys.platform == "windows":
+        if sys.platform == "win32":
             self.chkDirectRender.setEnabled(True)
         else:
             self.chkDirectRender.setEnabled(False)
@@ -66,6 +69,31 @@ class SettingsPanel(QWidget):
         self.chkConvert2RGB.stateChanged.connect(self.convert2RGBChecked)
         self.chkConvert2RGB.setEnabled(self.chkDirectRender.isChecked())
 
+        self.chkDisableAudio = QCheckBox("Disable Audio")
+        self.chkDisableAudio.setChecked(int(mw.settings.value(self.disableAudioKey, 0)))
+        self.chkDisableAudio.stateChanged.connect(self.disableAudioChecked)
+
+        self.chkDisableVideo = QCheckBox("Disable Video")
+        self.chkDisableVideo.setChecked(int(mw.settings.value(self.disableVideoKey, 0)))
+        self.chkDisableVideo.stateChanged.connect(self.disableVideoChecked)
+
+        self.chkPostEncode = QCheckBox("Post Process Record")
+        self.chkPostEncode.setChecked(int(mw.settings.value(self.postEncodeKey, 0)))
+        self.chkPostEncode.stateChanged.connect(self.postEncodeChecked)
+
+        self.chkHardwareEncode = QCheckBox("Hardware Encode")
+        self.chkHardwareEncode.setChecked(int(mw.settings.value(self.hardwareEncodeKey, 0)))
+        self.chkHardwareEncode.setEnabled(self.chkPostEncode.isChecked())
+        self.chkHardwareEncode.stateChanged.connect(self.hardwareEncodeChecked)
+
+        pnlChecks = QWidget()
+        lytChecks = QGridLayout(pnlChecks)
+        lytChecks.addWidget(self.chkDirectRender,   0, 0, 1, 1)
+        lytChecks.addWidget(self.chkConvert2RGB,    0, 1, 1, 1)
+        lytChecks.addWidget(self.chkDisableAudio,   1, 0, 1, 1)
+        lytChecks.addWidget(self.chkDisableVideo,   1, 1, 1, 1)
+        lytChecks.addWidget(self.chkPostEncode,     2, 0, 1, 1)
+        lytChecks.addWidget(self.chkHardwareEncode, 2, 1, 1, 1)
 
         self.txtVideoFilter = QLineEdit()
         lblVideoFilter = QLabel("Video Filter")
@@ -97,8 +125,7 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(lblDecoders,            3, 0, 1, 1)
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
         lytMain.addWidget(self.chkLowLatency,     4, 0, 1, 2)
-        lytMain.addWidget(self.chkDirectRender,   5, 0, 1, 2)
-        lytMain.addWidget(self.chkConvert2RGB,    6, 1, 1, 2)
+        lytMain.addWidget(pnlChecks,              5, 0, 1, 4)
         lytMain.addWidget(pnlFilter,              7, 0, 1, 4)
         lytMain.addWidget(self.grpRecordFilename, 8, 0, 1, 4)
         lytMain.addWidget(QLabel(),               9, 0, 1, 4)
@@ -142,6 +169,19 @@ class SettingsPanel(QWidget):
 
     def convert2RGBChecked(self, state):
         self.mw.settings.setValue(self.convertKey, state)
+
+    def disableAudioChecked(self, state):
+        self.mw.settings.setValue(self.disableAudioKey, state)
+
+    def disableVideoChecked(self, state):
+        self.mw.settings.setValue(self.disableVideoKey, state)
+
+    def postEncodeChecked(self, state):
+        self.mw.settings.setValue(self.postEncodeKey, state)
+        self.chkHardwareEncode.setEnabled(state)
+
+    def hardwareEncodeChecked(self, state):
+        self.mw.settings.setValue(self.hardwareEncodeKey, state)
 
     def radioFilenameChecked(self):
         if self.radGenerateFilename.isChecked():

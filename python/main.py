@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import cv2
 from time import sleep
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QSplitter, \
@@ -46,6 +45,7 @@ class MainWindow(QMainWindow):
         self.playing = False
         self.connecting = False
         self.piping = False
+        self.encoding = False
         self.volume = self.settings.value(self.volumeKey, 80)
 
         if self.settings.value(self.muteKey, 0) == 0:
@@ -112,6 +112,9 @@ class MainWindow(QMainWindow):
         else:
             self.player.hWnd = self.glWidget.winId()
 
+        self.player.disable_audio = self.settingsPanel.chkDisableAudio.isChecked()
+        self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()
+
         #self.player.pythonCallback = lambda F : self.pythonCallback(F)
         self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
@@ -121,6 +124,7 @@ class MainWindow(QMainWindow):
         self.player.setMute(self.mute)
         #self.player.disable_video = True
         self.player.hw_device_type = self.settingsPanel.getDecoder()
+        self.player.hw_encoding = self.settingsPanel.chkHardwareEncode.isChecked()
         self.player.start()
         self.cameraPanel.setEnabled(False)
 
@@ -172,7 +176,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     print("PLATFORM", sys.platform)
-    if sys.platform == "windows":
+    if sys.platform == "win32":
         sys.argv += ['-platform', 'windows:darkmode=2']
     app = QApplication(sys.argv)
     app.setStyle('Fusion')

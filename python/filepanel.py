@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import cv2
 from time import sleep
 from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
@@ -58,6 +57,8 @@ class FileControlPanel(QWidget):
         self.icnStop = QIcon('image:stop.png')
         self.icnMute = QIcon('image:mute.png')
         self.icnAudio = QIcon('image:audio.png')
+        self.icnRecord = QIcon('image:record.png')
+        self.icnRecording = QIcon('image:recording.png')
 
         self.btnPlay = QPushButton()
         self.btnPlay.setIcon(self.icnPlay)
@@ -74,6 +75,14 @@ class FileControlPanel(QWidget):
         self.btnStop.setMinimumWidth(self.icnStop.availableSizes()[0].width() * 2)
         self.btnStop.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnStop.clicked.connect(self.btnStopClicked)
+
+        self.btnRecord = QPushButton()
+        self.btnRecord.setIcon(self.icnRecord)
+        self.btnRecord.setToolTip("Record")
+        self.btnRecord.setToolTipDuration(2000)
+        self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 2)
+        self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.btnRecord.clicked.connect(self.btnRecordClicked)
 
         spacer = QLabel()
         spacer.setMinimumWidth(self.btnStop.minimumWidth())
@@ -98,7 +107,7 @@ class FileControlPanel(QWidget):
         lytMain.setContentsMargins(0, 0, 0, 0)
         lytMain.addWidget(self.btnPlay,   0, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.addWidget(self.btnStop,   0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(spacer,         0, 2, 1, 1)
+        lytMain.addWidget(self.btnRecord, 0, 2, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.addWidget(self.btnMute,   0, 3, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.addWidget(self.sldVolume, 0, 4, 1, 1)
 
@@ -119,6 +128,15 @@ class FileControlPanel(QWidget):
         self.mw.stopMedia()
         self.btnPlay.setIcon(self.icnPlay)
         self.mw.filePanel.tree.setFocus()
+
+    def btnRecordClicked(self):
+        print("btnRecordClicked")
+        filename = "C:/Users/sr996/Videos/666.mp4"
+        self.mw.player.toggleEncoding(filename)
+        if self.mw.player.isEncoding():
+            self.btnRecord.setIcon(self.icnRecording)
+        else:
+            self.btnRecord.setIcon(self.icnRecord)
 
     def setBtnMute(self):
         if self.mw.mute:

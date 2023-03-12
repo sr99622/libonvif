@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import cv2
 import platform
 from time import sleep
 from PyQt6.QtWidgets import QComboBox, QLineEdit, QSpinBox, \

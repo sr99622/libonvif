@@ -89,9 +89,9 @@ class MainWindow(QMainWindow):
         self.player.uri = uri
         self.player.width = lambda : self.glWidget.width()
         self.player.height = lambda : self.glWidget.height()
-        if not self.settingsPanel.chkLowLatency.isChecked():
-            self.player.vpq_size = 100
-            self.player.apq_size = 100
+        #if not self.settingsPanel.chkLowLatency.isChecked():
+        self.player.vpq_size = 100
+        self.player.apq_size = 100
         self.player.progressCallback = lambda f : self.mediaProgress(f)
 
         video_filter = self.settingsPanel.txtVideoFilter.text()
@@ -125,6 +125,7 @@ class MainWindow(QMainWindow):
         #self.player.disable_video = True
         self.player.hw_device_type = self.settingsPanel.getDecoder()
         self.player.hw_encoding = self.settingsPanel.chkHardwareEncode.isChecked()
+        self.player.post_encode = self.settingsPanel.chkPostEncode.isChecked()
         self.player.start()
         self.cameraPanel.setEnabled(False)
 

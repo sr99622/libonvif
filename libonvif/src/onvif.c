@@ -2026,6 +2026,14 @@ void addUsernameDigestHeader(xmlNodePtr root, xmlNsPtr ns_env, char *user, char 
     getBase64(nonce_buffer, nonce_chunk_size, nonce_result);
     strcpy(nonce_base64, (const char *)nonce_result);
 
+    // Check for Daylight Savings Time
+    time_t rawtime;
+    struct tm timeinfo;
+    time(&rawtime);
+    localtime_s(&timeinfo, &rawtime);
+    if (timeinfo.tm_isdst)
+        offset -= 3600;
+
     char time_buffer[1024];
     time_t now = time(NULL);
     now = now + offset;

@@ -50,9 +50,9 @@ class SettingsPanel(QWidget):
         self.cmbDecoder.currentTextChanged.connect(self.cmbDecodersChanged)
         lblDecoders = QLabel("Hardware Decoder")
         
-        self.chkLowLatency = QCheckBox("Enable Low Latency Buffering")
-        self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
-        self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
+        #self.chkLowLatency = QCheckBox("Enable Low Latency Buffering")
+        #self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
+        #self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
 
         self.chkDirectRender = QCheckBox("Direct Rendering")
         self.render = int(mw.settings.value(self.renderKey, 0))
@@ -124,9 +124,9 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(self.txtPassword,       2, 1, 1, 1)
         lytMain.addWidget(lblDecoders,            3, 0, 1, 1)
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
-        lytMain.addWidget(self.chkLowLatency,     4, 0, 1, 2)
-        lytMain.addWidget(pnlChecks,              5, 0, 1, 4)
-        lytMain.addWidget(pnlFilter,              7, 0, 1, 4)
+        #lytMain.addWidget(self.chkLowLatency,     4, 0, 1, 2)
+        lytMain.addWidget(pnlFilter,              5, 0, 1, 4)
+        lytMain.addWidget(pnlChecks,              6, 0, 1, 4)
         lytMain.addWidget(self.grpRecordFilename, 8, 0, 1, 4)
         lytMain.addWidget(QLabel(),               9, 0, 1, 4)
         lytMain.setRowStretch(9, 10)
@@ -143,8 +143,8 @@ class SettingsPanel(QWidget):
     def cmbDecodersChanged(self, decoder):
         self.mw.settings.setValue(self.decoderKey, decoder)
 
-    def lowLatencyChecked(self, state):
-        self.mw.settings.setValue(self.latencyKey, state)
+    #def lowLatencyChecked(self, state):
+    #    self.mw.settings.setValue(self.latencyKey, state)
 
     def directRenderChecked(self):
         ret = QMessageBox.warning(self, "onvif-gui",
@@ -178,6 +178,8 @@ class SettingsPanel(QWidget):
 
     def postEncodeChecked(self, state):
         self.mw.settings.setValue(self.postEncodeKey, state)
+        if state == 0:
+            self.chkHardwareEncode.setChecked(False)
         self.chkHardwareEncode.setEnabled(state)
 
     def hardwareEncodeChecked(self, state):

@@ -2,10 +2,11 @@ import os
 import sys
 import numpy as np
 from time import sleep
+import datetime
 from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
 QTabWidget, QTreeView, QFileDialog, QMenu
-from PyQt6.QtGui import QFileSystemModel, QIcon, QAction
+from PyQt6.QtGui import QFileSystemModel, QIcon, QAction, QFont
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QStandardPaths, QFile
 from progress import Progress
 
@@ -131,9 +132,14 @@ class FileControlPanel(QWidget):
 
     def btnRecordClicked(self):
         print("btnRecordClicked")
-        filename = "C:/Users/sr996/Videos/666.mp4"
-        self.mw.player.toggleEncoding(filename)
-        if self.mw.player.isEncoding():
+        #filename = "C:/Users/sr996/Videos/666.mp4"
+        filename = "output.mp4"
+        if self.mw.settingsPanel.radGenerateFilename.isChecked():
+            filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
+        filename = self.mw.filePanel.dirSetter.txtDirectory.text() + "/" + filename
+
+        self.mw.player.toggleRecording(filename)
+        if self.mw.player.isRecording():
             self.btnRecord.setIcon(self.icnRecording)
         else:
             self.btnRecord.setIcon(self.icnRecord)
@@ -288,16 +294,23 @@ class FilePanel(QWidget):
 
             if (reader.has_video()):
                 strInfo += "\n\nVideo Stream:"
-                strInfo += "\n    Resolution: " + str(reader.width()) + " x " + str(reader.height())
-                strInfo += "\n    Frame Rate: " + str(reader.frame_rate().num / reader.frame_rate().den)
-                strInfo += "\n    Video Codec: " + reader.str_video_codec()
-                strInfo += "\n    Pixel Format: " + reader.str_pix_fmt()
+                strInfo += "\n    Resolution:  " + str(reader.width()) + " x " + str(reader.height())
+                
+                strInfo += "\n    Frame Rate:  " + f'{reader.frame_rate().num / reader.frame_rate().den:.2f}'
+                strInfo += "  (" + str(reader.frame_rate().num) + " / " + str(reader.frame_rate().den) +")"
+                strInfo += "\n    Time Base:  " + str(reader.video_time_base().num) + " / " + str(reader.video_time_base().den)
+                strInfo += "\n    Video Codec:  " + reader.str_video_codec()
+                strInfo += "\n    Pixel Format:  " + reader.str_pix_fmt()
+                strInfo += "\n    Bitrate:  " + f'{reader.video_bit_rate():,}'
             
             if (reader.has_audio()):
                 strInfo += "\n\nAudio Stream:"
-                strInfo += "\n    Channel Layout: " + reader.str_channel_layout()
-                strInfo += "\n    Audio Codec: " + reader.str_audio_codec()
-                strInfo += "\n    Sample Rate: " + str(reader.sample_rate())
+                strInfo += "\n    Channel Layout:  " + reader.str_channel_layout()
+                strInfo += "\n    Audio Codec:  " + reader.str_audio_codec()
+                strInfo += "\n    Sample Rate:  " + str(reader.sample_rate())
+                strInfo += "\n    Time Base:  " + str(reader.audio_time_base().num) + " / " + str(reader.audio_time_base().den)
+                strInfo += "\n    Sample Format:  " + reader.str_sample_format()
+                strInfo += "\n    Bitrate:  " + f'{reader.audio_bit_rate():,}'
             
         else:
             strInfo = "Invalid Index"

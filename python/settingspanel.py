@@ -1,10 +1,25 @@
-import os
+#/********************************************************************
+# libonvif/python/settingspanel.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
+
 import sys
-import numpy as np
-from time import sleep
 from PyQt6.QtWidgets import QMessageBox, QLineEdit, QGroupBox, \
 QGridLayout, QWidget, QCheckBox, QLabel, QRadioButton, QComboBox
-from PyQt6.QtCore import Qt, pyqtSignal, QObject
 
 sys.path.append("../build/libonvif")
 import onvif
@@ -27,6 +42,7 @@ class SettingsPanel(QWidget):
         self.disableVideoKey = "settings/disableVideo"
         self.postEncodeKey = "settings/postEncode"
         self.hardwareEncodeKey = "settings/hardwareEncode"
+        self.processFrameKey = "settings/processFrame"
 
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
@@ -86,6 +102,10 @@ class SettingsPanel(QWidget):
         self.chkHardwareEncode.setEnabled(self.chkPostEncode.isChecked())
         self.chkHardwareEncode.stateChanged.connect(self.hardwareEncodeChecked)
 
+        self.chkProcessFrame = QCheckBox("Process Frame")
+        self.chkProcessFrame.setChecked(int(mw.settings.value(self.processFrameKey, 0)))
+        self.chkProcessFrame.stateChanged.connect(self.processFrameChecked)
+
         pnlChecks = QWidget()
         lytChecks = QGridLayout(pnlChecks)
         lytChecks.addWidget(self.chkDirectRender,   0, 0, 1, 1)
@@ -94,6 +114,7 @@ class SettingsPanel(QWidget):
         lytChecks.addWidget(self.chkDisableVideo,   1, 1, 1, 1)
         lytChecks.addWidget(self.chkPostEncode,     2, 0, 1, 1)
         lytChecks.addWidget(self.chkHardwareEncode, 2, 1, 1, 1)
+        lytChecks.addWidget(self.chkProcessFrame,   3, 0, 1, 1)
 
         self.txtVideoFilter = QLineEdit()
         lblVideoFilter = QLabel("Video Filter")
@@ -184,6 +205,9 @@ class SettingsPanel(QWidget):
 
     def hardwareEncodeChecked(self, state):
         self.mw.settings.setValue(self.hardwareEncodeKey, state)
+
+    def processFrameChecked(self, state):
+        self.mw.settings.setValue(self.processFrameKey, state)
 
     def radioFilenameChecked(self):
         if self.radGenerateFilename.isChecked():

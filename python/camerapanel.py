@@ -1,11 +1,27 @@
-import os
+#/********************************************************************
+# libonvif/python/camerapanel.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
+
 import sys
-import numpy as np
 from time import sleep
 import datetime
-from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
-QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
-QTabWidget
+from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QSlider, \
+QListWidget, QTabWidget
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings
 from logindialog import LoginDialog
@@ -128,6 +144,8 @@ class CameraPanel(QWidget):
         lytMain.addWidget(self.btnApply,    2, 4, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.setRowStretch(0, 10)
 
+        self.setTabsEnabled(False)
+
     def btnDiscoverClicked(self):
         self.boss.startPyDiscover()
         self.btnDiscover.setEnabled(False)
@@ -219,6 +237,13 @@ class CameraPanel(QWidget):
         if self.mw.tab.currentIndex() == 0:
             self.lstCamera.setFocus()
             self.mw.setWindowTitle(self.lstCamera.currentItem().text())
+            if self.mw.player.getVideoCodec() == "hevc":
+                self.setTabsEnabled(False)
+                self.adminTab.setEnabled(True)
+                resolution = str(self.mw.player.getVideoWidth()) + " x " + str(self.mw.player.getVideoHeight())
+                self.tabVideo.cmbResolutions.setCurrentText(resolution)
+                self.tabVideo.spnFrameRate.setValue(self.mw.player.getVideoFrameRate())
+                self.tabVideo.spnBitrate.setValue(self.mw.player.getVideoBitrate())
 
     def sldVolumeChanged(self, value):
         self.mw.filePanel.control.sldVolume.setValue(value)
@@ -240,8 +265,21 @@ class CameraPanel(QWidget):
         if self.mw.settingsPanel.radGenerateFilename.isChecked():
             filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
         filename = self.mw.filePanel.dirSetter.txtDirectory.text() + "/" + filename
-        self.mw.player.togglePiping(filename)
-        if self.mw.player.isPiping():
-            self.btnRecord.setIcon(self.icnRecording)
+
+        if self.mw.player is not None:
+            self.mw.player.toggleRecording(filename)
+        self.setBtnRecord()
+        self.mw.filePanel.control.setBtnRecord()
+
+    def setBtnRecord(self):
+        if self.mw.player is not None:
+            if self.mw.player.isRecording():
+                self.btnRecord.setIcon(self.icnRecording)
+            else:
+                self.btnRecord.setIcon(self.icnRecord)
         else:
             self.btnRecord.setIcon(self.icnRecord)
+
+    def onMediaStopped(self):
+        print("media playing stopped")
+        self.setBtnRecord()

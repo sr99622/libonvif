@@ -1,13 +1,29 @@
-import os
+#/********************************************************************
+# libonvif/python/filepanel.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
+
 import sys
-import numpy as np
-from time import sleep
 import datetime
-from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QPushButton, \
-QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QListWidget, \
-QTabWidget, QTreeView, QFileDialog, QMenu
-from PyQt6.QtGui import QFileSystemModel, QIcon, QAction, QFont
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QStandardPaths, QFile
+from PyQt6.QtWidgets import QLineEdit, QPushButton, \
+QGridLayout, QWidget, QSlider, QLabel, QMessageBox, \
+QTreeView, QFileDialog, QMenu
+from PyQt6.QtGui import QFileSystemModel, QIcon, QAction
+from PyQt6.QtCore import Qt, QStandardPaths, QFile
 from progress import Progress
 
 sys.path.append("../build/libavio")
@@ -130,19 +146,25 @@ class FileControlPanel(QWidget):
         self.btnPlay.setIcon(self.icnPlay)
         self.mw.filePanel.tree.setFocus()
 
+    def setBtnRecord(self):
+        if self.mw.player is not None:
+            if self.mw.player.isRecording():
+                self.btnRecord.setIcon(self.icnRecording)
+            else:
+                self.btnRecord.setIcon(self.icnRecord)
+        else:
+            self.btnRecord.setIcon(self.icnRecord)
+
     def btnRecordClicked(self):
-        print("btnRecordClicked")
-        #filename = "C:/Users/sr996/Videos/666.mp4"
         filename = "output.mp4"
         if self.mw.settingsPanel.radGenerateFilename.isChecked():
             filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
         filename = self.mw.filePanel.dirSetter.txtDirectory.text() + "/" + filename
 
-        self.mw.player.toggleRecording(filename)
-        if self.mw.player.isRecording():
-            self.btnRecord.setIcon(self.icnRecording)
-        else:
-            self.btnRecord.setIcon(self.icnRecord)
+        if self.mw.player is not None:
+            self.mw.player.toggleRecording(filename)
+        self.setBtnRecord()
+        self.mw.cameraPanel.setBtnRecord()
 
     def setBtnMute(self):
         if self.mw.mute:

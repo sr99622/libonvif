@@ -1,17 +1,33 @@
-import os
-import numpy as np
+#/********************************************************************
+# libonvif/python/main.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
+
+import sys
 from time import sleep
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, \
-QGridLayout, QWidget, QSlider, QLabel, QMessageBox, QSplitter, \
-QTabWidget
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QDir, QSize
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
+QTabWidget, QMessageBox
+from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
 from PyQt6.QtGui import QIcon
 from camerapanel import CameraPanel
 from filepanel import FilePanel
 from settingspanel import SettingsPanel
 from glwidget import GLWidget
-
-import sys
+from modules.sample import Sample
 
 sys.path.append("../build/libonvif")
 import onvif
@@ -22,6 +38,7 @@ class MainWindowSignals(QObject):
     started = pyqtSignal(int)
     stopped = pyqtSignal()
     progress = pyqtSignal(float)
+    error = pyqtSignal(str)
 
 class ViewLabel(QLabel):
     def __init__(self):
@@ -41,11 +58,10 @@ class MainWindow(QMainWindow):
         self.volumeKey = "MainWindow/volume"
         self.muteKey = "MainWindow/mute"
 
-        self.player = avio.Player()
+        #self.player = avio.Player()
+        self.player = None
         self.playing = False
         self.connecting = False
-        self.piping = False
-        self.encoding = False
         self.volume = self.settings.value(self.volumeKey, 80)
 
         if self.settings.value(self.muteKey, 0) == 0:
@@ -58,10 +74,12 @@ class MainWindow(QMainWindow):
         self.tab = QTabWidget()
         self.cameraPanel = CameraPanel(self)
         self.signals.started.connect(self.cameraPanel.onMediaStarted)
+        self.signals.stopped.connect(self.cameraPanel.onMediaStopped)
         self.filePanel = FilePanel(self)
         self.signals.started.connect(self.filePanel.onMediaStarted)
         self.signals.stopped.connect(self.filePanel.onMediaStopped)
         self.signals.progress.connect(self.filePanel.onMediaProgress)
+        self.signals.error.connect(self.onError)
         self.settingsPanel = SettingsPanel(self)
         self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
@@ -82,6 +100,8 @@ class MainWindow(QMainWindow):
 
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
+
+        self.sample = None
 
     def playMedia(self, uri):
         self.stopMedia()
@@ -105,8 +125,6 @@ class MainWindow(QMainWindow):
             else:
                 self.player.video_filter = "null"
 
-        print("video filter", self.player.video_filter)
-
         if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
             self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
         else:
@@ -115,14 +133,13 @@ class MainWindow(QMainWindow):
         self.player.disable_audio = self.settingsPanel.chkDisableAudio.isChecked()
         self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()
 
-        #self.player.pythonCallback = lambda F : self.pythonCallback(F)
+        self.player.pythonCallback = lambda F : self.pythonCallback(F)
         self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
         self.player.errorCallback = lambda s : self.errorCallback(s)
         self.player.infoCallback = lambda s : self.infoCallback(s)
         self.player.setVolume(self.volume)
         self.player.setMute(self.mute)
-        #self.player.disable_video = True
         self.player.hw_device_type = self.settingsPanel.getDecoder()
         self.player.hw_encoding = self.settingsPanel.chkHardwareEncode.isChecked()
         self.player.post_encode = self.settingsPanel.chkPostEncode.isChecked()
@@ -130,7 +147,8 @@ class MainWindow(QMainWindow):
         self.cameraPanel.setEnabled(False)
 
     def stopMedia(self):
-        self.player.running = False
+        if self.player is not None:
+            self.player.running = False
         while self.playing:
             sleep(0.01)
 
@@ -140,12 +158,14 @@ class MainWindow(QMainWindow):
             self.settings.setValue(self.muteKey, 1)
         else:
             self.settings.setValue(self.muteKey, 0)
-        self.player.setMute(self.mute)
+        if self.player is not None:
+            self.player.setMute(self.mute)
 
     def setVolume(self, value):
         self.volume = value
         self.settings.setValue(self.volumeKey, value)
-        self.player.setVolume(value)
+        if self.player is not None:
+            self.player.setVolume(value)
 
     def closeEvent(self, e):
         self.stopMedia()
@@ -157,6 +177,7 @@ class MainWindow(QMainWindow):
 
     def mediaPlayingStopped(self):
         self.playing = False
+        self.player = None
         self.signals.stopped.emit()
 
     def mediaProgress(self, f):
@@ -169,11 +190,30 @@ class MainWindow(QMainWindow):
         print(msg)
 
     def errorCallback(self, s):
-        print("error", s)
+        self.signals.error.emit(s)
 
     def onMediaStopped(self):
         self.glWidget.clear()
         self.setWindowTitle("onvif gui version 2.0.0")
+
+    def pythonCallback(self, F):
+        if self.settingsPanel.chkProcessFrame.isChecked():
+            if self.sample is None:
+                self.sample = Sample(self)
+            self.sample(F)
+        return F
+
+    def onError(self, msg):
+        print("onError:", msg)
+        msgBox = QMessageBox(self)
+        msgBox.setText(msg)
+        msgBox.setWindowTitle("onvif-gui 2.0.0")
+        msgBox.setIcon(QMessageBox.Icon.Warning)
+        msgBox.exec()
+        self.cameraPanel.setBtnRecord()
+        self.filePanel.control.setBtnRecord()
+        self.cameraPanel.setEnabled(True)
+
 
 if __name__ == '__main__':
     print("PLATFORM", sys.platform)

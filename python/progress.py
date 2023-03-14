@@ -18,7 +18,7 @@
 #*********************************************************************/
 
 from PyQt6.QtWidgets import QSlider, QLabel, QWidget, QGridLayout
-from PyQt6.QtCore import Qt, QPoint, QObject, pyqtSignal
+from PyQt6.QtCore import Qt, QPoint
 from PyQt6.QtGui import QPainter
 
 class Slider(QSlider):
@@ -34,13 +34,15 @@ class Slider(QSlider):
 
     def mousePressEvent(self, e):
         pct = e.position().x() / self.width()
-        self.P.mw.player.seek(pct)
+        if self.P.mw.player is not None:
+            self.P.mw.player.seek(pct)
 
     def mouseMoveEvent(self, e):
-        if (self.P.mw.player.running):
-            x = e.position().x()
-            pct = x / self.width()
-            self.P.updatePosition(pct, x)
+        if self.P.mw.player is not None:
+            if (self.P.mw.player.running):
+                x = e.position().x()
+                pct = x / self.width()
+                self.P.updatePosition(pct, x)
 
 class Position(QLabel):
     def __init__(self):

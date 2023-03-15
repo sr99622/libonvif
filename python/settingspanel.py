@@ -17,6 +17,7 @@
 #
 #*********************************************************************/
 
+import os
 import sys
 from PyQt6.QtWidgets import QMessageBox, QLineEdit, QGroupBox, \
 QGridLayout, QWidget, QCheckBox, QLabel, QRadioButton, QComboBox
@@ -66,10 +67,6 @@ class SettingsPanel(QWidget):
         self.cmbDecoder.currentTextChanged.connect(self.cmbDecodersChanged)
         lblDecoders = QLabel("Hardware Decoder")
         
-        #self.chkLowLatency = QCheckBox("Enable Low Latency Buffering")
-        #self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
-        #self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
-
         self.chkDirectRender = QCheckBox("Direct Rendering")
         self.render = int(mw.settings.value(self.renderKey, 0))
         self.chkDirectRender.setChecked(self.render)
@@ -145,7 +142,6 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(self.txtPassword,       2, 1, 1, 1)
         lytMain.addWidget(lblDecoders,            3, 0, 1, 1)
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
-        #lytMain.addWidget(self.chkLowLatency,     4, 0, 1, 2)
         lytMain.addWidget(pnlFilter,              5, 0, 1, 4)
         lytMain.addWidget(pnlChecks,              6, 0, 1, 4)
         lytMain.addWidget(self.grpRecordFilename, 8, 0, 1, 4)
@@ -164,12 +160,9 @@ class SettingsPanel(QWidget):
     def cmbDecodersChanged(self, decoder):
         self.mw.settings.setValue(self.decoderKey, decoder)
 
-    #def lowLatencyChecked(self, state):
-    #    self.mw.settings.setValue(self.latencyKey, state)
-
     def directRenderChecked(self):
         ret = QMessageBox.warning(self, "onvif-gui",
-                                    "Application must restart to enact change.\n"
+                                    "Application must  to enact change.\n"
                                     "Are you sure you want to continue?",
                                     QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         if ret == QMessageBox.StandardButton.Ok:
@@ -181,7 +174,7 @@ class SettingsPanel(QWidget):
             if not self.chkConvert2RGB.isEnabled():
                 self.chkConvert2RGB.setChecked(True)
             self.mw.stopMedia()
-            quit()
+            os.execv(sys.executable, ['python'] + sys.argv)
         else:
             self.chkDirectRender.setChecked(not self.chkDirectRender.isChecked())
             self.chkConvert2RGB.setEnabled(self.chkDirectRender.isChecked())

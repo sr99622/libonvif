@@ -109,7 +109,6 @@ class MainWindow(QMainWindow):
         self.player.uri = uri
         self.player.width = lambda : self.glWidget.width()
         self.player.height = lambda : self.glWidget.height()
-        #if not self.settingsPanel.chkLowLatency.isChecked():
         self.player.vpq_size = 100
         self.player.apq_size = 100
         self.player.progressCallback = lambda f : self.mediaProgress(f)

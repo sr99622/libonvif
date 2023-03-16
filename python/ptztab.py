@@ -66,7 +66,7 @@ class PTZTab(QWidget):
         self.btnZoomIn.released.connect(self.stopZoom)
         self.btnZoomOut = QPushButton("-")
         self.btnZoomOut.setMaximumWidth(52)
-        self.btnZoomOut.pressed.connect(lambda x=0.0,  y=0.0, z=-0.5 : self.move(x, y, z))
+        self.btnZoomOut.pressed.connect( lambda x=0.0,  y=0.0, z=-0.5 : self.move(x, y, z))
         self.btnZoomOut.released.connect(self.stopZoom)
 
         self.chkSet = QCheckBox("Set Preset Position")
@@ -83,10 +83,10 @@ class PTZTab(QWidget):
         lytMain.addWidget(self.btnDown,    2, 3, 1, 1)
         lytMain.addWidget(self.btnRight,   1, 4, 1, 1)
 
-        lytMain.addWidget(self.btnZoomOut, 4, 4, 1, 1)
         lytMain.addWidget(self.btnZoomIn,  3, 4, 1, 1)
+        lytMain.addWidget(self.btnZoomOut, 4, 4, 1, 1)
 
-        lytMain.addWidget(self.chkSet,     4, 1, 1, 4)
+        lytMain.addWidget(self.chkSet,     4, 1, 1, 3)
 
     def presetButtonClicked(self, n):
         row = self.cp.lstCamera.currentRow()

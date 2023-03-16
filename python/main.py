@@ -79,6 +79,7 @@ class MainWindow(QMainWindow):
         self.signals.started.connect(self.filePanel.onMediaStarted)
         self.signals.stopped.connect(self.filePanel.onMediaStopped)
         self.signals.progress.connect(self.filePanel.onMediaProgress)
+        self.signals.stopped.connect(self.onMediaStopped)
         self.signals.error.connect(self.onError)
         self.settingsPanel = SettingsPanel(self)
         self.tab.addTab(self.cameraPanel, "Cameras")
@@ -96,7 +97,6 @@ class MainWindow(QMainWindow):
         split.setStretchFactor(0, 4)
         self.setCentralWidget(split)
 
-        self.signals.stopped.connect(self.onMediaStopped)
 
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
@@ -179,21 +179,16 @@ class MainWindow(QMainWindow):
         self.player = None
         self.signals.stopped.emit()
 
+    def onMediaStopped(self):
+        print("onMediaStopped")
+        self.glWidget.clear()
+        self.setWindowTitle("onvif gui version 2.0.0")
+
     def mediaProgress(self, f):
         self.signals.progress.emit(f)
 
-    def onMediaStopped(self):
-        self.glWidget.clear()
-
     def infoCallback(self, msg):
         print(msg)
-
-    def errorCallback(self, s):
-        self.signals.error.emit(s)
-
-    def onMediaStopped(self):
-        self.glWidget.clear()
-        self.setWindowTitle("onvif gui version 2.0.0")
 
     def pythonCallback(self, F):
         if self.settingsPanel.chkProcessFrame.isChecked():
@@ -201,6 +196,9 @@ class MainWindow(QMainWindow):
                 self.sample = Sample(self)
             self.sample(F)
         return F
+
+    def errorCallback(self, s):
+        self.signals.error.emit(s)
 
     def onError(self, msg):
         print("onError:", msg)

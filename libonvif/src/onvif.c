@@ -2030,7 +2030,7 @@ void addUsernameDigestHeader(xmlNodePtr root, xmlNsPtr ns_env, char *user, char 
     time_t rawtime;
     struct tm timeinfo;
     time(&rawtime);
-    localtime_s(&timeinfo, &rawtime);
+    localtime_r(&timeinfo, &rawtime);
     if (timeinfo.tm_isdst)
         offset -= 3600;
 

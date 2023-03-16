@@ -263,6 +263,7 @@ class FilePanel(QWidget):
         self.progress.updateProgress(0.0)
         self.progress.updateDuration(0)
         self.control.btnPlay.setIcon(self.control.icnPlay)
+        self.control.setBtnRecord()
 
     def onMediaProgress(self, pct):
         if pct >= 0.0 and pct <= 1.0:

@@ -61,6 +61,7 @@ class CameraPanel(QWidget):
         self.icnAudio = QIcon('image:audio.png')
         self.icnRecord = QIcon("image:record.png")
         self.icnRecording = QIcon("image:recording.png")
+        self.icnStop = QIcon("image:stop.png")
 
         self.boss = onvif.Manager()
         self.boss.discovered = lambda : self.discovered()
@@ -68,11 +69,19 @@ class CameraPanel(QWidget):
         self.boss.getData = lambda D : self.getData(D)
         self.boss.filled = lambda D : self.filled(D)
 
+        self.btnStop = QPushButton()
+        self.btnStop.setIcon(self.icnStop)
+        self.btnStop.setToolTip("Stop")
+        self.btnStop.setToolTipDuration(2000)
+        self.btnStop.setMinimumWidth(self.icnStop.availableSizes()[0].width() * 1.5)
+        self.btnStop.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.btnStop.clicked.connect(self.btnStopClicked)
+
         self.btnRecord = QPushButton()
         self.btnRecord.setIcon(self.icnRecord)
         self.btnRecord.setToolTip("Record")
         self.btnRecord.setToolTipDuration(2000)
-        self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 2)
+        self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 1.5)
         self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRecord.clicked.connect(self.btnRecordClicked)
 
@@ -83,7 +92,7 @@ class CameraPanel(QWidget):
             self.btnMute.setIcon(self.icnAudio)
         self.btnMute.setToolTip("Mute")
         self.btnMute.setToolTipDuration(2000)
-        self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 2)
+        self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 1.5)
         self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
@@ -96,7 +105,7 @@ class CameraPanel(QWidget):
         self.btnDiscover.setIcon(self.icnDiscover)
         self.btnDiscover.setToolTip("Discover")
         self.btnDiscover.setToolTipDuration(2000)
-        self.btnDiscover.setMinimumWidth(self.icnDiscover.availableSizes()[0].width() * 2)
+        self.btnDiscover.setMinimumWidth(self.icnDiscover.availableSizes()[0].width() * 1.5)
         self.btnDiscover.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
 
@@ -104,7 +113,7 @@ class CameraPanel(QWidget):
         self.btnApply.setIcon(self.icnApply)
         self.btnApply.setToolTip("Apply")
         self.btnApply.setToolTipDuration(2000)
-        self.btnApply.setMinimumWidth(self.icnApply.availableSizes()[0].width() * 2)
+        self.btnApply.setMinimumWidth(self.icnApply.availableSizes()[0].width() * 1.5)
         self.btnApply.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnApply.clicked.connect(self.btnApplyClicked)
         self.btnApply.setEnabled(False)
@@ -135,13 +144,14 @@ class CameraPanel(QWidget):
         self.signals.login.connect(self.onShowLogin)
 
         lytMain = QGridLayout(self)
-        lytMain.addWidget(self.lstCamera,   0, 0, 1, 5)
-        lytMain.addWidget(self.tabOnvif,    1, 0, 1, 5)
-        lytMain.addWidget(self.btnRecord,   2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.btnMute,     2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.sldVolume,   2, 2, 1, 1)
-        lytMain.addWidget(self.btnDiscover, 2, 3, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytMain.addWidget(self.btnApply,    2, 4, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.lstCamera,   0, 0, 1, 6)
+        lytMain.addWidget(self.tabOnvif,    1, 0, 1, 6)
+        lytMain.addWidget(self.btnStop,     2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnRecord,   2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnMute,     2, 2, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.sldVolume,   2, 3, 1, 1)
+        lytMain.addWidget(self.btnDiscover, 2, 4, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnApply,    2, 5, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.setRowStretch(0, 10)
 
         self.setTabsEnabled(False)
@@ -280,6 +290,8 @@ class CameraPanel(QWidget):
         else:
             self.btnRecord.setIcon(self.icnRecord)
 
+    def btnStopClicked(self):
+        self.mw.stopMedia()
+
     def onMediaStopped(self):
-        print("media playing stopped")
         self.setBtnRecord()

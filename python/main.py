@@ -17,6 +17,7 @@
 #
 #*********************************************************************/
 
+import os
 import sys
 from time import sleep
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
@@ -58,7 +59,6 @@ class MainWindow(QMainWindow):
         self.volumeKey = "MainWindow/volume"
         self.muteKey = "MainWindow/mute"
 
-        #self.player = avio.Player()
         self.player = None
         self.playing = False
         self.connecting = False
@@ -180,7 +180,6 @@ class MainWindow(QMainWindow):
         self.signals.stopped.emit()
 
     def onMediaStopped(self):
-        print("onMediaStopped")
         self.glWidget.clear()
         self.setWindowTitle("onvif gui version 2.0.0")
 
@@ -201,7 +200,6 @@ class MainWindow(QMainWindow):
         self.signals.error.emit(s)
 
     def onError(self, msg):
-        print("onError:", msg)
         msgBox = QMessageBox(self)
         msgBox.setText(msg)
         msgBox.setWindowTitle("onvif-gui 2.0.0")
@@ -213,7 +211,7 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
-    print("PLATFORM", sys.platform)
+    os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
     if sys.platform == "win32":
         sys.argv += ['-platform', 'windows:darkmode=2']
     app = QApplication(sys.argv)

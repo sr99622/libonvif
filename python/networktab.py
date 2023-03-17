@@ -92,7 +92,6 @@ class NetworkTab(QWidget):
     
     def update(self, onvif_data):
         if self.edited(onvif_data):
-            print("network tab update")
             onvif_data.setDHCPEnabled(self.chkDHCP.isChecked())
             onvif_data.setIPAddressBuf(self.txtIPAddress.text())
             onvif_data.setDefaultGatewayBuf(self.txtDefaultGateway.text())

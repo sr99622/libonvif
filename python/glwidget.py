@@ -31,10 +31,13 @@ class GLWidget(QOpenGLWidget):
         return QSize(640, 480)
 
     def renderCallback(self, F):
-        ary = np.array(F, copy = False)
-        h, w, d = ary.shape
-        self.image = QImage(ary.data, w, h, d * w, QImage.Format.Format_RGB888)
-        self.update()
+        try :
+            ary = np.array(F, copy = True)
+            h, w, d = ary.shape
+            self.image = QImage(ary.data, w, h, d * w, QImage.Format.Format_RGB888)
+            self.update()
+        except Exception as ex:
+            print (ex)
 
     def getImageRect(self):
         ratio = min(self.width() / self.image.width(), self.height() / self.image.height())

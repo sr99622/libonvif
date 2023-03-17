@@ -87,7 +87,6 @@ class ImageTab(QWidget):
     
     def update(self, onvif_data):
         if self.edited(onvif_data):
-            print("image tab update")
             onvif_data.setBrightness(self.sldBrightness.value())
             onvif_data.setSaturation(self.sldSaturation.value())
             onvif_data.setContrast(self.sldContrast.value())

@@ -19,7 +19,7 @@
 
 import os
 import sys
-from PyQt6.QtWidgets import QMessageBox, QLineEdit, QGroupBox, \
+from PyQt6.QtWidgets import QMessageBox, QLineEdit, QGroupBox, QSpinBox, \
 QGridLayout, QWidget, QCheckBox, QLabel, QRadioButton, QComboBox
 
 sys.path.append("../build/libonvif")
@@ -44,6 +44,7 @@ class SettingsPanel(QWidget):
         self.postEncodeKey = "settings/postEncode"
         self.hardwareEncodeKey = "settings/hardwareEncode"
         self.processFrameKey = "settings/processFrame"
+        self.cacheSizeKey = "settings/cacheSize"
 
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
@@ -129,6 +130,14 @@ class SettingsPanel(QWidget):
         else:
             self.radDefaultFilename.setChecked(True)
 
+        self.spnCacheSize = QSpinBox()
+        self.spnCacheSize.setMinimum(1)
+        self.spnCacheSize.setMaximum(10)
+        self.spnCacheSize.setMaximumWidth(80)
+        self.spnCacheSize.setValue(self.mw.settings.value(self.cacheSizeKey, 1))
+        self.spnCacheSize.valueChanged.connect(self.spnCacheSizeChanged)
+        lblCacheSize = QLabel("Pre-Record Cache Size (by GOP length)")
+
         pnlFilter = QWidget()
         lytFilter = QGridLayout(pnlFilter)
         lytFilter.addWidget(lblVideoFilter,      0, 0, 1, 1)
@@ -144,7 +153,9 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
         lytMain.addWidget(pnlFilter,              5, 0, 1, 4)
         lytMain.addWidget(pnlChecks,              6, 0, 1, 4)
-        lytMain.addWidget(self.grpRecordFilename, 8, 0, 1, 4)
+        lytMain.addWidget(self.grpRecordFilename, 7, 0, 1, 4)
+        lytMain.addWidget(lblCacheSize,           8, 0, 1, 1)
+        lytMain.addWidget(self.spnCacheSize,      8, 1, 1, 1)
         lytMain.addWidget(QLabel(),               9, 0, 1, 4)
         lytMain.setRowStretch(9, 10)
 
@@ -207,6 +218,9 @@ class SettingsPanel(QWidget):
             self.mw.settings.setValue(self.generateKey, 1)
         else:
             self.mw.settings.setValue(self.generateKey, 0)
+
+    def spnCacheSizeChanged(self, i):
+        self.mw.settings.setValue(self.cacheSizeKey, i)
 
     def getDecoder(self):
         result = avio.AV_HWDEVICE_TYPE_NONE

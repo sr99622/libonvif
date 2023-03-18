@@ -147,6 +147,8 @@ int getNetworkInterfaces(struct OnvifData *onvif_data) {
         xmlXPathFreeObject(xml_result);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getNetworkInterfaces");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -193,6 +195,8 @@ int setNetworkInterfaces(struct OnvifData *onvif_data) {
         }
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setNetworkInterfaces");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -219,6 +223,8 @@ int getNetworkDefaultGateway(struct OnvifData *onvif_data) {
         xmlChar *xpath = BAD_CAST "//s:Body//tds:GetNetworkDefaultGatewayResponse//tds:NetworkGateway//tt:IPv4Address";
         getXmlValue(reply, xpath, onvif_data->default_gateway_buf, 128);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getNetworkDefaultGateway");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -245,6 +251,8 @@ int setNetworkDefaultGateway(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setNetworkDefaultGateway");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -280,6 +288,8 @@ int getDNS(struct OnvifData *onvif_data) {
             }
         }
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getDNS");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -299,7 +309,9 @@ int setDNS(struct OnvifData *onvif_data) {
     }
 
     xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
-    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);
+    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);        if (result < 0)
+            strcat(onvif_data->last_error, " getVideoEncoderConfiguration");
+
     xmlDocSetRootElement(doc, root);
     xmlNsPtr ns_env = xmlNewNs(root, BAD_CAST "http://www.w3.org/2003/05/soap-envelope", BAD_CAST "SOAP-ENV");
     xmlNsPtr ns_tds = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/device/wsdl", BAD_CAST "tds");
@@ -320,6 +332,8 @@ int setDNS(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setDNS");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -369,6 +383,9 @@ int getNTP(struct OnvifData *onvif_data) {
 				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPManual//tt:DNSname";
 			getXmlValue(reply, xpath, onvif_data->ntp_addr, 128);
 		}
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getNTP");
     } else {
         result = -1;
         strcpy(onvif_data->last_error, "getNTP - No XML reply");
@@ -413,6 +430,8 @@ int setNTP(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setNTP");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -439,6 +458,10 @@ int getHostname(struct OnvifData *onvif_data) {
         xmlChar *xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:FromDHCP";
         xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:Name";
         getXmlValue(reply, xpath, onvif_data->host_name, 128);
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getHostname");
+        xmlFreeDoc(reply);
     } else {
         result = -1;
         strcpy(onvif_data->last_error, "getHostname - No XML reply");
@@ -473,6 +496,8 @@ int setHostname(struct OnvifData *onvif_data) {
     if (reply != NULL) {
 		/* Should check for RebootNeeded=true from setHostnameFronDHCP */
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setHostname");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -527,6 +552,8 @@ int getCapabilities(struct OnvifData *onvif_data) {
             extractOnvifService(onvif_data->ptz_service, true);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getCapabilities");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -635,6 +662,8 @@ int getVideoEncoderConfigurationOptions(struct OnvifData *onvif_data) {
             onvif_data->bitrate_max = 16384;
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getVideoEncoderConfigurationOptions");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -720,6 +749,8 @@ int getVideoEncoderConfiguration(struct OnvifData *onvif_data) {
         getXmlValue(reply, xpath, onvif_data->session_time_out_buf, 128);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getVideoEncoderConfiguration");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -802,6 +833,8 @@ int setVideoEncoderConfiguration(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setVideoEncoderConfiguration");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -857,6 +890,8 @@ int getProfile(struct OnvifData *onvif_data) {
         getXmlValue(reply, xpath, onvif_data->videoSourceConfigurationToken, 128);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getProfile");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -910,6 +945,8 @@ int getOptions(struct OnvifData *onvif_data) {
             onvif_data->sharpness_max = atoi(temp_buf);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getOptions");
         xmlFreeDoc(reply);
      } else {
         result = -1;
@@ -951,6 +988,8 @@ int getImagingSettings(struct OnvifData *onvif_data) {
             onvif_data->sharpness = atoi(temp_buf);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getImagingSettings");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -992,6 +1031,8 @@ int setImagingSettings(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setImagingSettings");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1026,6 +1067,8 @@ int continuousMove(float x, float y, float z, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " continuousMove");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1065,6 +1108,8 @@ int moveStop(int type, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " moveStop");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1091,6 +1136,8 @@ int setPreset(char *arg, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setPreset");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1117,6 +1164,8 @@ int gotoPreset(char *arg, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " gotoPreset");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1146,6 +1195,8 @@ int setUser(char *new_password, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setUser");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1205,6 +1256,8 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setSystemDatAndTime");
         xmlFreeDoc(reply);
     }
     else {
@@ -1370,6 +1423,8 @@ int getProfileToken(struct OnvifData *onvif_data, int profileIndex) {
     if (reply != NULL) {
         getNodeAttributen(reply, BAD_CAST "//s:Body//trt:GetProfilesResponse//trt:Profiles", BAD_CAST "token", onvif_data->profileToken, 128, profileIndex);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getProfileToken");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1451,6 +1506,8 @@ int getTimeOffset(struct OnvifData *onvif_data) {
 #endif
 	    onvif_data->time_offset = utc_time_there - utc_time_here;
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getTimeOfset");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1483,6 +1540,8 @@ int getStreamUri(struct OnvifData *onvif_data) {
     if (reply != NULL) {
         getXmlValue(reply, BAD_CAST "//s:Body//trt:GetStreamUriResponse//trt:MediaUri//tt:Uri", onvif_data->stream_uri, 1024);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getStreamUri");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1508,6 +1567,8 @@ int getDeviceInformation(struct OnvifData *onvif_data) {
     if (reply != NULL) {
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetDeviceInformationResponse//tds:SerialNumber", onvif_data->serial_number, 128);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getdeviceImformation");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1576,6 +1637,8 @@ int rebootCamera(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " rebootCamera");
         xmlFreeDoc(reply);
     } else {
         result = -1;
@@ -1601,6 +1664,8 @@ int hardReset(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " hardReset");
         xmlFreeDoc(reply);
     } else {
         result = -1;

@@ -150,7 +150,7 @@ int getNetworkInterfaces(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getNetworkInterfaces - No XML reply");
     }
     return result;
 }
@@ -196,7 +196,7 @@ int setNetworkInterfaces(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setNetworkInterfaces - No XML reply");
     }
     return result;
 }
@@ -222,7 +222,7 @@ int getNetworkDefaultGateway(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getNetworkDefaultGateway - No XML reply");
     }
     return result;
 }
@@ -248,7 +248,7 @@ int setNetworkDefaultGateway(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setNetworkDefaultGateway - No XML reply");
     }
     return result;
 }
@@ -283,7 +283,7 @@ int getDNS(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getDNS - No XML reply");
     }
     return result;
 }
@@ -323,7 +323,7 @@ int setDNS(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setDNS - No XML reply");
     }
     return result;
 }
@@ -371,7 +371,7 @@ int getNTP(struct OnvifData *onvif_data) {
 		}
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getNTP - No XML reply");
     }
     return result;
 }
@@ -416,7 +416,7 @@ int setNTP(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setNTP - No XML reply");
     }
     return result;
 }
@@ -441,7 +441,7 @@ int getHostname(struct OnvifData *onvif_data) {
         getXmlValue(reply, xpath, onvif_data->host_name, 128);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getHostname - No XML reply");
     }
     return result;
 }
@@ -476,7 +476,7 @@ int setHostname(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setHostname - No XML reply");
     }
     return result;
 }
@@ -530,7 +530,7 @@ int getCapabilities(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getCapabilities - No XML reply");
     }
     return result;
 }
@@ -638,7 +638,7 @@ int getVideoEncoderConfigurationOptions(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getVideoEncoderConfigurationOptions - No XML reply");
     }
     return result;
 }
@@ -723,7 +723,7 @@ int getVideoEncoderConfiguration(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getVideoEncoderConfiguration - No XML reply");
     }
     return result;
 }
@@ -805,7 +805,7 @@ int setVideoEncoderConfiguration(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setVideoEncoderConfiguration - No XML reply");
     }
     return result;
 }
@@ -860,7 +860,7 @@ int getProfile(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getProfile - No XML reply");
     }
     return result;
 }
@@ -913,7 +913,7 @@ int getOptions(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
      } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getOptions - No XML reply");
     }
     return result;
 }
@@ -954,7 +954,7 @@ int getImagingSettings(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getImagingSettings - No XML reply");
     }
     return result;
 }
@@ -995,7 +995,7 @@ int setImagingSettings(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setImagingSettings - No XML reply");
     }
     return result;
 }
@@ -1029,7 +1029,7 @@ int continuousMove(float x, float y, float z, struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "continuousMove - No XML reply");
     }
     return result;
 }
@@ -1068,7 +1068,7 @@ int moveStop(int type, struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "moveStop - No XML reply");
     }
     return result;
 }
@@ -1094,7 +1094,7 @@ int setPreset(char *arg, struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setPreset - No XML reply");
     }
     return result;
 }
@@ -1120,7 +1120,7 @@ int gotoPreset(char *arg, struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "gotoPreset - No XML reply");
     }
     return result;
 }
@@ -1149,7 +1149,7 @@ int setUser(char *new_password, struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setUser - No XML reply");
     }
     return result;
 }
@@ -1209,7 +1209,7 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
     }
     else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setSystemDateAndTime - No XML reply");
     }
     return result;
 }
@@ -1341,12 +1341,12 @@ int setSystemDateAndTimeUsingTimezone(struct OnvifData *onvif_data) {
 		xmlFreeDoc(reply);
             } else {
                 result = -1;
-		strcpy(onvif_data->last_error, "No XML reply");
+		strcpy(onvif_data->last_error, "setSystemDateAndTimeUsingTimezone - No XML reply");
             }
         }
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setSystemDateAndTimeUsingTimezone 2 - No XML reply");
     }
     return result;
 }
@@ -1373,7 +1373,7 @@ int getProfileToken(struct OnvifData *onvif_data, int profileIndex) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getProfileToken - No XML reply");
     }
     return result;
 }
@@ -1409,28 +1409,28 @@ int getTimeOffset(struct OnvifData *onvif_data) {
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:UTCDateTime//tt:Date//tt:Day", day_buf, 16);
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:DaylightSavings", dst_buf, 16);
 
-	onvif_data->dst = false;
+    	onvif_data->dst = false;
         int is_dst = 0;
         if (strcmp(dst_buf, "true") == 0) {
             is_dst = 1;
-	    onvif_data->dst = true;
-	}
+	        onvif_data->dst = true;
+	    }
 
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:TimeZone//tt:TZ", onvif_data->timezone, 128);
-	char dttype[16];
+	    char dttype[16];
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:DateTimeType", dttype, 16);
-	onvif_data->datetimetype = dttype[0]; /* M == Manual, N == NTP */
+	    onvif_data->datetimetype = dttype[0]; /* M == Manual, N == NTP */
 
         time_t now = time(NULL);
         time_t utc_time_here = now;
-	bool special = false;
-	if (strcmp(onvif_data->timezone,"UTC0") == 0) {
-	    /* special case - camera is running on local time believing it is UTC */
-	    special = true;
+	    bool special = false;
+	    if (strcmp(onvif_data->timezone,"UTC0") == 0) {
+	        /* special case - camera is running on local time believing it is UTC */
+	        special = true;
             struct tm *utc_here = gmtime(&now);
             utc_here->tm_isdst = -1;
             utc_time_here = mktime(utc_here);
-	}
+	    }
 
         struct tm *utc_there = localtime(&now);
         utc_there->tm_year = atoi(year_buf) - 1900;
@@ -1440,21 +1440,21 @@ int getTimeOffset(struct OnvifData *onvif_data) {
         utc_there->tm_min = atoi(min_buf);
         utc_there->tm_sec = atoi(sec_buf);
         utc_there->tm_isdst = is_dst;
-	time_t utc_time_there;
-	if (special)
-	    utc_time_there = mktime(utc_there);
-	else
+	    time_t utc_time_there;
+	    if (special)
+	        utc_time_there = mktime(utc_there);
+	    else
 #ifndef _WIN32
-	    utc_time_there = timegm(utc_there);
+	        utc_time_there = timegm(utc_there);
 #else
-	    utc_time_there = _mkgmtime(utc_there);
+	        utc_time_there = _mkgmtime(utc_there);
 #endif
-	onvif_data->time_offset = utc_time_there - utc_time_here;
+	    onvif_data->time_offset = utc_time_there - utc_time_here;
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getTimeOffset - No XML reply");
     }
 
     return result;
@@ -1486,7 +1486,7 @@ int getStreamUri(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getStreamUri - No XML reply");
     }
     return result;
 }
@@ -1511,7 +1511,7 @@ int getDeviceInformation(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getDeviceInformation - No XML reply");
     }
     return result;
 }
@@ -1579,7 +1579,7 @@ int rebootCamera(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "rebootCamera - No XML reply");
     }
   return result;
 }
@@ -1604,7 +1604,7 @@ int hardReset(struct OnvifData *onvif_data) {
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "hardReset - No XML reply");
     }
     return result;
 }
@@ -2031,12 +2031,15 @@ void addUsernameDigestHeader(xmlNodePtr root, xmlNsPtr ns_env, char *user, char 
     struct tm timeinfo;
     time(&rawtime);
 #ifdef _WIN32
+    // microsoft implementation is not c standard, params are reversed
     localtime_s(&timeinfo, &rawtime);
 #else
-    localtime_r(&timeinfo, &rawtime);
+    localtime_r(&rawtime, &timeinfo);
 #endif
-    if (timeinfo.tm_isdst)
+
+    if (timeinfo.tm_isdst) {
         offset -= 3600;
+    }
 
     char time_buffer[1024];
     time_t now = time(NULL);

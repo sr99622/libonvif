@@ -163,7 +163,9 @@ class CameraPanel(QWidget):
     def filled(self, onvif_data):
         if len(onvif_data.last_error()) > 0:
             print("ERROR:", onvif_data.last_error())
+
         self.devices[self.lstCamera.currentRow()] = onvif_data
+
         self.signals.fill.emit(onvif_data)
         self.btnApply.setEnabled(False)
         if not self.mw.connecting:
@@ -203,7 +205,7 @@ class CameraPanel(QWidget):
     def onCurrentRowChanged(self, row):
         onvif_data = self.devices[self.lstCamera.currentRow()]
         if onvif_data.filled:
-            self.setTabsEnabled(False)
+            self.setTabsEnabled(True)
             self.signals.fill.emit(onvif_data)
         else:
             self.boss.onvif_data = onvif_data

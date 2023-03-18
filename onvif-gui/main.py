@@ -52,9 +52,9 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         QDir.addSearchPath('image', 'resources/')
-        self.setWindowTitle("onvif gui version 2.0.0")
+        self.program_name = "onvif gui version 2.0.0"
+        self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
-
         self.settings = QSettings("onvif", "gui")
         self.volumeKey = "MainWindow/volume"
         self.muteKey = "MainWindow/mute"
@@ -96,7 +96,6 @@ class MainWindow(QMainWindow):
         split.addWidget(self.tab)
         split.setStretchFactor(0, 4)
         self.setCentralWidget(split)
-
 
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
@@ -182,7 +181,7 @@ class MainWindow(QMainWindow):
 
     def onMediaStopped(self):
         self.glWidget.clear()
-        self.setWindowTitle("onvif gui version 2.0.0")
+        self.setWindowTitle(self.program_name)
 
     def mediaProgress(self, f):
         self.signals.progress.emit(f)
@@ -203,7 +202,7 @@ class MainWindow(QMainWindow):
     def onError(self, msg):
         msgBox = QMessageBox(self)
         msgBox.setText(msg)
-        msgBox.setWindowTitle("onvif-gui 2.0.0")
+        msgBox.setWindowTitle(self.program_name)
         msgBox.setIcon(QMessageBox.Icon.Warning)
         msgBox.exec()
         self.cameraPanel.setBtnRecord()

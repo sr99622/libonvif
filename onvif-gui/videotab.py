@@ -112,7 +112,3 @@ class VideoTab(QWidget):
             onvif_data.setHeight(int(dims[1]))
             self.cp.boss.onvif_data = onvif_data
             self.cp.boss.startPyUpdateVideo()
-
-
-
-

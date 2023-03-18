@@ -154,8 +154,8 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(pnlFilter,              5, 0, 1, 4)
         lytMain.addWidget(pnlChecks,              6, 0, 1, 4)
         lytMain.addWidget(self.grpRecordFilename, 7, 0, 1, 4)
-        lytMain.addWidget(lblCacheSize,           8, 0, 1, 1)
-        lytMain.addWidget(self.spnCacheSize,      8, 1, 1, 1)
+        lytMain.addWidget(lblCacheSize,           8, 0, 1, 2)
+        lytMain.addWidget(self.spnCacheSize,      8, 2, 1, 1)
         lytMain.addWidget(QLabel(),               9, 0, 1, 4)
         lytMain.setRowStretch(9, 10)
 

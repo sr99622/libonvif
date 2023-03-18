@@ -82,6 +82,8 @@ class AdminTab(QWidget):
                 self.cp.devices[self.cp.lstCamera.currentRow()] = onvif_data
                 self.cp.lstCamera.currentItem().setText(onvif_data.alias)
                 self.cp.settings.setValue(onvif_data.serial_number(), onvif_data.alias)
+                self.cp.boss.onvif_data = onvif_data
+                self.cp.boss.startPyFill()
                 print("editing camera alias")
             if len(self.txtAdminPassword.text()) > 0:
                 result = QMessageBox.question(self, "Warning", "Please confirm camera password change")

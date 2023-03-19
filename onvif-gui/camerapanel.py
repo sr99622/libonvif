@@ -157,7 +157,7 @@ class CameraPanel(QWidget):
         self.setTabsEnabled(False)
 
     def btnDiscoverClicked(self):
-        self.boss.startPyDiscover()
+        self.boss.startDiscover()
         self.btnDiscover.setEnabled(False)
 
     def filled(self, onvif_data):
@@ -210,7 +210,7 @@ class CameraPanel(QWidget):
         else:
             self.boss.onvif_data = onvif_data
             self.setTabsEnabled(False)
-            self.boss.startPyFill()
+            self.boss.startFill()
 
     def onItemDoubleClicked(self, item):
         onvif_data = self.devices[self.lstCamera.currentRow()]

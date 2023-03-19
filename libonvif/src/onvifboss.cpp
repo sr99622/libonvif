@@ -14,55 +14,62 @@ Manager::~Manager()
 
 }
 
-void Manager::startPyStop()
+void Manager::startStop()
 {
-    std::thread thread([&]() { pyStop(); });
+    std::thread thread([&]() { stop(); });
     thread.detach();
 }
 
-void Manager::pyStop()
+void Manager::stop()
 {
     moveStop(stop_type, onvif_data.data);
 }
 
-void Manager::startPyMove()
+void Manager::startMove()
 {
-    std::thread thread([&]() { pyMove(); });
+    std::thread thread([&]() { move(); });
     thread.detach();
 }
 
-void Manager::pyMove()
+void Manager::move()
 {
     continuousMove(x, y, z, onvif_data.data);
 }
 
-void Manager::startPySet()
+void Manager::startSet()
 {
-    std::thread thread([&]() { pySet(); });
+    std::thread thread([&]() { set(); });
     thread.detach();
 }
 
-void Manager::pySet()
+void Manager::set()
 {
     char pos[128] = {0};
     sprintf(pos, "%d", preset);
     gotoPreset(pos, onvif_data.data);
 }
 
-void Manager::startPySetPreset()
+void Manager::startSetGotoPreset()
+{
+    std::thread thread([&]() { setGotoPreset(); });
+    thread.detach();
+}
+
+void Manager::setGotoPreset()
 {
     char pos[128] = {0};
     sprintf(pos, "%d", preset);
     setPreset(pos, onvif_data.data);
+    filled(onvif_data);
 }
 
-void Manager::startPyUpdateVideo()
+void Manager::startUpdateVideo()
 {
-    std::thread thread([&]() { pyUpdateVideo(); });
+    std::thread thread([&]() { updateVideo(); });
     thread.detach();
 }
 
-void Manager::pyUpdateVideo()
+void Manager::updateVideo()
 {
     setVideoEncoderConfiguration(onvif_data.data);
     getProfile(onvif_data.data);
@@ -71,13 +78,13 @@ void Manager::pyUpdateVideo()
     filled(onvif_data);
 }
 
-void Manager::startPyUpdateImage()
+void Manager::startUpdateImage()
 {
-    std::thread thread([&]() { pyUpdateImage(); });
+    std::thread thread([&]() { updateImage(); });
     thread.detach();
 }
 
-void Manager::pyUpdateImage()
+void Manager::updateImage()
 {
     setImagingSettings(onvif_data.data);
     getOptions(onvif_data.data);
@@ -85,13 +92,13 @@ void Manager::pyUpdateImage()
     filled(onvif_data);
 }
 
-void Manager::startPyUpdateNetwork()
+void Manager::startUpdateNetwork()
 {
-    std::thread thread([&]() { pyUpdateNetwork(); });
+    std::thread thread([&]() { updateNetwork(); });
     thread.detach();
 }
 
-void Manager::pyUpdateNetwork()
+void Manager::updateNetwork()
 {
     setNetworkInterfaces(onvif_data.data);
     setDNS(onvif_data.data);
@@ -102,62 +109,62 @@ void Manager::pyUpdateNetwork()
     filled(onvif_data);
 }
 
-void Manager::startPyUpdateTime()
+void Manager::startUpdateTime()
 {
-    std::thread thread([&]() { pyUpdateTime(); });
+    std::thread thread([&]() { updateTime(); });
     thread.detach();
 }
 
-void Manager::pyUpdateTime()
+void Manager::updateTime()
 {
     setSystemDateAndTime(onvif_data.data);
     filled(onvif_data);
 }
 
-void Manager::startPyReboot()
+void Manager::startReboot()
 {
-    std::thread thread([&]() { pyReboot(); });
+    std::thread thread([&]() { reboot(); });
     thread.detach();
 }
 
-void Manager::pyReboot()
+void Manager::reboot()
 {
     rebootCamera(onvif_data.data);
     filled(onvif_data);
 }
 
-void Manager::startPyReset()
+void Manager::startReset()
 {
-    std::thread thread([&]() { pyReset(); });
+    std::thread thread([&]() { reset(); });
     thread.detach();
 }
 
-void Manager::pyReset()
+void Manager::reset()
 {
     hardReset(onvif_data.data);
     filled(onvif_data);
 }
 
-void Manager::startPySetUser()
+void Manager::startSetUser()
 {
-    std::thread thread([&]() { pySetUser(); });
+    std::thread thread([&]() { setOnvifUser(); });
     thread.detach();
 }
 
-void Manager::pySetUser()
+void Manager::setOnvifUser()
 {
     if (setUser((char*)new_password.c_str(), onvif_data) == 0)
         onvif_data.setPassword(new_password.c_str());
     filled(onvif_data);
 }
 
-void Manager::startPyFill()
+void Manager::startFill()
 {
-    std::thread thread([&]() { pyFill(); });
+    std::thread thread([&]() { fill(); });
     thread.detach();
 }
 
-void Manager::pyFill()
+void Manager::fill()
 {
     getCapabilities(onvif_data.data);
     getNetworkInterfaces(onvif_data.data);
@@ -171,13 +178,13 @@ void Manager::pyFill()
     filled(onvif_data);
 }
 
-void Manager::startPyDiscover()
+void Manager::startDiscover()
 {
-    std::thread thread([&]() { pyDiscover(); });
+    std::thread thread([&]() { discover(); });
     thread.detach();
 }
 
-void Manager::pyDiscover()
+void Manager::discover()
 {
     Session session;
     int number_of_devices = broadcast(session);
@@ -188,6 +195,7 @@ void Manager::pyDiscover()
         if (prepareOnvifData(i, session, data)) {
             if (std::find(devices.begin(), devices.end(), data) == devices.end()) {
                 devices.push_back(data);
+                bool first_pass = true;
                 while (true) {
                     data = getCredential(data);
                     if (!data.cancelled) {
@@ -198,7 +206,24 @@ void Manager::pyDiscover()
                             break;
                         }
                         else {
-                            std::cout << "fillRTPS failed" << std::endl;
+                            //std::cout << data.camera_name() << " @ " << data.host() << " login failed: " << data.last_error() << std::endl;
+                            getTimeOffset(data);
+                            time_t rawtime;
+                            struct tm timeinfo;
+                            time(&rawtime);
+                        #ifdef _WIN32
+                            localtime_s(&timeinfo, &rawtime);
+                        #else
+                            localtime_r(&rawtime, &timeinfo);
+                        #endif
+                            if (timeinfo.tm_isdst) {
+                                //std::cout << "Daylight Savings Time is in effect, will re-attempt login with time conversion" << std::endl;
+                                data.setTimeOffset(data.time_offset() - 3600);
+                                if (first_pass) {
+                                    data.clearLastError();
+                                    first_pass = false;
+                                }
+                            }
                         }
                     } 
                     else {
@@ -210,190 +235,6 @@ void Manager::pyDiscover()
     }
 
     discovered();
-}
-
-void Manager::startDiscover(std::function<void()> discoverFinished, 
-                        std::function<bool(Data&)>getCredential, std::function<void(Data&)> getData)
-{
-    std::thread thread(discover, discoverFinished, getCredential, getData);
-    thread.detach();
-}
-
-void Manager::discover(std::function<void()> discoverFinished,
-                    std::function<bool(Data&)>getCredential, std::function<void(Data&)> getData)
-{
-    Session session;
-    int number_of_devices = broadcast(session);
-
-    for (int i = 0; i < number_of_devices; i++) {
-        Data data;
-        if (prepareOnvifData(i, session, data)) {
-            while (true) {
-                if (getCredential(data)) {
-                    if (fillRTSP(data) == 0) {
-                        getProfile(data);
-                        getDeviceInformation(data);
-                        getData(data);
-                        break;
-                    }
-                } 
-                else {
-                    break;
-                }
-            }
-        }
-    }
-
-    discoverFinished();
-}
-
-void Manager::startFill(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    std::thread thread(fill, onvif_data, fcn);
-    thread.detach();
-}
-
-void Manager::fill(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    getCapabilities(onvif_data.data);
-    getNetworkInterfaces(onvif_data.data);
-    getNetworkDefaultGateway(onvif_data.data);
-    getDNS(onvif_data.data);
-    getVideoEncoderConfigurationOptions(onvif_data.data);
-    getVideoEncoderConfiguration(onvif_data.data);
-    getOptions(onvif_data.data);
-    getImagingSettings(onvif_data.data);
-    fcn(onvif_data);
-}
-
-void Manager::startUpdateVideo(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    std::thread thread(updateVideo, onvif_data, fcn);
-    thread.detach();
-}
-
-void Manager::updateVideo(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    setVideoEncoderConfiguration(onvif_data.data);
-    getProfile(onvif_data.data);
-    getVideoEncoderConfigurationOptions(onvif_data.data);
-    getVideoEncoderConfiguration(onvif_data.data);
-    fcn(onvif_data);
-}
-
-void Manager::startUpdateImage(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    std::thread thread(updateImage, onvif_data, fcn);
-    thread.detach();
-}
-
-void Manager::updateImage(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    setImagingSettings(onvif_data.data);
-    getOptions(onvif_data.data);
-    getImagingSettings(onvif_data.data);
-    fcn(onvif_data);
-}
-
-void Manager::startUpdateNetwork(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    std::thread thread(updateNetwork, onvif_data, fcn);
-    thread.detach();   
-}
-
-void Manager::updateNetwork(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    setNetworkInterfaces(onvif_data.data);
-    setDNS(onvif_data.data);
-    setNetworkDefaultGateway(onvif_data.data);
-    getNetworkInterfaces(onvif_data.data);
-    getNetworkDefaultGateway(onvif_data.data);
-    getDNS(onvif_data.data);
-    fcn(onvif_data);
-}
-
-void Manager::startUpdateTime(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    std::thread thread(updateTime, onvif_data, fcn);
-    thread.detach();
-}
-
-void Manager::updateTime(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    setSystemDateAndTime(onvif_data.data);
-    fcn(onvif_data);
-}
-
-void Manager::startReboot(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    std::thread thread(reboot, onvif_data, fcn);
-    thread.detach();
-}
-
-void Manager::reboot(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    rebootCamera(onvif_data.data);
-    fcn(onvif_data);
-}
-
-void Manager::startReset(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    std::thread thread(reset, onvif_data, fcn);
-    thread.detach();
-}
-
-void Manager::reset(const Data& onvif_data, std::function<void(const Data&)> fcn)
-{
-    hardReset(onvif_data.data);
-    fcn(onvif_data);
-}
-
-void Manager::startSetPTZ(const Data& onvif_data, int position)
-{
-    std::thread thread(setPTZ, onvif_data, position);
-    thread.detach();
-}
-
-void Manager::setPTZ(const Data& onvif_data, int position)
-{
-    char pos[128] = {0};
-    sprintf(pos, "%d", position);
-    gotoPreset(pos, onvif_data.data);
-}
-
-void Manager::startSetPresetPTZ(const Data& onvif_data, int position)
-{
-    std::thread thread(setPresetPTZ, onvif_data, position);
-    thread.detach();
-}
-
-void Manager::setPresetPTZ(const Data& onvif_data, int position)
-{
-    char pos[128] = {0};
-    sprintf(pos, "%d", position);
-    setPreset(pos, onvif_data.data);
-}
-
-void Manager::startMovePTZ(const Data& onvif_data, float x, float y, float z)
-{
-    std::thread thread(movePTZ, onvif_data, x, y, z);
-    thread.detach();
-}
-
-void Manager::movePTZ(const Data& onvif_data, float x, float y, float z)
-{
-    continuousMove(x, y, z, onvif_data.data);
-}
-
-void Manager::startStopPTZ(const Data& onvif_data, int type)
-{
-    std::thread thread(stopPTZ, onvif_data, type);
-    thread.detach();
-}
-
-void Manager::stopPTZ(const Data& onvif_data, int type)
-{
-    moveStop(type, onvif_data.data);
 }
 
 }

@@ -92,4 +92,4 @@ class ImageTab(QWidget):
             onvif_data.setContrast(self.sldContrast.value())
             onvif_data.setSharpness(self.sldSharpness.value())
             self.cp.boss.onvif_data = onvif_data
-            self.cp.boss.startPyUpdateImage()
+            self.cp.boss.startUpdateImage()

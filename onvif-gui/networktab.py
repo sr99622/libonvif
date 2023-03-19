@@ -98,7 +98,7 @@ class NetworkTab(QWidget):
             onvif_data.setDNSBuf(self.txtDNS.text())
             onvif_data.setMaskBuf(self.txtSubnetMask.text())
             self.cp.boss.onvif_data = onvif_data
-            self.cp.boss.startPyUpdateNetwork()
+            self.cp.boss.startUpdateNetwork()
 
     def onChkDHCPChecked(self):
         checked = self.chkDHCP.isChecked()

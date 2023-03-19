@@ -76,45 +76,38 @@ class AdminTab(QWidget):
     
     def update(self, onvif_data):
         if self.edited(onvif_data):
-            print("admin tab update")
             if not onvif_data.alias == self.txtCameraName.text():
                 onvif_data.alias = self.txtCameraName.text()
                 self.cp.devices[self.cp.lstCamera.currentRow()] = onvif_data
                 self.cp.lstCamera.currentItem().setText(onvif_data.alias)
                 self.cp.settings.setValue(onvif_data.serial_number(), onvif_data.alias)
                 self.cp.boss.onvif_data = onvif_data
-                self.cp.boss.startPyFill()
-                print("editing camera alias")
+                self.cp.boss.startFill()
             if len(self.txtAdminPassword.text()) > 0:
                 result = QMessageBox.question(self, "Warning", "Please confirm camera password change")
                 if result == QMessageBox.StandardButton.Yes:
                     self.cp.boss.onvif_data = onvif_data
                     self.cp.boss.new_password = self.txtAdminPassword.text()
-                    self.cp.boss.startPySetUser()
+                    self.cp.boss.startSetUser()
                     self.txtAdminPassword.clear()
-                    print("editing admin password")
 
     def btnRebootClicked(self):
         result = QMessageBox.question(self, "Warning", "Please confirm reboot")
         if result == QMessageBox.StandardButton.Yes:
             self.cp.boss.onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
-            self.cp.boss.startPyReboot()
-        print("btnRebootClicked")
+            self.cp.boss.startReboot()
 
     def btnSyncTimeClicked(self):
-        print("btnSyncTimeClicked")
         self.cp.boss.onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
-        self.cp.boss.startPyUpdateTime()
+        self.cp.boss.startUpdateTime()
 
     def btnHardResetClicked(self):
         result = QMessageBox.question(self, "Warning", "** THIS WILL ERASE ALL SETTINGS **\nAre you sure you want to do this?")
         if result == QMessageBox.StandardButton.Yes:
             self.cp.boss.onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
-            self.cp.boss.startPyReset()
-        print("btnHardResetClicked")
+            self.cp.boss.startReset()
 
     def btnBrowserClicked(self):
-        print("btnBrowserClicked")
         onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
         if platform.system() == "Linux":
             cmd = "xdg-open"
@@ -125,5 +118,4 @@ class AdminTab(QWidget):
         self.process.start(cmd, [args,])
 
     def chkEnableResetChanged(self, state):
-        print("chkEnableResetChanged", state)
         self.btnHardReset.setEnabled(state)

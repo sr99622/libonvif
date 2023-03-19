@@ -146,6 +146,8 @@ public:
     std::string host() { return data->host; } const
     std::string last_error() { return data->last_error; } const
     void clearLastError() { memset(data->last_error, 0, 1024); }
+    time_t time_offset() { return data->time_offset; } const
+    void setTimeOffset(time_t arg) { data->time_offset = arg; }
 
     //VIDEO
     std::string resolutions_buf(int arg) { return data->resolutions_buf[arg]; }
@@ -251,86 +253,50 @@ public:
     std::function<void(Data&)> getData = nullptr;
     std::function<void(Data&)> filled = nullptr;
 
-    void pyDiscover();
-    void startPyDiscover();
+    void discover();
+    void startDiscover();
 
-    void pySet();
-    void startPySet();
+    void set();
+    void startSet();
 
-    void pySetPreset();
-    void startPySetPreset();
+    void setGotoPreset();
+    void startSetGotoPreset();
 
-    void pyFill();
-    void startPyFill();
+    void fill();
+    void startFill();
 
-    void pyUpdateVideo();
-    void startPyUpdateVideo();
+    void updateVideo();
+    void startUpdateVideo();
 
-    void pyUpdateImage();
-    void startPyUpdateImage();
+    void updateImage();
+    void startUpdateImage();
 
-    void startPyUpdateNetwork();
-    void pyUpdateNetwork();
+    void startUpdateNetwork();
+    void updateNetwork();
 
-    void pyMove();
-    void startPyMove();
+    void move();
+    void startMove();
 
-    void pyStop();
-    void startPyStop();
+    void stop();
+    void startStop();
 
-    void pyUpdateTime();
-    void startPyUpdateTime();
+    void updateTime();
+    void startUpdateTime();
 
-    void pyReboot();
-    void startPyReboot();
+    void reboot();
+    void startReboot();
 
-    void pyReset();
-    void startPyReset();
+    void reset();
+    void startReset();
 
-    void pySetUser();
-    void startPySetUser();
+    void setOnvifUser();
+    void startSetUser();
 
     Data onvif_data;
     int preset;
     int stop_type;
     float x, y, z;
     std::string new_password;
-
-    static void discover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
-    void startDiscover(std::function<void()>, std::function<bool(Data&)>, std::function<void(Data&)>);
-
-    static void fill(const Data&, std::function<void(const Data&)>);
-    void startFill(const Data&, std::function<void(const Data&)>);
-
-    static void updateVideo(const Data&, std::function<void(const Data&)>);
-    void startUpdateVideo(const Data&, std::function<void(const Data&)>);
-
-    static void updateImage(const Data&, std::function<void(const Data&)>);
-    void startUpdateImage(const Data&, std::function<void(const Data&)>);
-
-    static void updateNetwork(const Data&, std::function<void(const Data&)>);
-    void startUpdateNetwork(const Data&, std::function<void(const Data&)>);
-
-    static void updateTime(const Data&, std::function<void(const Data&)>);
-    void startUpdateTime(const Data&, std::function<void(const Data&)>);
-
-    static void reboot(const Data&, std::function<void(const Data&)>);
-    void startReboot(const Data&, std::function<void(const Data&)>);
-
-    static void reset(const Data&, std::function<void(const Data&)>);
-    void startReset(const Data&, std::function<void(const Data&)>);
-
-    static void setPTZ(const Data&, int);
-    void startSetPTZ(const Data&, int);
-
-    static void setPresetPTZ(const Data&, int);
-    void startSetPresetPTZ(const Data&, int);
-
-    static void movePTZ(const Data&, float, float, float);
-    void startMovePTZ(const Data&, float, float, float);
-
-    static void stopPTZ(const Data&, int);
-    void startStopPTZ(const Data&, int);
 
 };
 

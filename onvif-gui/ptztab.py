@@ -92,14 +92,13 @@ class PTZTab(QWidget):
         row = self.cp.lstCamera.currentRow()
         if row > -1:
             if self.chkSet.isChecked():
-                print(self.cp.devices[row].stream_uri())
                 self.cp.boss.onvif_data = self.cp.devices[row]
                 self.cp.boss.preset = n
-                self.cp.boss.startPySetPreset()
+                self.cp.boss.startSetGotoPreset()
             else:
                 self.cp.boss.onvif_data = self.cp.devices[row]
                 self.cp.boss.preset = n
-                self.cp.boss.startPySet()
+                self.cp.boss.startSet()
 
     def move(self, x, y, z):
         row = self.cp.lstCamera.currentRow()
@@ -108,21 +107,22 @@ class PTZTab(QWidget):
             self.cp.boss.x = x
             self.cp.boss.y = y
             self.cp.boss.z = z
-            self.cp.boss.startPyMove()
+            self.cp.boss.startMove()
 
     def stopPanTilt(self):
         row = self.cp.lstCamera.currentRow()
         if row > -1:
             self.cp.boss.onvif_data = self.cp.devices[row]
             self.cp.boss.stop_type = 0
-            self.cp.boss.startPyStop()
+            self.cp.boss.startStop()
 
     def stopZoom(self):
         row = self.cp.lstCamera.currentRow()
         if row > -1:
             self.cp.boss.onvif_data = self.cp.devices[row]
             self.cp.boss.stop_type = 1
-            self.cp.boss.startPyStop()
+            self.cp.boss.startStop()
 
     def fill(self, onvif_data):
         self.setEnabled(True)
+        self.chkSet.setChecked(False)

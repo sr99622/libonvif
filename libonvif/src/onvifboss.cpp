@@ -100,13 +100,16 @@ void Manager::startUpdateNetwork()
 
 void Manager::updateNetwork()
 {
+    std::cout << "start update network" << std::endl;
     setNetworkInterfaces(onvif_data.data);
     setDNS(onvif_data.data);
     setNetworkDefaultGateway(onvif_data.data);
     getNetworkInterfaces(onvif_data.data);
     getNetworkDefaultGateway(onvif_data.data);
     getDNS(onvif_data.data);
+    std::cout << "finish update network" << std::endl;
     filled(onvif_data);
+    std::cout << "callback filled" << std::endl;
 }
 
 void Manager::startUpdateTime()

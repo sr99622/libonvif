@@ -73,7 +73,7 @@ class NetworkTab(QWidget):
         self.txtSubnetMask.setText(onvif_data.mask_buf())
         self.onChkDHCPChecked()
 
-        self.setEnabled(True)
+        self.setEnabled(False)
 
     def edited(self, onvif_data):
         result = False

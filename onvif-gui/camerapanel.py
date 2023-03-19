@@ -222,7 +222,7 @@ class CameraPanel(QWidget):
     def setTabsEnabled(self, enabled):
         self.tabVideo.setEnabled(enabled)
         self.tabImage.setEnabled(enabled)
-        self.tabNetwork.setEnabled(enabled)
+        self.tabNetwork.setEnabled(False)
         self.ptzTab.setEnabled(enabled)
         self.adminTab.setEnabled(enabled)
 
@@ -252,6 +252,7 @@ class CameraPanel(QWidget):
             if self.mw.player.getVideoCodec() == "hevc":
                 self.setTabsEnabled(False)
                 self.adminTab.setEnabled(True)
+                self.ptzTab.setEnabled(True)
                 resolution = str(self.mw.player.getVideoWidth()) + " x " + str(self.mw.player.getVideoHeight())
                 self.tabVideo.cmbResolutions.setCurrentText(resolution)
                 self.tabVideo.spnFrameRate.setValue(self.mw.player.getVideoFrameRate())

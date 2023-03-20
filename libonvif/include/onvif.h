@@ -137,6 +137,7 @@ struct OnvifSession {
     char uuid[47];
     int discovery_msg_id;
     char preferred_network_address[16];
+    char active_network_interfaces[16][1024];
 };
 
 LIBRARY_API void initializeSession(struct OnvifSession *onvif_session);
@@ -229,7 +230,7 @@ LIBRARY_API int mask2prefix(char * mask_buf);
 LIBRARY_API void getIPAddress(char buf[128]);
 LIBRARY_API void copyData(struct OnvifData* dts, struct OnvifData* src);
 LIBRARY_API bool hasPTZ(struct OnvifData* onvif_data);
-
+LIBRARY_API void getActiveNetworkInterfaces(struct OnvifSession* onvif_session);
 LIBRARY_API void dumpConfigAll (struct OnvifData *onvif_data);
 
 #ifdef __MINGW32__

@@ -157,6 +157,10 @@ class CameraPanel(QWidget):
         self.setTabsEnabled(False)
 
     def btnDiscoverClicked(self):
+        intf = self.mw.settingsPanel.cmbInterfaces.currentText()
+        intf = intf.split(" - ")[0]
+        print(intf)
+        self.boss.interface = intf
         self.boss.startDiscover()
         self.btnDiscover.setEnabled(False)
 
@@ -274,9 +278,7 @@ class CameraPanel(QWidget):
         self.mw.filePanel.control.setBtnMute()
 
     def btnRecordClicked(self):
-        filename = "output.mp4"
-        if self.mw.settingsPanel.radGenerateFilename.isChecked():
-            filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
+        filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
         filename = self.mw.filePanel.dirSetter.txtDirectory.text() + "/" + filename
 
         if self.mw.player is not None:

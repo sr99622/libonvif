@@ -156,9 +156,7 @@ class FileControlPanel(QWidget):
             self.btnRecord.setIcon(self.icnRecord)
 
     def btnRecordClicked(self):
-        filename = "output.mp4"
-        if self.mw.settingsPanel.radGenerateFilename.isChecked():
-            filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
+        filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
         filename = self.mw.filePanel.dirSetter.txtDirectory.text() + "/" + filename
 
         if self.mw.player is not None:

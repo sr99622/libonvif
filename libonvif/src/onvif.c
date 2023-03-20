@@ -29,6 +29,8 @@
     #include <wincrypt.h>
     #include <iphlpapi.h>
     #include <fcntl.h>
+	#pragma comment(lib, "iphlpapi.lib")
+	#pragma comment(lib, "ws2_32.lib")
 #else
     #include <sys/socket.h>
     #include <arpa/inet.h>
@@ -36,6 +38,7 @@
     #include <ifaddrs.h>
     #include <sys/ioctl.h>
     #include <sys/types.h>
+    #include <netdb.h>
     #include <net/if.h>
     #include <netinet/in.h>
     #include <sys/time.h>
@@ -45,11 +48,7 @@
 #include "sha1.h"
 #include "cencode.h"
 #include <stdint.h>
-
-#ifdef _WIN32
-	#pragma comment(lib, "iphlpapi.lib")
-	#pragma comment(lib, "ws2_32.lib")
-#endif
+#include <errno.h>
 
 #define INT_TO_ADDR(_addr) \
 (_addr & 0xFF), \
@@ -2280,6 +2279,7 @@ void getUUID(char uuid_buf[47]) {
 }
 
 int broadcast(struct OnvifSession *onvif_session) {
+    printf("preferred_intf: %s\n", onvif_session->preferred_network_address);
     strcpy(preferred_network_address, onvif_session->preferred_network_address);
     struct sockaddr_in broadcast_address;
     int broadcast_socket;
@@ -2333,6 +2333,46 @@ int broadcast(struct OnvifSession *onvif_session) {
 #endif
 
     return i;
+}
+
+void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
+{
+    struct ifaddrs *ifaddr;
+    int family, s;
+    char host[NI_MAXHOST];
+    int count = 0;
+
+    if (getifaddrs(&ifaddr) == -1) {
+        printf("Error: getifaddrs failed - %s\n", strerror(errno));
+        return;
+    }
+
+    for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL)
+            continue;
+
+        family = ifa->ifa_addr->sa_family;
+
+        if (family == AF_INET ) {
+            s = getnameinfo(ifa->ifa_addr, 
+                    sizeof(struct sockaddr_in),
+                    host, NI_MAXHOST,
+                    NULL, 0, NI_NUMERICHOST);
+
+            if (s != 0) {
+                printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                continue;
+            }
+
+            if (strcmp(ifa->ifa_name, "lo")) {
+                char buf[1024] = {0};
+                sprintf(buf, "%s - %s", host, ifa->ifa_name);
+                strcpy(onvif_session->active_network_interfaces[count], buf);
+                count += 1;
+            }
+        } 
+    }
+    freeifaddrs(ifaddr);
 }
 
 void getIPAddress(char buf[128]) {
@@ -2922,6 +2962,11 @@ void initializeSession(struct OnvifSession *onvif_session) {
     getUUID(onvif_session->uuid);
     onvif_session->discovery_msg_id = 1;
     xmlInitParser ();
+    for (int i=0; i<16; i++) {
+        for (int j=0; j<1024; j++) {
+            onvif_session->active_network_interfaces[i][j] = '\0';
+        }
+    }
 #ifdef _WIN32
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2,2), &wsaData);

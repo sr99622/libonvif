@@ -237,10 +237,13 @@ public:
         return session;
     }
 
-private:
+    void getActiveInterfaces() { 
+        getActiveNetworkInterfaces(session); 
+    }
+    std::string active_interface(int arg) { return session->active_network_interfaces[arg]; }
+
     OnvifSession* session;
 };
-
 
 class Manager
 {
@@ -297,6 +300,7 @@ public:
     int stop_type;
     float x, y, z;
     std::string new_password;
+    std::string interface;
 
 };
 

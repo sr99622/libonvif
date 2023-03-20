@@ -66,7 +66,7 @@ class VideoTab(QWidget):
     def fill(self, onvif_data):
         self.cmbResolutions.clear()
         i = 0
-        while len(onvif_data.resolutions_buf(i)) > 0:
+        while len(onvif_data.resolutions_buf(i)) > 0 and i < 16:
             self.cmbResolutions.addItem(onvif_data.resolutions_buf(i))
             i += 1
 

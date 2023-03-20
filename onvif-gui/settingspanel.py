@@ -19,8 +19,8 @@
 
 import os
 import sys
-from PyQt6.QtWidgets import QMessageBox, QLineEdit, QGroupBox, QSpinBox, \
-QGridLayout, QWidget, QCheckBox, QLabel, QRadioButton, QComboBox
+from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
+QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
 
 sys.path.append("../build/libonvif")
 import onvif
@@ -36,7 +36,6 @@ class SettingsPanel(QWidget):
         self.passwordKey = "settings/password"
         self.decoderKey = "settings/decoder"
         self.latencyKey = "settings/latency"
-        self.generateKey = "settings/generate"
         self.renderKey = "settings/render"
         self.convertKey = "settings/convert"
         self.disableAudioKey = "settings/disableAudio"
@@ -45,6 +44,7 @@ class SettingsPanel(QWidget):
         self.hardwareEncodeKey = "settings/hardwareEncode"
         self.processFrameKey = "settings/processFrame"
         self.cacheSizeKey = "settings/cacheSize"
+        self.interfaceKey = "settings/interface"
 
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
@@ -104,6 +104,10 @@ class SettingsPanel(QWidget):
         self.chkProcessFrame.setChecked(int(mw.settings.value(self.processFrameKey, 0)))
         self.chkProcessFrame.stateChanged.connect(self.processFrameChecked)
 
+        self.chkLowLatency = QCheckBox("Low Latency")
+        self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
+        self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
+
         pnlChecks = QWidget()
         lytChecks = QGridLayout(pnlChecks)
         lytChecks.addWidget(self.chkDirectRender,   0, 0, 1, 1)
@@ -113,35 +117,45 @@ class SettingsPanel(QWidget):
         lytChecks.addWidget(self.chkPostEncode,     2, 0, 1, 1)
         lytChecks.addWidget(self.chkHardwareEncode, 2, 1, 1, 1)
         lytChecks.addWidget(self.chkProcessFrame,   3, 0, 1, 1)
+        lytChecks.addWidget(self.chkLowLatency,     3, 1, 1, 1)
 
         self.txtVideoFilter = QLineEdit()
         lblVideoFilter = QLabel("Video Filter")
-
-        self.radGenerateFilename = QRadioButton("Generate Unique")
-        self.radGenerateFilename.clicked.connect(self.radioFilenameChecked)
-        self.radDefaultFilename = QRadioButton("Use Default")
-        self.radDefaultFilename.clicked.connect(self.radioFilenameChecked)
-        self.grpRecordFilename = QGroupBox("Record Filename")
-        lytRecordFilename = QGridLayout(self.grpRecordFilename)
-        lytRecordFilename.addWidget(self.radGenerateFilename, 0, 0, 1, 1)
-        lytRecordFilename.addWidget(self.radDefaultFilename,  0, 1, 1, 1)
-        if self.mw.settings.value(self.generateKey, 1) == 1:
-            self.radGenerateFilename.setChecked(True)
-        else:
-            self.radDefaultFilename.setChecked(True)
 
         self.spnCacheSize = QSpinBox()
         self.spnCacheSize.setMinimum(1)
         self.spnCacheSize.setMaximum(10)
         self.spnCacheSize.setMaximumWidth(80)
-        self.spnCacheSize.setValue(self.mw.settings.value(self.cacheSizeKey, 1))
+        self.spnCacheSize.setValue(int(self.mw.settings.value(self.cacheSizeKey, 1)))
         self.spnCacheSize.valueChanged.connect(self.spnCacheSizeChanged)
-        lblCacheSize = QLabel("Pre-Record Cache Size (by GOP length)")
+        lblCacheSize = QLabel("Pre-Record Cache Size")
+
+        self.cmbInterfaces = QComboBox()
+        intf = self.mw.settings.value(self.interfaceKey, "")
+        lblInterfaces = QLabel("Network")
+        session = onvif.Session()
+        session.getActiveInterfaces()
+        i = 0
+        while len(session.active_interface(i)) > 0 and i < 16:
+            self.cmbInterfaces.addItem(session.active_interface(i))
+            i += 1
+        if len(intf) > 0:
+            self.cmbInterfaces.setCurrentText(intf)
+        self.cmbInterfaces.currentTextChanged.connect(self.cmbInterfacesChanged)
+
+        pnlInterface = QWidget()
+        lytInterface = QGridLayout(pnlInterface)
+        lytInterface.addWidget(lblInterfaces,      0, 0, 1, 1)
+        lytInterface.addWidget(self.cmbInterfaces, 0, 1, 1, 1)
+        lytInterface.setColumnStretch(1, 10)
+        lytInterface.setContentsMargins(0, 0, 0, 0)
 
         pnlFilter = QWidget()
         lytFilter = QGridLayout(pnlFilter)
         lytFilter.addWidget(lblVideoFilter,      0, 0, 1, 1)
         lytFilter.addWidget(self.txtVideoFilter, 0, 1, 1, 1)
+        lytFilter.setColumnStretch(1, 10)
+        lytFilter.setContentsMargins(0, 0, 0, 0)
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.chkAutoDiscover,   0, 0, 1, 2)
@@ -151,12 +165,12 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(self.txtPassword,       2, 1, 1, 1)
         lytMain.addWidget(lblDecoders,            3, 0, 1, 1)
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
-        lytMain.addWidget(pnlFilter,              5, 0, 1, 4)
-        lytMain.addWidget(pnlChecks,              6, 0, 1, 4)
-        lytMain.addWidget(self.grpRecordFilename, 7, 0, 1, 4)
-        lytMain.addWidget(lblCacheSize,           8, 0, 1, 2)
-        lytMain.addWidget(self.spnCacheSize,      8, 2, 1, 1)
-        lytMain.addWidget(QLabel(),               9, 0, 1, 4)
+        lytMain.addWidget(pnlFilter,              5, 0, 1, 3)
+        lytMain.addWidget(pnlChecks,              6, 0, 1, 3)
+        lytMain.addWidget(lblCacheSize,           7, 0, 1, 1)
+        lytMain.addWidget(self.spnCacheSize,      7, 1, 1, 1)
+        lytMain.addWidget(pnlInterface,           8, 0, 1, 3)
+        lytMain.addWidget(QLabel(""),             9, 0, 1, 3)
         lytMain.setRowStretch(9, 10)
 
     def autoDiscoverChecked(self, state):
@@ -213,6 +227,9 @@ class SettingsPanel(QWidget):
     def processFrameChecked(self, state):
         self.mw.settings.setValue(self.processFrameKey, state)
 
+    def lowLatencyChecked(self, state):
+        self.mw.settings.setValue(self.latencyKey, state)
+
     def radioFilenameChecked(self):
         if self.radGenerateFilename.isChecked():
             self.mw.settings.setValue(self.generateKey, 1)
@@ -221,6 +238,9 @@ class SettingsPanel(QWidget):
 
     def spnCacheSizeChanged(self, i):
         self.mw.settings.setValue(self.cacheSizeKey, i)
+
+    def cmbInterfacesChanged(self, network):
+        self.mw.settings.setValue(self.interfaceKey, network)
 
     def getDecoder(self):
         result = avio.AV_HWDEVICE_TYPE_NONE

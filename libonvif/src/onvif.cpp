@@ -12,6 +12,10 @@ namespace onvif
 PYBIND11_MODULE(onvif, m)
 {
     m.doc() = "pybind11 onvif plugin";
+    py::class_<Session>(m, "Session")
+        .def(py::init<>())
+        .def("active_interface", &Session::active_interface)
+        .def("getActiveInterfaces", &Session::getActiveInterfaces);
     py::class_<Manager>(m, "Manager")
         .def(py::init<>())
         .def("startDiscover", &Manager::startDiscover)
@@ -37,6 +41,7 @@ PYBIND11_MODULE(onvif, m)
         .def_readwrite("z", &Manager::z)
         .def_readwrite("stop_type", &Manager::stop_type)
         .def_readwrite("new_password", &Manager::new_password)
+        .def_readwrite("interface", &Manager::interface)
         .def_readwrite("onvif_data", &Manager::onvif_data);
     py::class_<Data>(m, "Data")
         .def(py::init<>())

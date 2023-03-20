@@ -100,16 +100,13 @@ void Manager::startUpdateNetwork()
 
 void Manager::updateNetwork()
 {
-    std::cout << "start update network" << std::endl;
     setNetworkInterfaces(onvif_data.data);
     setDNS(onvif_data.data);
     setNetworkDefaultGateway(onvif_data.data);
     getNetworkInterfaces(onvif_data.data);
     getNetworkDefaultGateway(onvif_data.data);
     getDNS(onvif_data.data);
-    std::cout << "finish update network" << std::endl;
     filled(onvif_data);
-    std::cout << "callback filled" << std::endl;
 }
 
 void Manager::startUpdateTime()
@@ -190,6 +187,10 @@ void Manager::startDiscover()
 void Manager::discover()
 {
     Session session;
+    if (interface.length() > 0) {
+        memset(session.session->preferred_network_address, 0, 16);
+        strcpy(session.session->preferred_network_address, interface.c_str());
+    }
     int number_of_devices = broadcast(session);
     std::vector<Data> devices;
 
@@ -209,7 +210,6 @@ void Manager::discover()
                             break;
                         }
                         else {
-                            //std::cout << data.camera_name() << " @ " << data.host() << " login failed: " << data.last_error() << std::endl;
                             getTimeOffset(data);
                             time_t rawtime;
                             struct tm timeinfo;
@@ -220,7 +220,6 @@ void Manager::discover()
                             localtime_r(&rawtime, &timeinfo);
                         #endif
                             if (timeinfo.tm_isdst) {
-                                //std::cout << "Daylight Savings Time is in effect, will re-attempt login with time conversion" << std::endl;
                                 data.setTimeOffset(data.time_offset() - 3600);
                                 if (first_pass) {
                                     data.clearLastError();

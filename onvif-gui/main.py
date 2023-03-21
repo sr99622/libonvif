@@ -97,6 +97,10 @@ class MainWindow(QMainWindow):
         split.setStretchFactor(0, 4)
         self.setCentralWidget(split)
 
+        savedGeometry = self.settings.value("geometry")
+        if savedGeometry.isValid():
+            self.setGeometry(savedGeometry)
+
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
 
@@ -169,6 +173,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, e):
         self.stopMedia()
+        self.settings.setValue("geometry", self.geometry())
 
     def mediaPlayingStarted(self, n):
         self.playing = True

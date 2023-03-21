@@ -2279,7 +2279,6 @@ void getUUID(char uuid_buf[47]) {
 }
 
 int broadcast(struct OnvifSession *onvif_session) {
-    printf("preferred_intf: %s\n", onvif_session->preferred_network_address);
     strcpy(preferred_network_address, onvif_session->preferred_network_address);
     struct sockaddr_in broadcast_address;
     int broadcast_socket;
@@ -2365,9 +2364,9 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
             }
 
             if (strcmp(ifa->ifa_name, "lo")) {
-                char buf[1024] = {0};
-                sprintf(buf, "%s - %s", host, ifa->ifa_name);
-                strcpy(onvif_session->active_network_interfaces[count], buf);
+                strcpy(onvif_session->active_network_interfaces[count], host);
+                strcat(onvif_session->active_network_interfaces[count], " - ");
+                strcat(onvif_session->active_network_interfaces[count], ifa->ifa_name);
                 count += 1;
             }
         } 
@@ -2547,11 +2546,9 @@ int setSocketOptions(int socket) {
         if (pIPAddrTable->table[p].dwAddr != inet_addr("127.0.0.1") && pIPAddrTable->table[p].dwMask == inet_addr("255.255.255.0")) {
             if (strlen(preferred_network_address) > 0) {
                 localInterface.s_addr = inet_addr(preferred_network_address);
-                //printf("using preferred network address for broadcast: %s\n", preferred_network_address);
             }
             else {
                 localInterface.s_addr = pIPAddrTable->table[p].dwAddr;
-                //printf("using default network address for broadcast\n");
             }
             status = setsockopt(socket, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&localInterface, sizeof(localInterface));
             if (status < 0)
@@ -2569,7 +2566,6 @@ int setSocketOptions(int socket) {
     status = setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&broadcast, sizeof(broadcast));
 #else
     if (strlen(preferred_network_address) > 0) {
-        printf("preferred network address: %s\n", preferred_network_address);
         localInterface.s_addr = inet_addr(preferred_network_address);
         status = setsockopt(socket, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&localInterface, sizeof(localInterface));
         if (status < 0)
@@ -2976,7 +2972,7 @@ void initializeSession(struct OnvifSession *onvif_session) {
 
 void closeSession(struct OnvifSession *onvif_session) {
 #ifdef _WIN32
-  WSACleanup();
+    WSACleanup();
 #endif
     xmlCleanupParser ();
 }

@@ -100,13 +100,23 @@ void Manager::startUpdateNetwork()
 
 void Manager::updateNetwork()
 {
+    std::cout << "test 1" << std::endl;
     setNetworkInterfaces(onvif_data.data);
+    std::cout << "test 2" << std::endl;
     setDNS(onvif_data.data);
+    std::cout << "test 3" << std::endl;
     setNetworkDefaultGateway(onvif_data.data);
+    std::cout << "test 4" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout << "test 5" << std::endl;
     getNetworkInterfaces(onvif_data.data);
+    std::cout << "test 6" << std::endl;
     getNetworkDefaultGateway(onvif_data.data);
+    std::cout << "test 7" << std::endl;
     getDNS(onvif_data.data);
+    std::cout << "test 8" << std::endl;
     filled(onvif_data);
+    std::cout << "test 9" << std::endl;
 }
 
 void Manager::startUpdateTime()

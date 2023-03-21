@@ -34,6 +34,9 @@ from admintab import AdminTab
 sys.path.append("../build/libonvif")
 import onvif
 
+sys.path.append("../build/libavio")
+import avio
+
 class CameraPanelSignals(QObject):
     fill = pyqtSignal(onvif.Data)
     login = pyqtSignal(onvif.Data)
@@ -62,6 +65,7 @@ class CameraPanel(QWidget):
         self.icnRecord = QIcon("image:record.png")
         self.icnRecording = QIcon("image:recording.png")
         self.icnStop = QIcon("image:stop.png")
+        self.icnPlay = QIcon("image:play.png")
 
         self.boss = onvif.Manager()
         self.boss.discovered = lambda : self.discovered()
@@ -157,27 +161,16 @@ class CameraPanel(QWidget):
         self.setTabsEnabled(False)
 
     def btnDiscoverClicked(self):
-        intf = self.mw.settingsPanel.cmbInterfaces.currentText()
-        intf = intf.split(" - ")[0]
-        print(intf)
-        self.boss.interface = intf
+        self.boss.interface = self.mw.settingsPanel.cmbInterfaces.currentText().split(" - ")[0]
         self.boss.startDiscover()
         self.btnDiscover.setEnabled(False)
 
-    def filled(self, onvif_data):
-        if len(onvif_data.last_error()) > 0:
-            print("ERROR:", onvif_data.last_error())
-
-        self.devices[self.lstCamera.currentRow()] = onvif_data
-
-        self.signals.fill.emit(onvif_data)
-        self.btnApply.setEnabled(False)
-        if not self.mw.connecting:
-            self.setEnabled(True)
-            self.lstCamera.setFocus()
-
     def discovered(self):
+        if self.lstCamera.count() > 0:
+            self.lstCamera.setCurrentRow(0)
+        self.setBtnStop()
         self.btnDiscover.setEnabled(True)
+        self.setEnabled(True)
 
     def getCredential(self, onvif_data):
         for d in self.devices:
@@ -205,28 +198,47 @@ class CameraPanel(QWidget):
         onvif_data.alias = self.settings.value(onvif_data.serial_number(), onvif_data.camera_name())
         self.devices.append(onvif_data)
         self.lstCamera.addItem(onvif_data.alias)
+        #if onvif_data.width() == 0 and onvif_data.height() == 0:
+        #    uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
+        #        + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
+        #    reader = avio.Reader(uri)
+        #    onvif_data.setWidth(reader.width())
+        #    onvif_data.setHeight(reader.height())
+        #    if reader.frame_rate().den > 0:
+        #        onvif_data.setFrameRate(int(reader.frame_rate().num / reader.frame_rate().den))
+        #    onvif_data.videoSettingsDisabled = True
+
+    def filled(self, onvif_data):
+        self.devices[self.lstCamera.currentRow()] = onvif_data
+        self.signals.fill.emit(onvif_data)
+        self.btnApply.setEnabled(False)
+        if not self.mw.connecting:
+            self.setEnabled(True)
+            self.lstCamera.setFocus()
 
     def onCurrentRowChanged(self, row):
-        onvif_data = self.devices[self.lstCamera.currentRow()]
-        if onvif_data.filled:
-            self.setTabsEnabled(True)
-            self.signals.fill.emit(onvif_data)
-        else:
-            self.boss.onvif_data = onvif_data
-            self.setTabsEnabled(False)
-            self.boss.startFill()
+        if row > -1:
+            onvif_data = self.devices[self.lstCamera.currentRow()]
+            if onvif_data.filled:
+                self.setTabsEnabled(True)
+                self.signals.fill.emit(onvif_data)
+            else:
+                self.boss.onvif_data = onvif_data
+                self.setTabsEnabled(False)
+                self.boss.startFill()
 
     def onItemDoubleClicked(self, item):
         onvif_data = self.devices[self.lstCamera.currentRow()]
         uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
             + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
         self.mw.connecting = True
+        print("uri:", uri)
         self.mw.playMedia(uri)
 
     def setTabsEnabled(self, enabled):
         self.tabVideo.setEnabled(enabled)
         self.tabImage.setEnabled(enabled)
-        self.tabNetwork.setEnabled(False)
+        self.tabNetwork.setEnabled(enabled)
         self.ptzTab.setEnabled(enabled)
         self.adminTab.setEnabled(enabled)
 
@@ -253,14 +265,7 @@ class CameraPanel(QWidget):
         if self.mw.tab.currentIndex() == 0:
             self.lstCamera.setFocus()
             self.mw.setWindowTitle(self.lstCamera.currentItem().text())
-            if self.mw.player.getVideoCodec() == "hevc":
-                self.setTabsEnabled(False)
-                self.adminTab.setEnabled(True)
-                self.ptzTab.setEnabled(True)
-                resolution = str(self.mw.player.getVideoWidth()) + " x " + str(self.mw.player.getVideoHeight())
-                self.tabVideo.cmbResolutions.setCurrentText(resolution)
-                self.tabVideo.spnFrameRate.setValue(self.mw.player.getVideoFrameRate())
-                self.tabVideo.spnBitrate.setValue(self.mw.player.getVideoBitrate())
+            self.setBtnStop()
 
     def sldVolumeChanged(self, value):
         self.mw.filePanel.control.sldVolume.setValue(value)
@@ -295,8 +300,22 @@ class CameraPanel(QWidget):
         else:
             self.btnRecord.setIcon(self.icnRecord)
 
+    def setBtnStop(self):
+        if self.mw.playing:
+            self.btnStop.setIcon(self.icnStop)
+        else:
+            self.btnStop.setIcon(self.icnPlay)
+
     def btnStopClicked(self):
-        self.mw.stopMedia()
+        if self.mw.playing:
+            self.mw.stopMedia()
+        else:
+            onvif_data = self.devices[self.lstCamera.currentRow()]
+            uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
+                + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
+            self.mw.connecting = True
+            self.mw.playMedia(uri)
+        self.setBtnStop()
 
     def onMediaStopped(self):
         self.setBtnRecord()

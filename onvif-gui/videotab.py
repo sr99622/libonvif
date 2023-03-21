@@ -20,6 +20,7 @@
 import sys
 from PyQt6.QtWidgets import QComboBox, QLineEdit, QSpinBox, \
 QGridLayout, QWidget, QLabel
+from PyQt6.QtCore import Qt
 
 sys.path.append("../build/libonvif")
 import onvif
@@ -34,34 +35,38 @@ class VideoTab(QWidget):
         super().__init__()
         self.cp = cp
 
+        self.lblReadOnly = QLabel("READ ONLY")
+        self.lblReadOnly.setVisible(False)
+
         self.cmbResolutions = QComboBox()
         self.cmbResolutions.currentTextChanged.connect(self.cp.onEdit)
-        lblResolutions = QLabel("Resolution")
+        self.lblResolutions = QLabel("Resolution")
 
         txtFrameRate = QLineEdit()
         self.spnFrameRate = SpinBox(txtFrameRate)
         self.spnFrameRate.textChanged.connect(self.cp.onEdit)
-        lblFrameRate = QLabel("Frame Rate")
+        self.lblFrameRate = QLabel("Frame Rate")
 
         txtGovLength = QLineEdit()
         self.spnGovLength = SpinBox(txtGovLength)
         self.spnGovLength.textChanged.connect(self.cp.onEdit)
-        lblGovLength = QLabel("GOP Length")
+        self.lblGovLength = QLabel("GOP Length")
 
         txtBitrate = QLineEdit()
         self.spnBitrate = SpinBox(txtBitrate)
         self.spnBitrate.textChanged.connect(self.cp.onEdit)
-        lblBitrate = QLabel("Bitrate")
+        self.lblBitrate = QLabel("Bitrate")
 
         lytMain = QGridLayout(self)
-        lytMain.addWidget(lblResolutions,      0, 0, 1, 1)
-        lytMain.addWidget(self.cmbResolutions, 0, 1, 1, 1)
-        lytMain.addWidget(lblFrameRate,        1, 0, 1, 1)
-        lytMain.addWidget(self.spnFrameRate,   1, 1, 1, 1)
-        lytMain.addWidget(lblGovLength,        2, 0, 1, 1)
-        lytMain.addWidget(self.spnGovLength,   2, 1, 1, 1)
-        lytMain.addWidget(lblBitrate,          3, 0, 1, 1)
-        lytMain.addWidget(self.spnBitrate,     3, 1, 1, 1)
+        lytMain.addWidget(self.lblReadOnly,    0, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.lblResolutions, 1, 0, 1, 1)
+        lytMain.addWidget(self.cmbResolutions, 1, 1, 1, 1)
+        lytMain.addWidget(self.lblFrameRate,   2, 0, 1, 1)
+        lytMain.addWidget(self.spnFrameRate,   2, 1, 1, 1)
+        lytMain.addWidget(self.lblGovLength,   3, 0, 1, 1)
+        lytMain.addWidget(self.spnGovLength,   3, 1, 1, 1)
+        lytMain.addWidget(self.lblBitrate,     4, 0, 1, 1)
+        lytMain.addWidget(self.spnBitrate,     4, 1, 1, 1)
 
     def fill(self, onvif_data):
         self.cmbResolutions.clear()
@@ -85,7 +90,23 @@ class VideoTab(QWidget):
         self.spnBitrate.setMinimum(onvif_data.bitrate_min())
         self.spnBitrate.setValue(onvif_data.bitrate())
 
-        self.setEnabled(True)
+        if onvif_data.videoSettingsDisabled:
+            self.setEnabled(False)
+        else:
+            self.setEnabled(True)
+
+    def setEnabled(self, enabled):
+        self.lblResolutions.setEnabled(enabled)
+        self.cmbResolutions.setEnabled(enabled)
+        self.lblFrameRate.setEnabled(enabled)
+        self.spnFrameRate.setEnabled(enabled)
+        self.lblGovLength.setEnabled(enabled)
+        self.spnGovLength.setEnabled(enabled)
+        self.lblBitrate.setEnabled(enabled)
+        self.spnBitrate.setEnabled(enabled)
+        if self.cp.lstCamera.currentRow() > -1:
+            self.lblReadOnly.setVisible(not enabled)
+    
 
     def edited(self, onvif_data):
         result = False

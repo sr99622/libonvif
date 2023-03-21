@@ -18,7 +18,7 @@
 #*********************************************************************/
 
 import sys
-from PyQt6.QtWidgets import QCheckBox, QLineEdit, QGridLayout, QWidget, QLabel
+from PyQt6.QtWidgets import QCheckBox, QLineEdit, QGridLayout, QWidget, QLabel, QMessageBox
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
 
@@ -73,7 +73,7 @@ class NetworkTab(QWidget):
         self.txtSubnetMask.setText(onvif_data.mask_buf())
         self.onChkDHCPChecked()
 
-        self.setEnabled(False)
+        self.setEnabled(True)
 
     def edited(self, onvif_data):
         result = False
@@ -92,13 +92,26 @@ class NetworkTab(QWidget):
     
     def update(self, onvif_data):
         if self.edited(onvif_data):
+            print("buffer:", onvif_data.ip_address_buf())
+            if onvif_data.ip_address_buf() != self.txtIPAddress.text():
+                onvif_data.ipAddressChanged = True
+                #msgBox = QMessageBox(self)
+                #msgBox.setText("IP changes will require a fresh discovery")
+                #msgBox.exec()
+                #if self.cp.mw.playing:
+                #    self.cp.mw.stopMedia()
             onvif_data.setDHCPEnabled(self.chkDHCP.isChecked())
             onvif_data.setIPAddressBuf(self.txtIPAddress.text())
             onvif_data.setDefaultGatewayBuf(self.txtDefaultGateway.text())
             onvif_data.setDNSBuf(self.txtDNS.text())
             onvif_data.setMaskBuf(self.txtSubnetMask.text())
+            #onvif_data.filled = False
+            print("fuck1")
             self.cp.boss.onvif_data = onvif_data
+            print("fuck2")
             self.cp.boss.startUpdateNetwork()
+            #xself.cp.setEnabled(False)
+            print("fuck3")
 
     def onChkDHCPChecked(self):
         checked = self.chkDHCP.isChecked()

@@ -105,6 +105,8 @@ PYBIND11_MODULE(onvif, m)
         .def("time_offset", &Data::time_offset)
         .def("setTimeOffset", &Data::setTimeOffset)
         .def(py::self == py::self)
+        .def_readwrite("videoSettingsDisabled", &Data::videoSettingsDisabled)
+        .def_readwrite("ipAddressChanged", &Data::ipAddressChanged)
         .def_readwrite("alias", &Data::alias)
         .def_readwrite("filled", &Data::filled)
         .def_readwrite("cancelled", &Data::cancelled);

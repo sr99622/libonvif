@@ -32,6 +32,8 @@ public:
         cancelled = other.cancelled;
         filled = other.filled;
         alias = other.alias;
+        videoSettingsDisabled = other.videoSettingsDisabled;
+        ipAddressChanged = other.ipAddressChanged;
     }
 
     Data(Data&& other) noexcept
@@ -41,6 +43,8 @@ public:
         cancelled = other.cancelled;
         filled = other.filled;
         alias = other.alias;
+        videoSettingsDisabled = other.videoSettingsDisabled;
+        ipAddressChanged = other.ipAddressChanged;
     }
 
     Data& operator=(const Data& other)
@@ -51,6 +55,8 @@ public:
         cancelled = other.cancelled;
         filled = other.filled;
         alias = other.alias;
+        videoSettingsDisabled = other.videoSettingsDisabled;
+        ipAddressChanged = other.ipAddressChanged;
         return *this;
     }
 
@@ -62,6 +68,8 @@ public:
         filled = other.filled;
         alias = other.alias;
         other.data = nullptr;
+        videoSettingsDisabled = other.videoSettingsDisabled;
+        ipAddressChanged = other.ipAddressChanged;
         return *this;
     }
 
@@ -123,6 +131,8 @@ public:
     OnvifData* data;
     bool cancelled = false;
     bool filled = false;
+    bool videoSettingsDisabled = false;
+    bool ipAddressChanged = false;
     std::string alias;
 
     bool isValid() const { return data ? true : false; }

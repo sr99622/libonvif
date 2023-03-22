@@ -86,28 +86,11 @@ class VideoTab(QWidget):
         self.spnBitrate.setMinimum(onvif_data.bitrate_min())
         self.spnBitrate.setValue(onvif_data.bitrate())
 
-        if onvif_data.width() == 0:
-            onvif_data.videoSettingsDisabled = True
-
-        if onvif_data.videoSettingsDisabled:
-            self.setEnabled(False)
-        else:
-            self.setEnabled(True)
-
-    def setEnabled(self, enabled):
-        self.lblResolutions.setEnabled(enabled)
-        self.cmbResolutions.setEnabled(enabled)
-        self.lblFrameRate.setEnabled(enabled)
-        self.spnFrameRate.setEnabled(enabled)
-        self.lblGovLength.setEnabled(enabled)
-        self.spnGovLength.setEnabled(enabled)
-        self.lblBitrate.setEnabled(enabled)
-        self.spnBitrate.setEnabled(enabled)
-    
+        self.setEnabled(onvif_data.width())
 
     def edited(self, onvif_data):
         result = False
-        if self.isEnabled() and not onvif_data.videoSettingsDisabled:
+        if self.isEnabled():
             current_resolution = str(onvif_data.width()) + " x " + str(onvif_data.height())
             if not current_resolution == self.cmbResolutions.currentText():
                 result = True

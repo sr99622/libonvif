@@ -193,7 +193,7 @@ class SettingsPanel(QWidget):
 
     def directRenderChecked(self):
         ret = QMessageBox.warning(self, "onvif-gui",
-                                    "Application must  to enact change.\n"
+                                    "Application must restart to enact change.\n"
                                     "Are you sure you want to continue?",
                                     QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         if ret == QMessageBox.StandardButton.Ok:

@@ -2839,6 +2839,7 @@ void clearData(struct OnvifData *onvif_data) {
         onvif_data->ip_address_buf[i] = '\0';
         onvif_data->default_gateway_buf[i] = '\0';
         onvif_data->dns_buf[i] = '\0';
+        onvif_data->mask_buf[i] = '\0';
         onvif_data->videoSourceConfigurationToken[i] = '\0';
         onvif_data->video_encoder_name_buf[i] = '\0';
         onvif_data->h264_profile_buf[i] = '\0';
@@ -2907,8 +2908,6 @@ void clearData(struct OnvifData *onvif_data) {
     onvif_data->datetimetype = '\0';
     onvif_data->dst = false;
     onvif_data->ntp_dhcp = false;
-    onvif_data->logged_in = false;
-    onvif_data->filled = false;
 }
 
 void copyData(struct OnvifData *dst, struct OnvifData *src) {
@@ -2993,8 +2992,6 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
     dst->datetimetype = src->datetimetype;
     dst->dst = src->dst;
     dst->ntp_dhcp = src->ntp_dhcp;
-    dst->logged_in = src->logged_in;
-    dst->filled = dst->filled;
 }
 
 void initializeSession(struct OnvifSession *onvif_session) {

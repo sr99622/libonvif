@@ -118,8 +118,6 @@ struct OnvifData {
     char serial_number[128];
     char host_name[1024];
     char host[128];
-    bool logged_in;
-    bool filled;
     /*error*/
     char last_error[1024];
 	/*date/time*/

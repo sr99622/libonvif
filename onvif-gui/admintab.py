@@ -63,8 +63,7 @@ class AdminTab(QWidget):
 
     def fill(self, onvif_data):
         self.txtCameraName.setText(onvif_data.alias)
-        self.cp.onEdit()
-        self.setEnabled(True)
+        self.setEnabled(len(onvif_data.alias))
 
     def edited(self, onvif_data):
         result = False

@@ -32,7 +32,6 @@ public:
         cancelled = other.cancelled;
         filled = other.filled;
         alias = other.alias;
-        videoSettingsDisabled = other.videoSettingsDisabled;
         ipAddressChanged = other.ipAddressChanged;
     }
 
@@ -43,7 +42,6 @@ public:
         cancelled = other.cancelled;
         filled = other.filled;
         alias = other.alias;
-        videoSettingsDisabled = other.videoSettingsDisabled;
         ipAddressChanged = other.ipAddressChanged;
     }
 
@@ -54,7 +52,6 @@ public:
         cancelled = other.cancelled;
         filled = other.filled;
         alias = other.alias;
-        videoSettingsDisabled = other.videoSettingsDisabled;
         ipAddressChanged = other.ipAddressChanged;
         return *this;
     }
@@ -67,7 +64,6 @@ public:
         filled = other.filled;
         alias = other.alias;
         other.data = nullptr;
-        videoSettingsDisabled = other.videoSettingsDisabled;
         ipAddressChanged = other.ipAddressChanged;
         return *this;
     }
@@ -130,7 +126,6 @@ public:
     OnvifData* data;
     bool cancelled = false;
     bool filled = false;
-    bool videoSettingsDisabled = false;
     bool ipAddressChanged = false;
     std::string alias;
 
@@ -157,6 +152,7 @@ public:
     void clearLastError() { memset(data->last_error, 0, 1024); }
     time_t time_offset() { return data->time_offset; } const
     void setTimeOffset(time_t arg) { data->time_offset = arg; }
+    void clear() { clearData(data); }
 
     //VIDEO
     std::string resolutions_buf(int arg) { return data->resolutions_buf[arg]; }

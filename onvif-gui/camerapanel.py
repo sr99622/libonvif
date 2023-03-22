@@ -18,6 +18,7 @@
 #*********************************************************************/
 
 import sys
+import os
 from time import sleep
 import datetime
 from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QSlider, \
@@ -207,12 +208,19 @@ class CameraPanel(QWidget):
             self.setEnabled(True)
             self.lstCamera.setFocus()
         if onvif_data.ipAddressChanged:
-            print("\nCamera IP address has been changed and will be removed from the list")
+            print("\nCamera IP configuration has been changed and will be removed from the list")
             print("It may take a while before the camera is able to resume communication")
             del self.devices[self.lstCamera.currentRow()]
             self.lstCamera.takeItem(self.lstCamera.currentRow())
             if self.lstCamera.count() > 0:
                 self.lstCamera.setCurrentRow(0)
+            else:
+                print("All cameras have been removed from list, application will re-start")
+                onvif_data.clear()
+                onvif_data.alias = ""
+                self.signals.fill.emit(onvif_data)
+                #os.execv(sys.executable, ['python'] + sys.argv)
+
 
     def onCurrentRowChanged(self, row):
         if row > -1:
@@ -248,14 +256,15 @@ class CameraPanel(QWidget):
         self.setEnabled(False)
 
     def onEdit(self):
-        onvif_data = self.devices[self.lstCamera.currentRow()]
-        if self.tabVideo.edited(onvif_data) or \
-                self.tabImage.edited(onvif_data) or \
-                self.tabNetwork.edited(onvif_data) or \
-                self.adminTab.edited(onvif_data):
-            self.btnApply.setEnabled(True)
-        else:
-            self.btnApply.setEnabled(False)
+        if self.lstCamera.count() > 0:
+            onvif_data = self.devices[self.lstCamera.currentRow()]
+            if self.tabVideo.edited(onvif_data) or \
+                    self.tabImage.edited(onvif_data) or \
+                    self.tabNetwork.edited(onvif_data) or \
+                    self.adminTab.edited(onvif_data):
+                self.btnApply.setEnabled(True)
+            else:
+                self.btnApply.setEnabled(False)
 
     def onMediaStarted(self, n):
         self.setEnabled(True)
@@ -298,20 +307,22 @@ class CameraPanel(QWidget):
             self.btnRecord.setIcon(self.icnRecord)
 
     def setBtnStop(self):
-        if self.mw.playing:
-            self.btnStop.setIcon(self.icnStop)
-        else:
-            self.btnStop.setIcon(self.icnPlay)
+        if self.lstCamera.count() > 0:
+            if self.mw.playing:
+                self.btnStop.setIcon(self.icnStop)
+            else:
+                self.btnStop.setIcon(self.icnPlay)
 
     def btnStopClicked(self):
         if self.mw.playing:
             self.mw.stopMedia()
         else:
-            onvif_data = self.devices[self.lstCamera.currentRow()]
-            uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
-                + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
-            self.mw.connecting = True
-            self.mw.playMedia(uri)
+            if self.lstCamera.count() > 0:
+                onvif_data = self.devices[self.lstCamera.currentRow()]
+                uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
+                    + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
+                self.mw.connecting = True
+                self.mw.playMedia(uri)
         self.setBtnStop()
 
     def onMediaStopped(self):

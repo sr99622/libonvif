@@ -70,6 +70,7 @@ class ImageTab(QWidget):
         self.sldSharpness.setMinimum(onvif_data.sharpness_min())
         self.sldSharpness.setValue(onvif_data.sharpness())
         
+        self.cp.onEdit()
         self.setEnabled(True)
 
     def edited(self, onvif_data):
@@ -83,6 +84,7 @@ class ImageTab(QWidget):
                 result = True
             if not onvif_data.sharpness() == self.sldSharpness.value():
                 result = True
+
         return result
     
     def update(self, onvif_data):

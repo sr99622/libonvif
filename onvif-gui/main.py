@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(split)
 
         savedGeometry = self.settings.value("geometry")
-        if savedGeometry.isValid():
+        if savedGeometry is not None:
             self.setGeometry(savedGeometry)
 
         if self.settingsPanel.chkAutoDiscover.isChecked():

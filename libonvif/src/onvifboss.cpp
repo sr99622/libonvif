@@ -100,23 +100,14 @@ void Manager::startUpdateNetwork()
 
 void Manager::updateNetwork()
 {
-    std::cout << "test 1" << std::endl;
     setNetworkInterfaces(onvif_data.data);
-    std::cout << "test 2" << std::endl;
     setDNS(onvif_data.data);
-    std::cout << "test 3" << std::endl;
     setNetworkDefaultGateway(onvif_data.data);
-    std::cout << "test 4" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    std::cout << "test 5" << std::endl;
     getNetworkInterfaces(onvif_data.data);
-    std::cout << "test 6" << std::endl;
     getNetworkDefaultGateway(onvif_data.data);
-    std::cout << "test 7" << std::endl;
     getDNS(onvif_data.data);
-    std::cout << "test 8" << std::endl;
     filled(onvif_data);
-    std::cout << "test 9" << std::endl;
 }
 
 void Manager::startUpdateTime()
@@ -203,20 +194,25 @@ void Manager::discover()
     }
     int number_of_devices = broadcast(session);
     std::vector<Data> devices;
+    //std::cout << "number_of_devices: " << number_of_devices << std::endl;
 
     for (int i = 0; i < number_of_devices; i++) {
+        //std::cout << "process broadcast return data" << std::endl;
         Data data;
         if (prepareOnvifData(i, session, data)) {
             if (std::find(devices.begin(), devices.end(), data) == devices.end()) {
                 devices.push_back(data);
                 bool first_pass = true;
                 while (true) {
+                    //std::cout << "get credential" << std::endl;
                     data = getCredential(data);
                     if (!data.cancelled) {
                         if (fillRTSP(data) == 0) {
+                            //std::cout << "RTSP founc" << std::endl;
                             getProfile(data);
                             getDeviceInformation(data);
                             getData(data);
+                            //std::cout << "got data for " << data.camera_name() << std::endl;
                             break;
                         }
                         else {

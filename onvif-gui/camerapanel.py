@@ -21,7 +21,7 @@ import sys
 from time import sleep
 import datetime
 from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QSlider, \
-QListWidget, QTabWidget
+QListWidget, QTabWidget, QMessageBox
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings
 from logindialog import LoginDialog
@@ -198,15 +198,6 @@ class CameraPanel(QWidget):
         onvif_data.alias = self.settings.value(onvif_data.serial_number(), onvif_data.camera_name())
         self.devices.append(onvif_data)
         self.lstCamera.addItem(onvif_data.alias)
-        #if onvif_data.width() == 0 and onvif_data.height() == 0:
-        #    uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
-        #        + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
-        #    reader = avio.Reader(uri)
-        #    onvif_data.setWidth(reader.width())
-        #    onvif_data.setHeight(reader.height())
-        #    if reader.frame_rate().den > 0:
-        #        onvif_data.setFrameRate(int(reader.frame_rate().num / reader.frame_rate().den))
-        #    onvif_data.videoSettingsDisabled = True
 
     def filled(self, onvif_data):
         self.devices[self.lstCamera.currentRow()] = onvif_data
@@ -215,6 +206,13 @@ class CameraPanel(QWidget):
         if not self.mw.connecting:
             self.setEnabled(True)
             self.lstCamera.setFocus()
+        if onvif_data.ipAddressChanged:
+            print("\nCamera IP address has been changed and will be removed from the list")
+            print("It may take a while before the camera is able to resume communication")
+            del self.devices[self.lstCamera.currentRow()]
+            self.lstCamera.takeItem(self.lstCamera.currentRow())
+            if self.lstCamera.count() > 0:
+                self.lstCamera.setCurrentRow(0)
 
     def onCurrentRowChanged(self, row):
         if row > -1:
@@ -232,7 +230,6 @@ class CameraPanel(QWidget):
         uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
             + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
         self.mw.connecting = True
-        print("uri:", uri)
         self.mw.playMedia(uri)
 
     def setTabsEnabled(self, enabled):
@@ -318,4 +315,5 @@ class CameraPanel(QWidget):
         self.setBtnStop()
 
     def onMediaStopped(self):
+        self.setBtnStop()
         self.setBtnRecord()

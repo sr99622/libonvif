@@ -49,8 +49,7 @@ public:
 
     Data& operator=(const Data& other)
     {
-        if (data) free(data);
-        data = (OnvifData*)calloc(sizeof(OnvifData), 1);
+        if (!data) data = (OnvifData*)calloc(sizeof(OnvifData), 1);
         copyData(data, other.data);
         cancelled = other.cancelled;
         filled = other.filled;

@@ -35,9 +35,6 @@ class VideoTab(QWidget):
         super().__init__()
         self.cp = cp
 
-        self.lblReadOnly = QLabel("READ ONLY")
-        self.lblReadOnly.setVisible(False)
-
         self.cmbResolutions = QComboBox()
         self.cmbResolutions.currentTextChanged.connect(self.cp.onEdit)
         self.lblResolutions = QLabel("Resolution")
@@ -58,7 +55,6 @@ class VideoTab(QWidget):
         self.lblBitrate = QLabel("Bitrate")
 
         lytMain = QGridLayout(self)
-        lytMain.addWidget(self.lblReadOnly,    0, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
         lytMain.addWidget(self.lblResolutions, 1, 0, 1, 1)
         lytMain.addWidget(self.cmbResolutions, 1, 1, 1, 1)
         lytMain.addWidget(self.lblFrameRate,   2, 0, 1, 1)
@@ -90,6 +86,9 @@ class VideoTab(QWidget):
         self.spnBitrate.setMinimum(onvif_data.bitrate_min())
         self.spnBitrate.setValue(onvif_data.bitrate())
 
+        if onvif_data.width() == 0:
+            onvif_data.videoSettingsDisabled = True
+
         if onvif_data.videoSettingsDisabled:
             self.setEnabled(False)
         else:
@@ -104,13 +103,11 @@ class VideoTab(QWidget):
         self.spnGovLength.setEnabled(enabled)
         self.lblBitrate.setEnabled(enabled)
         self.spnBitrate.setEnabled(enabled)
-        if self.cp.lstCamera.currentRow() > -1:
-            self.lblReadOnly.setVisible(not enabled)
     
 
     def edited(self, onvif_data):
         result = False
-        if self.isEnabled():
+        if self.isEnabled() and not onvif_data.videoSettingsDisabled:
             current_resolution = str(onvif_data.width()) + " x " + str(onvif_data.height())
             if not current_resolution == self.cmbResolutions.currentText():
                 result = True
@@ -120,6 +117,7 @@ class VideoTab(QWidget):
                 result = True
             if not onvif_data.bitrate() == self.spnBitrate.value():
                 result = True
+
         return result
 
     def update(self, onvif_data):

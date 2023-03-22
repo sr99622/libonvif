@@ -71,16 +71,22 @@ class NetworkTab(QWidget):
         self.txtDefaultGateway.setText(onvif_data.default_gateway_buf())
         self.txtDNS.setText(onvif_data.dns_buf())
         self.txtSubnetMask.setText(onvif_data.mask_buf())
-        self.onChkDHCPChecked()
-
+        self.txtIPAddress.setEnabled(not onvif_data.dhcp_enabled())
+        self.txtDefaultGateway.setEnabled(not onvif_data.dhcp_enabled())
+        self.txtSubnetMask.setEnabled(not onvif_data.dhcp_enabled())
+        self.txtDNS.setEnabled(not onvif_data.dhcp_enabled())
+        self.cp.onEdit()
         self.setEnabled(True)
 
     def edited(self, onvif_data):
         result = False
         if self.isEnabled():
             if not onvif_data.dhcp_enabled() == self.chkDHCP.isChecked():
+                if self.chkDHCP.isChecked():
+                    onvif_data.ipAddressChanged = True
                 result = True
             if not onvif_data.ip_address_buf() == self.txtIPAddress.text():
+                onvif_data.ipAddressChanged = True
                 result = True
             if not onvif_data.default_gateway_buf() == self.txtDefaultGateway.text():
                 result = True
@@ -88,34 +94,24 @@ class NetworkTab(QWidget):
                 result = True
             if not onvif_data.mask_buf() == self.txtSubnetMask.text():
                 result = True
+
         return result
     
     def update(self, onvif_data):
         if self.edited(onvif_data):
-            print("buffer:", onvif_data.ip_address_buf())
-            if onvif_data.ip_address_buf() != self.txtIPAddress.text():
-                onvif_data.ipAddressChanged = True
-                #msgBox = QMessageBox(self)
-                #msgBox.setText("IP changes will require a fresh discovery")
-                #msgBox.exec()
-                #if self.cp.mw.playing:
-                #    self.cp.mw.stopMedia()
+            if self.cp.mw.playing:
+                self.cp.mw.stopMedia()
             onvif_data.setDHCPEnabled(self.chkDHCP.isChecked())
             onvif_data.setIPAddressBuf(self.txtIPAddress.text())
             onvif_data.setDefaultGatewayBuf(self.txtDefaultGateway.text())
             onvif_data.setDNSBuf(self.txtDNS.text())
             onvif_data.setMaskBuf(self.txtSubnetMask.text())
-            #onvif_data.filled = False
-            print("fuck1")
             self.cp.boss.onvif_data = onvif_data
-            print("fuck2")
             self.cp.boss.startUpdateNetwork()
-            #xself.cp.setEnabled(False)
-            print("fuck3")
 
     def onChkDHCPChecked(self):
         checked = self.chkDHCP.isChecked()
-        self.txtIPAddress.setEnabled(not checked)
-        self.txtDefaultGateway.setEnabled(not checked)
-        self.txtSubnetMask.setEnabled(not checked)
-        self.txtDNS.setEnabled(not checked)
+        self.txtIPAddress.setEnabled(False)
+        self.txtDefaultGateway.setEnabled(False)
+        self.txtSubnetMask.setEnabled(False)
+        self.txtDNS.setEnabled(False)

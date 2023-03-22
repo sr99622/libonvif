@@ -91,6 +91,12 @@ class SettingsPanel(QWidget):
         self.chkDisableVideo.setChecked(int(mw.settings.value(self.disableVideoKey, 0)))
         self.chkDisableVideo.stateChanged.connect(self.disableVideoChecked)
 
+        if self.chkDisableAudio.isChecked():
+            self.chkDisableVideo.setEnabled(False)
+        else:
+            if self.chkDisableVideo.isChecked():
+                self.chkDisableAudio.setEnabled(False)
+
         self.chkPostEncode = QCheckBox("Post Process Record")
         self.chkPostEncode.setChecked(int(mw.settings.value(self.postEncodeKey, 0)))
         self.chkPostEncode.stateChanged.connect(self.postEncodeChecked)
@@ -211,9 +217,17 @@ class SettingsPanel(QWidget):
 
     def disableAudioChecked(self, state):
         self.mw.settings.setValue(self.disableAudioKey, state)
+        if state == 0:
+            self.chkDisableVideo.setEnabled(True)
+        else:
+            self.chkDisableVideo.setEnabled(False)
 
     def disableVideoChecked(self, state):
         self.mw.settings.setValue(self.disableVideoKey, state)
+        if state == 0:
+            self.chkDisableAudio.setEnabled(True)
+        else:
+            self.chkDisableAudio.setEnabled(False)
 
     def postEncodeChecked(self, state):
         self.mw.settings.setValue(self.postEncodeKey, state)

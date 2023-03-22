@@ -2274,7 +2274,7 @@ void getUUID(char uuid_buf[47]) {
         sprintf(buf, "%02x", (unsigned char) rand());
         strcat(uuid_buf, buf);
         if (i==3 || i==5 || i==7 || i==9)
-        strcat(uuid_buf, "-");
+            strcat(uuid_buf, "-");
     }
 }
 
@@ -2336,6 +2336,48 @@ int broadcast(struct OnvifSession *onvif_session) {
 
 void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
 {
+#ifdef _WIN32
+    PIP_ADAPTER_INFO pAdapterInfo;
+    PIP_ADAPTER_INFO pAdapter = NULL;
+    DWORD dwRetVal = 0;
+    int count = 0;
+
+    ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+    pAdapterInfo = (IP_ADAPTER_INFO *) malloc(sizeof (IP_ADAPTER_INFO));
+    if (pAdapterInfo == NULL) {
+        printf("Error allocating memory needed to call GetAdaptersinfo\n");
+        return;
+    }
+
+    if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+        free(pAdapterInfo);
+        pAdapterInfo = (IP_ADAPTER_INFO *) malloc(ulOutBufLen);
+        if (pAdapterInfo == NULL) {
+            printf("Error allocating memory needed to call GetAdaptersinfo\n");
+            return;
+        }
+    }
+
+    if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+        pAdapter = pAdapterInfo;
+        while (pAdapter) {
+            if (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0")) {
+                char interface_info[1024];
+                sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
+                printf("Network interface info %s", interface_info);
+                //args.push_back(interface_info);
+                strncpy(onvif_session->active_network_interfaces[count], interface_info, 40);
+                count += 1;
+            }
+            pAdapter = pAdapter->Next;
+        }
+    } 
+    else {
+        printf("GetAdaptersInfo failed with error: %d", dwRetVal);
+    }
+    if (pAdapterInfo)
+        free(pAdapterInfo);
+#else
     struct ifaddrs *ifaddr;
     int family, s;
     char host[NI_MAXHOST];
@@ -2372,6 +2414,7 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
         } 
     }
     freeifaddrs(ifaddr);
+#endif
 }
 
 void getIPAddress(char buf[128]) {

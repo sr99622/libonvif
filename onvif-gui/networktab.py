@@ -81,11 +81,8 @@ class NetworkTab(QWidget):
         result = False
         if self.isEnabled():
             if not onvif_data.dhcp_enabled() == self.chkDHCP.isChecked():
-                if self.chkDHCP.isChecked():
-                    onvif_data.ipAddressChanged = True
                 result = True
             if not onvif_data.ip_address_buf() == self.txtIPAddress.text():
-                onvif_data.ipAddressChanged = True
                 result = True
             if not onvif_data.default_gateway_buf() == self.txtDefaultGateway.text():
                 result = True
@@ -100,6 +97,7 @@ class NetworkTab(QWidget):
         if self.edited(onvif_data):
             if self.cp.mw.playing:
                 self.cp.mw.stopMedia()
+
             onvif_data.setDHCPEnabled(self.chkDHCP.isChecked())
             onvif_data.setIPAddressBuf(self.txtIPAddress.text())
             onvif_data.setDefaultGatewayBuf(self.txtDefaultGateway.text())
@@ -107,6 +105,11 @@ class NetworkTab(QWidget):
             onvif_data.setMaskBuf(self.txtSubnetMask.text())
             self.cp.boss.onvif_data = onvif_data
             self.cp.boss.startUpdateNetwork()
+            if onvif_data.ip_address_buf() != self.txtIPAddress.text() or \
+                onvif_data.dhcp_enabled != self.chkDHCP.isChecked():
+                self.cp.removeCurrent()
+
+
 
     def onChkDHCPChecked(self):
         checked = self.chkDHCP.isChecked()

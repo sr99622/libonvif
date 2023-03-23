@@ -74,6 +74,8 @@ class CameraPanel(QWidget):
         self.boss.getData = lambda D : self.getData(D)
         self.boss.filled = lambda D : self.filled(D)
 
+        self.removing = False
+
         self.btnStop = QPushButton()
         self.btnStop.setIcon(self.icnStop)
         self.btnStop.setToolTip("Stop")
@@ -167,8 +169,6 @@ class CameraPanel(QWidget):
         self.btnDiscover.setEnabled(False)
 
     def discovered(self):
-        if self.lstCamera.count() > 0:
-            self.lstCamera.setCurrentRow(0)
         self.setBtnStop()
         self.btnDiscover.setEnabled(True)
         self.setEnabled(True)
@@ -200,31 +200,31 @@ class CameraPanel(QWidget):
         self.devices.append(onvif_data)
         self.lstCamera.addItem(onvif_data.alias)
 
-    def filled(self, onvif_data):
-        self.devices[self.lstCamera.currentRow()] = onvif_data
-        self.signals.fill.emit(onvif_data)
-        self.btnApply.setEnabled(False)
-        if not self.mw.connecting:
-            self.setEnabled(True)
-            self.lstCamera.setFocus()
-        if onvif_data.ipAddressChanged:
-            print("\nCamera IP configuration has been changed and will be removed from the list")
-            print("It may take a while before the camera is able to resume communication")
-            del self.devices[self.lstCamera.currentRow()]
-            self.lstCamera.takeItem(self.lstCamera.currentRow())
-            if self.lstCamera.count() > 0:
-                self.lstCamera.setCurrentRow(0)
-            else:
-                print("All cameras have been removed from list, application will re-start")
-                onvif_data.clear()
-                onvif_data.alias = ""
-                self.signals.fill.emit(onvif_data)
-                #os.execv(sys.executable, ['python'] + sys.argv)
+    def removeCurrent(self):
+        self.removing = True
+        del self.devices[self.lstCamera.currentRow()]
+        self.lstCamera.clear()
+        for data in self.devices:
+            self.lstCamera.addItem(data.alias)
 
+    def filled(self, onvif_data):
+        if self.removing:
+            self.removing = False
+            self.btnApply.setEnabled(False)
+            self.setEnabled(True)
+            onvif_data.clear()
+            self.signals.fill.emit(onvif_data)
+        else:
+            self.devices[self.lstCamera.currentRow()] = onvif_data
+            self.signals.fill.emit(onvif_data)
+            self.btnApply.setEnabled(False)
+            if not self.mw.connecting:
+                self.setEnabled(True)
+                self.lstCamera.setFocus()
 
     def onCurrentRowChanged(self, row):
         if row > -1:
-            onvif_data = self.devices[self.lstCamera.currentRow()]
+            onvif_data = self.devices[row]
             if onvif_data.filled:
                 self.setTabsEnabled(True)
                 self.signals.fill.emit(onvif_data)

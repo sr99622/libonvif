@@ -78,12 +78,13 @@ class AdminTab(QWidget):
     def update(self, onvif_data):
         if self.edited(onvif_data):
             if not onvif_data.alias == self.txtCameraName.text():
-                onvif_data.alias = self.txtCameraName.text()
-                self.cp.devices[self.cp.lstCamera.currentRow()] = onvif_data
-                self.cp.lstCamera.currentItem().setText(onvif_data.alias)
-                self.cp.settings.setValue(onvif_data.serial_number(), onvif_data.alias)
-                self.cp.boss.onvif_data = onvif_data
-                self.cp.boss.startFill()
+                print("funky but chic")
+                #onvif_data.alias = self.txtCameraName.text()
+                #self.cp.devices[self.cp.lstCamera.currentRow()] = onvif_data
+                #self.cp.lstCamera.currentItem().setText(onvif_data.alias)
+                #self.cp.settings.setValue(onvif_data.serial_number(), onvif_data.alias)
+                #self.cp.boss.onvif_data = onvif_data
+                #self.cp.boss.startFill()
             if len(self.txtAdminPassword.text()) > 0:
                 result = QMessageBox.question(self, "Warning", "Please confirm camera password change")
                 if result == QMessageBox.StandardButton.Yes:

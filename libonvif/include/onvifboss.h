@@ -152,7 +152,10 @@ public:
     void clearLastError() { memset(data->last_error, 0, 1024); }
     time_t time_offset() { return data->time_offset; } const
     void setTimeOffset(time_t arg) { data->time_offset = arg; }
-    void clear() { clearData(data); }
+    void clear() { 
+        clearData(data); 
+        alias = "";
+    }
 
     //VIDEO
     std::string resolutions_buf(int arg) { return data->resolutions_buf[arg]; }

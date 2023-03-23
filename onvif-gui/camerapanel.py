@@ -206,6 +206,7 @@ class CameraPanel(QWidget):
         self.lstCamera.clear()
         for data in self.devices:
             self.lstCamera.addItem(data.alias)
+        #self.btnApply.setEnabled(False)
 
     def filled(self, onvif_data):
         if self.removing:
@@ -214,10 +215,11 @@ class CameraPanel(QWidget):
             self.setEnabled(True)
             onvif_data.clear()
             self.signals.fill.emit(onvif_data)
+            #self.btnApply.setEnabled(False)
         else:
             self.devices[self.lstCamera.currentRow()] = onvif_data
             self.signals.fill.emit(onvif_data)
-            self.btnApply.setEnabled(False)
+            #self.btnApply.setEnabled(False)
             if not self.mw.connecting:
                 self.setEnabled(True)
                 self.lstCamera.setFocus()
@@ -235,10 +237,8 @@ class CameraPanel(QWidget):
 
     def onItemDoubleClicked(self, item):
         onvif_data = self.devices[self.lstCamera.currentRow()]
-        uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
-            + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
         self.mw.connecting = True
-        self.mw.playMedia(uri)
+        self.mw.playMedia(self.getStreamURI(onvif_data))
 
     def setTabsEnabled(self, enabled):
         self.tabVideo.setEnabled(enabled)
@@ -319,12 +319,15 @@ class CameraPanel(QWidget):
         else:
             if self.lstCamera.count() > 0:
                 onvif_data = self.devices[self.lstCamera.currentRow()]
-                uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
-                    + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
                 self.mw.connecting = True
-                self.mw.playMedia(uri)
+                self.mw.playMedia(self.getStreamURI(onvif_data))
         self.setBtnStop()
 
     def onMediaStopped(self):
         self.setBtnStop()
         self.setBtnRecord()
+
+    def getStreamURI(self, onvif_data):
+        uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
+            + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
+        return uri

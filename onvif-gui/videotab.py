@@ -87,6 +87,7 @@ class VideoTab(QWidget):
         self.spnBitrate.setValue(onvif_data.bitrate())
 
         self.setEnabled(onvif_data.width())
+        self.cp.onEdit()
 
     def edited(self, onvif_data):
         result = False

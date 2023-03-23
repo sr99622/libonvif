@@ -64,6 +64,7 @@ class AdminTab(QWidget):
     def fill(self, onvif_data):
         self.txtCameraName.setText(onvif_data.alias)
         self.setEnabled(len(onvif_data.alias))
+        self.cp.onEdit()
 
     def edited(self, onvif_data):
         result = False
@@ -78,13 +79,13 @@ class AdminTab(QWidget):
     def update(self, onvif_data):
         if self.edited(onvif_data):
             if not onvif_data.alias == self.txtCameraName.text():
-                print("funky but chic")
-                #onvif_data.alias = self.txtCameraName.text()
-                #self.cp.devices[self.cp.lstCamera.currentRow()] = onvif_data
-                #self.cp.lstCamera.currentItem().setText(onvif_data.alias)
-                #self.cp.settings.setValue(onvif_data.serial_number(), onvif_data.alias)
-                #self.cp.boss.onvif_data = onvif_data
-                #self.cp.boss.startFill()
+                print("funky")
+                onvif_data.alias = self.txtCameraName.text()
+                self.cp.devices[self.cp.lstCamera.currentRow()] = onvif_data
+                self.cp.lstCamera.currentItem().setText(onvif_data.alias)
+                self.cp.settings.setValue(onvif_data.serial_number(), onvif_data.alias)
+                self.cp.boss.onvif_data = onvif_data
+                self.cp.boss.startFill()
             if len(self.txtAdminPassword.text()) > 0:
                 result = QMessageBox.question(self, "Warning", "Please confirm camera password change")
                 if result == QMessageBox.StandardButton.Yes:
@@ -96,8 +97,13 @@ class AdminTab(QWidget):
     def btnRebootClicked(self):
         result = QMessageBox.question(self, "Warning", "Please confirm reboot")
         if result == QMessageBox.StandardButton.Yes:
-            self.cp.boss.onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
+            onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
+            self.cp.boss.onvif_data = onvif_data
             self.cp.boss.startReboot()
+            if self.cp.mw.player is not None:
+                if self.cp.mw.player.uri == self.cp.getStreamURI(onvif_data):
+                    self.cp.mw.stopMedia()
+            self.cp.removeCurrent()
 
     def btnSyncTimeClicked(self):
         self.cp.boss.onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]

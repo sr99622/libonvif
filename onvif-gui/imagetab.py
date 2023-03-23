@@ -71,23 +71,7 @@ class ImageTab(QWidget):
         self.sldSharpness.setValue(onvif_data.sharpness())
 
         self.setEnabled(True)
-
-    def clear(self):
-        self.sldBrightness.setMaximum(0)
-        self.sldBrightness.setMinimum(0)
-        self.sldBrightness.setValue(0)
-
-        self.sldContrast.setMaximum(0)
-        self.sldContrast.setMinimum(0)
-        self.sldContrast.setValue(0)
-
-        self.sldSaturation.setMaximum(0)
-        self.sldSaturation.setMinimum(0)
-        self.sldSaturation.setValue(0)
-
-        self.sldSharpness.setMaximum(0)
-        self.sldSharpness.setMinimum(0)
-        self.sldSharpness.setValue(0)
+        self.cp.onEdit()
 
     def edited(self, onvif_data):
         result = False

@@ -2364,7 +2364,7 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
             if (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0")) {
                 char interface_info[1024];
                 sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
-                printf("Network interface info %s", interface_info);
+                printf("Network interface info %s\n", interface_info);
                 //args.push_back(interface_info);
                 strncpy(onvif_session->active_network_interfaces[count], interface_info, 40);
                 count += 1;

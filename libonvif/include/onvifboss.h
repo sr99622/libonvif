@@ -152,7 +152,8 @@ public:
     void clearLastError() { memset(data->last_error, 0, 1024); }
     time_t time_offset() { return data->time_offset; } const
     void setTimeOffset(time_t arg) { data->time_offset = arg; }
-    void clear() { 
+    void setTimeOffset2(time_t arg) { data->time_offset = arg; }
+    void clear(int bug) { 
         clearData(data); 
         alias = "";
     }

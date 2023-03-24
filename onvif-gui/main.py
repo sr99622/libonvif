@@ -97,9 +97,10 @@ class MainWindow(QMainWindow):
         split.setStretchFactor(0, 4)
         self.setCentralWidget(split)
 
-        savedGeometry = self.settings.value("geometry")
-        if savedGeometry is not None:
-            self.setGeometry(savedGeometry)
+        rect = self.settings.value("geometry")
+        if rect is not None:
+            if rect.width() > 0 and rect.height() > 0 and rect.x() > 0 and rect.y() > 0:
+                self.setGeometry(rect)
 
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()

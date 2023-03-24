@@ -213,7 +213,7 @@ class CameraPanel(QWidget):
             self.removing = False
             self.btnApply.setEnabled(False)
             self.setEnabled(True)
-            onvif_data.clear()
+            onvif_data.clear(0)
             self.signals.fill.emit(onvif_data)
             #self.btnApply.setEnabled(False)
         else:

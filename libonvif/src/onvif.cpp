@@ -1,3 +1,20 @@
+/*******************************************************************************
+* onvif.cpp
+*
+* copyright 2023 Stephen Rhodes
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+*******************************************************************************/
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
@@ -111,7 +128,7 @@ PYBIND11_MODULE(onvif, m)
         .def_readwrite("filled", &Data::filled)
         .def_readwrite("cancelled", &Data::cancelled);
 
-    m.attr("__version__") = "dev-00";
+    m.attr("__version__") = "2.0.0";
 }
 
 

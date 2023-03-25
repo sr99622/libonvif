@@ -27,6 +27,7 @@ from PyQt6.QtCore import Qt, QStandardPaths, QFile
 from progress import Progress
 
 sys.path.append("../build/libavio")
+sys.path.append("../build/libavio/Release")
 import avio
 
 class TreeView(QTreeView):
@@ -250,12 +251,12 @@ class FilePanel(QWidget):
     def onMediaStarted(self, duration):
         if self.mw.tab.currentIndex() == 1:
             self.progress.updateDuration(duration)
-            self.control.btnPlay.setIcon(self.control.icnPause)
             self.tree.setFocus()
             index = self.tree.currentIndex()
             if index.isValid():
                 fileInfo = self.model.fileInfo(index)
                 self.mw.setWindowTitle(fileInfo.fileName())
+        self.control.btnPlay.setIcon(self.control.icnPause)
 
     def onMediaStopped(self):
         self.progress.updateProgress(0.0)

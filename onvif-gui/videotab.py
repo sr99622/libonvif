@@ -23,6 +23,7 @@ QGridLayout, QWidget, QLabel
 from PyQt6.QtCore import Qt
 
 sys.path.append("../build/libonvif")
+sys.path.append("../build/libonvif/Release")
 import onvif
 
 class SpinBox(QSpinBox):

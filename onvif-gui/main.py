@@ -31,8 +31,10 @@ from glwidget import GLWidget
 from modules.sample import Sample
 
 sys.path.append("../build/libonvif")
+sys.path.append("../build/libonvif/Release")
 import onvif
 sys.path.append("../build/libavio")
+sys.path.append("../build/libavio/Release")
 import avio
 
 class MainWindowSignals(QObject):

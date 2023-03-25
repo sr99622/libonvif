@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QLabel
 from PyQt6.QtCore import Qt
 
 sys.path.append("../build/libonvif")
+sys.path.append("../build/libonvif/Release")
 import onvif
 
 class ImageTab(QWidget):

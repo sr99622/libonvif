@@ -23,6 +23,7 @@ from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
 
 sys.path.append("../build/libonvif")
+sys.path.append("../build/libonvif/Release")
 import onvif
 
 class NetworkTab(QWidget):

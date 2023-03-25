@@ -24,7 +24,7 @@ import datetime
 from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QSlider, \
 QListWidget, QTabWidget, QMessageBox
 from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings
+from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QTimer
 from logindialog import LoginDialog
 from videotab import VideoTab
 from imagetab import ImageTab
@@ -33,23 +33,29 @@ from ptztab import PTZTab
 from admintab import AdminTab
 
 sys.path.append("../build/libonvif")
+sys.path.append("../build/libonvif/Release")
 import onvif
 
 sys.path.append("../build/libavio")
+sys.path.append("../build/libavio/Release")
 import avio
 
 class CameraPanelSignals(QObject):
     fill = pyqtSignal(onvif.Data)
     login = pyqtSignal(onvif.Data)
-
+    stopTimeout = pyqtSignal()
+    remove = pyqtSignal()
 
 class CameraList(QListWidget):
     def __init__(self):
         super().__init__()
+        self.signals = CameraPanelSignals()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Return:
             self.itemDoubleClicked.emit(self.currentItem())
+        if event.key() == Qt.Key.Key_Delete:
+            self.signals.remove.emit()
         return super().keyPressEvent(event)
     
 class CameraPanel(QWidget):
@@ -75,6 +81,8 @@ class CameraPanel(QWidget):
         self.boss.filled = lambda D : self.filled(D)
 
         self.removing = False
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.applyTimeout)
 
         self.btnStop = QPushButton()
         self.btnStop.setIcon(self.icnStop)
@@ -128,6 +136,7 @@ class CameraPanel(QWidget):
         self.lstCamera = CameraList()
         self.lstCamera.currentRowChanged.connect(self.onCurrentRowChanged)
         self.lstCamera.itemDoubleClicked.connect(self.onItemDoubleClicked)
+        self.lstCamera.signals.remove.connect(self.removeCurrent)
 
         self.tabOnvif = QTabWidget()
         self.tabOnvif.setUsesScrollButtons(False)
@@ -149,6 +158,7 @@ class CameraPanel(QWidget):
         self.signals.fill.connect(self.ptzTab.fill)
         self.signals.fill.connect(self.adminTab.fill)
         self.signals.login.connect(self.onShowLogin)
+        self.signals.stopTimeout.connect(self.timer.stop)
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.lstCamera,   0, 0, 1, 6)
@@ -167,6 +177,7 @@ class CameraPanel(QWidget):
         self.boss.interface = self.mw.settingsPanel.cmbInterfaces.currentText().split(" - ")[0]
         self.boss.startDiscover()
         self.btnDiscover.setEnabled(False)
+        self.timer.start(5000)
 
     def discovered(self):
         self.setBtnStop()
@@ -206,23 +217,22 @@ class CameraPanel(QWidget):
         self.lstCamera.clear()
         for data in self.devices:
             self.lstCamera.addItem(data.alias)
-        #self.btnApply.setEnabled(False)
 
     def filled(self, onvif_data):
         if self.removing:
             self.removing = False
-            self.btnApply.setEnabled(False)
             self.setEnabled(True)
             onvif_data.clear(0)
             self.signals.fill.emit(onvif_data)
-            #self.btnApply.setEnabled(False)
         else:
             self.devices[self.lstCamera.currentRow()] = onvif_data
             self.signals.fill.emit(onvif_data)
-            #self.btnApply.setEnabled(False)
             if not self.mw.connecting:
                 self.setEnabled(True)
                 self.lstCamera.setFocus()
+        self.signals.stopTimeout.emit()
+        self.btnDiscover.setEnabled(True)
+        self.btnApply.setEnabled(False)
 
     def onCurrentRowChanged(self, row):
         if row > -1:
@@ -254,6 +264,7 @@ class CameraPanel(QWidget):
         self.tabNetwork.update(onvif_data)
         self.adminTab.update(onvif_data)
         self.setEnabled(False)
+        self.timer.start(5000)
 
     def onEdit(self):
         if self.lstCamera.count() > 0:
@@ -271,7 +282,10 @@ class CameraPanel(QWidget):
         if self.mw.tab.currentIndex() == 0:
             self.lstCamera.setFocus()
             self.mw.setWindowTitle(self.lstCamera.currentItem().text())
-            self.setBtnStop()
+            if not self.devices[self.lstCamera.currentRow()].filled:
+                self.boss.onvif_data = self.devices[self.lstCamera.currentRow()]
+                self.boss.startFill()
+        self.setBtnStop()
 
     def sldVolumeChanged(self, value):
         self.mw.filePanel.control.sldVolume.setValue(value)
@@ -317,7 +331,7 @@ class CameraPanel(QWidget):
         if self.mw.playing:
             self.mw.stopMedia()
         else:
-            if self.lstCamera.count() > 0:
+            if self.lstCamera.count() > 0 and self.lstCamera.currentRow() > -1:
                 onvif_data = self.devices[self.lstCamera.currentRow()]
                 self.mw.connecting = True
                 self.mw.playMedia(self.getStreamURI(onvif_data))
@@ -331,3 +345,11 @@ class CameraPanel(QWidget):
         uri = onvif_data.stream_uri()[0 : 7] + onvif_data.username() + ":" \
             + onvif_data.password() + "@" + onvif_data.stream_uri()[7:]
         return uri
+
+    def applyTimeout(self):
+        if self.lstCamera.currentRow() < 0:
+            onvif_data = onvif.Data()
+            self.signals.fill.emit(onvif_data)
+            self.setTabsEnabled(False)
+        self.setEnabled(True)
+        self.btnDiscover.setEnabled(True)

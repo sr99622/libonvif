@@ -21,6 +21,7 @@ import sys
 from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QCheckBox
 
 sys.path.append("../build/libonvif")
+sys.path.append("../build/libonvif/Release")
 import onvif
 
 class PTZTab(QWidget):

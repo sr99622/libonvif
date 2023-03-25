@@ -24,6 +24,7 @@ QCheckBox, QLabel, QPushButton, QMessageBox
 from PyQt6.QtCore import QProcess
 
 sys.path.append("../build/libonvif")
+sys.path.append("../build/libonvif/Release")
 import onvif
 
 class AdminTab(QWidget):
@@ -79,7 +80,6 @@ class AdminTab(QWidget):
     def update(self, onvif_data):
         if self.edited(onvif_data):
             if not onvif_data.alias == self.txtCameraName.text():
-                print("funky")
                 onvif_data.alias = self.txtCameraName.text()
                 self.cp.devices[self.cp.lstCamera.currentRow()] = onvif_data
                 self.cp.lstCamera.currentItem().setText(onvif_data.alias)
@@ -98,11 +98,11 @@ class AdminTab(QWidget):
         result = QMessageBox.question(self, "Warning", "Please confirm reboot")
         if result == QMessageBox.StandardButton.Yes:
             onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
-            self.cp.boss.onvif_data = onvif_data
-            self.cp.boss.startReboot()
             if self.cp.mw.player is not None:
                 if self.cp.mw.player.uri == self.cp.getStreamURI(onvif_data):
                     self.cp.mw.stopMedia()
+            self.cp.boss.onvif_data = onvif_data
+            self.cp.boss.startReboot()
             self.cp.removeCurrent()
 
     def btnSyncTimeClicked(self):
@@ -112,7 +112,11 @@ class AdminTab(QWidget):
     def btnHardResetClicked(self):
         result = QMessageBox.question(self, "Warning", "** THIS WILL ERASE ALL SETTINGS **\nAre you sure you want to do this?")
         if result == QMessageBox.StandardButton.Yes:
-            self.cp.boss.onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
+            onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
+            if self.cp.mw.player is not None:
+                if self.cp.mw.player.uri == self.cp.getStreamURI(onvif_data):
+                    self.cp.mw.stopMedia()
+            self.cp.boss.onvif_data = onvif_data
             self.cp.boss.startReset()
 
     def btnBrowserClicked(self):

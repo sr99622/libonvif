@@ -81,18 +81,27 @@ NAME
 
 SYNOPSIS
 
-    onvif-gui is a python program.  It is invoked from the onvif-gui subdirectory by using
-    the command python3 main.py
-
-    To run the program, install the following modules
+    onvif-gui is a python program.  
+    
+    The program requires the following modules:
 
     pip install PyQt6
     pip install opencv-python
 
+    To run the program:
+
+    cd onvif-gui
+    python3 main.py
+
+    
 DESCRIPTION
 
     GUI program to view and set parameters on onvif compatible IP cameras. Double clidcking 
     the camera name in the list will display the camera video output. 
+
+    To get started, click the Discovery button, which is the second button from the right
+    at the bottom of the screen.  A login screen will appear for each camera as it is found.
+    The Settings tab may be used to set a default login that can be used automatically.
 
     Camera parameters are available on the tabs on the lower right side of the application. 
     Once a parameter has been changed, the Apply button will be enabled, which can be used 

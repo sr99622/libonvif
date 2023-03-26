@@ -16,14 +16,15 @@ discovery functionality as well as controls for adjusting camera parameters and
 PTZ operations.  The GUI program has a record function that will write the
 camera stream to file and includes some basic media file management tools. 
 
+The gui program is a python program and is invoked in the onvif-gui directory
+using the command 'python3 main.py'
+
 A utility program is included with libonvif that can be used as a maintenance
 tool and will discover compatible cameras on the local network and may be used 
 to query each of them for device configuration such as RSTP connection uri 
 information or video settings.
 
 The utility program is invoked using the 'onvif-util' command.
-
-The GUI interface may be invoked using the 'onvif-gui' command.
 
 To Install From Source
 ----------------------
@@ -94,7 +95,8 @@ DESCRIPTION
     Camera parameters are available on the tabs on the lower right side of the application. 
     Once a parameter has been changed, the Apply button will be enabled, which can be used 
     to commit the change to the camera.  It may be necessary to re-start the video output 
-    stream in order to see the changes.
+    stream in order to see the changes.  The Apply button is found in the lower right hand
+    corner below the tabs.
 
     Video:
 
@@ -117,6 +119,8 @@ DESCRIPTION
         If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other 
         network settings may be completed manually.  Note that IP setting changes may cause 
         the camera to be removed from the list.  Use the Discover button to find the camera.
+        Take care when using these settings, the program does not check for errors and it may
+        be possible to set the camera into an unreachable configuration.
 
         IP Address
         Subnet Mask
@@ -132,12 +136,11 @@ DESCRIPTION
 
     Admin:
 
-        Camera Name  - Sets the application display name of the camera based on the camera mfgr 
-          and serial number.
+        Camera Name  - Changes the application display name of the camera.
         Set admin Password - Can be used to change the password for the camera.
         Sync Time - Will reset the camera's current time without regard to time zone.
         Browser - Will launch a browser session with the camera for advanced maintenance.
-        Enable Reboot - Will enable the reboot button for use.
+        Enable Reboot - Will enable the reboot button for use.  Camera will be removed from list.
         Enable Reset - Will enable the reset button for use.  Use with caution, all camera 
           settings will be reset.
 
@@ -169,8 +172,8 @@ EXAMPLES
     To change the video resolution of a camera output, Double click on the camera name in 
     the list.  The camera video output should display in the viewer.  Select the Video tab 
     and use the drop down box labelled Resolution.  Upon changing the selection, the Apply 
-    button will be enabled.  Click the apply button to make the change.  The stream will 
-    stop and may be re-started by double clicking on the camera name.
+    button will be enabled.  Click the apply button to make the change.  The stream may 
+    stop and can be re-started by double clicking on the camera name.
 
     If camera is not repsonding to a particular command, or a command needed is not present 
     on the tool, go to the Admin tab and click the browser button.  This will launch the 
@@ -187,7 +190,7 @@ NOTES
     Camera compliance with the onvif standard is often incomplete and in some cases 
     incorrect. Success with the onvif-util may be limited in many cases. Cameras 
     made by Hikvision will have the greatest level of compatibility with onvif-util. 
-    Cameras made by Dahua will have a close degree of compaiability with some notable 
+    Cameras made by Dahua will have a close degree of compatability with some notable 
     exceptions regarding gateway and DNS settings. Time settings may not be reliable 
     in some cases. If the time is set without the zone flag, the time appearing in 
     the camera feed will be synced to the computer time. If the time zone flag is used, 

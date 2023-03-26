@@ -2,7 +2,7 @@
 libonvif
 ========
 
-A client side implementation of the ONVIF specification.
+A client side implementation of the ONVIF specification with Python interface.
 
 Introduction
 ------------
@@ -11,16 +11,15 @@ libonvif is a multi platform library implementing the client side of the ONVIF
 specification for communicating with IP enabled compatible cameras.  It will
 compile on Linux and Windows.
 
+It has comprehensive GUI sample program written in Python that includes the
+discovery functionality as well as controls for adjusting camera parameters and
+PTZ operations.  The GUI program has a record function that will write the
+camera stream to file and includes some basic media file management tools. 
+
 A utility program is included with libonvif that can be used as a maintenance
 tool and will discover compatible cameras on the local network and may be used 
 to query each of them for device configuration such as RSTP connection uri 
 information or video settings.
-
-Additionally, there is a comprehensive GUI sample program that includes the
-discovery functionality as well as controls for adjusting camera parameters and
-PTZ operations.  The GUI program has a record function that will write the
-camera stream to file and includes some basic media file management tools. 
-The GUI sample is written in Qt and can be compiled with cmake.
 
 The utility program is invoked using the 'onvif-util' command.
 
@@ -33,7 +32,6 @@ BUILD ON LINUX
 
 ```bash
 sudo apt install libxml2-dev
-sudo apt install qtbase5-dev
 sudo apt install libavcodec-dev
 sudo apt install libavdevice-dev
 sudo apt install libsdl2-dev
@@ -41,7 +39,7 @@ git clone https://github.com/sr99622/libonvif.git
 cd libonvif
 mkdir build
 cd build
-cmake -DBUILD_GUI=ON ..
+cmake ..
 make
 sudo make install
 sudo ldconfig
@@ -60,7 +58,7 @@ integrate the executables and development files into the conda environment.
 The conda environment must be active when running the executables.
 
 ```bash
-conda create --name onvif -c conda-forge qt libxml2 ffmpeg sdl2
+conda create --name onvif -c conda-forge libxml2 ffmpeg sdl2
 conda activate onvif
 git clone https://github.com/sr99622/libonvif.git
 cd libonvif
@@ -71,46 +69,142 @@ cmake --build . --config Release
 cmake --install .
 ```
 
-ALTERNATE WINDOWS BUILD
+Onvif GUI Program
+-----------------
 
-If you are only interested in the libonvif library and command line utility,
-it is possible to build on Windows without using conda.  
+NAME 
 
+    onvif-gui
 
-You will need to get the source code for libxml2 from https://github.com/GNOME/libxml2. 
-Upon completion of the build for libxml2, you will need Adminstrator privileges to 
-install the library. You will also need to set the PATH environment variable to include 
-the libxml2.dll path. The instructions below will build a stripped down version of 
-libxml2 which is fine for onvif. To get an administrator privileged command prompt, 
-use the Windows search bar for cmd and right click on the command prompt icon to select
-Run as Administrator. To make a permanent change to the PATH environment variable, 
-use the Settings->About->Advanced System Settings->Environment Variables configuration 
-screen.
+SYNOPSIS
 
+    onvif-gui is a python program.  It is invoked from the onvif-gui subdirectory by using
+    the command python3 main.py
 
-For Windows, use the commands following from an Administrator privileged command prompt.
-To make a permanent change to the PATH environment variable, use the 
-Settings->About->Advanced System Settings->Environment Variables configuration screen.
+    To run the program, install the following modules
 
-```bash
-git clone https://github.com/GNOME/libxml2.git
-cd libxml2
-mkdir build
-cd build
-cmake -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_ZLIB=OFF ..
-cmake --build . --config Release
-cmake --install .
-set PATH=%PATH%;"C:\Program Files (x86)\libxml2\bin"
+    pip install PyQt6
+    pip install opencv-python
 
-git clone https://github.com/sr99622/libonvif.git
-cd libonvif
-mkdir build
-cd build
-cmake .. 
-cmake --build . --config Release
-cmake --install .
-set PATH=%PATH%;"C:\Program Files (x86)\libonvif\bin"
-```
+DESCRIPTION
+
+    GUI program to view and set parameters on onvif compatible IP cameras. Double clidcking 
+    the camera name in the list will display the camera video output. 
+
+    Camera parameters are available on the tabs on the lower right side of the application. 
+    Once a parameter has been changed, the Apply button will be enabled, which can be used 
+    to commit the change to the camera.  It may be necessary to re-start the video output 
+    stream in order to see the changes.
+
+    Video:
+
+        Resolution  - The drop down box is used to select the setting.
+        Frame Rate  - The number of frames per second in the video output.
+        Gov Length  - This is the distance between key frames in the stream.
+        Bitrate     - The maxmimum number of bits per second to transmit.
+
+    Image:
+
+        All values are set using the sliders
+
+        Brightness
+        Saturation
+        Contrast
+        Sharpness
+
+    Network:
+
+        If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other 
+        network settings may be completed manually.  Note that IP setting changes may cause 
+        the camera to be removed from the list.  Use the Discover button to find the camera.
+
+        IP Address
+        Subnet Mask
+        Gateway
+        Primary DNS
+
+    PTZ:
+
+        Settings pertain to preset selections or current camera position.  The arrow keys, Zoom In 
+        and Zoom out control the position and zoom. The numbered buttons on the left correspond to 
+        preset positions.  The blank text box may be used to address presets numbered higher than 5.
+        To set a preset, position the camera, then check Set Preset, then click the numbered preset button.
+
+    Admin:
+
+        Camera Name  - Sets the application display name of the camera based on the camera mfgr 
+          and serial number.
+        Set admin Password - Can be used to change the password for the camera.
+        Sync Time - Will reset the camera's current time without regard to time zone.
+        Browser - Will launch a browser session with the camera for advanced maintenance.
+        Enable Reboot - Will enable the reboot button for use.
+        Enable Reset - Will enable the reset button for use.  Use with caution, all camera 
+          settings will be reset.
+
+    Application Settings:
+
+        Auto Discovery - When checked, the application will automatcally start discovery upon launch, 
+          otherwise use the Discover button.
+        Common Username - Default username used during discover.
+        Common Password - Default password used during discover.
+        Hardware Decoder - If available, can be set to use GPU video decoding.
+        Video Filter - FFMPEG filter strings may be used to modify the video
+        Direct Rendering - May be used in Windows to increase performance
+        Convert to RGB - The default setting is ON, may be turned on for performance
+        Disable Audio, Disable Video - Used to limit streams to a single medium
+        Post Process Record - Recording will be the encoded video stream rather than raw packets
+        Hardware Encode - If available, use the GPU for encoding
+        Process Frame - Video frame data is processed by the sample python module
+        Low Latency - Reduces the buffer size to reduce latency, may cause instability
+        Pre-Record Cache Size - A cache of media packets is stored locally prior to decoding and will
+          be pre-pended to the file stream when Pre Process recording.  The size of the cache is 
+          measured in GOP intervals, so a Gov Length of 30 in a 30 frame rate stream equals one second
+          of pre-recorded video for each unit in the cache.
+        Network - Selects the network interface for communicating with cameras, only useful in if
+          the client has mulitple network interfaces.
+        
+
+EXAMPLES
+
+    To change the video resolution of a camera output, Double click on the camera name in 
+    the list.  The camera video output should display in the viewer.  Select the Video tab 
+    and use the drop down box labelled Resolution.  Upon changing the selection, the Apply 
+    button will be enabled.  Click the apply button to make the change.  The stream will 
+    stop and may be re-started by double clicking on the camera name.
+
+    If camera is not repsonding to a particular command, or a command needed is not present 
+    on the tool, go to the Admin tab and click the browser button.  This will launch the 
+    browser using the camera IP address.  Log into the camera and settings should be 
+    avialable in native format for the camera configuration.
+
+SEE ALSO 
+
+    There is a command line version of this program included with the libonvif package which 
+    will implement most of the same commands. It may be invoked using the 'onvif-util' command.
+
+NOTES
+
+    Camera compliance with the onvif standard is often incomplete and in some cases 
+    incorrect. Success with the onvif-util may be limited in many cases. Cameras 
+    made by Hikvision will have the greatest level of compatibility with onvif-util. 
+    Cameras made by Dahua will have a close degree of compaiability with some notable 
+    exceptions regarding gateway and DNS settings. Time settings may not be reliable 
+    in some cases. If the time is set without the zone flag, the time appearing in 
+    the camera feed will be synced to the computer time. If the time zone flag is used, 
+    the displayed time may be set to an offset from the computer time based on the 
+    timezone setting of the camera.
+
+    If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
+    set. Some cameras may not respond to the DNS setting requested by onvif-gui due 
+    to non compliance. Note that the camera may reboot automatically under some conditions 
+    if the DNS setting is changed from off to on.  
+
+    Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
+    command. If there is an issue with a particular setting, it is recommended to connect to 
+    the camera with a web browser, at most cameras will have a web interface that will allow you 
+    to make the changes reliably. The gui version has a button on the Admin tab that will launch 
+    the web browser with the camera ip address automatically.
+
 
 Utility Program Commands 
 ----------------------
@@ -264,125 +358,10 @@ SEE ALSO
   implement most of the same commands. It may be invoke using the 'onvif-gui' 
   command.
 
-Onvif GUI Program
------------------
-
-NAME 
-
-    onvif-gui
-
-SYNOPSIS
-
-    onvif-gui
-
-DESCRIPTION
-
-    GUI program to view and set parameters on onvif compatible IP cameras. Double clidcking 
-    the camera name in the list will display the camera video output. 
-
-    Camera parameters are available on the tabs on the lower right side of the application. 
-    Once a parameter has been changed, the Apply button will be enabled, which can be used 
-    to commit the change to the camera.  It may be necessary to re-start the video output 
-    stream in order to see the changes.
-
-    Video:
-
-        Resolution  - The drop down box is used to select the setting.
-        Frame Rate  - The number of frames per second in the video output.
-        Gov Length  - This is the distance between key frames in the stream.
-        Bitrate     - The maxmimum number of bits per second to transmit.
-
-    Image:
-
-        All values are set using the sliders
-
-        Brightness
-        Saturation
-        Contrast
-        Sharpness
-
-    Network:
-
-        If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other 
-        network settings may be completed manually.
-
-        IP Address
-        Subnet Mask
-        Gateway
-        Primary DNS
-
-    PTZ:
-
-        Settings pertain to preset selections or current camera position.  The arrow keys, Zoom In 
-        and Zoom out control the position and zoom. The numbered buttons on the left correspond to 
-        preset positions.  The blank text box may be used to address presets numbered higher than 5.
-        To set a preset, position the camera, then check Set Preset, then click the numbered preset button.
-
-    Admin:
-
-        Camera Name  - Sets the application display name of the camera based on the camera mfgr 
-          and serial number.
-        Set admin Password - Can be used to change the password for the camera.
-        Sync Time - Will reset the camera's current time without regard to time zone.
-        Browser - Will launch a browser session with the camera for advanced maintenance.
-        Enable Reboot - Will enable the reboot button for use.
-        Enable Reset - Will enable the reset button for use.  Use with caution, all camera 
-          settings will be reset.
-
-    Config:
-
-        Auto Discovery - When checked, the application will automatcally start discovery upon launch, 
-          otherwise use the Discover button.
-        Multi Broadcast - When checked will repeat the broadcast message the number of times in the 
-          Broadcast Repeate spin box.
-        Common Username - Default username used during discover.
-        Common Password - Default password used during discover.
-
-EXAMPLES
-
-    To change the video resolution of a camera output, Double click on the camera name in 
-    the list.  The camera video output should display in the viewer.  Select the Video tab 
-    and use the drop down box labelled Resolution.  Upon changing the selection, the Apply 
-    button will be enabled.  Click the apply button to make the change.  The stream will 
-    stop and may be re-started by double clicking on the camera name.
-
-    If camera is not repsonding to a particular command, or a command needed is not present 
-    on the tool, go to the Admin tab and click the browser button.  This will launch the 
-    browser using the camera IP address.  Log into the camera and settings should be 
-    avialable in native format for the camera configuration.
-
-SEE ALSO 
-
-    There is a command line version of this program included with the libonvif package which 
-    will implement most of the same commands. It may be invoked using the 'onvif-util' command.
-
-NOTES
-
-    Camera compliance with the onvif standard is often incomplete and in some cases 
-    incorrect. Success with the onvif-util may be limited in many cases. Cameras 
-    made by Hikvision will have the greatest level of compatibility with onvif-util. 
-    Cameras made by Dahua will have a close degree of compaiability with some notable 
-    exceptions regarding gateway and DNS settings. Time settings may not be reliable 
-    in some cases. If the time is set without the zone flag, the time appearing in 
-    the camera feed will be synced to the computer time. If the time zone flag is used, 
-    the displayed time may be set to an offset from the computer time based on the 
-    timezone setting of the camera.
-
-    If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
-    set. Some cameras may not respond to the DNS setting requested by onvif-gui due 
-    to non compliance. Note that the camera may reboot automatically under some conditions 
-    if the DNS setting is changed from off to on.  
-
-    Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
-    command. If there is an issue with a particular setting, it is recommended to connect to 
-    the camera with a web browser, at most cameras will have a web interface that will allow you 
-    to make the changes reliably. The gui version has a button on the Admin tab that will launch 
-    the web browser with the camera ip address automatically.
-
 License
 -------
 
- Copyright (c) 2018, 2020, 2022 Stephen Rhodes 
+ Copyright (c) 2018, 2020, 2022, 2023 Stephen Rhodes 
 
  License: GPL-2+
 
@@ -402,7 +381,7 @@ License
 
 ----------
 
- libavio Copyright (c) 2022 Stephen Rhodes
+ libavio Copyright (c) 2022, 2023 Stephen Rhodes
 
  License: Apache
 
@@ -515,24 +494,3 @@ License
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc.,
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-----------
-
- docker/Dockerfile Copyright (c) 2022 Vladislav Visarro
-
- License: GPL-2+
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License along
- with this program; if not, write to the Free Software Foundation, Inc.,
- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-

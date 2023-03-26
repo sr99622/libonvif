@@ -88,7 +88,7 @@ class CameraPanel(QWidget):
         self.btnStop.setIcon(self.icnStop)
         self.btnStop.setToolTip("Stop")
         self.btnStop.setToolTipDuration(2000)
-        self.btnStop.setMinimumWidth(self.icnStop.availableSizes()[0].width() * 1.5)
+        self.btnStop.setMinimumWidth(int(self.icnStop.availableSizes()[0].width() * 1.5))
         self.btnStop.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnStop.clicked.connect(self.btnStopClicked)
 
@@ -96,7 +96,7 @@ class CameraPanel(QWidget):
         self.btnRecord.setIcon(self.icnRecord)
         self.btnRecord.setToolTip("Record")
         self.btnRecord.setToolTipDuration(2000)
-        self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 1.5)
+        self.btnRecord.setMinimumWidth(int(self.icnRecord.availableSizes()[0].width() * 1.5))
         self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRecord.clicked.connect(self.btnRecordClicked)
 
@@ -107,7 +107,7 @@ class CameraPanel(QWidget):
             self.btnMute.setIcon(self.icnAudio)
         self.btnMute.setToolTip("Mute")
         self.btnMute.setToolTipDuration(2000)
-        self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 1.5)
+        self.btnMute.setMinimumWidth(int(self.icnMute.availableSizes()[0].width() * 1.5))
         self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
@@ -120,7 +120,7 @@ class CameraPanel(QWidget):
         self.btnDiscover.setIcon(self.icnDiscover)
         self.btnDiscover.setToolTip("Discover")
         self.btnDiscover.setToolTipDuration(2000)
-        self.btnDiscover.setMinimumWidth(self.icnDiscover.availableSizes()[0].width() * 1.5)
+        self.btnDiscover.setMinimumWidth(int(self.icnDiscover.availableSizes()[0].width() * 1.5))
         self.btnDiscover.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
 
@@ -128,7 +128,7 @@ class CameraPanel(QWidget):
         self.btnApply.setIcon(self.icnApply)
         self.btnApply.setToolTip("Apply")
         self.btnApply.setToolTipDuration(2000)
-        self.btnApply.setMinimumWidth(self.icnApply.availableSizes()[0].width() * 1.5)
+        self.btnApply.setMinimumWidth(int(self.icnApply.availableSizes()[0].width() * 1.5))
         self.btnApply.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnApply.clicked.connect(self.btnApplyClicked)
         self.btnApply.setEnabled(False)

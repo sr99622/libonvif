@@ -36,9 +36,8 @@ sudo apt install libxml2-dev
 sudo apt install libavcodec-dev
 sudo apt install libavdevice-dev
 sudo apt install libsdl2-dev
-git clone https://github.com/sr99622/libonvif.git
+git clone --recursive https://github.com/sr99622/libonvif.git
 cd libonvif
-git submodule update --init --recursive
 mkdir build
 cd build
 cmake ..
@@ -46,7 +45,6 @@ make
 sudo make install
 sudo ldconfig
 ```
-
 
 BUILD ON WINDOWS
 
@@ -62,12 +60,12 @@ The conda environment must be active when running the executables.
 ```bash
 conda create --name onvif -c conda-forge libxml2 ffmpeg sdl2
 conda activate onvif
-git clone https://github.com/sr99622/libonvif.git
+git clone --recursive https://github.com/sr99622/libonvif.git
 cd libonvif
 git submodule update --init --recursive
 mkdir build
 cd build
-cmake -DBUILD_GUI=ON -DCMAKE_INSTALL_PREFIX=%CONDA_PREFIX%\Library ..
+cmake -DCMAKE_INSTALL_PREFIX=%CONDA_PREFIX%\Library ..
 cmake --build . --config Release
 cmake --install .
 ```
@@ -90,13 +88,22 @@ SYNOPSIS
 
     To run the program:
 
-    cd onvif-gui
+    cd ../onvif-gui
     python3 main.py
 
-    
+    Thes instructions are intended for quick setup to verify the program.  To use the 
+    library in other python programs, it is advised to install the onvif and avio
+    python modules.
+
+    cd ../libonvif
+    python3 setup.py install
+
+    cd ../libavio 
+    python3 setup.py install
+
 DESCRIPTION
 
-    GUI program to view and set parameters on onvif compatible IP cameras. Double clidcking 
+    GUI program to view and set parameters on onvif compatible IP cameras. Double clicking 
     the camera name in the list will display the camera video output. 
 
     To get started, click the Discovery button, which is the second button from the right

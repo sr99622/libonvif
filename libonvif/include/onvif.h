@@ -83,6 +83,7 @@ struct OnvifData {
     char default_gateway_buf[128];
     char dns_buf[128];
     int prefix_length;
+    char mask_buf[128];
     /*image*/
     char videoSourceConfigurationToken[128];
     int brightness_min;
@@ -116,6 +117,7 @@ struct OnvifData {
     char camera_name[1024];
     char serial_number[128];
     char host_name[1024];
+    char host[128];
     /*error*/
     char last_error[1024];
 	/*date/time*/
@@ -133,12 +135,13 @@ struct OnvifSession {
     char uuid[47];
     int discovery_msg_id;
     char preferred_network_address[16];
+    char active_network_interfaces[16][1024];
 };
 
 LIBRARY_API void initializeSession(struct OnvifSession *onvif_session);
 LIBRARY_API void closeSession(struct OnvifSession *onvif_session);
 LIBRARY_API int broadcast(struct OnvifSession *onvif_session);
-LIBRARY_API void prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
+LIBRARY_API bool prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
 LIBRARY_API int fillRTSPn(struct OnvifData *onvif_data, int profileIndex);
 #define fillRTSP(a) fillRTSPn(a,0)
 LIBRARY_API void clearData(struct OnvifData *onvif_data);
@@ -210,20 +213,22 @@ LIBRARY_API int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attri
 #define getNodeAttribute(doc,xpath,attribute,buf,buf_length) getNodeAttributen(doc,xpath,attribute,buf,buf_length,0)
 LIBRARY_API xmlXPathObjectPtr getNodeSet (xmlDocPtr doc, xmlChar *xpath);
 */
+
 LIBRARY_API void getDiscoveryXml(char buffer[], int buf_size, char uuid[47]);
 LIBRARY_API void getDiscoveryXml2(char buffer[], int buf_size);
 LIBRARY_API void getScopeField(char *, char *, char[1024]);
 LIBRARY_API void getCameraName(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
-LIBRARY_API void extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
+LIBRARY_API bool extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
 LIBRARY_API void extractOnvifService(char service[1024], bool post);
 LIBRARY_API void extractHost(char * xaddrs, char host[128]);
-
 
 LIBRARY_API int setSocketOptions(int socket);
 LIBRARY_API void prefix2mask(int prefix, char mask_buf[128]);
 LIBRARY_API int mask2prefix(char * mask_buf);
 LIBRARY_API void getIPAddress(char buf[128]);
-
+LIBRARY_API void copyData(struct OnvifData* dts, struct OnvifData* src);
+LIBRARY_API bool hasPTZ(struct OnvifData* onvif_data);
+LIBRARY_API void getActiveNetworkInterfaces(struct OnvifSession* onvif_session);
 LIBRARY_API void dumpConfigAll (struct OnvifData *onvif_data);
 
 #ifdef __MINGW32__

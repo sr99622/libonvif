@@ -1,4 +1,6 @@
 build*/
+dist/
+*.egg-info
 .vscode/
 sample.pro.user
 __pycache__/

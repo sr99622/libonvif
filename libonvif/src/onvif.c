@@ -14,6 +14,7 @@
 * GNU General Public License for more details.
 *
 *******************************************************************************/
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,8 @@
     #include <wincrypt.h>
     #include <iphlpapi.h>
     #include <fcntl.h>
+	#pragma comment(lib, "iphlpapi.lib")
+	#pragma comment(lib, "ws2_32.lib")
 #else
     #include <sys/socket.h>
     #include <arpa/inet.h>
@@ -36,6 +39,7 @@
     #include <ifaddrs.h>
     #include <sys/ioctl.h>
     #include <sys/types.h>
+    #include <netdb.h>
     #include <net/if.h>
     #include <netinet/in.h>
     #include <sys/time.h>
@@ -45,11 +49,7 @@
 #include "sha1.h"
 #include "cencode.h"
 #include <stdint.h>
-
-#ifdef _WIN32
-	#pragma comment(lib, "iphlpapi.lib")
-	#pragma comment(lib, "ws2_32.lib")
-#endif
+#include <errno.h>
 
 #define INT_TO_ADDR(_addr) \
 (_addr & 0xFF), \
@@ -142,15 +142,17 @@ int getNetworkInterfaces(struct OnvifData *onvif_data) {
             }
         }
         if (enabled != NULL) {
-            free(enabled);
+            xmlFree(enabled);
         }
         xmlXPathFreeObject(xml_result);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getNetworkInterfaces");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getNetworkInterfaces - No XML reply");
     }
     return result;
 }
@@ -193,10 +195,12 @@ int setNetworkInterfaces(struct OnvifData *onvif_data) {
         }
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setNetworkInterfaces");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setNetworkInterfaces - No XML reply");
     }
     return result;
 }
@@ -219,10 +223,12 @@ int getNetworkDefaultGateway(struct OnvifData *onvif_data) {
         xmlChar *xpath = BAD_CAST "//s:Body//tds:GetNetworkDefaultGatewayResponse//tds:NetworkGateway//tt:IPv4Address";
         getXmlValue(reply, xpath, onvif_data->default_gateway_buf, 128);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getNetworkDefaultGateway");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getNetworkDefaultGateway - No XML reply");
     }
     return result;
 }
@@ -245,10 +251,12 @@ int setNetworkDefaultGateway(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setNetworkDefaultGateway");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setNetworkDefaultGateway - No XML reply");
     }
     return result;
 }
@@ -280,10 +288,12 @@ int getDNS(struct OnvifData *onvif_data) {
             }
         }
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getDNS");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getDNS - No XML reply");
     }
     return result;
 }
@@ -299,7 +309,9 @@ int setDNS(struct OnvifData *onvif_data) {
     }
 
     xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
-    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);
+    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);        if (result < 0)
+            strcat(onvif_data->last_error, " getVideoEncoderConfiguration");
+
     xmlDocSetRootElement(doc, root);
     xmlNsPtr ns_env = xmlNewNs(root, BAD_CAST "http://www.w3.org/2003/05/soap-envelope", BAD_CAST "SOAP-ENV");
     xmlNsPtr ns_tds = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/device/wsdl", BAD_CAST "tds");
@@ -320,10 +332,12 @@ int setDNS(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setDNS");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setDNS - No XML reply");
     }
     return result;
 }
@@ -369,9 +383,12 @@ int getNTP(struct OnvifData *onvif_data) {
 				xpath = BAD_CAST "//s:Body//tds:GetNTPResponse//tt:NTPManual//tt:DNSname";
 			getXmlValue(reply, xpath, onvif_data->ntp_addr, 128);
 		}
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getNTP");
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getNTP - No XML reply");
     }
     return result;
 }
@@ -413,10 +430,12 @@ int setNTP(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setNTP");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setNTP - No XML reply");
     }
     return result;
 }
@@ -439,9 +458,13 @@ int getHostname(struct OnvifData *onvif_data) {
         xmlChar *xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:FromDHCP";
         xpath = BAD_CAST "//s:Body//tds:GetHostnameResponse//tds:HostnameInformation//tt:Name";
         getXmlValue(reply, xpath, onvif_data->host_name, 128);
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getHostname");
+        xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getHostname - No XML reply");
     }
     return result;
 }
@@ -473,10 +496,12 @@ int setHostname(struct OnvifData *onvif_data) {
     if (reply != NULL) {
 		/* Should check for RebootNeeded=true from setHostnameFronDHCP */
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setHostname");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setHostname - No XML reply");
     }
     return result;
 }
@@ -527,10 +552,12 @@ int getCapabilities(struct OnvifData *onvif_data) {
             extractOnvifService(onvif_data->ptz_service, true);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getCapabilities");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getCapabilities - No XML reply");
     }
     return result;
 }
@@ -603,9 +630,9 @@ int getVideoEncoderConfigurationOptions(struct OnvifData *onvif_data) {
                 }
 
                 if (width != NULL)
-                    free(width);
+                    xmlFree(width);
                 if (height != NULL)
-                    free(height);
+                    xmlFree(height);
             }
             xmlXPathFreeObject(xml_result);
         }
@@ -635,10 +662,12 @@ int getVideoEncoderConfigurationOptions(struct OnvifData *onvif_data) {
             onvif_data->bitrate_max = 16384;
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getVideoEncoderConfigurationOptions");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getVideoEncoderConfigurationOptions - No XML reply");
     }
     return result;
 }
@@ -720,10 +749,12 @@ int getVideoEncoderConfiguration(struct OnvifData *onvif_data) {
         getXmlValue(reply, xpath, onvif_data->session_time_out_buf, 128);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getVideoEncoderConfiguration");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getVideoEncoderConfiguration - No XML reply");
     }
     return result;
 }
@@ -802,10 +833,12 @@ int setVideoEncoderConfiguration(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setVideoEncoderConfiguration");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setVideoEncoderConfiguration - No XML reply");
     }
     return result;
 }
@@ -857,10 +890,12 @@ int getProfile(struct OnvifData *onvif_data) {
         getXmlValue(reply, xpath, onvif_data->videoSourceConfigurationToken, 128);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getProfile");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getProfile - No XML reply");
     }
     return result;
 }
@@ -910,10 +945,12 @@ int getOptions(struct OnvifData *onvif_data) {
             onvif_data->sharpness_max = atoi(temp_buf);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getOptions");
         xmlFreeDoc(reply);
      } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getOptions - No XML reply");
     }
     return result;
 }
@@ -951,10 +988,12 @@ int getImagingSettings(struct OnvifData *onvif_data) {
             onvif_data->sharpness = atoi(temp_buf);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getImagingSettings");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getImagingSettings - No XML reply");
     }
     return result;
 }
@@ -992,10 +1031,12 @@ int setImagingSettings(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setImagingSettings");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setImagingSettings - No XML reply");
     }
     return result;
 }
@@ -1026,10 +1067,12 @@ int continuousMove(float x, float y, float z, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " continuousMove");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "continuousMove - No XML reply");
     }
     return result;
 }
@@ -1065,10 +1108,12 @@ int moveStop(int type, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " moveStop");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "moveStop - No XML reply");
     }
     return result;
 }
@@ -1091,10 +1136,12 @@ int setPreset(char *arg, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setPreset");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setPreset - No XML reply");
     }
     return result;
 }
@@ -1117,10 +1164,12 @@ int gotoPreset(char *arg, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " gotoPreset");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "gotoPreset - No XML reply");
     }
     return result;
 }
@@ -1146,10 +1195,12 @@ int setUser(char *new_password, struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setUser");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setUser - No XML reply");
     }
     return result;
 }
@@ -1205,11 +1256,13 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " setSystemDatAndTime");
         xmlFreeDoc(reply);
     }
     else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setSystemDateAndTime - No XML reply");
     }
     return result;
 }
@@ -1341,12 +1394,12 @@ int setSystemDateAndTimeUsingTimezone(struct OnvifData *onvif_data) {
 		xmlFreeDoc(reply);
             } else {
                 result = -1;
-		strcpy(onvif_data->last_error, "No XML reply");
+		strcpy(onvif_data->last_error, "setSystemDateAndTimeUsingTimezone - No XML reply");
             }
         }
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "setSystemDateAndTimeUsingTimezone 2 - No XML reply");
     }
     return result;
 }
@@ -1370,10 +1423,12 @@ int getProfileToken(struct OnvifData *onvif_data, int profileIndex) {
     if (reply != NULL) {
         getNodeAttributen(reply, BAD_CAST "//s:Body//trt:GetProfilesResponse//trt:Profiles", BAD_CAST "token", onvif_data->profileToken, 128, profileIndex);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getProfileToken");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getProfileToken - No XML reply");
     }
     return result;
 }
@@ -1409,28 +1464,28 @@ int getTimeOffset(struct OnvifData *onvif_data) {
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:UTCDateTime//tt:Date//tt:Day", day_buf, 16);
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:DaylightSavings", dst_buf, 16);
 
-	onvif_data->dst = false;
+    	onvif_data->dst = false;
         int is_dst = 0;
         if (strcmp(dst_buf, "true") == 0) {
             is_dst = 1;
-	    onvif_data->dst = true;
-	}
+	        onvif_data->dst = true;
+	    }
 
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:TimeZone//tt:TZ", onvif_data->timezone, 128);
-	char dttype[16];
+	    char dttype[16];
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetSystemDateAndTimeResponse//tds:SystemDateAndTime//tt:DateTimeType", dttype, 16);
-	onvif_data->datetimetype = dttype[0]; /* M == Manual, N == NTP */
+	    onvif_data->datetimetype = dttype[0]; /* M == Manual, N == NTP */
 
         time_t now = time(NULL);
         time_t utc_time_here = now;
-	bool special = false;
-	if (strcmp(onvif_data->timezone,"UTC0") == 0) {
-	    /* special case - camera is running on local time believing it is UTC */
-	    special = true;
+	    bool special = false;
+	    if (strcmp(onvif_data->timezone,"UTC0") == 0) {
+	        /* special case - camera is running on local time believing it is UTC */
+	        special = true;
             struct tm *utc_here = gmtime(&now);
             utc_here->tm_isdst = -1;
             utc_time_here = mktime(utc_here);
-	}
+	    }
 
         struct tm *utc_there = localtime(&now);
         utc_there->tm_year = atoi(year_buf) - 1900;
@@ -1440,21 +1495,23 @@ int getTimeOffset(struct OnvifData *onvif_data) {
         utc_there->tm_min = atoi(min_buf);
         utc_there->tm_sec = atoi(sec_buf);
         utc_there->tm_isdst = is_dst;
-	time_t utc_time_there;
-	if (special)
-	    utc_time_there = mktime(utc_there);
-	else
+	    time_t utc_time_there;
+	    if (special)
+	        utc_time_there = mktime(utc_there);
+	    else
 #ifndef _WIN32
-	    utc_time_there = timegm(utc_there);
+	        utc_time_there = timegm(utc_there);
 #else
-	    utc_time_there = _mkgmtime(utc_there);
+	        utc_time_there = _mkgmtime(utc_there);
 #endif
-	onvif_data->time_offset = utc_time_there - utc_time_here;
+	    onvif_data->time_offset = utc_time_there - utc_time_here;
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getTimeOfset");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getTimeOffset - No XML reply");
     }
 
     return result;
@@ -1483,10 +1540,12 @@ int getStreamUri(struct OnvifData *onvif_data) {
     if (reply != NULL) {
         getXmlValue(reply, BAD_CAST "//s:Body//trt:GetStreamUriResponse//trt:MediaUri//tt:Uri", onvif_data->stream_uri, 1024);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getStreamUri");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getStreamUri - No XML reply");
     }
     return result;
 }
@@ -1508,10 +1567,12 @@ int getDeviceInformation(struct OnvifData *onvif_data) {
     if (reply != NULL) {
         getXmlValue(reply, BAD_CAST "//s:Body//tds:GetDeviceInformationResponse//tds:SerialNumber", onvif_data->serial_number, 128);
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getdeviceImformation");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "getDeviceInformation - No XML reply");
     }
     return result;
 }
@@ -1576,10 +1637,12 @@ int rebootCamera(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " rebootCamera");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "rebootCamera - No XML reply");
     }
   return result;
 }
@@ -1601,10 +1664,12 @@ int hardReset(struct OnvifData *onvif_data) {
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
     if (reply != NULL) {
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " hardReset");
         xmlFreeDoc(reply);
     } else {
         result = -1;
-        strcpy(onvif_data->last_error, "No XML reply");
+        strcpy(onvif_data->last_error, "hardReset - No XML reply");
     }
     return result;
 }
@@ -1758,7 +1823,7 @@ int getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_length) {
         if (keyword != NULL) {
             if (strlen((char*) keyword) > buf_length-1) {
                 xmlXPathFreeObject(result);
-                free(keyword);
+                xmlFree(keyword);
                 return -4;
             } else {
                 for (int i=0; i<buf_length; i++)
@@ -1770,7 +1835,7 @@ int getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_length) {
 
     xmlXPathFreeObject(result);
     if (keyword != NULL)
-        free(keyword);
+        xmlFree(keyword);
     return 0;
 }
 
@@ -1808,7 +1873,7 @@ int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char b
         if (keyword != NULL) {
             if (strlen((char*) keyword) > buf_length-1) {
                 xmlXPathFreeObject(result);
-                free(keyword);
+                xmlFree(keyword);
                 return -4;
             } else {
                 for (int i=0; i<buf_length; i++)
@@ -1820,7 +1885,7 @@ int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char b
 
     xmlXPathFreeObject(result);
     if (keyword != NULL)
-        free(keyword);
+        xmlFree(keyword);
     return 0;
 }
 
@@ -2210,7 +2275,7 @@ void getUUID(char uuid_buf[47]) {
         sprintf(buf, "%02x", (unsigned char) rand());
         strcat(uuid_buf, buf);
         if (i==3 || i==5 || i==7 || i==9)
-        strcat(uuid_buf, "-");
+            strcat(uuid_buf, "-");
     }
 }
 
@@ -2268,6 +2333,89 @@ int broadcast(struct OnvifSession *onvif_session) {
 #endif
 
     return i;
+}
+
+void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
+{
+#ifdef _WIN32
+    PIP_ADAPTER_INFO pAdapterInfo;
+    PIP_ADAPTER_INFO pAdapter = NULL;
+    DWORD dwRetVal = 0;
+    int count = 0;
+
+    ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+    pAdapterInfo = (IP_ADAPTER_INFO *) malloc(sizeof (IP_ADAPTER_INFO));
+    if (pAdapterInfo == NULL) {
+        printf("Error allocating memory needed to call GetAdaptersinfo\n");
+        return;
+    }
+
+    if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+        free(pAdapterInfo);
+        pAdapterInfo = (IP_ADAPTER_INFO *) malloc(ulOutBufLen);
+        if (pAdapterInfo == NULL) {
+            printf("Error allocating memory needed to call GetAdaptersinfo\n");
+            return;
+        }
+    }
+
+    if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+        pAdapter = pAdapterInfo;
+        while (pAdapter) {
+            if (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0")) {
+                char interface_info[1024];
+                sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
+                printf("Network interface info %s\n", interface_info);
+                //args.push_back(interface_info);
+                strncpy(onvif_session->active_network_interfaces[count], interface_info, 40);
+                count += 1;
+            }
+            pAdapter = pAdapter->Next;
+        }
+    } 
+    else {
+        printf("GetAdaptersInfo failed with error: %d", dwRetVal);
+    }
+    if (pAdapterInfo)
+        free(pAdapterInfo);
+#else
+    struct ifaddrs *ifaddr;
+    int family, s;
+    char host[NI_MAXHOST];
+    int count = 0;
+
+    if (getifaddrs(&ifaddr) == -1) {
+        printf("Error: getifaddrs failed - %s\n", strerror(errno));
+        return;
+    }
+
+    for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL)
+            continue;
+
+        family = ifa->ifa_addr->sa_family;
+
+        if (family == AF_INET ) {
+            s = getnameinfo(ifa->ifa_addr, 
+                    sizeof(struct sockaddr_in),
+                    host, NI_MAXHOST,
+                    NULL, 0, NI_NUMERICHOST);
+
+            if (s != 0) {
+                printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                continue;
+            }
+
+            if (strcmp(ifa->ifa_name, "lo")) {
+                strcpy(onvif_session->active_network_interfaces[count], host);
+                strcat(onvif_session->active_network_interfaces[count], " - ");
+                strcat(onvif_session->active_network_interfaces[count], ifa->ifa_name);
+                count += 1;
+            }
+        } 
+    }
+    freeifaddrs(ifaddr);
+#endif
 }
 
 void getIPAddress(char buf[128]) {
@@ -2442,11 +2590,9 @@ int setSocketOptions(int socket) {
         if (pIPAddrTable->table[p].dwAddr != inet_addr("127.0.0.1") && pIPAddrTable->table[p].dwMask == inet_addr("255.255.255.0")) {
             if (strlen(preferred_network_address) > 0) {
                 localInterface.s_addr = inet_addr(preferred_network_address);
-                //printf("using preferred network address for broadcast: %s\n", preferred_network_address);
             }
             else {
                 localInterface.s_addr = pIPAddrTable->table[p].dwAddr;
-                //printf("using default network address for broadcast\n");
             }
             status = setsockopt(socket, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&localInterface, sizeof(localInterface));
             if (status < 0)
@@ -2464,7 +2610,6 @@ int setSocketOptions(int socket) {
     status = setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&broadcast, sizeof(broadcast));
 #else
     if (strlen(preferred_network_address) > 0) {
-        printf("preferred network address: %s\n", preferred_network_address);
         localInterface.s_addr = inet_addr(preferred_network_address);
         status = setsockopt(socket, IPPROTO_IP, IP_MULTICAST_IF, (const char *)&localInterface, sizeof(localInterface));
         if (status < 0)
@@ -2666,7 +2811,8 @@ void getCameraName(int ordinal, struct OnvifSession *onvif_session, struct Onvif
     xmlFreeDoc(xml_input);
 }
 
-void extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
+bool extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
+    bool result = false;
     xmlDocPtr xml_input = xmlParseMemory(onvif_session->buf[ordinal], onvif_session->len[ordinal]);
     if (getXmlValue(xml_input, BAD_CAST "//s:Body//d:ProbeMatches//d:ProbeMatch//d:XAddrs", onvif_data->xaddrs, 1024) == 0) {
         char *sub = strstr(onvif_data->xaddrs, " ");
@@ -2675,8 +2821,10 @@ void extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct Onvif
             onvif_data->xaddrs[mark] = '\0';
         }
         strcpy(onvif_data->device_service, onvif_data->xaddrs);
+        result = true;
     }
     xmlFreeDoc(xml_input);
+    return result;
 }
 
 void clearData(struct OnvifData *onvif_data) {
@@ -2692,6 +2840,7 @@ void clearData(struct OnvifData *onvif_data) {
         onvif_data->ip_address_buf[i] = '\0';
         onvif_data->default_gateway_buf[i] = '\0';
         onvif_data->dns_buf[i] = '\0';
+        onvif_data->mask_buf[i] = '\0';
         onvif_data->videoSourceConfigurationToken[i] = '\0';
         onvif_data->video_encoder_name_buf[i] = '\0';
         onvif_data->h264_profile_buf[i] = '\0';
@@ -2709,6 +2858,8 @@ void clearData(struct OnvifData *onvif_data) {
     	onvif_data->timezone[i] = '\0';
     	onvif_data->ntp_type[i] = '\0';
     	onvif_data->ntp_addr[i] = '\0';
+        onvif_data->host[i] = '\0';
+        onvif_data->serial_number[i] = '\0';
     }
     for (int i=0; i<1024; i++) {
         onvif_data->xaddrs[i] = '\0';
@@ -2760,10 +2911,99 @@ void clearData(struct OnvifData *onvif_data) {
     onvif_data->ntp_dhcp = false;
 }
 
+void copyData(struct OnvifData *dst, struct OnvifData *src) {
+    for (int i=0; i<16; i++) {
+        for (int j=0; j<128; j++) {
+            dst->resolutions_buf[i][j] = src->resolutions_buf[i][j];
+        }
+    }
+    for (int i=0; i<128; i++) {
+        dst->videoEncoderConfigurationToken[i] = src->videoEncoderConfigurationToken[i];
+        dst->networkInterfaceToken[i] = src->networkInterfaceToken[i];
+        dst->networkInterfaceName[i] = src->networkInterfaceName[i];
+        dst->ip_address_buf[i] = src->ip_address_buf[i];
+        dst->default_gateway_buf[i] = src->default_gateway_buf[i];
+        dst->dns_buf[i] = src->dns_buf[i];
+        dst->videoSourceConfigurationToken[i] = src->videoSourceConfigurationToken[i];
+        dst->video_encoder_name_buf[i] = src->video_encoder_name_buf[i];
+        dst->h264_profile_buf[i] = src->h264_profile_buf[i];
+        dst->multicast_address_type_buf[i] = src->multicast_address_type_buf[i];
+        dst->multicast_address_buf[i] = src->multicast_address_buf[i];
+        dst->session_time_out_buf[i] = src->session_time_out_buf[i];
+        dst->media_service[i] = src->media_service[i];
+        dst->imaging_service[i] = src->imaging_service[i];
+        dst->ptz_service[i] = src->ptz_service[i];
+        dst->event_service[i] = src->event_service[i];
+        dst->profileToken[i] = src->profileToken[i];
+        dst->username[i] = src->username[i];
+        dst->password[i] = src->password[i];
+        dst->encoding[i] = src->encoding[i];
+    	dst->timezone[i] = src->timezone[i];
+    	dst->ntp_type[i] = src->ntp_type[i];
+    	dst->ntp_addr[i] = src->ntp_addr[i];
+        dst->host[i] = src->host[i];
+        dst->serial_number[i] = src->serial_number[i];
+    }
+    for (int i=0; i<1024; i++) {
+        dst->xaddrs[i] = src->xaddrs[i];
+        dst->device_service[i] = src->device_service[i];
+        dst->stream_uri[i] = src->stream_uri[i];
+        dst->camera_name[i] = src->camera_name[i];
+        dst->host_name[i] = src->host_name[i];
+        dst->last_error[i] = src->last_error[i];
+    }
+    dst->gov_length_min = src->gov_length_min;
+    dst->gov_length_max = src->gov_length_max;
+    dst->frame_rate_min = src->frame_rate_min;
+    dst->frame_rate_max = src->frame_rate_max;
+    dst->bitrate_min = src->bitrate_min;
+    dst->bitrate_max = src->bitrate_max;
+    dst->width = src->width;
+    dst->height = src->height;
+    dst->gov_length = src->gov_length;
+    dst->frame_rate = src->frame_rate;
+    dst->bitrate = src->bitrate;
+    dst->use_count = src->use_count;
+    dst->quality = src->quality;
+    dst->multicast_port = src->multicast_port;
+    dst->multicast_ttl = src->multicast_ttl;
+    dst->autostart = src->autostart;
+    dst->prefix_length = src->prefix_length;
+    dst->dhcp_enabled = src->dhcp_enabled;
+    dst->brightness_min = src->brightness_min;
+    dst->brightness_max = src->brightness_max;
+    dst->saturation_min = src->saturation_min;
+    dst->saturation_max = src->saturation_max;
+    dst->contrast_min = src->contrast_min;
+    dst->contrast_max = src->contrast_max;
+    dst->sharpness_min = src->sharpness_min;
+    dst->sharpness_max = src->sharpness_max;
+    dst->brightness = src->brightness;
+    dst->saturation = src->saturation;
+    dst->contrast = src->contrast;
+    dst->sharpness = src->sharpness;
+    dst->time_offset = src->time_offset;
+    dst->event_listen_port = src->event_listen_port;
+    dst->guaranteed_frame_rate = src->guaranteed_frame_rate;
+    dst->conf_width = src->conf_width;
+    dst->conf_height = src->conf_height;
+    dst->conf_frame_rate_limit = src->conf_frame_rate_limit;
+    dst->conf_encoding_interval = src->conf_encoding_interval;
+    dst->conf_bitrate_limit = src->conf_bitrate_limit;
+    dst->datetimetype = src->datetimetype;
+    dst->dst = src->dst;
+    dst->ntp_dhcp = src->ntp_dhcp;
+}
+
 void initializeSession(struct OnvifSession *onvif_session) {
     getUUID(onvif_session->uuid);
     onvif_session->discovery_msg_id = 1;
     xmlInitParser ();
+    for (int i=0; i<16; i++) {
+        for (int j=0; j<1024; j++) {
+            onvif_session->active_network_interfaces[i][j] = '\0';
+        }
+    }
 #ifdef _WIN32
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2,2), &wsaData);
@@ -2773,17 +3013,20 @@ void initializeSession(struct OnvifSession *onvif_session) {
 
 void closeSession(struct OnvifSession *onvif_session) {
 #ifdef _WIN32
-  WSACleanup();
+    WSACleanup();
 #endif
     xmlCleanupParser ();
 }
 
-void prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
+bool prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data) {
     clearData(onvif_data);
     getCameraName(ordinal, onvif_session, onvif_data);
-    extractXAddrs(ordinal, onvif_session, onvif_data);
+    if (!extractXAddrs(ordinal, onvif_session, onvif_data))
+        return false;
     extractOnvifService(onvif_data->device_service, true);
+    extractHost(onvif_data->xaddrs, onvif_data->host);
     getTimeOffset(onvif_data);
+    return true;
 }
 
 int fillRTSPn(struct OnvifData *onvif_data, int profileIndex) {
@@ -2798,6 +3041,13 @@ int fillRTSPn(struct OnvifData *onvif_data, int profileIndex) {
     return result;
 }
 
+bool hasPTZ(struct OnvifData* onvif_data) {
+    if (strcmp(onvif_data->ptz_service, "") == 0)
+        return false;
+    else
+        return true;
+
+}
 
 void dumpXmlNode (xmlDocPtr doc, xmlNodePtr cur_node, char *prefix) {
     const char *name;

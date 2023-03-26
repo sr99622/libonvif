@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 1.4.5)
+project(libonvif VERSION 2.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -31,19 +31,46 @@ if(WIN32)
 endif()
 
 find_package(LibXml2 REQUIRED)
+find_package(Python3 COMPONENTS Intrepreter Development NumPy)
 
-add_library(onvif SHARED
+add_library(libonvif SHARED
     src/onvif.c
     src/cencode.c
     src/sha1.c
+    src/onvifboss.cpp
 )
 
-target_link_libraries(onvif PRIVATE
+target_link_libraries(libonvif PRIVATE
     ${LIBXML2_LIBRARIES}
 )
 
-set_target_properties(onvif PROPERTIES
-    SOVERSION 1
+if (LINUX)
+    set_target_properties(libonvif PROPERTIES
+        OUTPUT_NAME onvif
+        SOVERSION 1
+    )
+endif()
+
+target_include_directories(libonvif PUBLIC
+    include
+    ${Iconv_INCLUDE_DIRS}
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+
+add_subdirectory(pybind11)
+
+pybind11_add_module(onvif
+    src/onvif.cpp
+    src/onvif.c
+    src/cencode.c
+    src/sha1.c
+    src/onvifboss.cpp
+)
+
+target_link_libraries(onvif PRIVATE
+    Python3::Python
+    ${LIBXML2_LIBRARIES}
 )
 
 target_include_directories(onvif PUBLIC

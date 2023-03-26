@@ -1,5 +1,5 @@
 /*******************************************************************************
-* onvif-util.c
+* onvif-util.cpp
 *
 * Copyright (c) 2022 Stephen Rhodes 
 * Code contributions by Brian D Scott and Petter Reinholdtsen
@@ -59,18 +59,22 @@ static void showAll()
 {
 	std::cout << "Looking for cameras on the network..." << std::endl;
 	struct OnvifSession *onvif_session = (struct OnvifSession*)calloc(sizeof(struct OnvifSession), 1);
-    struct OnvifData *onvif_data = (struct OnvifData*)malloc(sizeof(struct OnvifData));
+    struct OnvifData *onvif_data = (struct OnvifData*)calloc(sizeof(struct OnvifData), 1);
 	initializeSession(onvif_session);
 	int n = broadcast(onvif_session);
 	std::cout << "Found " << n << " cameras" << std::endl;
 	for (int i = 0; i < n; i++) {
-		prepareOnvifData(i, onvif_session, onvif_data);
-		char host[128];
-		extractHost(onvif_data->xaddrs, host);
-		getHostname(onvif_data);
-		printf("%s %s(%s)\n",host,
-			onvif_data->host_name,
-			onvif_data->camera_name);
+		if (prepareOnvifData(i, onvif_session, onvif_data)) {
+			char host[128];
+			extractHost(onvif_data->xaddrs, host);
+			getHostname(onvif_data);
+			printf("%s %s(%s)\n",host,
+				onvif_data->host_name,
+				onvif_data->camera_name);
+		}
+		else {
+			std::cout << "found invalid xaddrs in device repsonse" << std::endl;
+		}
 	}
 	closeSession(onvif_session);
 	free(onvif_session);
@@ -338,34 +342,36 @@ int main(int argc, char **argv)
 				}
 				else if (args[0] == "video") {
 
-					if (args[1] == "options") {
-						args.erase(args.begin());
-						profileCheck(onvif_data, args);
-						if(getVideoEncoderConfigurationOptions(onvif_data)) throw std::runtime_error(cat("get video encoder configuration options - ", onvif_data->last_error));
-						int size = 0;
-						bool found_size = false;
-						while (!found_size) {
-							if (strlen(onvif_data->resolutions_buf[size]) == 0) {
-								found_size = true;
-							}
-							else {
-								size++;
-								if (size > 15)
+					if (args.size() > 1) {
+						if (args[1] == "options") {
+							args.erase(args.begin());
+							profileCheck(onvif_data, args);
+							if(getVideoEncoderConfigurationOptions(onvif_data)) throw std::runtime_error(cat("get video encoder configuration options - ", onvif_data->last_error));
+							int size = 0;
+							bool found_size = false;
+							while (!found_size) {
+								if (strlen(onvif_data->resolutions_buf[size]) == 0) {
 									found_size = true;
+								}
+								else {
+									size++;
+									if (size > 15)
+										found_size = true;
+								}
 							}
-						}
 
-						std::cout << "  Available Resolutions" << std::endl;
-						for (int i=0; i<size; i++) {
-							std::cout << "    " << onvif_data->resolutions_buf[i] << std::endl;
-						}
+							std::cout << "  Available Resolutions" << std::endl;
+							for (int i=0; i<size; i++) {
+								std::cout << "    " << onvif_data->resolutions_buf[i] << std::endl;
+							}
 
-						std::cout <<  "  Min Gov Length: " << onvif_data->gov_length_min << "\n";
-						std::cout <<  "  Max Gov Length: " << onvif_data->gov_length_max << "\n";
-						std::cout <<  "  Min Frame Rate: " << onvif_data->frame_rate_min << "\n";
-						std::cout <<  "  Max Frame Rate: " << onvif_data->frame_rate_max << "\n";
-						std::cout <<  "  Min Bit Rate: " << onvif_data->bitrate_min << "\n";
-						std::cout <<  "  Max Bit Rate: " << onvif_data->bitrate_max << "\n" << std::endl;
+							std::cout <<  "  Min Gov Length: " << onvif_data->gov_length_min << "\n";
+							std::cout <<  "  Max Gov Length: " << onvif_data->gov_length_max << "\n";
+							std::cout <<  "  Min Frame Rate: " << onvif_data->frame_rate_min << "\n";
+							std::cout <<  "  Max Frame Rate: " << onvif_data->frame_rate_max << "\n";
+							std::cout <<  "  Min Bit Rate: " << onvif_data->bitrate_min << "\n";
+							std::cout <<  "  Max Bit Rate: " << onvif_data->bitrate_max << "\n" << std::endl;
+						}
 					}
 					else {
 						profileCheck(onvif_data, args);
@@ -378,18 +384,20 @@ int main(int argc, char **argv)
 				}
 				else if (args[0] == "imaging") {
 
-					if (args[1] == "options") {
-						args.erase(args.begin());
-						profileCheck(onvif_data, args);
-						if (getOptions(onvif_data)) throw std::runtime_error(cat("get options - ", onvif_data->last_error));
-						std::cout << "  Min Brightness: " << onvif_data->brightness_min << "\n";
-						std::cout << "  Max Brightness: " << onvif_data->brightness_max << "\n";
-						std::cout << "  Min ColorSaturation: " << onvif_data->saturation_min << "\n";
-						std::cout << "  Max ColorSaturation: " << onvif_data->saturation_max << "\n";
-						std::cout << "  Min Contrast: " << onvif_data->contrast_min << "\n";
-						std::cout << "  Max Contrast: " << onvif_data->contrast_max << "\n";
-						std::cout << "  Min Sharpness: " << onvif_data->sharpness_min << "\n";
-						std::cout << "  Max Sharpness: " << onvif_data->sharpness_max << "\n" << std::endl;
+					if (args.size() > 1) {
+						if (args[1] == "options") {
+							args.erase(args.begin());
+							profileCheck(onvif_data, args);
+							if (getOptions(onvif_data)) throw std::runtime_error(cat("get options - ", onvif_data->last_error));
+							std::cout << "  Min Brightness: " << onvif_data->brightness_min << "\n";
+							std::cout << "  Max Brightness: " << onvif_data->brightness_max << "\n";
+							std::cout << "  Min ColorSaturation: " << onvif_data->saturation_min << "\n";
+							std::cout << "  Max ColorSaturation: " << onvif_data->saturation_max << "\n";
+							std::cout << "  Min Contrast: " << onvif_data->contrast_min << "\n";
+							std::cout << "  Max Contrast: " << onvif_data->contrast_max << "\n";
+							std::cout << "  Min Sharpness: " << onvif_data->sharpness_min << "\n";
+							std::cout << "  Max Sharpness: " << onvif_data->sharpness_max << "\n" << std::endl;
+						}
 					}
 					else {
 						profileCheck(onvif_data, args);
@@ -730,7 +738,7 @@ int main(int argc, char **argv)
 			}
 			else { 
 				if (strcmp(kybd_buf, "quit"))
-					std::cout << " Unrecognized command, use onvif-util -h to see help\n" << std::endl;
+					std::cout << " Unrecognized command, type help to see help\n" << std::endl;
 			}
 		}
 		catch (std::exception& e) {

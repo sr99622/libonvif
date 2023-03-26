@@ -38,6 +38,7 @@ sudo apt install libavdevice-dev
 sudo apt install libsdl2-dev
 git clone https://github.com/sr99622/libonvif.git
 cd libonvif
+git submodule update --init --recursive
 mkdir build
 cd build
 cmake ..

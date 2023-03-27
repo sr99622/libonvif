@@ -38,28 +38,30 @@ include(GNUInstallDirs)
 set(CMAKE_INSTALL_INCLUDEDIR "include/${CMAKE_LIBRARY_ARCHITECTURE}")
 
 add_subdirectory(libonvif)
-add_subdirectory(libavio)
 add_subdirectory(onvif-util)
-
-if (WIN32)
-    install(TARGETS libonvif 
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        COMPONENT library
-    )
-    install(TARGETS libavio 
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        COMPONENT library
-    )
-else()
-    install(TARGETS libonvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
-    install(TARGETS libavio DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+IF (NOT WITHOUT_PYTHON)
+    if (WIN32)
+        install(TARGETS libonvif 
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            COMPONENT library
+        )
+        install(TARGETS libavio 
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            COMPONENT library
+        )
+    else()
+        install(TARGETS libonvif DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+        install(TARGETS libavio DESTINATION "${CMAKE_INSTALL_LIBDIR}/")
+    endif()
 endif()
 
 install(TARGETS onvif-util DESTINATION bin)
 install(FILES libonvif/include/onvif.h onvifboss.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(FILES onvif-util/docs/onvif-util.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")
-install(FILES onvif-gui/docs/onvif-gui.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")
+IF (NOT WITHOUT_PYTHON)
+    install(FILES onvif-gui/docs/onvif-gui.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")
+endif()

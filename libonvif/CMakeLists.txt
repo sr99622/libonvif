@@ -31,7 +31,9 @@ if(WIN32)
 endif()
 
 find_package(LibXml2 REQUIRED)
-find_package(Python3 COMPONENTS Intrepreter Development NumPy)
+IF (NOT WITHOUT_PYTHON)
+    find_package(Python3 COMPONENTS Intrepreter Development NumPy)
+endif()
 
 add_library(libonvif SHARED
     src/onvif.c
@@ -57,24 +59,25 @@ target_include_directories(libonvif PUBLIC
     ${LIBXML2_INCLUDE_DIRS}
 )
 
+IF (NOT WITHOUT_PYTHON)
+    add_subdirectory(pybind11)
 
-add_subdirectory(pybind11)
+    pybind11_add_module(onvif
+        src/onvif.cpp
+        src/onvif.c
+        src/cencode.c
+        src/sha1.c
+        src/onvifboss.cpp
+    )
 
-pybind11_add_module(onvif
-    src/onvif.cpp
-    src/onvif.c
-    src/cencode.c
-    src/sha1.c
-    src/onvifboss.cpp
-)
+    target_link_libraries(onvif PRIVATE
+        Python3::Python
+        ${LIBXML2_LIBRARIES}
+    )
 
-target_link_libraries(onvif PRIVATE
-    Python3::Python
-    ${LIBXML2_LIBRARIES}
-)
-
-target_include_directories(onvif PUBLIC
-    include
-    ${Iconv_INCLUDE_DIRS}
-    ${LIBXML2_INCLUDE_DIRS}
-)
+    target_include_directories(onvif PUBLIC
+        include
+        ${Iconv_INCLUDE_DIRS}
+        ${LIBXML2_INCLUDE_DIRS}
+    )
+endif()

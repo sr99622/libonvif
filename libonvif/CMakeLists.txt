@@ -46,7 +46,7 @@ target_link_libraries(libonvif PRIVATE
     ${LIBXML2_LIBRARIES}
 )
 
-if (LINUX)
+if (UNIX)
     set_target_properties(libonvif PROPERTIES
         OUTPUT_NAME onvif
         SOVERSION 1

@@ -2,7 +2,7 @@
 libonvif
 ========
 
-A client side implementation of the ONVIF specification with Python interface.
+A client side implementation of the ONVIF specification.
 
 Introduction
 ------------
@@ -16,18 +16,15 @@ discovery functionality as well as controls for adjusting camera parameters and
 PTZ operations.  The GUI program has a record function that will write the
 camera stream to file and includes some basic media file management tools. 
 
-The gui program is a python program and is invoked in the onvif-gui directory
-using the command 'python3 main.py'
-
 A utility program is included with libonvif that can be used as a maintenance
 tool and will discover compatible cameras on the local network and may be used 
 to query each of them for device configuration such as RSTP connection uri 
 information or video settings.
 
-The utility program is invoked using the 'onvif-util' command.
-
 To Install From Source
 ----------------------
+
+*Note: To install without Python and GUI interface, use CMAKE -DNO_PYTHON ..
 
 BUILD ON LINUX
 
@@ -58,7 +55,7 @@ integrate the executables and development files into the conda environment.
 The conda environment must be active when running the executables.
 
 ```bash
-conda create --name onvif -c conda-forge libxml2 ffmpeg sdl2
+conda create --name onvif -c conda-forge libxml2 ffmpeg sdl2 python
 conda activate onvif
 git clone --recursive https://github.com/sr99622/libonvif.git
 cd libonvif
@@ -85,6 +82,7 @@ SYNOPSIS
 
     pip install PyQt6
     pip install opencv-python
+    pip install numpy
 
     To run the program:
 

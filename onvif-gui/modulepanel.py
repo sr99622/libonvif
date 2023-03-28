@@ -56,11 +56,7 @@ class ModulePanel(QWidget):
         lytFixed.setColumnStretch(1, 10)
         self.layout.addWidget(fixedPanel)
 
-
     def setPanel(self, panel):
-        print("width:", self.mw.geometry().width())
-        print("glw:", self.mw.glWidget.width())
-        print("tw:", self.mw.tab.width())
         if self.panel is not None:
             self.layout.removeWidget(self.panel)
         self.panel = panel

@@ -21,16 +21,21 @@ import numpy as np
 import cv2
 import os
 import sys
-from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
-QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
+from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox
 
 class Configure:
     def __init__(self, mw):
         self.mw = mw
+        self.showBorderKey = "Module/sample/showBorder"
         self.panel = QWidget()
         self.chkShowBorder = QCheckBox("Show Border")
+        self.chkShowBorder.setChecked(int(self.mw.settings.value(self.showBorderKey, 0)))
+        self.chkShowBorder.stateChanged.connect(self.chkShowBorderClicked)
         lytMain = QGridLayout(self.panel)
-        lytMain.addWidget(self.chkShowBorder, 0, 0, 1, 1)    
+        lytMain.addWidget(self.chkShowBorder, 0, 0, 1, 1)
+
+    def chkShowBorderClicked(self, state):
+        self.mw.settings.setValue(self.showBorderKey, state)
 
 class Worker:
     def __init__(self, mw):
@@ -46,10 +51,11 @@ class Worker:
         imgWidth = img.shape[1]
         imgHeight = img.shape[0]
 
-        cv2.rectangle(img, (0, 0), (imgWidth, imgHeight), (0, 255, 0), 20)
+        if self.mw.configure.chkShowBorder.isChecked():
+            cv2.rectangle(img, (0, 0), (imgWidth, imgHeight), (0, 255, 0), 20)
+
         textSize, _ = cv2.getTextSize(timestamp, cv2.FONT_HERSHEY_PLAIN, 12, 12)
         textWidth, textHeight = textSize
-
         textX = max((imgWidth / 2) - (textWidth / 2), 0)
         textY = max((imgHeight / 2) + (textHeight / 2), 0)
 

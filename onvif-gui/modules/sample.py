@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/modues/sample.py 
+# libonvif/python/modules/sample.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -19,8 +19,20 @@
 
 import numpy as np
 import cv2
+import os
+import sys
+from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
+QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
 
-class Sample:
+class Configure:
+    def __init__(self, mw):
+        self.mw = mw
+        self.panel = QWidget()
+        self.chkShowBorder = QCheckBox("Show Border")
+        lytMain = QGridLayout(self.panel)
+        lytMain.addWidget(self.chkShowBorder, 0, 0, 1, 1)    
+
+class Worker:
     def __init__(self, mw):
         self.mw = mw
 
@@ -46,4 +58,3 @@ class Sample:
             color = (255, 0, 0)
 
         cv2.putText(img, timestamp, (int(textX), int(textY)), cv2.FONT_HERSHEY_PLAIN, 12, color, 12)
-

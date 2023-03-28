@@ -19,7 +19,8 @@
 
 import os
 import sys
-from time import sleep
+import time
+import importlib.util
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
 QTabWidget, QMessageBox
 from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
@@ -27,12 +28,9 @@ from PyQt6.QtGui import QIcon
 from camerapanel import CameraPanel
 from filepanel import FilePanel
 from settingspanel import SettingsPanel
+from modulepanel import ModulePanel
 from glwidget import GLWidget
-from modules.sample import Sample
 
-sys.path.append("../build/libonvif")
-sys.path.append("../build/libonvif/Release")
-import onvif
 sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
 import avio
@@ -60,6 +58,8 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("onvif", "gui")
         self.volumeKey = "MainWindow/volume"
         self.muteKey = "MainWindow/mute"
+        self.geometryKey = "MainWindow/geometry"
+        self.tabIndexKey = "MainWindow/tabIndex"
 
         self.player = None
         self.playing = False
@@ -81,12 +81,15 @@ class MainWindow(QMainWindow):
         self.signals.started.connect(self.filePanel.onMediaStarted)
         self.signals.stopped.connect(self.filePanel.onMediaStopped)
         self.signals.progress.connect(self.filePanel.onMediaProgress)
+        self.modulePanel = ModulePanel(self)
         self.signals.stopped.connect(self.onMediaStopped)
         self.signals.error.connect(self.onError)
         self.settingsPanel = SettingsPanel(self)
         self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
+        self.tab.addTab(self.modulePanel, "Modules")
+        self.tab.setCurrentIndex(self.settings.value(self.tabIndexKey, 0))
 
         if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
             self.glWidget = GLWidget()
@@ -99,7 +102,7 @@ class MainWindow(QMainWindow):
         split.setStretchFactor(0, 4)
         self.setCentralWidget(split)
 
-        rect = self.settings.value("geometry")
+        rect = self.settings.value(self.geometryKey)
         if rect is not None:
             if rect.width() > 0 and rect.height() > 0 and rect.x() > 0 and rect.y() > 0:
                 self.setGeometry(rect)
@@ -107,7 +110,51 @@ class MainWindow(QMainWindow):
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
 
-        self.sample = None
+        self.hook = None
+        self.worker = None
+        self.configure = None
+        workerName = self.modulePanel.cmbWorker.currentText()
+        if len(workerName) > 0:
+            self.loadWorker(workerName)
+            self.loadConfigure(workerName)
+
+    def loadConfigure(self, workerName):
+        try :
+            spec = importlib.util.spec_from_file_location("Configure", "modules/" + workerName)
+            hook = importlib.util.module_from_spec(spec)
+            sys.modules["Configure"] = hook
+            spec.loader.exec_module(hook)
+            self.configure = hook.Configure(self)
+            self.modulePanel.setPanel(self.configure.panel)
+        except Exception as ex:
+            print("Module configuration failed to load:", ex)
+            self.modulePanel.chkEngage.setChecked(False)
+
+
+    def loadWorker(self, workerName):
+        try:
+            spec = importlib.util.spec_from_file_location("Worker", "modules/" + workerName)
+            self.hook = importlib.util.module_from_spec(spec)
+            sys.modules["Worker"] = self.hook
+            spec.loader.exec_module(self.hook)
+            self.worker = None
+        except Exception as ex:
+            print("Module worker failed to load:", ex)
+            self.modulePanel.chkEngage.setChecked(False)
+
+    def pythonCallback(self, F):
+        if self.modulePanel.chkEngage.isChecked():
+            if self.hook is not None:
+                if self.worker is None:
+                    self.worker = self.hook.Worker(self)
+                start = time.time()
+                self.worker(F)
+                finish = time.time()
+                elapsed = int((finish - start) * 1000)
+                self.modulePanel.lblElapsed.setText("Elapsed Time (ms)  " + str(elapsed))
+        else:
+            self.modulePanel.lblElapsed.setText("")
+        return F
 
     def playMedia(self, uri):
         self.stopMedia()
@@ -157,7 +204,7 @@ class MainWindow(QMainWindow):
         if self.player is not None:
             self.player.running = False
         while self.playing:
-            sleep(0.01)
+            time.sleep(0.01)
 
     def toggleMute(self):
         self.mute = not self.mute
@@ -176,7 +223,8 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, e):
         self.stopMedia()
-        self.settings.setValue("geometry", self.geometry())
+        self.settings.setValue(self.geometryKey, self.geometry())
+        self.settings.setValue(self.tabIndexKey, self.tab.currentIndex())
 
     def mediaPlayingStarted(self, n):
         self.playing = True
@@ -197,13 +245,6 @@ class MainWindow(QMainWindow):
 
     def infoCallback(self, msg):
         print(msg)
-
-    def pythonCallback(self, F):
-        if self.settingsPanel.chkProcessFrame.isChecked():
-            if self.sample is None:
-                self.sample = Sample(self)
-            self.sample(F)
-        return F
 
     def errorCallback(self, s):
         self.signals.error.emit(s)

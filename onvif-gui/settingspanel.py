@@ -40,6 +40,7 @@ class SettingsPanel(QWidget):
         self.latencyKey = "settings/latency"
         self.renderKey = "settings/render"
         self.convertKey = "settings/convert"
+        self.workerKey = "settings/worker"
         self.disableAudioKey = "settings/disableAudio"
         self.disableVideoKey = "settings/disableVideo"
         self.postEncodeKey = "settings/postEncode"
@@ -47,6 +48,7 @@ class SettingsPanel(QWidget):
         self.processFrameKey = "settings/processFrame"
         self.cacheSizeKey = "settings/cacheSize"
         self.interfaceKey = "settings/interface"
+        self.videoFilterKey = "settings/videoFilter"
 
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
@@ -67,8 +69,18 @@ class SettingsPanel(QWidget):
         self.cmbDecoder = QComboBox()
         self.cmbDecoder.addItems(decoders)
         self.cmbDecoder.setCurrentText(mw.settings.value(self.decoderKey, "NONE"))
-        self.cmbDecoder.currentTextChanged.connect(self.cmbDecodersChanged)
+        self.cmbDecoder.currentTextChanged.connect(self.cmbDecoderChanged)
         lblDecoders = QLabel("Hardware Decoder")
+
+        #self.cmbWorker = QComboBox()
+        #workers = os.listdir("modules")
+        #for worker in workers:
+        #    if not worker.endswith(".py"):
+        #        workers.remove(worker)
+        #self.cmbWorker.addItems(workers)
+        #self.cmbWorker.setCurrentText(mw.settings.value(self.workerKey, "sample.py"))
+        #self.cmbWorker.currentTextChanged.connect(self.cmbWorkerChanged)
+        #lblWorkers = QLabel("Python Worker")
         
         self.chkDirectRender = QCheckBox("Direct Rendering")
         self.render = int(mw.settings.value(self.renderKey, 0))
@@ -108,9 +120,9 @@ class SettingsPanel(QWidget):
         self.chkHardwareEncode.setEnabled(self.chkPostEncode.isChecked())
         self.chkHardwareEncode.stateChanged.connect(self.hardwareEncodeChecked)
 
-        self.chkProcessFrame = QCheckBox("Process Frame")
-        self.chkProcessFrame.setChecked(int(mw.settings.value(self.processFrameKey, 0)))
-        self.chkProcessFrame.stateChanged.connect(self.processFrameChecked)
+        #self.chkProcessFrame = QCheckBox("Process Frame")
+        #self.chkProcessFrame.setChecked(int(mw.settings.value(self.processFrameKey, 0)))
+        #self.chkProcessFrame.stateChanged.connect(self.processFrameChecked)
 
         self.chkLowLatency = QCheckBox("Low Latency")
         self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
@@ -124,11 +136,8 @@ class SettingsPanel(QWidget):
         lytChecks.addWidget(self.chkDisableVideo,   1, 1, 1, 1)
         lytChecks.addWidget(self.chkPostEncode,     2, 0, 1, 1)
         lytChecks.addWidget(self.chkHardwareEncode, 2, 1, 1, 1)
-        lytChecks.addWidget(self.chkProcessFrame,   3, 0, 1, 1)
+        #lytChecks.addWidget(self.chkProcessFrame,   3, 0, 1, 1)
         lytChecks.addWidget(self.chkLowLatency,     3, 1, 1, 1)
-
-        self.txtVideoFilter = QLineEdit()
-        lblVideoFilter = QLabel("Video Filter")
 
         self.spnCacheSize = QSpinBox()
         self.spnCacheSize.setMinimum(1)
@@ -158,6 +167,11 @@ class SettingsPanel(QWidget):
         lytInterface.setColumnStretch(1, 10)
         lytInterface.setContentsMargins(0, 0, 0, 0)
 
+        self.txtVideoFilter = QLineEdit()
+        self.txtVideoFilter.setText(mw.settings.value(self.videoFilterKey, ""))
+        self.txtVideoFilter.textChanged.connect(self.videoFilterChanged)
+        lblVideoFilter = QLabel("Video Filter")
+
         pnlFilter = QWidget()
         lytFilter = QGridLayout(pnlFilter)
         lytFilter.addWidget(lblVideoFilter,      0, 0, 1, 1)
@@ -173,6 +187,8 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(self.txtPassword,       2, 1, 1, 1)
         lytMain.addWidget(lblDecoders,            3, 0, 1, 1)
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
+        #lytMain.addWidget(lblWorkers,             4, 0, 1, 1)
+        #lytMain.addWidget(self.cmbWorker,         4, 1, 1, 1)
         lytMain.addWidget(pnlFilter,              5, 0, 1, 3)
         lytMain.addWidget(pnlChecks,              6, 0, 1, 3)
         lytMain.addWidget(lblCacheSize,           7, 0, 1, 1)
@@ -190,8 +206,13 @@ class SettingsPanel(QWidget):
     def passwordChanged(self, password):
         self.mw.settings.setValue(self.passwordKey, password)
 
-    def cmbDecodersChanged(self, decoder):
+    def cmbDecoderChanged(self, decoder):
         self.mw.settings.setValue(self.decoderKey, decoder)
+
+    #def cmbWorkerChanged(self, worker):
+    #    self.mw.settings.setValue(self.workerKey, worker)
+    #    self.mw.loadConfigure(worker)
+    #    self.mw.loadWorker(worker)
 
     def directRenderChecked(self):
         ret = QMessageBox.warning(self, "onvif-gui",
@@ -240,8 +261,8 @@ class SettingsPanel(QWidget):
     def hardwareEncodeChecked(self, state):
         self.mw.settings.setValue(self.hardwareEncodeKey, state)
 
-    def processFrameChecked(self, state):
-        self.mw.settings.setValue(self.processFrameKey, state)
+    #def processFrameChecked(self, state):
+    #    self.mw.settings.setValue(self.processFrameKey, state)
 
     def lowLatencyChecked(self, state):
         self.mw.settings.setValue(self.latencyKey, state)
@@ -257,6 +278,9 @@ class SettingsPanel(QWidget):
 
     def cmbInterfacesChanged(self, network):
         self.mw.settings.setValue(self.interfaceKey, network)
+
+    def videoFilterChanged(self, filter):
+        self.mw.settings.setValue(self.videoFilterKey, filter)
 
     def getDecoder(self):
         result = avio.AV_HWDEVICE_TYPE_NONE

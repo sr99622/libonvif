@@ -24,7 +24,7 @@ information or video settings.
 To Install From Source
 ----------------------
 
-*Note: To install without Python and GUI interface, use CMAKE -DNO_PYTHON ..
+*Note: To install without Python and GUI interface, use CMAKE -DWITHOUT_PYTHON=ON ..
 
 BUILD ON LINUX
 

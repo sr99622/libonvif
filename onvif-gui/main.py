@@ -89,7 +89,7 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
         self.tab.addTab(self.modulePanel, "Modules")
-        #self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
+        self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
 
         if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
             self.glWidget = GLWidget()

@@ -18,9 +18,8 @@
 #*********************************************************************/
 
 import os
-import sys
-from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
-QGridLayout, QWidget, QCheckBox, QLabel, QComboBox, QVBoxLayout
+from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox, \
+    QLabel, QComboBox, QVBoxLayout
 
 class ModulePanel(QWidget):
     def __init__(self, mw):

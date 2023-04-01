@@ -31,7 +31,8 @@ BUILD ON LINUX
 The program has dependency on FFMPEG, libxml2, libsdl2 and python.  In order
 to run the onvif-gui program, you will need pip to install numpy, pyqt6 and opencv.
 If you are running an NVIDIA graphics card, you will need the proprietary NVIDIA
-drivers, the generic drivers are not stable with the GLWidget.
+drivers, the generic drivers are not stable with the GLWidget.  Note that when
+cloning the project, the --recursive flag is needed for python bindings.
 
 PREQUISITES
 

@@ -17,6 +17,7 @@
 #
 #*********************************************************************/
 
+import cv2
 import torchvision
 import torch
 import numpy as np
@@ -36,7 +37,7 @@ class Configure:
         self.mw = mw
         self.panel = QWidget()
 
-        self.sldThreshold = ThresholdSlider(mw, "retinanet", 35)
+        self.sldThreshold = ThresholdSlider(mw, "retinanet", "Confidence", 35)
         
         number_of_labels = 5
         self.labels = []

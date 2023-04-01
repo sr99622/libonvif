@@ -28,11 +28,26 @@ To Install From Source
 
 BUILD ON LINUX
 
+The program has dependency on FFMPEG, libxml2, libsdl2 and python.  In order
+to run the onvif-gui program, you will need pip to install numpy, pyqt6 and opencv.
+If you are running an NVIDIA graphics card, you will need the proprietary NVIDIA
+drivers, the generic drivers are not stable with the GLWidget.
+
+PREQUISITES
+
+```bash
+sudo apt install git
+sudo apt install g++
+sudo apt install cmake
+sudo apt install python3-pip
+```
+
 ```bash
 sudo apt install libxml2-dev
 sudo apt install libavcodec-dev
 sudo apt install libavdevice-dev
 sudo apt install libsdl2-dev
+sudo apt install python3-dev
 git clone --recursive https://github.com/sr99622/libonvif.git
 cd libonvif
 mkdir build
@@ -59,7 +74,6 @@ conda create --name onvif -c conda-forge libxml2 ffmpeg sdl2 python
 conda activate onvif
 git clone --recursive https://github.com/sr99622/libonvif.git
 cd libonvif
-git submodule update --init --recursive
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=%CONDA_PREFIX%\Library ..
@@ -80,7 +94,7 @@ SYNOPSIS
     
     The program requires the following modules:
 
-    pip install PyQt6
+    pip install pyqt6
     pip install opencv-python
     pip install numpy
 

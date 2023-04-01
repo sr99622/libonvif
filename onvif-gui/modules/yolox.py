@@ -106,10 +106,11 @@ class Worker:
             self.model.eval()
             ckpt = torch.load(ckpt_file, map_location="cpu")
             self.model.load_state_dict(ckpt["model"])
-
             self.num_classes = exp.num_classes
+
         except Exception as ex:
             print("yolox worker init exception:", ex)
+            self.mw.modulePanel.chkEngage.setChecked(False)
 
     def __call__(self, F):
         try :
@@ -137,22 +138,24 @@ class Worker:
                 nmsthre = self.mw.configure.sldNMS.value()
                 outputs = postprocess(outputs, self.num_classes, confthre, nmsthre)
 
-            output = outputs[0].cpu()
-            boxes = output[:, 0:4] / ratio
-            labels = output[:, 6].numpy().astype(int)
-            scores = output[:, 4] * output[:, 5]
+            if outputs[0] is not None:
+                output = outputs[0].cpu()
+                output.cpu()
+                boxes = output[:, 0:4] / ratio
+                labels = output[:, 6].numpy().astype(int)
+                scores = output[:, 4] * output[:, 5]
 
-            for lbl in self.mw.configure.labels:
-                if lbl.chkBox.isChecked():
-                    label = lbl.cmbLabel.currentIndex()
-                    lbl_boxes = boxes[labels == label]
-                    r = lbl.color.red()
-                    g = lbl.color.green()
-                    b = lbl.color.blue()
-                    lbl.lblCount.setText(str(lbl_boxes.shape[0]))
-            
-                    for box in lbl_boxes:
-                        cv2.rectangle(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (r, g, b), 1)
+                for lbl in self.mw.configure.labels:
+                    if lbl.chkBox.isChecked():
+                        label = lbl.cmbLabel.currentIndex()
+                        lbl_boxes = boxes[labels == label]
+                        r = lbl.color.red()
+                        g = lbl.color.green()
+                        b = lbl.color.blue()
+                        lbl.lblCount.setText(str(lbl_boxes.shape[0]))
+                
+                        for box in lbl_boxes:
+                            cv2.rectangle(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (r, g, b), 1)
 
         except Exception as ex:
             print("yolox worker call exception:", ex)        

@@ -41,6 +41,7 @@ sudo apt install g++
 sudo apt install cmake
 sudo apt install python3-pip
 ```
+BUILD
 
 ```bash
 sudo apt install libxml2-dev

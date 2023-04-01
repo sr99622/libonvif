@@ -34,7 +34,7 @@ If you are running an NVIDIA graphics card, you will need the proprietary NVIDIA
 drivers, the generic drivers are not stable with the GLWidget.  Note that when
 cloning the project, the --recursive flag is needed for python bindings.
 
-PREQUISITES
+PREREQUISITES
 
 ```bash
 sudo apt install git
@@ -105,7 +105,7 @@ SYNOPSIS
     cd ../onvif-gui
     python3 main.py
 
-    Thes instructions are intended for quick setup to verify the program.  To use the 
+    These instructions are intended for quick setup to verify the program.  To use the 
     library in other python programs, it is advised to install the onvif and avio
     python modules.
 
@@ -236,7 +236,7 @@ NOTES
 
     Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
     command. If there is an issue with a particular setting, it is recommended to connect to 
-    the camera with a web browser, at most cameras will have a web interface that will allow you 
+    the camera with a web browser, as most cameras will have a web interface that will allow you 
     to make the changes reliably. The gui version has a button on the Admin tab that will launch 
     the web browser with the camera ip address automatically.
 

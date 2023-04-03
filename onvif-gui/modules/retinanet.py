@@ -17,6 +17,7 @@
 #
 #*********************************************************************/
 
+import cv2
 import torchvision
 import torch
 import numpy as np
@@ -32,31 +33,34 @@ transform = transforms.Compose([
 
 class Configure:
     def __init__(self, mw):
-        print("Retinanet Configure.__init__")
-        self.mw = mw
-        self.panel = QWidget()
+        try:
+            print("Retinanet Configure.__init__")
+            self.mw = mw
+            self.panel = QWidget()
 
-        self.sldThreshold = ThresholdSlider(mw, "retinanet", 35)
-        
-        number_of_labels = 5
-        self.labels = []
-        for i in range(number_of_labels):
-            self.labels.append(LabelSelector(mw, "retinanet", i+1))
+            self.sldThreshold = ThresholdSlider(mw, "retinanet", "Confidence", 35)
+            
+            number_of_labels = 5
+            self.labels = []
+            for i in range(number_of_labels):
+                self.labels.append(LabelSelector(mw, "retinanet", i+1))
 
-        pnlLabels = QWidget()
-        lytLabels = QGridLayout(pnlLabels)
-        lblPanel = QLabel("Select classes to be indentified")
-        lblPanel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lytLabels.addWidget(lblPanel,        0, 0, 1, 1)
-        for i in range(number_of_labels):
-            lytLabels.addWidget(self.labels[i], i+1, 0, 1, 1)
-        lytLabels.setContentsMargins(0, 0, 0, 0)
+            pnlLabels = QWidget()
+            lytLabels = QGridLayout(pnlLabels)
+            lblPanel = QLabel("Select classes to be indentified")
+            lblPanel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lytLabels.addWidget(lblPanel,        0, 0, 1, 1)
+            for i in range(number_of_labels):
+                lytLabels.addWidget(self.labels[i], i+1, 0, 1, 1)
+            lytLabels.setContentsMargins(0, 0, 0, 0)
 
-        lytMain = QGridLayout(self.panel)
-        lytMain.addWidget(self.sldThreshold,        0, 0, 1, 1)
-        lytMain.addWidget(pnlLabels,                1, 0, 1, 1)
-        lytMain.addWidget(QLabel(""),               2, 0, 1, 1)
-        lytMain.setRowStretch(2, 10)
+            lytMain = QGridLayout(self.panel)
+            lytMain.addWidget(self.sldThreshold,        0, 0, 1, 1)
+            lytMain.addWidget(pnlLabels,                1, 0, 1, 1)
+            lytMain.addWidget(QLabel(""),               2, 0, 1, 1)
+            lytMain.setRowStretch(2, 10)
+        except Exception as ex:
+            print("retinanet configuration init error:", ex)
 
 class Worker:
     def __init__(self, mw):

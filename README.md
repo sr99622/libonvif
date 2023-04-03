@@ -100,6 +100,10 @@ SYNOPSIS
     pip install opencv-python
     pip install numpy
 
+    There are module extensions that run on pytorch
+
+    pip install torch torchvision torchaudio
+
     To run the program:
 
     cd ../onvif-gui

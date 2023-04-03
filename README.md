@@ -100,7 +100,7 @@ SYNOPSIS
     pip install opencv-python
     pip install numpy
 
-    There are module extensions that run on pytorch
+    There are module extensions that run on pytorch:
 
     pip install torch torchvision torchaudio
 

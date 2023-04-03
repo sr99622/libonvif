@@ -21,7 +21,7 @@ import os
 import cv2
 import torch
 import torchvision
-import platform
+import sys
 from pathlib import Path
 import numpy as np
 from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
@@ -93,7 +93,7 @@ class Configure:
 
     def get_auto_ckpt_filename(self):
         filename = None
-        if platform.system() == "win32":
+        if sys.platform == "win32":
             filename = os.environ['HOMEPATH']
         else:
             filename = os.environ['HOME']

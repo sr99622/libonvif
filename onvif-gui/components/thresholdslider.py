@@ -2,12 +2,13 @@ from PyQt6.QtWidgets import QWidget, QSlider, QLabel, QGridLayout
 from PyQt6.QtCore import Qt
 
 class ThresholdSlider(QWidget):
-    def __init__(self, mw, name, title, initValue=25):
+    def __init__(self, mw, name, title, initValue):
         super().__init__()
         self.mw = mw
         self.thresholdKey = "Module/" + name + "/threshold"
         self.sldThreshold = QSlider(Qt.Orientation.Horizontal)
-        self.sldThreshold.setValue(self.mw.settings.value(self.thresholdKey, initValue))
+        value = int(self.mw.settings.value(self.thresholdKey, initValue))
+        self.sldThreshold.setValue(value)
         self.sldThreshold.valueChanged.connect(self.sldThresholdChanged)
         lblThreshold = QLabel(title)
         self.lblValue = QLabel(str(self.sldThreshold.value()))

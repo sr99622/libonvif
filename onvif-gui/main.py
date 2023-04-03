@@ -126,6 +126,7 @@ class MainWindow(QMainWindow):
             spec.loader.exec_module(hook)
             self.configure = hook.Configure(self)
             self.modulePanel.setPanel(self.configure.panel)
+        
         except Exception as ex:
             print("Module configuration failed to load:", ex)
             self.modulePanel.chkEngage.setChecked(False)
@@ -138,6 +139,7 @@ class MainWindow(QMainWindow):
             sys.modules["Worker"] = self.hook
             spec.loader.exec_module(self.hook)
             self.worker = None
+        
         except Exception as ex:
             print("Module worker failed to load:", ex)
             self.modulePanel.chkEngage.setChecked(False)
@@ -262,6 +264,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
+    print("platform", sys.platform)
     if sys.platform == "win32":
         sys.argv += ['-platform', 'windows:darkmode=2']
     app = QApplication(sys.argv)

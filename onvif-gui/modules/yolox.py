@@ -27,7 +27,7 @@ import numpy as np
 from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
 from torchvision.transforms import functional
 import torch.nn as nn
-from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout, QCheckBox
+from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout, QComboBox, QCheckBox
 from PyQt6.QtCore import Qt
 from components import ThresholdSlider, LabelSelector, FileSelector, ComboSelector
 
@@ -109,6 +109,7 @@ class Worker:
 
             ckpt_file = self.mw.configure.txtFilename.text()
             model_name = self.mw.configure.cmbType.currentText()
+            print("model_name", model_name)
 
             sizes = {'yolox_s': [0.33, 0.50], 
                      'yolox_m': [0.67, 0.75],
@@ -130,9 +131,10 @@ class Worker:
 
                 if not cache.is_file():
                     cache.parent.mkdir(parents=True, exist_ok=True)
-                    link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth"
+                    link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
                     torch.hub.download_url_to_file(link, ckpt_file)
 
+            print("ckpt_file", ckpt_file)
             ckpt = torch.load(ckpt_file, map_location="cpu")
             self.model.load_state_dict(ckpt["model"])
 

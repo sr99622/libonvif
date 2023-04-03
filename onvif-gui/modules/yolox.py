@@ -27,7 +27,7 @@ import numpy as np
 from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
 from torchvision.transforms import functional
 import torch.nn as nn
-from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout, QComboBox, QCheckBox
+from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout, QCheckBox
 from PyQt6.QtCore import Qt
 from components import ThresholdSlider, LabelSelector, FileSelector, ComboSelector
 
@@ -47,7 +47,7 @@ class Configure:
         self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
         self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640")
-        self.cmbType = ComboSelector(mw, "Model Type", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s")
+        self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s")
 
         self.sldConfidence = ThresholdSlider(mw, "yolox/confidence", "Confidence", 25)
         self.sldNMS = ThresholdSlider(mw, "yolox/nms", "NMS            ", 45)
@@ -82,6 +82,8 @@ class Configure:
         lytMain.addWidget(QLabel(""),               8, 0, 1, 1)
         lytMain.setRowStretch(8, 10)
 
+        self.ckpt_file = None
+
     def chkFP16Clicked(self, state):
         self.mw.settings.setValue(self.fp16Key, state)
 
@@ -107,7 +109,7 @@ class Worker:
             self.num_classes = 80
             act = 'silu'
 
-            ckpt_file = self.mw.configure.txtFilename.text()
+            self.ckpt_file = self.mw.configure.txtFilename.text()
             model_name = self.mw.configure.cmbType.currentText()
             print("model_name", model_name)
 
@@ -117,6 +119,7 @@ class Worker:
                      'yolox_x': [1.33, 1.25]}
             size = sizes[model_name]
 
+            self.model = None
             self.model = self.get_model(self.num_classes, size[0], size[1], act).cuda()
 
             if self.mw.configure.chkFP16.isChecked():
@@ -126,16 +129,15 @@ class Worker:
             self.model.eval()
 
             if self.mw.configure.chkAuto.isChecked():
-                ckpt_file = self.mw.configure.get_auto_ckpt_filename()
-                cache = Path(ckpt_file)
+                self.ckpt_file = self.mw.configure.get_auto_ckpt_filename()
+                cache = Path(self.ckpt_file)
 
                 if not cache.is_file():
                     cache.parent.mkdir(parents=True, exist_ok=True)
                     link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
-                    torch.hub.download_url_to_file(link, ckpt_file)
+                    torch.hub.download_url_to_file(link, self.ckpt_file)
 
-            print("ckpt_file", ckpt_file)
-            ckpt = torch.load(ckpt_file, map_location="cpu")
+            ckpt = torch.load(self.ckpt_file, map_location="cpu")
             self.model.load_state_dict(ckpt["model"])
 
         except Exception as ex:
@@ -160,6 +162,15 @@ class Worker:
 
             if self.fp16:
                 timg = timg.half()
+
+            tmp = None
+            if self.mw.configure.chkAuto.isChecked():
+                tmp = self.mw.configure.get_auto_ckpt_filename()
+            else:
+                tmp = self.mw.configure.txtFilename.text()
+
+            if self.ckpt_file != tmp:
+                self.__init__(self.mw)
 
             with torch.no_grad():
                 outputs = self.model(timg)

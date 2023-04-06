@@ -110,9 +110,18 @@ installation of the bbox algorithm which depends on configuration so is run last
 conda create --name myenv python=3.9 numpy ffmpeg sdl2_ttf libxml2 opencv scipy lap loguru cython
 conda actviate myenv
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-cd ..\cython_bbox
-python3 setup.py install
 pip install pyqt6
+git clone --recursive https://github.com/sr99622/libonvif.git
+cd libonvif
+cd ../cython_bbox
+python3 setup.py install
+cd ..
+mkdir build
+cd build
+cmake ..
+make
+cd ../onvif-gui
+python3 main.py
 ```
 
 Onvif GUI Program

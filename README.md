@@ -106,6 +106,16 @@ of installation should be followed.  After the dependencies have been installed,
 cython_bbox should be installed from the project source tree.  This is an optimized
 installation of the bbox algorithm which depends on configuration so is run last.
 
+When running these algorithms, bear in mind that they are computationally expensive.
+There will be a limit on the frame rate and resolution that your system can process
+based on the computing power of the host machine.  Limiting the frame rate can be
+done on cameras using the video settings tab.  Frame rate on files can be set by
+using the filter command 'fps=10' where 10 is the desired frame rate.  There is 
+currently a limitation in onvif gui that prevents seeking when the frame rate is 
+set by the filter.  Likewise, resolution can be set on files with the video filter
+using the scale directive, i.e. 'scale=1280x720'.  Consecutive video filters can
+be run using a comma as delimiter between the commands, i.e. 'fps=10,scale=1280x720'.
+
 ```bash
 conda create --name myenv python=3.9 numpy ffmpeg sdl2_ttf libxml2 opencv scipy lap loguru cython
 conda activate myenv

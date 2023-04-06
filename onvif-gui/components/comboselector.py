@@ -20,10 +20,13 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QComboBox, QGridLayout
 
 class ComboSelector(QWidget):
-    def __init__(self, mw, name, list, select):
+    def __init__(self, mw, name, list, select, id=None):
         super().__init__()
         self.mw = mw
-        self.selectKey = "Module/" + name + "/filename"
+        self.selectKey = "Module/"
+        if id is not None:
+            self.selectKey += id + "/"
+        self.selectKey += name + "/filename"
 
         self.cmbBox = QComboBox()
         self.cmbBox.addItems(list)

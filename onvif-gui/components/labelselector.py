@@ -43,7 +43,7 @@ class LabelSelector(QWidget):
         self.enabledKey = "Module/" + name + "/enabled" + str(index)
         self.labelKey = "Module/" + name + "/label" + str(index)
         self.idleColor = QColor("#3B3B3B")
-        self.color = QColor(self.mw.settings.value(self.colorKey, self.idleColor.name()))
+        self.m_color = QColor(self.mw.settings.value(self.colorKey, self.idleColor.name()))
         
         self.cmbLabel = QComboBox()
         self.cmbLabel.addItems(self.labels)
@@ -58,7 +58,7 @@ class LabelSelector(QWidget):
         self.btnColor.setToolTip("Set Box Color")
         self.btnColor.setToolTipDuration(2000)
         self.btnColor.setMaximumWidth(36)
-        self.btnColor.setStyleSheet("QPushButton {background-color: " + self.color.name() + "; color: white;}")
+        self.btnColor.setStyleSheet("QPushButton {background-color: " + self.m_color.name() + "; color: white;}")
         self.btnColor.clicked.connect(self.btnColorClicked)
 
         self.lblCount = QLabel()
@@ -76,11 +76,12 @@ class LabelSelector(QWidget):
         self.setEnabled(self.chkBox.isChecked())
 
     def btnColorClicked(self):
-        color = QColorDialog.getColor(self.color)
+        color = QColorDialog.getColor(self.m_color)
         if color.isValid():
-            self.color = color
-            self.btnColor.setStyleSheet("QPushButton {background-color: " + self.color.name() + "; color: white;}")
-            self.mw.settings.setValue(self.colorKey, self.color.name())
+            self.m_color = color
+            self.btnColor.setStyleSheet("QPushButton {background-color: " + self.m_color.name() + "; color: white;}")
+            self.mw.settings.setValue(self.colorKey, self.m_color.name())
+            print("label selector color", color.red(), color.green(), color.blue(), color.name())
 
     def chkBoxClicked(self, state):
         self.setEnabled(state)
@@ -95,6 +96,15 @@ class LabelSelector(QWidget):
         self.cmbLabel.setEnabled(enabled)
         self.btnColor.setEnabled(enabled)
         if enabled:
-            self.btnColor.setStyleSheet("QPushButton {background-color: " + self.color.name() + "; color: white;}")
+            self.btnColor.setStyleSheet("QPushButton {background-color: " + self.m_color.name() + "; color: white;}")
         else:
             self.btnColor.setStyleSheet("QPushButton {background-color: " + self.idleColor.name() + "; color: white;}")
+
+    def setCount(self, count):
+        self.lblCount.setText(str(count))
+
+    def label(self):
+        return self.cmbLabel.currentIndex()
+    
+    def color(self):
+        return [self.m_color.red(), self.m_color.green(), self.m_color.blue()]

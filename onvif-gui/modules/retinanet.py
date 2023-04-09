@@ -104,7 +104,7 @@ class Worker:
                     lbl.setCount(lbl_boxes.shape[0])
 
                     for box in lbl_boxes:
-                        cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), (r, g, b), 1)
+                        cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), (r, g, b), 2)
 
         except:
             logger.exception("retinanet worker call error")

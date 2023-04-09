@@ -109,7 +109,7 @@ cython_bbox should be installed from the project source tree.  This is an optimi
 installation of the bbox algorithm which depends on configuration so is run last.
 
 ```bash
-conda create --name myenv python=3.9 numpy ffmpeg sdl2_ttf libxml2 opencv scipy lap loguru cython
+conda create --name myenv -c conda-forge python=3.9 numpy ffmpeg sdl2_ttf libxml2 opencv scipy lap loguru cython
 conda activate myenv
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm

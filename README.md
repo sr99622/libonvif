@@ -112,7 +112,7 @@ installation of the bbox algorithm which depends on configuration so is run last
 conda create --name myenv -c conda-forge python=3.9 numpy ffmpeg sdl2_ttf libxml2 opencv scipy lap loguru cython
 conda activate myenv
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm
+pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm omegaconf
 git clone --recursive https://github.com/sr99622/libonvif.git
 cd libonvif
 cd ../cython_bbox

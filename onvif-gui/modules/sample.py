@@ -19,48 +19,62 @@
 
 import numpy as np
 import cv2
-import os
-import sys
+from loguru import logger
 from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox
 
-class Configure:
+MODULE_NAME = "sample"
+
+class Configure(QWidget):
     def __init__(self, mw):
-        self.mw = mw
-        self.showBorderKey = "Module/sample/showBorder"
-        self.panel = QWidget()
-        self.chkShowBorder = QCheckBox("Show Border")
-        self.chkShowBorder.setChecked(int(self.mw.settings.value(self.showBorderKey, 0)))
-        self.chkShowBorder.stateChanged.connect(self.chkShowBorderClicked)
-        lytMain = QGridLayout(self.panel)
-        lytMain.addWidget(self.chkShowBorder, 0, 0, 1, 1)
+        try:
+            super().__init__()
+            self.mw = mw
+            self.name = MODULE_NAME
+            self.showBorderKey = "Module/" + MODULE_NAME + "/showBorder"
+            self.chkShowBorder = QCheckBox("Show Border")
+            self.chkShowBorder.setChecked(int(self.mw.settings.value(self.showBorderKey, 0)))
+            self.chkShowBorder.stateChanged.connect(self.chkShowBorderClicked)
+            lytMain = QGridLayout(self)
+            lytMain.addWidget(self.chkShowBorder, 0, 0, 1, 1)
+        except:
+            logger.exception("sample configuration failed to load")
 
     def chkShowBorderClicked(self, state):
         self.mw.settings.setValue(self.showBorderKey, state)
 
 class Worker:
     def __init__(self, mw):
-        self.mw = mw
+        try:
+            self.mw = mw
+        except:
+            logger.exception("sample worker failed to load")
 
     def __call__(self, F):
-        img = np.array(F, copy = False)
-        milliseconds = F.m_rts
-        seconds, milliseconds = divmod(milliseconds, 1000)
-        minutes, seconds = divmod(seconds, 60)
-        timestamp = f'{int(minutes):02d}:{int(seconds):02d}.{int(milliseconds/100):01d}'
+        try:
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
+            img = np.array(F, copy = False)
+            milliseconds = F.m_rts
+            seconds, milliseconds = divmod(milliseconds, 1000)
+            minutes, seconds = divmod(seconds, 60)
+            timestamp = f'{int(minutes):02d}:{int(seconds):02d}.{int(milliseconds/100):01d}'
 
-        imgWidth = img.shape[1]
-        imgHeight = img.shape[0]
+            imgWidth = img.shape[1]
+            imgHeight = img.shape[0]
 
-        if self.mw.configure.chkShowBorder.isChecked():
-            cv2.rectangle(img, (0, 0), (imgWidth, imgHeight), (0, 255, 0), 20)
+            if self.mw.configure.chkShowBorder.isChecked():
+                cv2.rectangle(img, (0, 0), (imgWidth, imgHeight), (0, 255, 0), 20)
 
-        textSize, _ = cv2.getTextSize(timestamp, cv2.FONT_HERSHEY_PLAIN, 12, 12)
-        textWidth, textHeight = textSize
-        textX = max((imgWidth / 2) - (textWidth / 2), 0)
-        textY = max((imgHeight / 2) + (textHeight / 2), 0)
+            textSize, _ = cv2.getTextSize(timestamp, cv2.FONT_HERSHEY_PLAIN, 12, 12)
+            textWidth, textHeight = textSize
+            textX = max((imgWidth / 2) - (textWidth / 2), 0)
+            textY = max((imgHeight / 2) + (textHeight / 2), 0)
 
-        color = (255, 255, 255)
-        if self.mw.player.isRecording():
-            color = (255, 0, 0)
+            color = (255, 255, 255)
+            if self.mw.player.isRecording():
+                color = (255, 0, 0)
 
-        cv2.putText(img, timestamp, (int(textX), int(textY)), cv2.FONT_HERSHEY_PLAIN, 12, color, 12)
+            cv2.putText(img, timestamp, (int(textX), int(textY)), cv2.FONT_HERSHEY_PLAIN, 12, color, 12)
+        except:
+            logger.exception("sample worker call error")

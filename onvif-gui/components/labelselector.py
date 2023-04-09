@@ -108,3 +108,6 @@ class LabelSelector(QWidget):
     
     def color(self):
         return [self.m_color.red(), self.m_color.green(), self.m_color.blue()]
+    
+    def isChecked(self):
+        return self.chkBox.isChecked()

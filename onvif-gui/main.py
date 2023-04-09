@@ -30,6 +30,7 @@ from filepanel import FilePanel
 from settingspanel import SettingsPanel
 from modulepanel import ModulePanel
 from glwidget import GLWidget
+from loguru import logger
 
 sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
@@ -119,30 +120,19 @@ class MainWindow(QMainWindow):
             self.loadConfigure(workerName)
 
     def loadConfigure(self, workerName):
-        try :
-            spec = importlib.util.spec_from_file_location("Configure", "modules/" + workerName)
-            hook = importlib.util.module_from_spec(spec)
-            sys.modules["Configure"] = hook
-            spec.loader.exec_module(hook)
-            self.configure = hook.Configure(self)
-            self.modulePanel.setPanel(self.configure.panel)
-        
-        except Exception as ex:
-            print("Module configuration failed to load:", ex)
-            self.modulePanel.chkEngage.setChecked(False)
-
+        spec = importlib.util.spec_from_file_location("Configure", "modules/" + workerName)
+        hook = importlib.util.module_from_spec(spec)
+        sys.modules["Configure"] = hook
+        spec.loader.exec_module(hook)
+        self.configure = hook.Configure(self)
+        self.modulePanel.setPanel(self.configure)
 
     def loadWorker(self, workerName):
-        try:
-            spec = importlib.util.spec_from_file_location("Worker", "modules/" + workerName)
-            self.hook = importlib.util.module_from_spec(spec)
-            sys.modules["Worker"] = self.hook
-            spec.loader.exec_module(self.hook)
-            self.worker = None
-        
-        except Exception as ex:
-            print("Module worker failed to load:", ex)
-            self.modulePanel.chkEngage.setChecked(False)
+        spec = importlib.util.spec_from_file_location("Worker", "modules/" + workerName)
+        self.hook = importlib.util.module_from_spec(spec)
+        sys.modules["Worker"] = self.hook
+        spec.loader.exec_module(self.hook)
+        self.worker = None
 
     def pythonCallback(self, F):
         if self.modulePanel.chkEngage.isChecked():
@@ -179,6 +169,8 @@ class MainWindow(QMainWindow):
                 self.player.video_filter = video_filter
             else:
                 self.player.video_filter = "null"
+        if "fps=" in self.player.video_filter:
+            self.filePanel.progress.setEnabled(False)
 
         if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
             self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)

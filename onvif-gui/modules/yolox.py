@@ -4,7 +4,6 @@ import os
 import sys
 import numpy as np
 from pathlib import Path
-from sys import platform
 from loguru import logger
 from torchvision.transforms import functional
 import torch.nn as nn
@@ -17,61 +16,66 @@ from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox
 from PyQt6.QtCore import Qt
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
+MODULE_NAME = "yolox"
 
-class Configure:
+class Configure(QWidget):
     def __init__(self, mw):
-        print("yolox Configure.__init__")
-        self.mw = mw
-        self.panel = QWidget()
-        self.autoKey = "Module/yolox/autoDownload"
-        self.fp16Key = "Module/yolox/fp16"
-        self.trackKey = "Module/yolox/track"
+        try:
+            super().__init__()
+            self.mw = mw
+            self.name = MODULE_NAME
+            self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
+            self.fp16Key = "Module/" + MODULE_NAME + "/fp16"
+            self.trackKey = "Module/" + MODULE_NAME + "/track"
 
-        self.chkAuto = QCheckBox("Automatically download model")
-        self.chkAuto.setChecked(int(self.mw.settings.value(self.autoKey, 1)))
-        self.chkAuto.stateChanged.connect(self.chkAutoClicked)
+            self.chkAuto = QCheckBox("Automatically download model")
+            self.chkAuto.setChecked(int(self.mw.settings.value(self.autoKey, 1)))
+            self.chkAuto.stateChanged.connect(self.chkAutoClicked)
 
-        self.txtFilename = FileSelector(mw, "yolox")
-        self.txtFilename.setEnabled(not self.chkAuto.isChecked())
+            self.txtFilename = FileSelector(mw, MODULE_NAME)
+            self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-        self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", "yolox")
-        self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", "yolox")
+            self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
+            self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
 
-        self.chkFP16 = QCheckBox("Use half precision math")
-        self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
-        self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
+            self.chkFP16 = QCheckBox("Use half precision math")
+            self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
+            self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
 
-        self.chkTrack = QCheckBox("Track Objects")
-        self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 1)))
-        self.chkTrack.stateChanged.connect(self.chkTrackClicked)
+            self.chkTrack = QCheckBox("Track Objects")
+            self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 1)))
+            self.chkTrack.stateChanged.connect(self.chkTrackClicked)
 
-        self.sldConfThre = ThresholdSlider(mw, "yolox/confidence", "Confidence", 25)
-        self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
+            self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
+            self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
-        number_of_labels = 5
-        self.labels = []
-        for i in range(number_of_labels):
-            self.labels.append(LabelSelector(mw, "yolox", i+1))
-        pnlLabels = QWidget()
-        lytLabels = QGridLayout(pnlLabels)
-        lblPanel = QLabel("Select classes to be indentified")
-        lblPanel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lytLabels.addWidget(lblPanel,        0, 0, 1, 1)
-        for i in range(number_of_labels):
-            lytLabels.addWidget(self.labels[i], i+1, 0, 1, 1)
-        lytLabels.setContentsMargins(0, 0, 0, 0)
+            number_of_labels = 5
+            self.labels = []
+            for i in range(number_of_labels):
+                self.labels.append(LabelSelector(mw, MODULE_NAME, i+1))
+            pnlLabels = QWidget()
+            lytLabels = QGridLayout(pnlLabels)
+            lblPanel = QLabel("Select classes to be identified")
+            lblPanel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lytLabels.addWidget(lblPanel,        0, 0, 1, 1)
+            for i in range(number_of_labels):
+                lytLabels.addWidget(self.labels[i], i+1, 0, 1, 1)
+            lytLabels.setContentsMargins(0, 0, 0, 0)
 
-        lytMain = QGridLayout(self.panel)
-        lytMain.addWidget(self.chkAuto,      0, 0, 1, 1)
-        lytMain.addWidget(self.txtFilename,  1, 0, 1, 1)
-        lytMain.addWidget(self.cmbRes,       2, 0, 1, 1)
-        lytMain.addWidget(self.cmbType,      3, 0, 1, 1)
-        lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
-        lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
-        lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
-        lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
-        lytMain.addWidget(QLabel(),          8, 0, 1, 1)
-        lytMain.setRowStretch(8, 10)
+            lytMain = QGridLayout(self)
+            lytMain.addWidget(self.chkAuto,      0, 0, 1, 1)
+            lytMain.addWidget(self.txtFilename,  1, 0, 1, 1)
+            lytMain.addWidget(self.cmbRes,       2, 0, 1, 1)
+            lytMain.addWidget(self.cmbType,      3, 0, 1, 1)
+            lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
+            lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
+            lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
+            lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
+            lytMain.addWidget(QLabel(),          8, 0, 1, 1)
+            lytMain.setRowStretch(8, 10)
+
+        except:
+            logger.exception("yolox configure failed to load")
 
     def chkAutoClicked(self, state):
         self.mw.settings.setValue(self.autoKey, state)
@@ -86,10 +90,8 @@ class Configure:
 
 class Worker:
     def __init__(self, mw):
-        try :
-            print("yolox.__init__")
+        try:
             self.mw = mw
-
             device_name = "cpu"
             if torch.cuda.is_available():
                 device_name = "cuda"
@@ -120,6 +122,7 @@ class Worker:
 
                 if not cache.is_file():
                     cache.parent.mkdir(parents=True, exist_ok=True)
+                    model_name = self.mw.configure.cmbType.currentText()
                     link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
                     torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
@@ -132,11 +135,11 @@ class Worker:
 
             self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
 
-        except Exception as err:
-            print("yolox initialization failure", err)
+        except:
+            logger.exception("yolox initialization failure")
 
     def __call__(self, F):
-        try :
+        try:
             img = np.array(F, copy=False)
             
             res = int(self.mw.configure.cmbRes.currentText())
@@ -180,6 +183,9 @@ class Worker:
             with torch.no_grad():
                 outputs = self.model(timg)
                 outputs = postprocess(outputs, self.num_classes, confthre, nmsthre)
+
+            if self.mw.configure.name != MODULE_NAME:
+                return
             
             if outputs[0] is not None:
                 output = outputs[0].cpu()
@@ -192,10 +198,8 @@ class Worker:
                 else:
                     self.draw_plain_boxes(img, output, ratio)
 
-            return img
-
-        except Exception as err:
-            print("yolox runtime error", err)
+        except:
+            logger.exception("yolox runtime error")
 
     def draw_plain_boxes(self, img, output, ratio):
         boxes = output[:, 0:4] / ratio

@@ -11,10 +11,12 @@ libonvif is a multi platform library implementing the client side of the ONVIF
 specification for communicating with IP enabled compatible cameras.  It will
 compile on Linux and Windows.
 
-It has comprehensive GUI sample program written in Python that includes the
+It has a comprehensive GUI sample program written in Python that includes the
 discovery functionality as well as controls for adjusting camera parameters and
 PTZ operations.  The GUI program has a record function that will write the
-camera stream to file and includes some basic media file management tools. 
+camera stream to file and includes some basic media file management tools. The
+GUI also has a module plug in function that allows developers to access the 
+video stream in numpy format for python processing.
 
 A utility program is included with libonvif that can be used as a maintenance
 tool and will discover compatible cameras on the local network and may be used 
@@ -28,7 +30,7 @@ To Install From Source
 
 BUILD ON LINUX
 
-The program has dependency on FFMPEG, libxml2, libsdl2 and python.  In order
+The program has dependencies on FFMPEG, libxml2, libsdl2 and python.  In order
 to run the onvif-gui program, you will need pip to install numpy, pyqt6 and opencv.
 If you are running an NVIDIA graphics card, you will need the proprietary NVIDIA
 drivers, the generic drivers are not stable with the GLWidget.  Note that when
@@ -110,7 +112,7 @@ installation of the bbox algorithm which depends on configuration so is run last
 conda create --name myenv python=3.9 numpy ffmpeg sdl2_ttf libxml2 opencv scipy lap loguru cython
 conda activate myenv
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-pip install pyqt6
+pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm
 git clone --recursive https://github.com/sr99622/libonvif.git
 cd libonvif
 cd ../cython_bbox

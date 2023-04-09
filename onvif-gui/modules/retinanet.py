@@ -21,6 +21,7 @@ import cv2
 import torchvision
 import torch
 import numpy as np
+from loguru import logger
 import torchvision.transforms as transforms
 from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel
 from PyQt6.QtCore import Qt
@@ -31,19 +32,21 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-class Configure:
+MODULE_NAME = "retinanet"
+
+class Configure(QWidget):
     def __init__(self, mw):
         try:
-            print("Retinanet Configure.__init__")
+            super().__init__()
             self.mw = mw
-            self.panel = QWidget()
+            self.name = MODULE_NAME
 
-            self.sldThreshold = ThresholdSlider(mw, "retinanet", "Confidence", 35)
+            self.sldThreshold = ThresholdSlider(mw, MODULE_NAME, "Confidence", 35)
             
             number_of_labels = 5
             self.labels = []
             for i in range(number_of_labels):
-                self.labels.append(LabelSelector(mw, "retinanet", i+1))
+                self.labels.append(LabelSelector(mw, MODULE_NAME, i+1))
 
             pnlLabels = QWidget()
             lytLabels = QGridLayout(pnlLabels)
@@ -54,13 +57,13 @@ class Configure:
                 lytLabels.addWidget(self.labels[i], i+1, 0, 1, 1)
             lytLabels.setContentsMargins(0, 0, 0, 0)
 
-            lytMain = QGridLayout(self.panel)
+            lytMain = QGridLayout(self)
             lytMain.addWidget(self.sldThreshold,        0, 0, 1, 1)
             lytMain.addWidget(pnlLabels,                1, 0, 1, 1)
             lytMain.addWidget(QLabel(""),               2, 0, 1, 1)
             lytMain.setRowStretch(2, 10)
-        except Exception as ex:
-            print("retinanet configuration init error:", ex)
+        except:
+            logger.exception("retinanet configuration load error")
 
 class Worker:
     def __init__(self, mw):
@@ -69,8 +72,8 @@ class Worker:
             self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT)            
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.model.eval().to(self.device)
-        except Exception as ex:
-            print("retinanet worker init exception:", ex)
+        except:
+            logger.exception("retinanet worker load error")
 
     def __call__(self, F):
         try:
@@ -81,25 +84,28 @@ class Worker:
             with torch.no_grad():
                 outputs = self.model(tensor)
 
+            if self.mw.configure.name != MODULE_NAME:
+                return
+
+            threshold = self.mw.configure.sldThreshold.value()
             scores = outputs[0]['scores'].detach().cpu().numpy()
             labels = outputs[0]['labels'].detach().cpu().numpy()
             boxes = outputs[0]['boxes'].detach().cpu().numpy()
 
-            threshold = self.mw.configure.sldThreshold.value()
             labels = labels[np.array(scores) >= threshold]
             boxes = boxes[np.array(scores) >= threshold].astype(np.int32)
             for lbl in self.mw.configure.labels:
                 if lbl.chkBox.isChecked():
                     label = lbl.cmbLabel.currentIndex() + 1
                     lbl_boxes = boxes[np.array(labels) == label]
-                    r = lbl.color.red()
-                    g = lbl.color.green()
-                    b = lbl.color.blue()
-                    lbl.lblCount.setText(str(lbl_boxes.shape[0]))
+                    r = lbl.color()[0]
+                    g = lbl.color()[1]
+                    b = lbl.color()[2]
+                    lbl.setCount(lbl_boxes.shape[0])
 
                     for box in lbl_boxes:
                         cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), (r, g, b), 1)
 
-        except Exception as ex:
-            print("retinanet worker call exception:", ex)
+        except:
+            logger.exception("retinanet worker call error")
 

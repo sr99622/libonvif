@@ -8,7 +8,6 @@ from loguru import logger
 from torchvision.transforms import functional
 import torch.nn as nn
 
-from yolox.tracker.byte_tracker import BYTETracker
 from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
 from yolox.utils import postprocess
 from components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
@@ -43,8 +42,12 @@ class Configure(QWidget):
             self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
 
             self.chkTrack = QCheckBox("Track Objects")
-            self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 1)))
-            self.chkTrack.stateChanged.connect(self.chkTrackClicked)
+            if sys.platform == "win32":
+                self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
+                self.chkTrack.stateChanged.connect(self.chkTrackClicked)
+            else:
+                self.chkTrack.setChecked(False)
+                self.chkTrack.setEnabled(False)
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
             self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
@@ -100,6 +103,7 @@ class Worker:
             self.num_classes = 80
 
             self.fp16 = self.mw.configure.chkFP16.isChecked()
+            self.track = self.mw.configure.chkTrack.isChecked()
 
             track_thresh = 0.5
             track_buffer = 30
@@ -133,7 +137,9 @@ class Worker:
             if self.fp16:
                 self.model = self.model.half()
 
-            self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
+            if self.track:
+                from yolox.tracker.byte_tracker import BYTETracker
+                self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
 
         except:
             logger.exception("yolox initialization failure")

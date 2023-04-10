@@ -93,13 +93,25 @@ is a minimal example program called sample.py that demonstrates how data is
 trsansferred from the main program to the python module and it's GUI interface
 implementation.
 
-The following instructions will work on windows with anaconda installed.  Due
-to issues with shortcomings with conda, python, cython and numpy on linux 
-success is unlikely.
-
 There is included with onvif-gui a full implementation of the YOLOX algorithm
 along with an associated tracking algorithm known as ByteTrack.  These algorithms 
-are implemented using pytorch, which requires some specific configuration.
+are implemented using pytorch, which requires some specific configuration. Note
+that ByteTrack currently is available only on Windows.
+
+BUILD ON LINUX WITH MODULES ENABLED
+
+Use the standard install instructions to install the onvif and avio libraries.
+Install pytorch and associated tools using pip. Follow the instructions above 
+for install on linux, then continue with the instructions below
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm omegaconf opencv-python scipy lap loguru
+cd libonvif/onvif-gui
+python3 main.py
+```
+
+BUILD ON WINDOWS WITH MODULES ENABLED
 
 Conda is recommended for installing the dependencies required for running these
 algorithms.  Note that pytorch has limited compatibility with respect to python
@@ -128,6 +140,8 @@ make
 cd ../onvif-gui
 python main.py
 ```
+
+NOTES ON RUNNING PYTORCH MODULES
 
 When running these algorithms, bear in mind that they are computationally expensive.
 There will be a limit on the frame rate and resolution that your system can process

@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
         self.settings = QSettings("onvif", "gui")
+        #self.settings.clear()
         self.volumeKey = "MainWindow/volume"
         self.muteKey = "MainWindow/mute"
         self.geometryKey = "MainWindow/geometry"

@@ -93,6 +93,10 @@ is a minimal example program called sample.py that demonstrates how data is
 trsansferred from the main program to the python module and it's GUI interface
 implementation.
 
+The following instructions will work on windows with anaconda installed.  Due
+to issues with shortcomings with conda, python, cython and numpy on linux 
+success is unlikely.
+
 There is included with onvif-gui a full implementation of the YOLOX algorithm
 along with an associated tracking algorithm known as ByteTrack.  These algorithms 
 are implemented using pytorch, which requires some specific configuration.
@@ -114,16 +118,15 @@ conda activate myenv
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm omegaconf
 git clone --recursive https://github.com/sr99622/libonvif.git
-cd libonvif
-cd ../cython_bbox
-python3 setup.py install
+cd libonvif/cython_bbox
+python setup.py install
 cd ..
 mkdir build
 cd build
 cmake ..
 make
 cd ../onvif-gui
-python3 main.py
+python main.py
 ```
 
 When running these algorithms, bear in mind that they are computationally expensive.
@@ -150,9 +153,8 @@ SYNOPSIS
     
     The program requires the following modules:
 
-    pip install pyqt6
-    pip install opencv-python
-    pip install numpy
+    pip install pyqt6 opencv-python numpy loguru
+    
 
     To run the program:
 

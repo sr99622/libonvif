@@ -10,7 +10,8 @@ from pathlib import Path
 from detectron2.config import get_cfg
 from detectron2.predictor import Predictor
 from detectron2.tracker import DetectedInstance, SimpleTracker
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel
+from components import ThresholdSlider
 
 # constants
 CONFIDENCE_THRESHOLD = 0.50
@@ -22,8 +23,23 @@ class Configure(QWidget):
             super().__init__()
             self.mw = mw
             self.name = MODULE_NAME
+            self.sldThreshold = ThresholdSlider(mw, MODULE_NAME, "Confidence", 50)
+            lytMain = QGridLayout(self)
+            lytMain.addWidget(self.sldThreshold,   0, 0, 1, 1)
+            lytMain.addWidget(QLabel(""),          1, 0, 1, 1)
+            lytMain.setRowStretch(1, 10)
+
+            self.mw.signals.started.connect(self.disableThresholdSlider)
+            self.mw.signals.stopped.connect(self.enableThresholdSlider)
+
         except:
             logger.exception("keypoints configuration load error")
+
+    def disableThresholdSlider(self):
+        self.sldThreshold.setEnabled(False)
+
+    def enableThresholdSlider(self):
+        self.sldThreshold.setEnabled(True)
 
 class Worker:
     def __init__(self, mw):
@@ -42,7 +58,7 @@ class Worker:
 
                     if not cache.is_file():
                         cache.parent.mkdir(parents=True, exist_ok=True)
-                        torch.hub.download_url_to_file("https://sourceforge.net/projects/avio/files/model_final_a6e10b.pkl/download", ckpt_file)
+                        torch.hub.download_url_to_file("https://dl.fbaipublicfiles.com/detectron2/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl", ckpt_file)
 
             cfg = get_cfg()
             cfg.merge_from_file('./detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml')

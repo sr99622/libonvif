@@ -186,7 +186,7 @@ class MainWindow(QMainWindow):
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
         self.player.errorCallback = lambda s : self.errorCallback(s)
         self.player.infoCallback = lambda s : self.infoCallback(s)
-        self.player.setVolume(self.volume)
+        self.player.setVolume(int(self.volume))
         self.player.setMute(self.mute)
         self.player.keyframe_cache_size = self.settingsPanel.spnCacheSize.value()
         self.player.hw_device_type = self.settingsPanel.getDecoder()

@@ -100,9 +100,11 @@ that ByteTrack currently is available only on Windows.
 
 BUILD ON LINUX WITH MODULES ENABLED
 
+Ubuntu is strongly recommended if using linux.
+
 Use the standard install instructions to install the onvif and avio libraries.
 Install pytorch and associated tools using pip. Follow the instructions above 
-for install on linux, then continue with the instructions below
+for install on linux, then continue with the instructions below.
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117

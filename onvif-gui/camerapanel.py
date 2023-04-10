@@ -112,7 +112,7 @@ class CameraPanel(QWidget):
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
         self.sldVolume = QSlider(Qt.Orientation.Horizontal)
-        self.sldVolume.setValue(self.mw.volume)
+        self.sldVolume.setValue(int(self.mw.volume))
         self.sldVolume.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.sldVolume.valueChanged.connect(self.sldVolumeChanged)
 

@@ -76,7 +76,7 @@ class Worker:
 
                     if not cache.is_file():
                         cache.parent.mkdir(parents=True, exist_ok=True)
-                        torch.hub.download_url_to_file("https://sourceforge.net/projects/avio/files/model_final_f10217.pkl/download", ckpt_file)
+                        torch.hub.download_url_to_file("https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl", ckpt_file)
 
             cfg = get_cfg()
             cfg.merge_from_file('./detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml')

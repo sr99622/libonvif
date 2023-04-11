@@ -53,6 +53,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         QDir.addSearchPath('image', 'resources/')
+        self.style()
         self.program_name = "onvif gui version 2.0.0"
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
@@ -254,6 +255,33 @@ class MainWindow(QMainWindow):
         self.filePanel.control.setBtnRecord()
         self.cameraPanel.setEnabled(True)
 
+    def style(self):
+        #blDefault = "#566170"
+        blDefault = "#5B5B5B"
+        #bmDefault = "#3E4754"
+        bmDefault = "#4B4B4B"
+        #bdDefault = "#283445"
+        bdDefault = "#3B3B3B"
+        flDefault = "#C6D9F2"
+        fmDefault = "#9DADC2"
+        fdDefault = "#808D9E"
+        slDefault = "#FFFFFF"
+        smDefault = "#DDEEFF"
+        sdDefault = "#306294"
+        strStyle = open("./resources/darkstyle.qss", "r").read()
+        strStyle = strStyle.replace("background_light",  blDefault)
+        strStyle = strStyle.replace("background_medium", bmDefault)
+        strStyle = strStyle.replace("background_dark",   bdDefault)
+        strStyle = strStyle.replace("foreground_light",  flDefault)
+        strStyle = strStyle.replace("foreground_medium", fmDefault)
+        strStyle = strStyle.replace("foreground_dark",   fdDefault)
+        strStyle = strStyle.replace("selection_light",   slDefault)
+        strStyle = strStyle.replace("selection_medium",  smDefault)
+        strStyle = strStyle.replace("selection_dark",    sdDefault)
+        #print(strStyle)
+        self.setStyleSheet(strStyle)
+
+
 
 if __name__ == '__main__':
     os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
@@ -262,6 +290,8 @@ if __name__ == '__main__':
         sys.argv += ['-platform', 'windows:darkmode=2']
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
+    #app.setStyleSheet("QWidget { background-color: #3b3b3b }")
     window = MainWindow()
+    window.style()
     window.show()
     app.exec()

@@ -80,14 +80,16 @@ class FileControlPanel(QWidget):
 
         self.btnPlay = QPushButton()
         self.btnPlay.setIcon(self.icnPlay)
-        self.btnPlay.setToolTip("Play")
+        #self.btnPlay.setToolTip("Play")
+        self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
         self.btnPlay.setToolTipDuration(2000)
         self.btnPlay.setMinimumWidth(self.icnPlay.availableSizes()[0].width() * 2)
         self.btnPlay.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnPlay.clicked.connect(self.btnPlayClicked)
         
         self.btnStop = QPushButton()
-        self.btnStop.setIcon(self.icnStop)
+        #self.btnStop.setIcon(self.icnStop)
+        self.btnStop.setStyleSheet(self.getButtonStyle("stop"))
         self.btnStop.setToolTip("Stop")
         self.btnStop.setToolTipDuration(2000)
         self.btnStop.setMinimumWidth(self.icnStop.availableSizes()[0].width() * 2)
@@ -96,7 +98,8 @@ class FileControlPanel(QWidget):
 
         self.btnRecord = QPushButton()
         self.btnRecord.setIcon(self.icnRecord)
-        self.btnRecord.setToolTip("Record")
+        #self.btnRecord.setToolTip("Record")
+        self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
         self.btnRecord.setToolTipDuration(2000)
         self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 2)
         self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -107,9 +110,9 @@ class FileControlPanel(QWidget):
         
         self.btnMute = QPushButton()
         if self.mw.mute:
-            self.btnMute.setIcon(self.icnMute)
+            self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
         else:
-            self.btnMute.setIcon(self.icnAudio)
+            self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
         self.btnMute.setToolTip("Mute")
         self.btnMute.setToolTipDuration(2000)
         self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 2)
@@ -133,9 +136,9 @@ class FileControlPanel(QWidget):
         if self.mw.playing:
             self.mw.player.togglePaused()
             if self.mw.player.isPaused():
-                self.btnPlay.setIcon(self.icnPlay)
+                self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
             else:
-                self.btnPlay.setIcon(self.icnPause)
+                self.btnPlay.setStyleSheet(self.getButtonStyle("pause"))
         else:
             index = self.mw.filePanel.tree.currentIndex()
             if index.isValid():
@@ -144,17 +147,24 @@ class FileControlPanel(QWidget):
 
     def btnStopClicked(self):
         self.mw.stopMedia()
-        self.btnPlay.setIcon(self.icnPlay)
+        self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
         self.mw.filePanel.tree.setFocus()
 
     def setBtnRecord(self):
         if self.mw.player is not None:
             if self.mw.player.isRecording():
-                self.btnRecord.setIcon(self.icnRecording)
+                self.btnRecord.setStyleSheet(self.getButtonStyle("recording"))
             else:
-                self.btnRecord.setIcon(self.icnRecord)
+                self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
         else:
-            self.btnRecord.setIcon(self.icnRecord)
+            self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
+
+    def setBtnPlay(self):
+        if self.mw.playing:
+            if self.mw.player.isPaused():
+                self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
+            else:
+                self.btnPlay.setStyleSheet(self.getButtonStyle("pause"))
 
     def btnRecordClicked(self):
         filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
@@ -167,9 +177,9 @@ class FileControlPanel(QWidget):
 
     def setBtnMute(self):
         if self.mw.mute:
-            self.btnMute.setIcon(self.icnMute)
+            self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
         else:
-            self.btnMute.setIcon(self.icnAudio)
+            self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
 
     def btnMuteClicked(self):
         self.mw.toggleMute()
@@ -179,6 +189,11 @@ class FileControlPanel(QWidget):
     def sldVolumeChanged(self, value):
         self.mw.cameraPanel.sldVolume.setValue(value)
         self.mw.setVolume(value)
+
+    def getButtonStyle(self, name):
+        strStyle = "QPushButton { image : url(image:%1.png); } QPushButton:hover { image : url(image:%1_hi.png); } QPushButton:pressed { image : url(image:%1_lo.png); }"
+        strStyle = strStyle.replace("%1", name)
+        return strStyle
 
 class FilePanel(QWidget):
     def __init__(self, mw):

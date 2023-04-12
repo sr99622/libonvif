@@ -788,6 +788,7 @@ Citing Detectron2
 
 If you use Detectron2 in your research or wish to refer to the baseline results published in the Model Zoo, please use the following BibTeX entry.
 
+```bash
 @misc{wu2019detectron2,
   author =       {Yuxin Wu and Alexander Kirillov and Francisco Massa and
                   Wan-Yen Lo and Ross Girshick},
@@ -795,3 +796,4 @@ If you use Detectron2 in your research or wish to refer to the baseline results 
   howpublished = {\url{https://github.com/facebookresearch/detectron2}},
   year =         {2019}
 }
+```

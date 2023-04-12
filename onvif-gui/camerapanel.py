@@ -40,6 +40,8 @@ sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
 import avio
 
+ICON_SIZE = 26
+
 class CameraPanelSignals(QObject):
     fill = pyqtSignal(onvif.Data)
     login = pyqtSignal(onvif.Data)
@@ -65,14 +67,6 @@ class CameraPanel(QWidget):
         self.mw = mw
         self.dlgLogin = LoginDialog(self)
         self.settings = QSettings("onvif", "alias")
-        self.icnDiscover = QIcon('image:discover.png')
-        self.icnApply = QIcon("image:apply.png")
-        self.icnMute = QIcon('image:mute.png')
-        self.icnAudio = QIcon('image:audio.png')
-        self.icnRecord = QIcon("image:record.png")
-        self.icnRecording = QIcon("image:recording.png")
-        self.icnStop = QIcon("image:stop.png")
-        self.icnPlay = QIcon("image:play.png")
 
         self.boss = onvif.Manager()
         self.boss.discovered = lambda : self.discovered()
@@ -85,31 +79,27 @@ class CameraPanel(QWidget):
         self.timer.timeout.connect(self.applyTimeout)
 
         self.btnStop = QPushButton()
-        self.btnStop.setIcon(self.icnStop)
-        self.btnStop.setToolTip("Stop")
         self.btnStop.setToolTipDuration(2000)
-        self.btnStop.setMinimumWidth(int(self.icnStop.availableSizes()[0].width() * 1.5))
+        self.btnStop.setMinimumWidth(int(ICON_SIZE * 1.5))
         self.btnStop.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnStop.clicked.connect(self.btnStopClicked)
+        self.setBtnStop()
 
         self.btnRecord = QPushButton()
-        self.btnRecord.setIcon(self.icnRecord)
         self.btnRecord.setToolTip("Record")
         self.btnRecord.setToolTipDuration(2000)
-        self.btnRecord.setMinimumWidth(int(self.icnRecord.availableSizes()[0].width() * 1.5))
+        self.btnRecord.setMinimumWidth(int(ICON_SIZE * 1.5))
         self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRecord.clicked.connect(self.btnRecordClicked)
+        self.setBtnRecord()
 
         self.btnMute = QPushButton()
-        if self.mw.mute:
-            self.btnMute.setIcon(self.icnMute)
-        else:
-            self.btnMute.setIcon(self.icnAudio)
         self.btnMute.setToolTip("Mute")
         self.btnMute.setToolTipDuration(2000)
-        self.btnMute.setMinimumWidth(int(self.icnMute.availableSizes()[0].width() * 1.5))
+        self.btnMute.setMinimumWidth(int(ICON_SIZE * 1.5))
         self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnMute.clicked.connect(self.btnMuteClicked)
+        self.setBtnMute()
 
         self.sldVolume = QSlider(Qt.Orientation.Horizontal)
         self.sldVolume.setValue(int(self.mw.volume))
@@ -117,18 +107,18 @@ class CameraPanel(QWidget):
         self.sldVolume.valueChanged.connect(self.sldVolumeChanged)
 
         self.btnDiscover = QPushButton()
-        self.btnDiscover.setIcon(self.icnDiscover)
+        self.btnDiscover.setStyleSheet(self.getButtonStyle("discover"))
         self.btnDiscover.setToolTip("Discover")
         self.btnDiscover.setToolTipDuration(2000)
-        self.btnDiscover.setMinimumWidth(int(self.icnDiscover.availableSizes()[0].width() * 1.5))
+        self.btnDiscover.setMinimumWidth(int(ICON_SIZE * 1.5))
         self.btnDiscover.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
 
         self.btnApply = QPushButton()
-        self.btnApply.setIcon(self.icnApply)
+        self.btnApply.setStyleSheet(self.getButtonStyle("apply"))
         self.btnApply.setToolTip("Apply")
         self.btnApply.setToolTipDuration(2000)
-        self.btnApply.setMinimumWidth(int(self.icnApply.availableSizes()[0].width() * 1.5))
+        self.btnApply.setMinimumWidth(int(ICON_SIZE * 1.5))
         self.btnApply.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnApply.clicked.connect(self.btnApplyClicked)
         self.btnApply.setEnabled(False)
@@ -293,9 +283,9 @@ class CameraPanel(QWidget):
 
     def setBtnMute(self):
         if self.mw.mute:
-            self.btnMute.setIcon(self.icnMute)
+            self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
         else:
-            self.btnMute.setIcon(self.icnAudio)
+            self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
        
     def btnMuteClicked(self):
         self.mw.toggleMute()
@@ -314,18 +304,19 @@ class CameraPanel(QWidget):
     def setBtnRecord(self):
         if self.mw.player is not None:
             if self.mw.player.isRecording():
-                self.btnRecord.setIcon(self.icnRecording)
+                self.btnRecord.setStyleSheet(self.getButtonStyle("recording"))
             else:
-                self.btnRecord.setIcon(self.icnRecord)
+                self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
         else:
-            self.btnRecord.setIcon(self.icnRecord)
+            self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
 
     def setBtnStop(self):
-        if self.lstCamera.count() > 0:
-            if self.mw.playing:
-                self.btnStop.setIcon(self.icnStop)
-            else:
-                self.btnStop.setIcon(self.icnPlay)
+        if self.mw.playing:
+            self.btnStop.setStyleSheet(self.getButtonStyle("stop"))
+            self.btnStop.setToolTip("Stop")
+        else:
+            self.btnStop.setStyleSheet(self.getButtonStyle("play"))
+            self.btnStop.setToolTip("Play")
 
     def btnStopClicked(self):
         if self.mw.playing:
@@ -353,3 +344,11 @@ class CameraPanel(QWidget):
             self.setTabsEnabled(False)
         self.setEnabled(True)
         self.btnDiscover.setEnabled(True)
+
+    def getButtonStyle(self, name):
+        strStyle = "QPushButton { image : url(image:%1.png); } \
+                    QPushButton:hover { image : url(image:%1_hi.png); } \
+                    QPushButton:pressed { image : url(image:%1_lo.png); } \
+                    QPushButton:disabled { image : url(image:%1_lo.png); }"
+        strStyle = strStyle.replace("%1", name)
+        return strStyle

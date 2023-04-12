@@ -352,6 +352,17 @@ QComboBox::down-arrow:on {
     image : url(image:small_arrow_up.png);
 }
 
+QComboBox::item:hover {
+    border : 1px solid foreground_dark;
+    background-color : background_medium;
+    color : selection_medium;
+}
+
+QComboBox::item:selected {
+    background-color : background_light;
+    color : selection_medium;
+}
+
 QScrollBar:vertical {
     border : 1px solid foreground_dark;
     border-right : 0;

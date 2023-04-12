@@ -30,6 +30,8 @@ sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
 import avio
 
+ICON_SIZE = 26
+
 class TreeView(QTreeView):
     def __init__(self, mw):
         super().__init__()
@@ -70,52 +72,38 @@ class FileControlPanel(QWidget):
     def __init__(self, mw):
         super().__init__()
         self.mw = mw
-        self.icnPlay = QIcon('image:play.png')
-        self.icnPause = QIcon('image:pause.png')
-        self.icnStop = QIcon('image:stop.png')
-        self.icnMute = QIcon('image:mute.png')
-        self.icnAudio = QIcon('image:audio.png')
-        self.icnRecord = QIcon('image:record.png')
-        self.icnRecording = QIcon('image:recording.png')
 
         self.btnPlay = QPushButton()
-        self.btnPlay.setIcon(self.icnPlay)
-        #self.btnPlay.setToolTip("Play")
-        self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
         self.btnPlay.setToolTipDuration(2000)
-        self.btnPlay.setMinimumWidth(self.icnPlay.availableSizes()[0].width() * 2)
+        self.btnPlay.setMinimumWidth(ICON_SIZE * 2)
         self.btnPlay.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnPlay.clicked.connect(self.btnPlayClicked)
+        self.setBtnPlay()
         
         self.btnStop = QPushButton()
-        #self.btnStop.setIcon(self.icnStop)
         self.btnStop.setStyleSheet(self.getButtonStyle("stop"))
         self.btnStop.setToolTip("Stop")
         self.btnStop.setToolTipDuration(2000)
-        self.btnStop.setMinimumWidth(self.icnStop.availableSizes()[0].width() * 2)
+        self.btnStop.setMinimumWidth(ICON_SIZE * 2)
         self.btnStop.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnStop.clicked.connect(self.btnStopClicked)
 
         self.btnRecord = QPushButton()
-        self.btnRecord.setIcon(self.icnRecord)
-        #self.btnRecord.setToolTip("Record")
-        self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
+        self.btnRecord.setToolTip("Record")
         self.btnRecord.setToolTipDuration(2000)
-        self.btnRecord.setMinimumWidth(self.icnRecord.availableSizes()[0].width() * 2)
+        self.btnRecord.setMinimumWidth(ICON_SIZE * 2)
         self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRecord.clicked.connect(self.btnRecordClicked)
+        self.setBtnRecord()
 
         spacer = QLabel()
         spacer.setMinimumWidth(self.btnStop.minimumWidth())
         
         self.btnMute = QPushButton()
-        if self.mw.mute:
-            self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
-        else:
-            self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
+        self.setBtnMute()
         self.btnMute.setToolTip("Mute")
         self.btnMute.setToolTipDuration(2000)
-        self.btnMute.setMinimumWidth(self.icnMute.availableSizes()[0].width() * 2)
+        self.btnMute.setMinimumWidth(ICON_SIZE * 2)
         self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
@@ -135,15 +123,12 @@ class FileControlPanel(QWidget):
     def btnPlayClicked(self):
         if self.mw.playing:
             self.mw.player.togglePaused()
-            if self.mw.player.isPaused():
-                self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
-            else:
-                self.btnPlay.setStyleSheet(self.getButtonStyle("pause"))
         else:
             index = self.mw.filePanel.tree.currentIndex()
             if index.isValid():
                 fileInfo = self.mw.filePanel.model.fileInfo(index)
                 self.mw.playMedia(fileInfo.filePath())
+        self.setBtnPlay()
 
     def btnStopClicked(self):
         self.mw.stopMedia()
@@ -163,8 +148,19 @@ class FileControlPanel(QWidget):
         if self.mw.playing:
             if self.mw.player.isPaused():
                 self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
+                self.btnPlay.setToolTip("Play")
             else:
                 self.btnPlay.setStyleSheet(self.getButtonStyle("pause"))
+                self.btnPlay.setToolTip("Pause")
+        else:
+            self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
+            self.btnPlay.setToolTip("Play")
+
+    def setBtnMute(self):
+        if self.mw.mute:
+            self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
+        else:
+            self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
 
     def btnRecordClicked(self):
         filename = '{0:%Y%m%d%H%M%S.mp4}'.format(datetime.datetime.now())
@@ -174,12 +170,6 @@ class FileControlPanel(QWidget):
             self.mw.player.toggleRecording(filename)
         self.setBtnRecord()
         self.mw.cameraPanel.setBtnRecord()
-
-    def setBtnMute(self):
-        if self.mw.mute:
-            self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
-        else:
-            self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
 
     def btnMuteClicked(self):
         self.mw.toggleMute()
@@ -259,6 +249,7 @@ class FilePanel(QWidget):
                 self.tree.setExpanded(index, self.tree.isExpanded(index))
             else:
                 self.mw.playMedia(self.model.filePath(index))
+                self.control.setBtnPlay()
 
     def headerChanged(self, a, b, c):
         self.mw.settings.setValue(self.headerKey, self.tree.header().saveState())
@@ -271,13 +262,13 @@ class FilePanel(QWidget):
             if index.isValid():
                 fileInfo = self.model.fileInfo(index)
                 self.mw.setWindowTitle(fileInfo.fileName())
-        self.control.btnPlay.setIcon(self.control.icnPause)
+        self.control.setBtnPlay()
 
     def onMediaStopped(self):
         self.progress.updateProgress(0.0)
         self.progress.updateDuration(0)
-        self.control.btnPlay.setIcon(self.control.icnPlay)
         self.control.setBtnRecord()
+        self.control.setBtnPlay()
 
     def onMediaProgress(self, pct):
         if pct >= 0.0 and pct <= 1.0:

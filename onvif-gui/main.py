@@ -50,7 +50,7 @@ class ViewLabel(QLabel):
         return QSize(640, 480)
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, clear_settings=False):
         super().__init__()
         QDir.addSearchPath('image', 'resources/')
         self.style()
@@ -58,7 +58,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
         self.settings = QSettings("onvif", "gui")
-        #self.settings.clear()
+        if clear_settings:
+            self.settings.clear()
         self.volumeKey = "MainWindow/volume"
         self.muteKey = "MainWindow/mute"
         self.geometryKey = "MainWindow/geometry"
@@ -285,13 +286,17 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
-    print("platform", sys.platform)
-    if sys.platform == "win32":
-        sys.argv += ['-platform', 'windows:darkmode=2']
+    #if sys.platform == "win32":
+    #    sys.argv += ['-platform', 'windows:darkmode=2']
+
+    clear_settings = False
+    if len(sys.argv) > 1:
+        if str(sys.argv[1]) == "--clear":
+            clear_settings = True
+
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    #app.setStyleSheet("QWidget { background-color: #3b3b3b }")
-    window = MainWindow()
+    window = MainWindow(clear_settings)
     window.style()
     window.show()
     app.exec()

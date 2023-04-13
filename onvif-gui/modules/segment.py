@@ -48,6 +48,8 @@ class Configure(QWidget):
 
             self.mw.signals.started.connect(self.disableThresholdSlider)
             self.mw.signals.stopped.connect(self.enableThresholdSlider)
+            if self.mw.playing:
+                self.sldThreshold.setEnabled(False)
 
         except:
             logger.exception("instance segmentation configuration load error")

@@ -22,7 +22,7 @@ import datetime
 from PyQt6.QtWidgets import QLineEdit, QPushButton, \
 QGridLayout, QWidget, QSlider, QLabel, QMessageBox, \
 QTreeView, QFileDialog, QMenu
-from PyQt6.QtGui import QFileSystemModel, QIcon, QAction
+from PyQt6.QtGui import QFileSystemModel, QAction
 from PyQt6.QtCore import Qt, QStandardPaths, QFile
 from progress import Progress
 

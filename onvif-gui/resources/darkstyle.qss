@@ -293,10 +293,6 @@ QListWidget::item {
     color : foreground_light;
 }
 
-QListWidget::item:selected:!active {
-    background-color : background_dark;
-}
-
 QListWidget::item:hover {
     color : selection_medium;
 }
@@ -582,6 +578,14 @@ QSlider::handle:horizontal {
 
 QSlider::groove:horizontal:disabled {
   background : background_medium;
+}
+
+QSlider::add-page:horizontal {
+    background: foreground_dark
+}
+
+QSlider::sub-page:horizontal {
+    background: foreground_medium;
 }
 
 QToolTip {

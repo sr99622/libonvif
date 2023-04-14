@@ -24,7 +24,7 @@ from PyQt6.QtCore import Qt
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
-import onvif
+import libonvif as onvif
 
 class SpinBox(QSpinBox):
     def __init__(self, qle):

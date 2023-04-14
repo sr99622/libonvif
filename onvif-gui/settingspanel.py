@@ -24,7 +24,7 @@ QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
-import onvif
+import libonvif as onvif
 sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
 import avio

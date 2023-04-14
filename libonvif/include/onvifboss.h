@@ -25,7 +25,7 @@
 #include <string.h>
 #include "onvif.h"
 
-namespace onvif
+namespace libonvif
 {
 
 class Data

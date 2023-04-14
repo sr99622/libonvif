@@ -23,7 +23,7 @@ from PyQt6.QtCore import Qt
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
-import onvif
+import libonvif as onvif
 
 class ImageTab(QWidget):
     def __init__(self, cp):

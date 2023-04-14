@@ -118,13 +118,13 @@ class CMakeBuild(build_ext):
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
-    name="onvif",
-    version="2.0.0",
+    name="libonvif",
+    version="2.0.1",
     author="Stephen Rhodes",
     author_email="sr99622@gmail.com",
     description="A python onvif client",
     long_description="",
-    ext_modules=[CMakeExtension("onvif")],
+    ext_modules=[CMakeExtension("libonvif")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
 #    install_requires=["ffmpeg", "pysdl2-dll"],

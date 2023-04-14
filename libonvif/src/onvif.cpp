@@ -23,10 +23,10 @@
 
 namespace py = pybind11;
 
-namespace onvif
+namespace libonvif
 {
 
-PYBIND11_MODULE(onvif, m)
+PYBIND11_MODULE(libonvif, m)
 {
     m.doc() = "pybind11 onvif plugin";
     py::class_<Session>(m, "Session")
@@ -128,7 +128,7 @@ PYBIND11_MODULE(onvif, m)
         .def_readwrite("filled", &Data::filled)
         .def_readwrite("cancelled", &Data::cancelled);
 
-    m.attr("__version__") = "2.0.0";
+    m.attr("__version__") = "2.0.1";
 }
 
 

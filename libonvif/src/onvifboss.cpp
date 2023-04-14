@@ -18,7 +18,7 @@
 #include <iostream>
 #include "onvifboss.h"
 
-namespace onvif
+namespace libonvif
 {
 
 Manager::Manager()

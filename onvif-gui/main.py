@@ -23,7 +23,7 @@ import time
 import importlib.util
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
 QTabWidget, QMessageBox
-from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
+from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QByteArray
 from PyQt6.QtGui import QIcon
 from camerapanel import CameraPanel
 from filepanel import FilePanel
@@ -64,6 +64,7 @@ class MainWindow(QMainWindow):
         self.muteKey = "MainWindow/mute"
         self.geometryKey = "MainWindow/geometry"
         self.tabIndexKey = "MainWindow/tabIndex"
+        self.splitKey = "MainWindow/split"
 
         self.player = None
         self.playing = False
@@ -100,11 +101,13 @@ class MainWindow(QMainWindow):
         else:
             self.glWidget = ViewLabel()
 
-        split = QSplitter()
-        split.addWidget(self.glWidget)
-        split.addWidget(self.tab)
-        split.setStretchFactor(0, 4)
-        self.setCentralWidget(split)
+        self.split = QSplitter()
+        self.split.addWidget(self.glWidget)
+        self.split.addWidget(self.tab)
+        self.split.setStretchFactor(0, 10)
+        self.split.splitterMoved.connect(self.splitterMoved)
+        splitterState = self.settings.value(self.splitKey)
+        self.setCentralWidget(self.split)
 
         rect = self.settings.value(self.geometryKey)
         if rect is not None:
@@ -121,6 +124,9 @@ class MainWindow(QMainWindow):
         if len(workerName) > 0:
             self.loadWorker(workerName)
             self.loadConfigure(workerName)
+
+        if splitterState is not None:
+            self.split.restoreState(splitterState)
 
     def loadConfigure(self, workerName):
         spec = importlib.util.spec_from_file_location("Configure", "modules/" + workerName)
@@ -255,6 +261,9 @@ class MainWindow(QMainWindow):
         self.cameraPanel.setBtnRecord()
         self.filePanel.control.setBtnRecord()
         self.cameraPanel.setEnabled(True)
+
+    def splitterMoved(self, pos, index):
+        self.settings.setValue(self.splitKey, self.split.saveState())
 
     def style(self):
         #blDefault = "#566170"

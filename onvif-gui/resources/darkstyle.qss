@@ -217,6 +217,10 @@ QSpinBox {
     padding-right : 15px;
 }
 
+QSpinBox:disabled {
+    color : foreground_dark;
+}
+
 QSpinBox::up-button {
     subcontrol-origin : border;
     subcontrol-position : top right;

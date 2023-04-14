@@ -34,7 +34,7 @@ from admintab import AdminTab
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
-import onvif
+import libonvif as onvif
 
 sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")

@@ -62,7 +62,7 @@ target_include_directories(libonvif PUBLIC
 IF (NOT WITHOUT_PYTHON)
     add_subdirectory(pybind11)
 
-    pybind11_add_module(onvif
+    pybind11_add_module(pyonvif
         src/onvif.cpp
         src/onvif.c
         src/cencode.c
@@ -70,12 +70,16 @@ IF (NOT WITHOUT_PYTHON)
         src/onvifboss.cpp
     )
 
-    target_link_libraries(onvif PRIVATE
+    set_target_properties(pyonvif PROPERTIES
+    OUTPUT_NAME libonvif
+    )
+
+    target_link_libraries(pyonvif PRIVATE
         Python3::Python
         ${LIBXML2_LIBRARIES}
     )
 
-    target_include_directories(onvif PUBLIC
+    target_include_directories(pyonvif PUBLIC
         include
         ${Iconv_INCLUDE_DIRS}
         ${LIBXML2_INCLUDE_DIRS}

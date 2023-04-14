@@ -24,7 +24,7 @@ from PyQt6.QtGui import QRegularExpressionValidator
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
-import onvif
+import libonvif as onvif
 
 class NetworkTab(QWidget):
     def __init__(self, cp):

@@ -25,7 +25,7 @@ from PyQt6.QtCore import QProcess
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
-import onvif
+import libonvif as onvif
 
 class AdminTab(QWidget):
     def __init__(self, cp):

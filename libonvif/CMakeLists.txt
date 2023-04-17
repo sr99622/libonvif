@@ -30,36 +30,40 @@ if(WIN32)
     find_package(Iconv REQUIRED)
 endif()
 
+add_definitions(-w)
+
 find_package(LibXml2 REQUIRED)
-IF (NOT WITHOUT_PYTHON)
-    find_package(Python3 COMPONENTS Intrepreter Development NumPy)
-endif()
 
-add_library(libonvif SHARED
-    src/onvif.c
-    src/cencode.c
-    src/sha1.c
-    src/onvifboss.cpp
-)
+if (NOT WITHOUT_LIBS)
 
-target_link_libraries(libonvif PRIVATE
-    ${LIBXML2_LIBRARIES}
-)
-
-if (UNIX)
-    set_target_properties(libonvif PROPERTIES
-        OUTPUT_NAME onvif
-        SOVERSION 1
+    add_library(libonvif SHARED
+        src/onvif.c
+        src/cencode.c
+        src/sha1.c
+        src/onvifboss.cpp
     )
+
+    target_link_libraries(libonvif PRIVATE
+        ${LIBXML2_LIBRARIES}
+    )
+
+    if (UNIX)
+        set_target_properties(libonvif PROPERTIES
+            OUTPUT_NAME onvif
+            SOVERSION 1
+        )
+    endif()
+
+    target_include_directories(libonvif PUBLIC
+        include
+        ${Iconv_INCLUDE_DIRS}
+        ${LIBXML2_INCLUDE_DIRS}
+    )
+
 endif()
 
-target_include_directories(libonvif PUBLIC
-    include
-    ${Iconv_INCLUDE_DIRS}
-    ${LIBXML2_INCLUDE_DIRS}
-)
-
 IF (NOT WITHOUT_PYTHON)
+
     add_subdirectory(pybind11)
 
     pybind11_add_module(pyonvif
@@ -71,12 +75,13 @@ IF (NOT WITHOUT_PYTHON)
     )
 
     set_target_properties(pyonvif PROPERTIES
-    OUTPUT_NAME libonvif
+        OUTPUT_NAME libonvif
     )
 
+    set(CMAKE_LIBRARY_PATH libonvif)
     target_link_libraries(pyonvif PRIVATE
-        Python3::Python
-        ${LIBXML2_LIBRARIES}
+        #${LIBXML2_LIBRARIES}
+        libxml2.so.2
     )
 
     target_include_directories(pyonvif PUBLIC
@@ -84,4 +89,5 @@ IF (NOT WITHOUT_PYTHON)
         ${Iconv_INCLUDE_DIRS}
         ${LIBXML2_INCLUDE_DIRS}
     )
+
 endif()

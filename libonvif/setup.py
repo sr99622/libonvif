@@ -42,34 +42,6 @@ class CMakeBuild(build_ext):
         if "CMAKE_ARGS" in os.environ:
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
 
-        if self.compiler.compiler_type != "msvc":
-            if not cmake_generator:
-                try:
-                    import ninja  # noqa: F401
-
-                    cmake_args += ["-GNinja"]
-                except ImportError:
-                    pass
-
-        else:
-
-            single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
-            contains_arch = any(x in cmake_generator for x in {"ARM", "Win64"})
-
-            if not single_config and not contains_arch:
-                cmake_args += ["-A", PLAT_TO_CMAKE[self.plat_name]]
-
-            if not single_config:
-                cmake_args += [
-                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"
-                ]
-                build_args += ["--config", cfg]
-
-        if sys.platform.startswith("darwin"):
-            archs = re.findall(r"-arch (\S+)", os.environ.get("ARCHFLAGS", ""))
-            if archs:
-                cmake_args += ["-DCMAKE_OSX_ARCHITECTURES={}".format(";".join(archs))]
-
         if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:
             if hasattr(self, "parallel") and self.parallel:
                 build_args += [f"-j{self.parallel}"]
@@ -83,7 +55,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="libonvif",
-    version="2.0.1",
+    version="2.0.2",
     author="Stephen Rhodes",
     author_email="sr99622@gmail.com",
     description="A python onvif client",
@@ -93,7 +65,7 @@ setup(
     zip_safe=False,
     extras_require={"test": ["pytest>=6.0"]},
     python_requires=">=3.6",
-    packages=['libonvif'],
-    package_data={'libonvif' : ['libxml2.so.2']},
-    include_package_data = True,
+#    packages=['libonvif'],
+#    package_data={'libonvif' : ['libxml2.so.2']},
+#    include_package_data = True,
 )

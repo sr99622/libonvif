@@ -1,3 +1,11 @@
+libonvif (2.0.2-1) unstable; urgency=medium
+
+  * Convert onvif gui to python
+
+  * Upload sponsored by Petter Reinholdtsen.
+
+ -- Stephen Rhodes <sr99622@gmail.com>  Sun, 16 Apr 2023 18:02:12 +0100
+
 libonvif (1.4.5-1) unstable; urgency=medium
 
   * Remove unneeded header files for netowkr detections in linux,

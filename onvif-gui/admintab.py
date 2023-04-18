@@ -17,15 +17,10 @@
 #
 #*********************************************************************/
 
-import sys
 import platform
 from PyQt6.QtWidgets import QLineEdit, QGridLayout, QWidget, \
 QCheckBox, QLabel, QPushButton, QMessageBox
 from PyQt6.QtCore import QProcess
-
-sys.path.append("../build/libonvif")
-sys.path.append("../build/libonvif/Release")
-import libonvif as onvif
 
 class AdminTab(QWidget):
     def __init__(self, cp):

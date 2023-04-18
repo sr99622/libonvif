@@ -18,7 +18,6 @@
 #*********************************************************************/
 
 import sys
-import os
 from time import sleep
 import datetime
 from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QSlider, \
@@ -35,10 +34,6 @@ from admintab import AdminTab
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
 import libonvif as onvif
-
-sys.path.append("../build/libavio")
-sys.path.append("../build/libavio/Release")
-import avio
 
 ICON_SIZE = 26
 

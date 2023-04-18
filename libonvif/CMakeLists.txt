@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 2.0.0)
+project(libonvif VERSION 2.0.2)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -78,10 +78,8 @@ IF (NOT WITHOUT_PYTHON)
         OUTPUT_NAME libonvif
     )
 
-    set(CMAKE_LIBRARY_PATH libonvif)
     target_link_libraries(pyonvif PRIVATE
-        #${LIBXML2_LIBRARIES}
-        libxml2.so.2
+        ${LIBXML2_LIBRARIES}
     )
 
     target_include_directories(pyonvif PUBLIC

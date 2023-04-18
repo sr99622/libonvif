@@ -17,14 +17,9 @@
 #
 #*********************************************************************/
 
-import sys
 from PyQt6.QtWidgets import QCheckBox, QLineEdit, QGridLayout, QWidget, QLabel, QMessageBox
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
-
-sys.path.append("../build/libonvif")
-sys.path.append("../build/libonvif/Release")
-import libonvif as onvif
 
 class NetworkTab(QWidget):
     def __init__(self, cp):

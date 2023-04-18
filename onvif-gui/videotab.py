@@ -17,14 +17,9 @@
 #
 #*********************************************************************/
 
-import sys
 from PyQt6.QtWidgets import QComboBox, QLineEdit, QSpinBox, \
 QGridLayout, QWidget, QLabel
 from PyQt6.QtCore import Qt
-
-sys.path.append("../build/libonvif")
-sys.path.append("../build/libonvif/Release")
-import libonvif as onvif
 
 class SpinBox(QSpinBox):
     def __init__(self, qle):

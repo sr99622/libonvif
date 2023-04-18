@@ -13,6 +13,6 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-	-DBUILD_GUI=ON \
+	-DWITHOUT_PYTHON=1 \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)

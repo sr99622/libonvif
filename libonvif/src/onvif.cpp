@@ -128,7 +128,7 @@ PYBIND11_MODULE(libonvif, m)
         .def_readwrite("filled", &Data::filled)
         .def_readwrite("cancelled", &Data::cancelled);
 
-    m.attr("__version__") = "2.0.2";
+    m.attr("__version__") = "2.0.7";
 }
 
 

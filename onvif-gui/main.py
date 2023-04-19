@@ -36,6 +36,8 @@ sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
 import avio
 
+FORCE_DIRECT_RENDER = True
+
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)
     stopped = pyqtSignal()
@@ -96,10 +98,13 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.modulePanel, "Modules")
         self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
 
-        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
-            self.glWidget = GLWidget()
-        else:
+        if FORCE_DIRECT_RENDER:
             self.glWidget = ViewLabel()
+        else:
+            if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
+                self.glWidget = GLWidget()
+            else:
+                self.glWidget = ViewLabel()
 
         self.split = QSplitter()
         self.split.addWidget(self.glWidget)
@@ -181,10 +186,13 @@ class MainWindow(QMainWindow):
         if "fps=" in self.player.video_filter:
             self.filePanel.progress.setEnabled(False)
 
-        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
-            self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
-        else:
+        if FORCE_DIRECT_RENDER:
             self.player.hWnd = self.glWidget.winId()
+        else:
+            if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
+                self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
+            else:
+                self.player.hWnd = self.glWidget.winId()
 
         self.player.disable_audio = self.settingsPanel.chkDisableAudio.isChecked()
         self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()

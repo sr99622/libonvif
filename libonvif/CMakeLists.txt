@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 2.0.2)
+project(libonvif VERSION 2.0.7)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)

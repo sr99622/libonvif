@@ -36,7 +36,7 @@ sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
 import avio
 
-FORCE_DIRECT_RENDER = True
+FORCE_DIRECT_RENDER = False
 
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)

@@ -2,8 +2,6 @@
 
 Python enabled library for communicating with onvif devices.
 
-==Please Note==
-
 *Please Note*
 
 This python module has dependencies on development libraries which
@@ -14,7 +12,7 @@ a source distribution and is compiled on the host.
 to install the dependencies.
 
 ```
-sudo apt install g++ cmake libxml2-dev
+sudo apt install cmake libxml2-dev
 ```
 
 **Windows**, please use Anaconda.  The dependencies may

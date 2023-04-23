@@ -31,7 +31,7 @@ class ModulePanel(QWidget):
         self.engageKey = "Modules/engage"
 
         self.cmbWorker = QComboBox()
-        workers = os.listdir("modules")
+        workers = os.listdir(mw.getLocation() + "/modules")
         for worker in workers:
             if not worker.endswith(".py"):
                 workers.remove(worker)

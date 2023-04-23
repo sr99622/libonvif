@@ -10,7 +10,7 @@ import torch.nn as nn
 
 from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
 from yolox.utils import postprocess
-from components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
+from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
 from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox
 from PyQt6.QtCore import Qt
 
@@ -95,6 +95,7 @@ class Worker:
     def __init__(self, mw):
         try:
             self.mw = mw
+            self.last_ex = ""
             device_name = "cpu"
             if torch.cuda.is_available():
                 device_name = "cuda"
@@ -204,8 +205,10 @@ class Worker:
                 else:
                     self.draw_plain_boxes(img, output, ratio)
 
-        except:
-            logger.exception("yolox runtime error")
+        except Exception as ex:
+            if self.last_ex != str(ex):
+                logger.exception("yolox runtime error")
+            self.last_ex = str(ex)
 
     def draw_plain_boxes(self, img, output, ratio):
         boxes = output[:, 0:4] / ratio

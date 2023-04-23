@@ -25,11 +25,8 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
 QTabWidget, QMessageBox
 from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QByteArray
 from PyQt6.QtGui import QIcon
-from camerapanel import CameraPanel
-from filepanel import FilePanel
-from settingspanel import SettingsPanel
-from modulepanel import ModulePanel
-from glwidget import GLWidget
+from gui.panels import CameraPanel, FilePanel, SettingsPanel, ModulePanel
+from gui.glwidget import GLWidget
 from loguru import logger
 
 sys.path.append("../build/libavio")
@@ -54,7 +51,8 @@ class ViewLabel(QLabel):
 class MainWindow(QMainWindow):
     def __init__(self, clear_settings=False):
         super().__init__()
-        QDir.addSearchPath('image', 'resources/')
+        os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
+        QDir.addSearchPath("image", self.getLocation() + "/resources/")
         self.style()
         self.program_name = "onvif gui version 2.0.0"
         self.setWindowTitle(self.program_name)
@@ -134,7 +132,7 @@ class MainWindow(QMainWindow):
             self.split.restoreState(splitterState)
 
     def loadConfigure(self, workerName):
-        spec = importlib.util.spec_from_file_location("Configure", "modules/" + workerName)
+        spec = importlib.util.spec_from_file_location("Configure", self.getLocation() + "/modules/" + workerName)
         hook = importlib.util.module_from_spec(spec)
         sys.modules["Configure"] = hook
         spec.loader.exec_module(hook)
@@ -142,7 +140,7 @@ class MainWindow(QMainWindow):
         self.modulePanel.setPanel(self.configure)
 
     def loadWorker(self, workerName):
-        spec = importlib.util.spec_from_file_location("Worker", "modules/" + workerName)
+        spec = importlib.util.spec_from_file_location("Worker", self.getLocation() + "/modules/" + workerName)
         self.hook = importlib.util.module_from_spec(spec)
         sys.modules["Worker"] = self.hook
         spec.loader.exec_module(self.hook)
@@ -273,6 +271,9 @@ class MainWindow(QMainWindow):
     def splitterMoved(self, pos, index):
         self.settings.setValue(self.splitKey, self.split.saveState())
 
+    def getLocation(self):
+        return os.path.dirname(__file__)
+
     def style(self):
         #blDefault = "#566170"
         blDefault = "#5B5B5B"
@@ -286,7 +287,7 @@ class MainWindow(QMainWindow):
         slDefault = "#FFFFFF"
         smDefault = "#DDEEFF"
         sdDefault = "#306294"
-        strStyle = open("./resources/darkstyle.qss", "r").read()
+        strStyle = open(self.getLocation() + "/resources/darkstyle.qss", "r").read()
         strStyle = strStyle.replace("background_light",  blDefault)
         strStyle = strStyle.replace("background_medium", bmDefault)
         strStyle = strStyle.replace("background_dark",   bdDefault)
@@ -299,10 +300,7 @@ class MainWindow(QMainWindow):
         #print(strStyle)
         self.setStyleSheet(strStyle)
 
-
-
-if __name__ == '__main__':
-    os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
+def run():
     #if sys.platform == "win32":
     #    sys.argv += ['-platform', 'windows:darkmode=2']
 
@@ -317,3 +315,6 @@ if __name__ == '__main__':
     window.style()
     window.show()
     app.exec()
+
+if __name__ == '__main__':
+    run()

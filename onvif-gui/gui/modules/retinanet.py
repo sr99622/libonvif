@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/modules/retinanet.py 
+#libonvif/gui/modules/retinanet.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -25,8 +25,8 @@ from loguru import logger
 import torchvision.transforms as transforms
 from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel
 from PyQt6.QtCore import Qt
-from components.thresholdslider import ThresholdSlider
-from components.labelselector import LabelSelector
+from gui.components.thresholdslider import ThresholdSlider
+from gui.components.labelselector import LabelSelector
 
 transform = transforms.Compose([
     transforms.ToTensor(),

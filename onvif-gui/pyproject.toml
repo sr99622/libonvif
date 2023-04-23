@@ -1,0 +1,49 @@
+[project]
+name = "onvif-gui"  # Required
+version = "1.0.3"  # Required
+description = "A client gui for Onvif"  # Optional
+readme = "README.md" # Optional
+requires-python = ">=3.7"
+license = {file = "LICENSE.txt"}
+keywords = ["sample", "setuptools", "development"]  # Optional
+authors = [
+  {name = "Stephen Rhodes", email = "sr99622@gmail.com" } # Optional
+]
+classifiers = [  # Optional
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+]
+
+dependencies = [ # Optional
+  "libonvif", "avio", "pyqt6", "numpy", "loguru", "opencv-python"
+]
+
+# List additional groups of dependencies here (e.g. development
+# dependencies). Users will be able to install these using the "extras"
+# syntax, for example:
+#
+#   $ pip install sampleproject[dev]
+#
+# Similar to `dependencies` above, these must be valid existing
+# projects.
+#[project.optional-dependencies] # Optional
+#dev = ["check-manifest"]
+#test = ["coverage"]
+
+[project.urls]  # Optional
+#"Homepage" = "https://github.com/libonvif/onvif-gui"
+#"Bug Reports" = "https://github.com/libonvif/issues"
+
+# The following would provide a command line executable called `sample`
+# which executes the function `main` from this package when invoked.
+#[project.scripts]  # Optional
+#sample = "sample:main"
+
+[tool.setuptools]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

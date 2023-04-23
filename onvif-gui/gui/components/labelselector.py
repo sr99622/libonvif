@@ -1,5 +1,5 @@
 #*******************************************************************************
-# libonvif/onvif-gui/components/labelselector.py
+#libonvif/gui/components/labelselector.py
 #
 # Copyright (c) 2023 Stephen Rhodes 
 #

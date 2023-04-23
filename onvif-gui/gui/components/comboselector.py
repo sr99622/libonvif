@@ -1,5 +1,5 @@
 #*******************************************************************************
-# libonvif/onvif-gui/components/comboselector.py
+#libonvif/gui/components/comboselector.py
 #
 # Copyright (c) 2023 Stephen Rhodes 
 #

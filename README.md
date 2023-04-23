@@ -2,26 +2,150 @@
 libonvif
 ========
 
-A client side implementation of the ONVIF specification.
+A client side implementation of the ONVIF specification for Linux and Windows.
+Included are two tools for communicating with cameras.  A command line program,
+onvif-util, and a program with a Graphical User Interface, onvi-gui.
 
-Introduction
-------------
+If installing this project on Windows, please use 
+[Anaconda](https://www.anaconda.com/) 
+with [Visual Studio](https://visualstudio.microsoft.com/) and 
+[CMake](https://cmake.org/) installed.
 
-libonvif is a multi platform library implementing the client side of the ONVIF
-specification for communicating with IP enabled compatible cameras.  It will
-compile on Linux and Windows.
+## Quick Start
 
-It has a comprehensive GUI sample program written in Python that includes the
-discovery functionality as well as controls for adjusting camera parameters and
-PTZ operations.  The GUI program has a record function that will write the
-camera stream to file and includes some basic media file management tools. The
-GUI also has a module plug in function that allows developers to access the 
-video stream in numpy format for python processing.
+<details>
+<summary>onvif-gui (Graphical User Interface)</summary>
 
-A utility program is included with libonvif that can be used as a maintenance
-tool and will discover compatible cameras on the local network and may be used 
-to query each of them for device configuration such as RSTP connection uri 
-information or video settings.
+---
+
+### Step 1. Install Dependecies
+
+* ### Linux
+  ```
+  sudo apt install cmake g++ python3-pip libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
+  ```
+
+* ### Windows (use Anaconda prompt)
+  ```
+  conda install -c conda-forge libxml2 ffmpeg libsdl2
+  ```
+
+### Step 2. Install onvif-gui
+```
+pip install onvif-gui
+```
+
+### Step 3. Launch program
+```
+onvif-gui
+```
+---
+</details>
+
+
+<details>
+<summary>onvif-util (Command Line Tool)</summary>
+
+---
+
+### Step 1. Install Dependencies
+
+* ### Linux
+  ```
+  sudo apt install git cmake g++ libxml2-dev
+  ```
+
+* ### Windows (use Anaconda prompt)
+  ```
+  conda install -c conda-forge git libxml2
+  ```
+
+### Step 2. Install onvif-util
+
+* ### Linux
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  cd libonvif
+  mkdir build
+  cd build
+  cmake -DWITHOUT_PYTHON=ON ..
+  make
+  sudo make install
+  ```
+
+* ### Windows (use Anaconda prompt)
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  cd libonvif
+  mkdir build
+  cd build
+  cmake -DWITHOUT_PYTHON=ON -DCMAKE_INSTALL_PREFIX=%CONDA_PREFIX%\Library ..
+  cmake --build . --config Release
+  cmake --install .
+  ```
+
+### Step 3. Test the program
+
+```
+onvif-util -a
+```
+
+### Step 4. Get program help
+
+```
+onvif-util -h
+```
+
+---
+
+</details>
+
+<details>
+
+<summary>Build From Source</summary>
+
+
+
+</details>
+
+
+<details>
+<summary>Evaluation</summary>
+
+We support batch testing for fast evaluation:
+
+```shell
+python -m yolox.tools.eval -n  yolox-s -c yolox_s.pth -b 64 -d 8 --conf 0.001 [--fp16] [--fuse]
+                               yolox-m
+                               yolox-l
+                               yolox-x
+```
+* --fuse: fuse conv and bn
+* -d: number of GPUs used for evaluation. DEFAULT: All GPUs available will be used.
+* -b: total batch size across on all GPUs
+
+To reproduce speed test, we use the following command:
+```shell
+python -m yolox.tools.eval -n  yolox-s -c yolox_s.pth -b 1 -d 1 --conf 0.001 --fp16 --fuse
+                               yolox-m
+                               yolox-l
+                               yolox-x
+```
+
+</details>
+
+
+<details>
+<summary>Tutorials</summary>
+
+*  [Training on custom data](docs/train_custom_data.md)
+*  [Manipulating training image size](docs/manipulate_training_image_size.md)
+*  [Freezing model](docs/freeze_module.md)
+
+</details>
+
 
 To Install From Source
 ----------------------
@@ -108,8 +232,8 @@ for install on linux, then continue with the instructions below.
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm omegaconf opencv-python scipy lap loguru
-cd libonvif/onvif-gui
+pip install pyqt6 fvcore cloudpickle pycocotools fairscale timm omegaconf opencv-python scipy lap loguru cython cython_bbox
+cd libonvif/onvif_gui
 python3 main.py
 ```
 
@@ -161,11 +285,11 @@ Onvif GUI Program
 
 NAME 
 
-    onvif-gui
+    onvif_gui
 
 SYNOPSIS
 
-    onvif-gui is a python program.  
+    onvif_gui is a python program.  
     
     The program requires the following modules:
 
@@ -174,7 +298,7 @@ SYNOPSIS
 
     To run the program:
 
-    cd ../onvif-gui
+    cd ../onvif_gui
     python3 main.py
 
     These instructions are intended for quick setup to verify the program.  To use the 
@@ -302,7 +426,7 @@ NOTES
     timezone setting of the camera.
 
     If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
-    set. Some cameras may not respond to the DNS setting requested by onvif-gui due 
+    set. Some cameras may not respond to the DNS setting requested by onvif_gui due 
     to non compliance. Note that the camera may reboot automatically under some conditions 
     if the DNS setting is changed from off to on.  
 
@@ -462,7 +586,7 @@ EXAMPLES
 SEE ALSO 
 
   There is a GUI version of this program included with the libonvif package which will 
-  implement most of the same commands. It may be invoke using the 'onvif-gui' 
+  implement most of the same commands. It may be invoke using the 'onvif_gui' 
   command.
 
 License

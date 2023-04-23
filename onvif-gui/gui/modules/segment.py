@@ -11,7 +11,7 @@ from detectron2.predictor import Predictor
 from detectron2.tracker import DetectedInstance, SimpleTracker
 from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel
 from PyQt6.QtCore import Qt
-from components import ThresholdSlider, LabelSelector
+from gui.components import ThresholdSlider, LabelSelector
 
 # constants
 MODULE_NAME = "detectron2/segment"

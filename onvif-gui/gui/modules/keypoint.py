@@ -11,7 +11,7 @@ from detectron2.config import get_cfg
 from detectron2.predictor import Predictor
 from detectron2.tracker import DetectedInstance, SimpleTracker
 from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel
-from components import ThresholdSlider
+from gui.components import ThresholdSlider
 
 # constants
 CONFIDENCE_THRESHOLD = 0.50

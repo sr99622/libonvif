@@ -24,7 +24,7 @@ QGridLayout, QWidget, QSlider, QLabel, QMessageBox, \
 QTreeView, QFileDialog, QMenu
 from PyQt6.QtGui import QFileSystemModel, QAction
 from PyQt6.QtCore import Qt, QStandardPaths, QFile
-from progress import Progress
+from gui.components import Progress
 
 sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")

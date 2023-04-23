@@ -24,12 +24,7 @@ from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QSlider, \
 QListWidget, QTabWidget, QMessageBox
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QTimer
-from logindialog import LoginDialog
-from videotab import VideoTab
-from imagetab import ImageTab
-from networktab import NetworkTab
-from ptztab import PTZTab
-from admintab import AdminTab
+from gui.onvif import AdminTab, NetworkTab, ImageTab, VideoTab, PTZTab, LoginDialog
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")

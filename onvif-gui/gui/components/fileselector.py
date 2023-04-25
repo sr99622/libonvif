@@ -1,5 +1,5 @@
 #*******************************************************************************
-#libonvif/gui/components/fileselector.py
+# onvif-gui/gui/components/fileselector.py
 #
 # Copyright (c) 2023 Stephen Rhodes 
 #
@@ -31,20 +31,18 @@ class FileSelector(QWidget):
         self.txtFilename.textEdited.connect(self.txtFilenameChanged)
         self.btnSelect = QPushButton("...")
         self.btnSelect.clicked.connect(self.btnSelectClicked)
-        self.btnSelect.setMaximumWidth(36)
         lblSelect = QLabel("Model")
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(lblSelect,          0, 0, 1, 1)
         lytMain.addWidget(self.txtFilename,   0, 1, 1, 1)
         lytMain.addWidget(self.btnSelect,     0, 2, 1, 1)
+        lytMain.setColumnStretch(1, 10)
         lytMain.setContentsMargins(0, 0, 0, 0)
 
     def btnSelectClicked(self):
-        print("btnSelctClicked")
-        filename = QFileDialog.getOpenFileName(self, "Select Model File", 
-                                               self.txtFilename.text())[0]
-        print(filename)
+        filename = QFileDialog.getOpenFileName(self, "Select File", self.txtFilename.text())[0]
+
         if len(filename) > 0:
             self.txtFilename.setText(filename)
             self.mw.settings.setValue(self.filenameKey, filename)

@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/modulepanel.py 
+# onvif-gui/gui/panels/modulepanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -20,6 +20,7 @@
 import os
 from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox, \
     QLabel, QComboBox, QVBoxLayout
+from gui.components import DirectorySelector
 
 class ModulePanel(QWidget):
     def __init__(self, mw):
@@ -29,13 +30,15 @@ class ModulePanel(QWidget):
         self.layout = QVBoxLayout(self)
         self.workerKey = "Modules/worker"
         self.engageKey = "Modules/engage"
+        self.directoryKey = "Modules/directory"
+        self.cmbWorkerConnected = True
+
+        stdLocation = mw.getLocation() + "/modules"
+        self.dirModules = DirectorySelector(mw, self.directoryKey, "Modules Dir", stdLocation)
+        self.dirModules.signals.dirChanged.connect(self.dirModulesChanged)
 
         self.cmbWorker = QComboBox()
-        workers = os.listdir(mw.getLocation() + "/modules")
-        for worker in workers:
-            if not worker.endswith(".py"):
-                workers.remove(worker)
-        self.cmbWorker.addItems(workers)
+        self.fillModules()
         self.cmbWorker.setCurrentText(mw.settings.value(self.workerKey, "sample.py"))
         self.cmbWorker.currentTextChanged.connect(self.cmbWorkerChanged)
         lblWorkers = QLabel("Python Worker")
@@ -48,12 +51,22 @@ class ModulePanel(QWidget):
 
         fixedPanel = QWidget()
         lytFixed = QGridLayout(fixedPanel)
-        lytFixed.addWidget(lblWorkers,       0, 0, 1, 1)
-        lytFixed.addWidget(self.cmbWorker,   0, 1, 1, 1)
-        lytFixed.addWidget(self.chkEngage,   1, 0, 1, 1)
-        lytFixed.addWidget(self.lblElapsed,  1, 1, 1, 1)
+        lytFixed.addWidget(self.dirModules,  0, 0, 1, 2)
+        lytFixed.addWidget(lblWorkers,       1, 0, 1, 1)
+        lytFixed.addWidget(self.cmbWorker,   1, 1, 1, 1)
+        lytFixed.addWidget(self.chkEngage,   2, 0, 1, 1)
+        lytFixed.addWidget(self.lblElapsed,  2, 1, 1, 1)
         lytFixed.setColumnStretch(1, 10)
         self.layout.addWidget(fixedPanel)
+
+    def fillModules(self):
+        workers = os.listdir(self.dirModules.text())
+        for worker in workers:
+            if not worker.endswith(".py") or worker == "__init__.py":
+                workers.remove(worker)
+        workers.sort()
+        self.cmbWorker.clear()
+        self.cmbWorker.addItems(workers)
 
     def setPanel(self, panel):
         if self.panel is not None:
@@ -64,9 +77,16 @@ class ModulePanel(QWidget):
         self.layout.setStretch(1, 10)
 
     def cmbWorkerChanged(self, worker):
-        self.mw.settings.setValue(self.workerKey, worker)
-        self.mw.loadConfigure(worker)
-        self.mw.loadWorker(worker)
+        if self.cmbWorkerConnected:
+            self.mw.settings.setValue(self.workerKey, worker)
+            self.mw.loadConfigure(worker)
+            self.mw.loadWorker(worker)
 
     def chkEngageClicked(self, state):
         self.mw.settings.setValue(self.engageKey, state)
+
+    def dirModulesChanged(self, path):
+        self.cmbWorkerConnected = False
+        self.fillModules()
+        self.cmbWorkerConnected = True
+        self.cmbWorkerChanged(self.cmbWorker.currentText())

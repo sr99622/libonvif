@@ -1,3 +1,24 @@
+#*******************************************************************************
+# libonvif/setup.py
+#
+# Copyright (c) 2023 Stephen Rhodes 
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#******************************************************************************/
+
 import os
 import re
 import subprocess
@@ -83,7 +104,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="libonvif",
-    version="2.0.7",
+    version="2.0.8",
     author="Stephen Rhodes",
     author_email="sr99622@gmail.com",
     description="A python onvif client",
@@ -91,6 +112,5 @@ setup(
     ext_modules=[CMakeExtension("libonvif")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    #extras_require={"test": ["pytest>=6.0"]},
     python_requires=">=3.6",
 )

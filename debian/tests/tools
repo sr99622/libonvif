@@ -1,3 +1,0 @@
-echo ONVIF TOOLS TEST
-onvif-util -v
-onvif_gui -v

@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/admintab.py 
+# onvif-gui/gui/onvif/admintab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

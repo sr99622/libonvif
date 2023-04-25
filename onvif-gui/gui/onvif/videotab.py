@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/videotab.py 
+# onvif-gui/gui/onvif/videotab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

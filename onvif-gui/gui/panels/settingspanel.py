@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/settingspanel.py 
+# onvif-gui/gui/panels/settingspanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -72,16 +72,6 @@ class SettingsPanel(QWidget):
         self.cmbDecoder.currentTextChanged.connect(self.cmbDecoderChanged)
         lblDecoders = QLabel("Hardware Decoder")
 
-        #self.cmbWorker = QComboBox()
-        #workers = os.listdir("modules")
-        #for worker in workers:
-        #    if not worker.endswith(".py"):
-        #        workers.remove(worker)
-        #self.cmbWorker.addItems(workers)
-        #self.cmbWorker.setCurrentText(mw.settings.value(self.workerKey, "sample.py"))
-        #self.cmbWorker.currentTextChanged.connect(self.cmbWorkerChanged)
-        #lblWorkers = QLabel("Python Worker")
-        
         self.chkDirectRender = QCheckBox("Direct Rendering")
         self.render = int(mw.settings.value(self.renderKey, 0))
         self.chkDirectRender.setChecked(self.render)
@@ -120,10 +110,6 @@ class SettingsPanel(QWidget):
         self.chkHardwareEncode.setEnabled(self.chkPostEncode.isChecked())
         self.chkHardwareEncode.stateChanged.connect(self.hardwareEncodeChecked)
 
-        #self.chkProcessFrame = QCheckBox("Process Frame")
-        #self.chkProcessFrame.setChecked(int(mw.settings.value(self.processFrameKey, 0)))
-        #self.chkProcessFrame.stateChanged.connect(self.processFrameChecked)
-
         self.chkLowLatency = QCheckBox("Low Latency")
         self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
         self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
@@ -136,7 +122,6 @@ class SettingsPanel(QWidget):
         lytChecks.addWidget(self.chkDisableVideo,   1, 1, 1, 1)
         lytChecks.addWidget(self.chkPostEncode,     2, 0, 1, 1)
         lytChecks.addWidget(self.chkHardwareEncode, 2, 1, 1, 1)
-        #lytChecks.addWidget(self.chkProcessFrame,   3, 0, 1, 1)
         lytChecks.addWidget(self.chkLowLatency,     3, 1, 1, 1)
 
         self.spnCacheSize = QSpinBox()
@@ -187,15 +172,13 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(self.txtPassword,       2, 1, 1, 1)
         lytMain.addWidget(lblDecoders,            3, 0, 1, 1)
         lytMain.addWidget(self.cmbDecoder,        3, 1, 1, 1)
-        #lytMain.addWidget(lblWorkers,             4, 0, 1, 1)
-        #lytMain.addWidget(self.cmbWorker,         4, 1, 1, 1)
-        lytMain.addWidget(pnlFilter,              5, 0, 1, 3)
-        lytMain.addWidget(pnlChecks,              6, 0, 1, 3)
-        lytMain.addWidget(lblCacheSize,           7, 0, 1, 1)
-        lytMain.addWidget(self.spnCacheSize,      7, 1, 1, 1)
-        lytMain.addWidget(pnlInterface,           8, 0, 1, 3)
-        lytMain.addWidget(QLabel(""),             9, 0, 1, 3)
-        lytMain.setRowStretch(9, 10)
+        lytMain.addWidget(pnlFilter,              6, 0, 1, 3)
+        lytMain.addWidget(pnlChecks,              7, 0, 1, 3)
+        lytMain.addWidget(lblCacheSize,           8, 0, 1, 1)
+        lytMain.addWidget(self.spnCacheSize,      8, 1, 1, 1)
+        lytMain.addWidget(pnlInterface,           9, 0, 1, 3)
+        lytMain.addWidget(QLabel(""),            10, 0, 1, 3)
+        lytMain.setRowStretch(10, 10)
 
     def autoDiscoverChecked(self, state):
         self.mw.settings.setValue(self.autoDiscoverKey, state)
@@ -208,11 +191,6 @@ class SettingsPanel(QWidget):
 
     def cmbDecoderChanged(self, decoder):
         self.mw.settings.setValue(self.decoderKey, decoder)
-
-    #def cmbWorkerChanged(self, worker):
-    #    self.mw.settings.setValue(self.workerKey, worker)
-    #    self.mw.loadConfigure(worker)
-    #    self.mw.loadWorker(worker)
 
     def directRenderChecked(self):
         ret = QMessageBox.warning(self, "onvif-gui",
@@ -260,9 +238,6 @@ class SettingsPanel(QWidget):
 
     def hardwareEncodeChecked(self, state):
         self.mw.settings.setValue(self.hardwareEncodeKey, state)
-
-    #def processFrameChecked(self, state):
-    #    self.mw.settings.setValue(self.processFrameKey, state)
 
     def lowLatencyChecked(self, state):
         self.mw.settings.setValue(self.latencyKey, state)

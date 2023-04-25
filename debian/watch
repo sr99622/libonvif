@@ -1,6 +1,0 @@
-version=4
-
-opts="filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%libonvif-$1.tar.gz%" \
-   https://github.com/sr99622/libonvif/tags \
-   (?:.*?/)?v?(\d[\d.]*)\.tar\.gz debian uupdate
-

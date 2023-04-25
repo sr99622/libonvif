@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/ptztab.py 
+# onvif-gui/gui/onvif/ptztab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

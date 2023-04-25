@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/camerapanel.py 
+# onvif-gui/gui/panels/camerapanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

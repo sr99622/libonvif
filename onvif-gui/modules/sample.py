@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/modules/sample.py 
+# onvif-gui/modules/sample.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

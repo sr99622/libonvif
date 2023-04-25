@@ -1,3 +1,0 @@
-Tests: test-onvif-discover
-Depends: @
-Restrictions: flaky

@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/filepanel.py 
+# onvif-gui/gui/panels/filepanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -53,7 +53,6 @@ class DirectorySetter(QWidget):
         self.mw = mw
         self.txtDirectory = QLineEdit()
         self.btnSelect = QPushButton("...")
-        self.btnSelect.setMaximumWidth(52)
         self.btnSelect.clicked.connect(self.btnSelectClicked)
         self.dlgFile = QFileDialog()
         lytMain = QGridLayout(self)

@@ -1,18 +1,46 @@
-import cv2
-import torch
-import os
-import sys
-import numpy as np
-from pathlib import Path
-from loguru import logger
-from torchvision.transforms import functional
-import torch.nn as nn
+#/********************************************************************
+# onvif-gui/modules/yolox.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
 
-from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
-from yolox.utils import postprocess
-from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
-from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox
-from PyQt6.QtCore import Qt
+IMPORT_ERROR = ""
+try:
+    import cv2
+    import os
+    import sys
+    import numpy as np
+    from pathlib import Path
+    from loguru import logger
+
+    from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
+    from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox
+    from PyQt6.QtCore import Qt
+
+    import torch
+    from torchvision.transforms import functional
+    import torch.nn as nn
+
+    from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
+    from yolox.utils import postprocess
+    from yolox.tracker.byte_tracker import BYTETracker
+
+except ModuleNotFoundError as ex:
+    IMPORT_ERROR = str(ex)
+    print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 MODULE_NAME = "yolox"
@@ -42,12 +70,8 @@ class Configure(QWidget):
             self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
 
             self.chkTrack = QCheckBox("Track Objects")
-            if sys.platform == "win32":
-                self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
-                self.chkTrack.stateChanged.connect(self.chkTrackClicked)
-            else:
-                self.chkTrack.setChecked(False)
-                self.chkTrack.setEnabled(False)
+            self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
+            self.chkTrack.stateChanged.connect(self.chkTrackClicked)
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
             self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
@@ -76,6 +100,9 @@ class Configure(QWidget):
             lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
             lytMain.addWidget(QLabel(),          8, 0, 1, 1)
             lytMain.setRowStretch(8, 10)
+
+            if len(IMPORT_ERROR) > 0:
+                QMessageBox.critical(None, "YOLOX Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
 
         except:
             logger.exception("yolox configure failed to load")
@@ -138,9 +165,7 @@ class Worker:
             if self.fp16:
                 self.model = self.model.half()
 
-            if self.track:
-                from yolox.tracker.byte_tracker import BYTETracker
-                self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
+            self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
 
         except:
             logger.exception("yolox initialization failure")

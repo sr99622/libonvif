@@ -1,19 +1,25 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import numpy as np
-import torch
-import os
-import cv2
-from loguru import logger
-from sys import platform
-from pathlib import Path
-from detectron2.config import get_cfg
-from detectron2.predictor import Predictor
-from detectron2.tracker import DetectedInstance, SimpleTracker
-from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel
-from PyQt6.QtCore import Qt
-from gui.components import ThresholdSlider, LabelSelector
 
-# constants
+IMPORT_ERROR = ""
+try:
+    import numpy as np
+    import os
+    import cv2
+    from loguru import logger
+    from sys import platform
+    from pathlib import Path
+    from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QMessageBox
+    from PyQt6.QtCore import Qt
+    from gui.components import ThresholdSlider, LabelSelector
+
+    import torch
+    from detectron2.config import get_cfg
+    from detectron2.predictor import Predictor
+    from detectron2.tracker import DetectedInstance, SimpleTracker
+except ModuleNotFoundError as ex:
+    IMPORT_ERROR = str(ex)
+    print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
+
 MODULE_NAME = "detectron2/segment"
 
 class Configure(QWidget):
@@ -51,6 +57,9 @@ class Configure(QWidget):
             if self.mw.playing:
                 self.sldThreshold.setEnabled(False)
 
+            if len(IMPORT_ERROR) > 0:
+                QMessageBox.critical(None, "Detectron2 Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
+
         except:
             logger.exception("instance segmentation configuration load error")
 
@@ -62,8 +71,11 @@ class Configure(QWidget):
 
 class Worker:
     def __init__(self, mw):
+        self.mw = mw
+        self.last_ex = ""
+        self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
+
         try:
-            self.mw = mw
             ckpt_file = 'auto'
             fp16 = True
             self.simple = True
@@ -84,7 +96,6 @@ class Worker:
             cfg.merge_from_file('./detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml')
             cfg.MODEL.WEIGHTS = ckpt_file
 
-            self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
             cfg.MODEL.RETINANET.SCORE_THRESH_TEST = self.CONFIDENCE_THRESHOLD
             cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = self.CONFIDENCE_THRESHOLD
             cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = self.CONFIDENCE_THRESHOLD
@@ -156,8 +167,10 @@ class Worker:
                 #cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color, 2)
                 cv2.line(img, (box[0], box[3]), (box[2], box[3]), color, 2)
 
-        except:
-            logger.exception("Instance Segmentation runtime error")
+        except Exception as ex:
+            if self.last_ex != str(ex):
+                logger.exception("Instance Segmentation runtime error")
+            self.last_ex = str(ex)
 
     def get_auto_ckpt_filename(self):
         filename = None

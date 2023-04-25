@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/networktab.py 
+# onvif-gui/gui/onvif/networktab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

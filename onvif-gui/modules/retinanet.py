@@ -17,20 +17,26 @@
 #
 #*********************************************************************/
 
-import cv2
-import torchvision
-import torch
-import numpy as np
-from loguru import logger
-import torchvision.transforms as transforms
-from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel
-from PyQt6.QtCore import Qt
-from gui.components.thresholdslider import ThresholdSlider
-from gui.components.labelselector import LabelSelector
+IMPORT_ERROR = ""
+try:
+    import cv2
+    import numpy as np
+    from loguru import logger
+    from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QMessageBox
+    from PyQt6.QtCore import Qt
+    from gui.components.thresholdslider import ThresholdSlider
+    from gui.components.labelselector import LabelSelector
 
-transform = transforms.Compose([
-    transforms.ToTensor(),
-])
+    import torch
+    import torchvision
+    import torchvision.transforms as transforms
+
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+except ModuleNotFoundError as ex:
+    IMPORT_ERROR = str(ex)
+    print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
 
 MODULE_NAME = "retinanet"
 
@@ -62,13 +68,18 @@ class Configure(QWidget):
             lytMain.addWidget(pnlLabels,                1, 0, 1, 1)
             lytMain.addWidget(QLabel(""),               2, 0, 1, 1)
             lytMain.setRowStretch(2, 10)
+
+            if len(IMPORT_ERROR) > 0:
+                QMessageBox.critical(None, "Retinanet Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
+
         except:
             logger.exception("retinanet configuration load error")
 
 class Worker:
     def __init__(self, mw):
+        self.mw = mw
+        self.last_ex = ""
         try:
-            self.mw = mw
             self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT)            
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.model.eval().to(self.device)
@@ -106,6 +117,8 @@ class Worker:
                     for box in lbl_boxes:
                         cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), (r, g, b), 2)
 
-        except:
-            logger.exception("retinanet worker call error")
+        except Exception as ex:
+            if self.last_ex != str(ex):
+                logger.exception("retinanet worker call error")
+            self.last_ex = str(ex)
 

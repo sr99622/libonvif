@@ -1,5 +1,5 @@
 #********************************************************************
-# libavio/samples/pyqt/progress.py
+# onvif-gui/gui/components/progress.py
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

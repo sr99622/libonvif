@@ -174,7 +174,7 @@ This is a very simple tool to use that can be set up easily.
 ```
 pip install virtualenv
 virtualenv myenv
-source myenv
+source myenv/bin/activate
 ```
 
 These commands will set up a virtual environment that can be used to install and 

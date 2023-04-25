@@ -560,7 +560,7 @@ stream frames are accessible from a python program configured to operate within
 the onvif-gui framework.  Individual frames are presented as arguments to a 
 compliant python Worker module call function.
 <p>
-No special processing is required to acces the frame data, it is presented in
+No special processing is required to access the frame data, it is presented in
 numpy format, which is compatible with python constucts such as opencv or PIL
 image formats.
 <p>
@@ -572,7 +572,7 @@ A user defined folder can be specified to hold the module source code.  Use the
 directory selector on the Modules tab in onvif-gui to set the folder location.
 <p>
 Please consult the sample.py program in the modules folder of onvif-gui to learn
-more about how process works.
+more about how the process works.
 
 ---
 &nbsp;
@@ -593,6 +593,8 @@ find and identify cameras, and then to create an interactive session that can be
 used to query and set camera properties. 
 
 ```
+onvif-util
+
 -a, --all
     show all cameras on the network
 
@@ -673,7 +675,7 @@ otherwise the current profile is used
 - set ip_address value(required)
 - set default_gateway value(required)
 - set dns value(required)
-- set dhcp value(required) - Accepted settings are 'on' and off'
+- set dhcp value(required) - Accepted settings are 'on' and 'off'
 - set password value(required)
 
 ---

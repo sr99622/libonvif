@@ -99,12 +99,12 @@ class CMakeBuild(build_ext):
         if not os.path.exists(build_temp):
             os.makedirs(build_temp)
 
-        subprocess.check_call(["cmake", ext.sourcedir] + cmake_args, cwd=build_temp)
-        subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=build_temp)
-
+        subprocess.run(["cmake", ext.sourcedir] + cmake_args, cwd=build_temp)
+        subprocess.run(["cmake", "--build", "."] + build_args, cwd=build_temp)
+  
 setup(
     name="libonvif",
-    version="2.0.8",
+    version="2.0.9",
     author="Stephen Rhodes",
     author_email="sr99622@gmail.com",
     description="A python onvif client",

@@ -91,6 +91,8 @@ class MainWindow(QMainWindow):
         self.signals.stopped.connect(self.onMediaStopped)
         self.signals.error.connect(self.onError)
         self.settingsPanel = SettingsPanel(self)
+        self.signals.started.connect(self.settingsPanel.onMediaStarted)
+        self.signals.stopped.connect(self.settingsPanel.onMediaStopped)
         self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")

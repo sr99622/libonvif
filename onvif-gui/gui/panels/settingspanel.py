@@ -21,6 +21,7 @@ import os
 import sys
 from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
 QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
+from PyQt6.QtCore import Qt
 
 sys.path.append("../build/libonvif")
 sys.path.append("../build/libonvif/Release")
@@ -164,6 +165,8 @@ class SettingsPanel(QWidget):
         lytFilter.setColumnStretch(1, 10)
         lytFilter.setContentsMargins(0, 0, 0, 0)
 
+        self.lblSpacer = QLabel("")
+
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.chkAutoDiscover,   0, 0, 1, 2)
         lytMain.addWidget(lblUsername,            1, 0, 1, 1)
@@ -177,7 +180,7 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(lblCacheSize,           8, 0, 1, 1)
         lytMain.addWidget(self.spnCacheSize,      8, 1, 1, 1)
         lytMain.addWidget(pnlInterface,           9, 0, 1, 3)
-        lytMain.addWidget(QLabel(""),            10, 0, 1, 3)
+        lytMain.addWidget(self.lblSpacer,        10, 0, 1, 3, Qt.AlignmentFlag.AlignCenter)
         lytMain.setRowStretch(10, 10)
 
     def autoDiscoverChecked(self, state):
@@ -271,3 +274,10 @@ class SettingsPanel(QWidget):
             result = avio.AV_HWDEVICE_TYPE_D3D11VA
         return result
      
+    def onMediaStarted(self, duration):
+        self.lblSpacer.setText("Settings Tab is disabled during media processing")
+        self.setEnabled(False)
+
+    def onMediaStopped(self):
+        self.lblSpacer.setText("")
+        self.setEnabled(True)

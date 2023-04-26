@@ -60,7 +60,8 @@ class ModulePanel(QWidget):
         self.layout.addWidget(fixedPanel)
 
     def fillModules(self):
-        workers = os.listdir(self.dirModules.text())
+        d = self.dirModules.text()
+        workers = [f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f))]
         for worker in workers:
             if not worker.endswith(".py") or worker == "__init__.py":
                 workers.remove(worker)

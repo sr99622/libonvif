@@ -30,7 +30,8 @@ with [Visual Studio](https://visualstudio.microsoft.com/) and
 
 * ### Windows (use Anaconda prompt)
   ```
-  conda install -c conda-forge libxml2 ffmpeg libsdl2
+  conda create --name myenv python=3.9 libxml2 ffmpeg sdl2 -c conda-forge
+  conda activate myenv
   ```
 
 ### Step 2. Install onvif-gui
@@ -127,7 +128,7 @@ onvif-util -h
   Please create a conda environment for dependencies
 
   ```
-  conda create --name myenv -c conda-forge python git ffmpeg sdl2 libxml2
+  conda create --name myenv -c conda-forge pytho=3.9 git ffmpeg sdl2 libxml2
   conda activate myenv
   ```
 
@@ -497,10 +498,13 @@ Instance Segmentation and Keypoint discovery are implemented using
 
 ---
 Pre-installed modules require pytorch and other depenencies in order to run.  A
-virtual environment is recommended.
+virtual environment is recommended.  These instructions assume that onvif-gui
+has been installed as directed above.  On Windows, upgrading pip prior to copmleting these
+steps may improve results.
 
 ```
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 pyqt6 fvcore cloudpickle pycocotools fairscale timm omegaconf opencv-python scipy lap loguru cython cython_bbox_fix iopath fvcore
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 
+pip install cloudpickle pycocotools fairscale timm omegaconf scipy lap cython cython_bbox_fix iopath fvcore
 ```
 ---
 &nbsp;

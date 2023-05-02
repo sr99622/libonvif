@@ -202,20 +202,12 @@ on the host machine and require a proper environment to build successfully.  The
 instructions above should result in an environment that will host a successful
 compilation.
 <p>
-A common error that may be observed is
-
-```
-from cmake import cmake
-ModuleNotFoundError: No module named 'cmake'
-```
-
-This is caused by the pip version of cmake installed in the environment.  The 
-presence of pip version of cmake will cause the compilation to fail.  To remedy
-this error, remove the pip version of cmake
-
-```
-pip uninstall cmake
-```
+If you are having difficulty installing on windows using the Quick Start 
+instructions, please install from source or use one of the alternate
+compilation techniques.
+<p>
+When installing modules on windows, it may be necessary to build lap from source 
+use https://github.com/gatagat/lap.
 
 ---
 &nbsp;
@@ -497,14 +489,14 @@ Instance Segmentation and Keypoint discovery are implemented using
 &nbsp;
 
 ---
-Pre-installed modules require pytorch and other depenencies in order to run.  A
-virtual environment is recommended.  These instructions assume that onvif-gui
-has been installed as directed above.  On Windows, upgrading pip prior to copmleting these
-steps may improve results.
+Pre-installed modules require pytorch and other depenencies in order to run. 
+A virtual environment is recommended.  These instructions assume that onvif-gui
+has been installed as directed above.  On Windows, upgrading pip prior to 
+completing these steps may improve results.
 
 ```
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 
-pip install cloudpickle pycocotools fairscale timm omegaconf scipy lap cython cython_bbox_fix iopath fvcore
+pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix lap iopath fvcore
 ```
 ---
 &nbsp;

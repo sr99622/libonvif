@@ -21,6 +21,7 @@ import os
 import sys
 import time
 import importlib.util
+import numpy as np
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
 QTabWidget, QMessageBox
@@ -162,6 +163,30 @@ class MainWindow(QMainWindow):
         else:
             self.modulePanel.lblElapsed.setText("")
         return F
+    
+    def pyAudioCallback(self, F):
+        '''            
+        try:
+            print("pyAudioCallback", F.m_rts)
+            if F.isValid():
+                sample = np.array(F, copy=False)
+                print(sample.shape)
+
+                #scaled = np.int16(sample / np.max(np.abs(data)) * 32767)
+
+                print(F.nb_samples())
+                print(F.sample_rate())
+                print(F.channels())
+                print(np.sum(sample))
+
+                left = sample[::2]
+                right = sample[1::2]
+
+                #right *= 0
+        except:
+            logger.exception("pyAudioCallback exception")
+        #'''
+        return F
 
     def playMedia(self, uri):
         self.stopMedia()
@@ -187,6 +212,10 @@ class MainWindow(QMainWindow):
         if "fps=" in self.player.video_filter:
             self.filePanel.progress.setEnabled(False)
 
+        audio_filter = self.settingsPanel.txtAudioFilter.text()
+        if len(audio_filter) > 0:
+            self.player.audio_filter = audio_filter
+
         if FORCE_DIRECT_RENDER:
             self.player.hWnd = self.glWidget.winId()
         else:
@@ -199,6 +228,7 @@ class MainWindow(QMainWindow):
         self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()
 
         self.player.pythonCallback = lambda F : self.pythonCallback(F)
+        #self.player.pyAudioCallback = lambda F: self.pyAudioCallback(F)
         self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
         self.player.errorCallback = lambda s : self.errorCallback(s)

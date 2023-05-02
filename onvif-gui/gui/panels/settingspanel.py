@@ -50,6 +50,7 @@ class SettingsPanel(QWidget):
         self.cacheSizeKey = "settings/cacheSize"
         self.interfaceKey = "settings/interface"
         self.videoFilterKey = "settings/videoFilter"
+        self.audioFilterKey = "settings/audioFilter"
 
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
@@ -158,10 +159,17 @@ class SettingsPanel(QWidget):
         self.txtVideoFilter.textChanged.connect(self.videoFilterChanged)
         lblVideoFilter = QLabel("Video Filter")
 
+        self.txtAudioFilter = QLineEdit()
+        self.txtAudioFilter.setText(mw.settings.value(self.audioFilterKey, ""))
+        self.txtAudioFilter.textChanged.connect(self.audioFilterChanged)
+        lblAudioFilter = QLabel("Audio Filter")
+
         pnlFilter = QWidget()
         lytFilter = QGridLayout(pnlFilter)
         lytFilter.addWidget(lblVideoFilter,      0, 0, 1, 1)
         lytFilter.addWidget(self.txtVideoFilter, 0, 1, 1, 1)
+        lytFilter.addWidget(lblAudioFilter,      1, 0, 1, 1)
+        lytFilter.addWidget(self.txtAudioFilter, 1, 1, 1, 1)
         lytFilter.setColumnStretch(1, 10)
         lytFilter.setContentsMargins(0, 0, 0, 0)
 
@@ -259,6 +267,9 @@ class SettingsPanel(QWidget):
 
     def videoFilterChanged(self, filter):
         self.mw.settings.setValue(self.videoFilterKey, filter)
+
+    def audioFilterChanged(self, filter):
+        self.mw.settings.setValue(self.audioFilterKey, filter)
 
     def getDecoder(self):
         result = avio.AV_HWDEVICE_TYPE_NONE

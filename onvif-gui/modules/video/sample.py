@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/modules/sample.py 
+# onvif-gui/modules/video/sample.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -24,7 +24,7 @@ from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox
 
 MODULE_NAME = "sample"
 
-class Configure(QWidget):
+class VideoConfigure(QWidget):
     def __init__(self, mw):
         try:
             super().__init__()
@@ -42,7 +42,7 @@ class Configure(QWidget):
     def chkShowBorderClicked(self, state):
         self.mw.settings.setValue(self.showBorderKey, state)
 
-class Worker:
+class VideoWorker:
     def __init__(self, mw):
         try:
             self.mw = mw

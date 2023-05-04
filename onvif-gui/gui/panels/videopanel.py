@@ -22,18 +22,18 @@ from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox, \
     QLabel, QComboBox, QVBoxLayout
 from gui.components import DirectorySelector
 
-class ModulePanel(QWidget):
+class VideoPanel(QWidget):
     def __init__(self, mw):
         super().__init__()
         self.mw = mw
         self.panel = None
         self.layout = QVBoxLayout(self)
-        self.workerKey = "Modules/worker"
-        self.engageKey = "Modules/engage"
-        self.directoryKey = "Modules/directory"
+        self.workerKey = "VideoPanel/worker"
+        self.engageKey = "VideoPanel/engage"
+        self.directoryKey = "VideoPanel/directory"
         self.cmbWorkerConnected = True
 
-        stdLocation = mw.getLocation() + "/modules"
+        stdLocation = mw.getLocation() + "/modules/video"
         self.dirModules = DirectorySelector(mw, self.directoryKey, "Modules Dir", stdLocation)
         self.dirModules.signals.dirChanged.connect(self.dirModulesChanged)
 
@@ -80,8 +80,8 @@ class ModulePanel(QWidget):
     def cmbWorkerChanged(self, worker):
         if self.cmbWorkerConnected:
             self.mw.settings.setValue(self.workerKey, worker)
-            self.mw.loadConfigure(worker)
-            self.mw.loadWorker(worker)
+            self.mw.loadVideoConfigure(worker)
+            self.mw.loadVideoWorker(worker)
 
     def chkEngageClicked(self, state):
         self.mw.settings.setValue(self.engageKey, state)

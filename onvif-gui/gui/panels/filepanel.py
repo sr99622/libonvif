@@ -237,9 +237,10 @@ class FilePanel(QWidget):
         self.menu.addAction(self.play)
 
     def dirChanged(self, path):
-        self.model.setRootPath(path)
-        self.tree.setRootIndex(self.model.index(path))
-        self.mw.settings.setValue(self.dirKey, path)
+        if len(path) > 0:
+            self.model.setRootPath(path)
+            self.tree.setRootIndex(self.model.index(path))
+            self.mw.settings.setValue(self.dirKey, path)
 
     def treeDoubleClicked(self, index):
         if index.isValid():

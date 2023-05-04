@@ -24,10 +24,10 @@ import importlib.util
 import numpy as np
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
-QTabWidget, QMessageBox
-from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QByteArray
+    QTabWidget, QMessageBox
+from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
 from PyQt6.QtGui import QIcon
-from gui.panels import CameraPanel, FilePanel, SettingsPanel, ModulePanel
+from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel
 from gui.glwidget import GLWidget
 from loguru import logger
 
@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
-        self.program_name = "onvif gui version 1.0.5"
+        self.program_name = "onvif gui version 1.0.6"
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
         self.settings = QSettings("onvif", "gui")
@@ -88,7 +88,8 @@ class MainWindow(QMainWindow):
         self.signals.started.connect(self.filePanel.onMediaStarted)
         self.signals.stopped.connect(self.filePanel.onMediaStopped)
         self.signals.progress.connect(self.filePanel.onMediaProgress)
-        self.modulePanel = ModulePanel(self)
+        self.videoPanel = VideoPanel(self)
+        self.audioPanel = AudioPanel(self)
         self.signals.stopped.connect(self.onMediaStopped)
         self.signals.error.connect(self.onError)
         self.settingsPanel = SettingsPanel(self)
@@ -97,7 +98,8 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
-        self.tab.addTab(self.modulePanel, "Modules")
+        self.tab.addTab(self.videoPanel, "Video")
+        self.tab.addTab(self.audioPanel, "Audio")
         self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
 
         if FORCE_DIRECT_RENDER:
@@ -124,68 +126,81 @@ class MainWindow(QMainWindow):
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
 
-        self.hook = None
-        self.worker = None
-        self.configure = None
-        workerName = self.modulePanel.cmbWorker.currentText()
-        if len(workerName) > 0:
-            self.loadWorker(workerName)
-            self.loadConfigure(workerName)
+        self.videoHook = None
+        self.videoWorker = None
+        self.videoConfigure = None
+        videoWorkerName = self.videoPanel.cmbWorker.currentText()
+        if len(videoWorkerName) > 0:
+            self.loadVideoWorker(videoWorkerName)
+            self.loadVideoConfigure(videoWorkerName)
+
+        self.audioHook = None
+        self.audioWorker = None
+        self.audioConfigure = None
+        audioWorkerName = self.audioPanel.cmbWorker.currentText()
+        if len(audioWorkerName) > 0:
+            self.loadAudioWorker(audioWorkerName)
+            self.loadAudioConfigure(audioWorkerName)
 
         if splitterState is not None:
             self.split.restoreState(splitterState)
 
-    def loadConfigure(self, workerName):
-        spec = importlib.util.spec_from_file_location("Configure", self.modulePanel.dirModules.text() + "/" + workerName)
-        hook = importlib.util.module_from_spec(spec)
-        sys.modules["Configure"] = hook
-        spec.loader.exec_module(hook)
-        self.configure = hook.Configure(self)
-        self.modulePanel.setPanel(self.configure)
+    def loadVideoConfigure(self, workerName):
+        spec = importlib.util.spec_from_file_location("VideoConfigure", self.videoPanel.dirModules.text() + "/" + workerName)
+        videoHook = importlib.util.module_from_spec(spec)
+        sys.modules["VideoConfigure"] = videoHook
+        spec.loader.exec_module(videoHook)
+        self.configure = videoHook.VideoConfigure(self)
+        self.videoPanel.setPanel(self.configure)
 
-    def loadWorker(self, workerName):
-        spec = importlib.util.spec_from_file_location("Worker", self.modulePanel.dirModules.text() + "/" + workerName)
-        self.hook = importlib.util.module_from_spec(spec)
-        sys.modules["Worker"] = self.hook
-        spec.loader.exec_module(self.hook)
+    def loadVideoWorker(self, workerName):
+        spec = importlib.util.spec_from_file_location("VideoWorker", self.videoPanel.dirModules.text() + "/" + workerName)
+        self.videoHook = importlib.util.module_from_spec(spec)
+        sys.modules["VideoWorker"] = self.videoHook
+        spec.loader.exec_module(self.videoHook)
         self.worker = None
 
     def pythonCallback(self, F):
-        if self.modulePanel.chkEngage.isChecked():
-            if self.hook is not None:
+        if self.videoPanel.chkEngage.isChecked():
+            if self.videoHook is not None:
                 if self.worker is None:
-                    self.worker = self.hook.Worker(self)
+                    self.worker = self.videoHook.VideoWorker(self)
                 start = time.time()
                 self.worker(F)
                 finish = time.time()
                 elapsed = int((finish - start) * 1000)
-                self.modulePanel.lblElapsed.setText("Elapsed Time (ms)  " + str(elapsed))
+                self.videoPanel.lblElapsed.setText("Elapsed Time (ms)  " + str(elapsed))
         else:
-            self.modulePanel.lblElapsed.setText("")
+            self.videoPanel.lblElapsed.setText("")
         return F
     
+    def loadAudioConfigure(self, workerName):
+        spec = importlib.util.spec_from_file_location("AudioConfigure", self.audioPanel.dirModules.text() + "/" + workerName)
+        audioHook = importlib.util.module_from_spec(spec)
+        sys.modules["AudioConfigure"] = audioHook
+        spec.loader.exec_module(audioHook)
+        self.audioConfigure = audioHook.AudioConfigure(self)
+        self.audioPanel.setPanel(self.audioConfigure)
+    
+    def loadAudioWorker(self, workerName):
+        spec = importlib.util.spec_from_file_location("AudioWorker", self.audioPanel.dirModules.text() + "/" + workerName)
+        self.audioHook = importlib.util.module_from_spec(spec)
+        sys.modules["AudioWorker"] = self.audioHook
+        spec.loader.exec_module(self.audioHook)
+        self.audioWorker = None
+
     def pyAudioCallback(self, F):
-        '''            
-        try:
-            print("pyAudioCallback", F.m_rts)
-            if F.isValid():
-                sample = np.array(F, copy=False)
-                print(sample.shape)
-
-                #scaled = np.int16(sample / np.max(np.abs(data)) * 32767)
-
-                print(F.nb_samples())
-                print(F.sample_rate())
-                print(F.channels())
-                print(np.sum(sample))
-
-                left = sample[::2]
-                right = sample[1::2]
-
-                #right *= 0
-        except:
-            logger.exception("pyAudioCallback exception")
-        #'''
+        if self.audioPanel.chkEngage.isChecked():
+            if self.audioHook is not None:
+                if self.audioWorker is None:
+                    self.audioWorker = self.audioHook.AudioWorker(self)
+                start = time.time()
+                self.audioWorker(F)
+                finish = time.time()
+                elapsed = int((finish - start) * 1000)
+                self.audioPanel.lblElapsed.setText("Elapsed Time (ms)  " + str(elapsed))
+        else:
+            self.audioPanel.lblElapsed.setText("")
         return F
 
     def playMedia(self, uri):
@@ -228,7 +243,7 @@ class MainWindow(QMainWindow):
         self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()
 
         self.player.pythonCallback = lambda F : self.pythonCallback(F)
-        #self.player.pyAudioCallback = lambda F: self.pyAudioCallback(F)
+        self.player.pyAudioCallback = lambda F: self.pyAudioCallback(F)
         self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
         self.player.errorCallback = lambda s : self.errorCallback(s)

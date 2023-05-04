@@ -1,5 +1,5 @@
 #/********************************************************************
-#libonvif/gui/modules/retinanet.py 
+#libonvif/gui/modules/video/retinanet.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -40,7 +40,7 @@ except ModuleNotFoundError as ex:
 
 MODULE_NAME = "retinanet"
 
-class Configure(QWidget):
+class VideoConfigure(QWidget):
     def __init__(self, mw):
         try:
             super().__init__()
@@ -75,7 +75,7 @@ class Configure(QWidget):
         except:
             logger.exception("retinanet configuration load error")
 
-class Worker:
+class VIdeoWorker:
     def __init__(self, mw):
         self.mw = mw
         self.last_ex = ""

@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/modules/yolox.py 
+# onvif-gui/modules/video/yolox.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -45,7 +45,7 @@ except ModuleNotFoundError as ex:
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 MODULE_NAME = "yolox"
 
-class Configure(QWidget):
+class VideoConfigure(QWidget):
     def __init__(self, mw):
         try:
             super().__init__()
@@ -118,7 +118,7 @@ class Configure(QWidget):
         self.mw.settings.setValue(self.trackKey, state)
         self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
-class Worker:
+class VideoWorker:
     def __init__(self, mw):
         try:
             self.mw = mw

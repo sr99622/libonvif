@@ -22,7 +22,7 @@ except ModuleNotFoundError as ex:
 
 MODULE_NAME = "detectron2/segment"
 
-class Configure(QWidget):
+class VideoConfigure(QWidget):
     def __init__(self, mw):
         try:
             super().__init__()
@@ -69,7 +69,7 @@ class Configure(QWidget):
     def enableThresholdSlider(self):
         self.sldThreshold.setEnabled(True)
 
-class Worker:
+class VideoWorker:
     def __init__(self, mw):
         self.mw = mw
         self.last_ex = ""

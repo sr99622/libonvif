@@ -78,6 +78,7 @@ onvif-gui
   cmake -DWITHOUT_PYTHON=ON ..
   make
   sudo make install
+  sudo ldconfig
   ```
 
 * ### Windows (use Anaconda prompt)
@@ -444,7 +445,7 @@ the web browser with the camera ip address automatically.
 
 ---
 
-* ### Video Stream Processing
+## Video Stream Processing
 
 onvif-gui has a facility for incorporating python programs to operate on the
 video stream.  The Modules tab is the user interface for this feature. 
@@ -476,6 +477,13 @@ correctly match these parameters.
 
 Instance Segmentation and Keypoint discovery are implemented using 
 [detectron2](https://github.com/facebookresearch/detectron2)
+
+## Audio Stream Processing
+
+onvif-gui can also process audio streams using python modules.  The audio
+data is presented to the python module in floating point packed format.
+Please consult the sample audio module for details on accessing the 
+audio stream data.
 
 ---
 

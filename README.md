@@ -21,28 +21,28 @@ with [Visual Studio](https://visualstudio.microsoft.com/) and
 
 ---
 
-### Step 1. Install Dependecies
+### Linux
 
-* ### Linux
+* ### Step 1. Install Dependecies
+
   ```
   sudo apt install cmake g++ python3-pip libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
   ```
 
-* ### Windows (use Anaconda prompt)
+* ### Step 2. Install onvif-gui
   ```
-  conda create --name myenv python=3.9 libxml2 ffmpeg sdl2 -c conda-forge
-  conda activate myenv
+  pip install onvif-gui
   ```
 
-### Step 2. Install onvif-gui
-```
-pip install onvif-gui
-```
+* ### Step 3. Launch program
+  ```
+  onvif-gui
+  ```
 
-### Step 3. Launch program
-```
-onvif-gui
-```
+### Windows
+
+  Please follow the instructions for Build From Source
+
 ---
 &nbsp;
 </details>

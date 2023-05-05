@@ -29,12 +29,22 @@ with [Visual Studio](https://visualstudio.microsoft.com/) and
   sudo apt install cmake g++ python3-pip libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
   ```
 
-* ### Step 2. Install onvif-gui
+* ### Step 2. Set up virtual environment
+
+  ```
+  pip install virtualenv
+  virtualenv myenv
+  source myenv/bin/activate
+  ```
+
+* ### Step 3. Install onvif-gui
+
   ```
   pip install onvif-gui
   ```
 
-* ### Step 3. Launch program
+* ### Step 4. Launch program
+
   ```
   onvif-gui
   ```
@@ -161,11 +171,7 @@ onvif-gui
 &nbsp;
 
 ---
-Using a virtual environment is strongly recommended. The complexity of this program
-and its use of external modules introduces the possibilty of name space collisions 
-that may cause the program to crash or behave in an unexpected manner.  These issues 
-may be easily avoided by using a dedicated virtual envrionment for installing the 
-program.
+Using a virtual environment is strongly recommended.
 &nbsp;
 On Windows, the use of Anaconda to install the program will use a virtual
 environment.  It is suggested to create a dedicated environment for the program.
@@ -194,27 +200,6 @@ deactivate
 </details>
 
 <details>
-<summary>Installation Issues</summary>
-&nbsp;
-
----
-The modules this project are distributed as source packages.  They are compiled
-on the host machine and require a proper environment to build successfully.  The
-instructions above should result in an environment that will host a successful
-compilation.
-<p>
-If you are having difficulty installing on windows using the Quick Start 
-instructions, please install from source or use one of the alternate
-compilation techniques.
-<p>
-When installing modules on windows, it may be necessary to build lap from source 
-use https://github.com/gatagat/lap.
-
----
-&nbsp;
-</details>
-
-<details>
 <summary>Alternate Compilation Techniques</summary>
 &nbsp;
 
@@ -223,7 +208,7 @@ Configuration issues may cause build steps to fail.  In some cases, it is possib
 to continue with installation using other methods than those listed above. They
 may be successful where other techniques have not if issues are confined to a 
 specific tool.  These instructions assume that the Dependencies have been installed
-as per Build From Source.
+and the source code cloned as per Build From Source.
 
 * ### Configure directly using cmake
 
@@ -497,7 +482,7 @@ audio stream data.
 &nbsp;
 
 ---
-Pre-installed modules require pytorch and other depenencies in order to run. 
+Pre-installed modules require pytorch and other dependencies in order to run. 
 A virtual environment is recommended.  These instructions assume that onvif-gui
 has been installed as directed above.
 
@@ -520,6 +505,11 @@ activated as described in the Build From Source instructions.
   cd lap
   pip install .
   ```
+
+Note that when starting the modules, the program is set to automatically download the required 
+pytorch model.  In order to visualize detections, it is necessary to select at least on class
+to be identified on the module GUI panel.  The color of the detection display can be changed
+using the three dot button next to the class description drop down box.
 
 ---
 &nbsp;

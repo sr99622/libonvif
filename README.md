@@ -129,7 +129,7 @@ onvif-util -h
   Please create a conda environment for dependencies
 
   ```
-  conda create --name myenv -c conda-forge pytho=3.9 git ffmpeg sdl2 libxml2
+  conda create --name myenv -c conda-forge python git ffmpeg sdl2 libxml2
   conda activate myenv
   ```
 
@@ -499,13 +499,28 @@ audio stream data.
 ---
 Pre-installed modules require pytorch and other depenencies in order to run. 
 A virtual environment is recommended.  These instructions assume that onvif-gui
-has been installed as directed above.  On Windows, upgrading pip prior to 
-completing these steps may improve results.
+has been installed as directed above.
 
-```
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 
-pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix lap iopath fvcore
-```
+*  ### Linux Module Dependency Installation
+
+  ```
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 
+  pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix lap iopath fvcore
+  ```
+
+* ### Windows Module Dependency Installation
+
+These instructions assume that Visual Studio is installed and  a conda environment has been 
+activated as described in the Build From Source instructions.  
+
+  ```
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 
+  pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix iopath fvcore
+  git clone https://github.com/gatagat/lap
+  cd lap
+  pip install .
+  ```
+
 ---
 &nbsp;
 

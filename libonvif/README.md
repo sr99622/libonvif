@@ -20,7 +20,7 @@ be installed using the following command under a conda prompt.  The
 Visual Studio C++ compiler must be installed as well.
 
 ```
-conda install cmake libxml2
+conda install cmake libxml2 -c conda-forge
 ```
 
 If successful, install libonvif python module

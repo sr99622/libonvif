@@ -74,7 +74,7 @@ class VideoWorker:
                         torch.hub.download_url_to_file("https://dl.fbaipublicfiles.com/detectron2/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl", ckpt_file)
 
             cfg = get_cfg()
-            cfg.merge_from_file('./detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml')
+            cfg.merge_from_file('detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml')
             cfg.MODEL.RETINANET.SCORE_THRESH_TEST = self.CONFIDENCE_THRESHOLD
             cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = self.CONFIDENCE_THRESHOLD
             cfg.MODEL.WEIGHTS = ckpt_file

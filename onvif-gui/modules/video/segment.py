@@ -5,6 +5,7 @@ try:
     import numpy as np
     import os
     import cv2
+    import distutils
     from loguru import logger
     from sys import platform
     from pathlib import Path
@@ -93,8 +94,11 @@ class VideoWorker:
                         torch.hub.download_url_to_file("https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl", ckpt_file)
 
             cfg = get_cfg()
-            print(os.getcwd())
-            cfg.merge_from_file('detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml')
+            working_dir = distutils.sysconfig.get_python_lib()
+            yaml_file = 'detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml'
+            config_file = os.path.join(working_dir, yaml_file)
+            assert(os.path.isfile(config_file))
+            cfg.merge_from_file(config_file)
             cfg.MODEL.WEIGHTS = ckpt_file
 
             cfg.MODEL.RETINANET.SCORE_THRESH_TEST = self.CONFIDENCE_THRESHOLD

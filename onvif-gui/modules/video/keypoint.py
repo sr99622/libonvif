@@ -6,9 +6,8 @@ try:
     import cv2
     import math
     import os
-    from distutils.sysconfig import get_python_lib
+    import sys
     from loguru import logger
-    from sys import platform
     from pathlib import Path
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QMessageBox
     from gui.components import ThresholdSlider
@@ -75,10 +74,16 @@ class VideoWorker:
                         torch.hub.download_url_to_file("https://dl.fbaipublicfiles.com/detectron2/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl", ckpt_file)
 
             cfg = get_cfg()
-            working_dir = get_python_lib()
+            config_file = ""
             yaml_file = 'detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml'
-            config_file = os.path.join(working_dir, yaml_file)
-            assert(os.path.isfile(config_file))
+            if not os.path.isfile(yaml_file):
+                for path in sys.path:
+                    config_file = os.path.join(path, yaml_file)
+                    if os.path.isfile(config_file):
+                        break
+            else:
+                config_file = yaml_file
+
             cfg.merge_from_file(config_file)
             cfg.MODEL.RETINANET.SCORE_THRESH_TEST = self.CONFIDENCE_THRESHOLD
             cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = self.CONFIDENCE_THRESHOLD
@@ -125,7 +130,7 @@ class VideoWorker:
 
     def get_auto_ckpt_filename(self):
         filename = None
-        if platform == "win32":
+        if sys.platform == "win32":
             filename = os.environ['HOMEPATH'] + "/.cache/torch/hub/checkpoints/model_final_a6e10b.pkl"
         else:
             filename = os.environ['HOME'] + "/.cache/torch/hub/checkpoints/model_final_a6e10b.pkl"

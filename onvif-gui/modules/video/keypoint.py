@@ -6,7 +6,7 @@ try:
     import cv2
     import math
     import os
-    import distutils
+    from distutils.sysconfig import get_python_lib
     from loguru import logger
     from sys import platform
     from pathlib import Path
@@ -75,7 +75,7 @@ class VideoWorker:
                         torch.hub.download_url_to_file("https://dl.fbaipublicfiles.com/detectron2/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl", ckpt_file)
 
             cfg = get_cfg()
-            working_dir = distutils.sysconfig.get_python_lib()
+            working_dir = get_python_lib()
             yaml_file = 'detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml'
             config_file = os.path.join(working_dir, yaml_file)
             assert(os.path.isfile(config_file))

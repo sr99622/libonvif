@@ -489,7 +489,7 @@ has been installed as directed above.
 *  ### Linux Module Dependency Installation
 
   ```
-  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 
+  pip install torch torchvision torchaudio
   pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix lap iopath fvcore
   ```
 

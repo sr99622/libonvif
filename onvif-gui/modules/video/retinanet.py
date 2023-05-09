@@ -75,7 +75,7 @@ class VideoConfigure(QWidget):
         except:
             logger.exception("retinanet configuration load error")
 
-class VIdeoWorker:
+class VideoWorker:
     def __init__(self, mw):
         self.mw = mw
         self.last_ex = ""

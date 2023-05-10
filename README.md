@@ -32,7 +32,7 @@ with [Visual Studio](https://visualstudio.microsoft.com/) and
 * ### Step 2. Set up virtual environment
 
   ```
-  pip install virtualenv
+  sudo apt install virtualenv
   virtualenv myenv
   source myenv/bin/activate
   ```
@@ -157,9 +157,19 @@ pip install .
 
 ### Step 3. Launch Program
 
-```
-onvif-gui
-```
+* ### Linux
+  ```
+  onvif-gui
+  ```
+
+* ### Windows
+
+  from the onvif-gui subdirectory
+
+  ```
+  python run.py
+  ```
+
 
 ---
 
@@ -171,16 +181,29 @@ onvif-gui
 &nbsp;
 
 ---
-Using a virtual environment is strongly recommended.
+Using a virtual environment is required.
 &nbsp;
 On Windows, the use of Anaconda to install the program will use a virtual
-environment.  It is suggested to create a dedicated environment for the program.
+environment.  It is suggested to create a dedicated environment for the 
+program. The following commands are run from the conda prompt.
+
+```
+conda create --name myenv python git ffmpeg libxml2 sdl2 -c conda-forge
+conda activate myenv
+```
+
+to exit the conda virtual environment
+
+```
+conda deactivate
+```
+
 &nbsp;
 On Linux, the use of [virtualenv](https://virtualenv.pypa.io/en/latest/) is recommended. 
 This is a very simple tool to use that can be set up easily.
 
 ```
-pip install virtualenv
+sudo apt install virtualenv
 virtualenv myenv
 source myenv/bin/activate
 ```
@@ -232,7 +255,7 @@ cd ../libavio
 python setup.py install
 cd ../onvif-gui
 python setup.py install
-onvif-gui
+python run.py
 ```
 
 ---
@@ -447,8 +470,10 @@ the installation instructions following.
 
 * ### YOLOX with ByteTrack
 
-There is included with onvif-gui a full implementation of the YOLOX algorithm
-along with an associated tracking algorithm known as ByteTrack.  These algorithms 
+There is included with onvif-gui a full implementation of the 
+[YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) algorithm
+along with an associated tracking algorithm known as 
+[ByteTrack](https://github.com/ifzhang/ByteTrack).  These algorithms 
 are implemented using pytorch, which requires some specific configuration, see
 Module Installation for details.
 <p>
@@ -486,25 +511,10 @@ Pre-installed modules require pytorch and other dependencies in order to run.
 A virtual environment is recommended.  These instructions assume that onvif-gui
 has been installed as directed above.
 
-*  ### Linux Module Dependency Installation
-
-  ```
-  pip install torch torchvision torchaudio
-  pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix lap iopath fvcore
-  ```
-
-* ### Windows Module Dependency Installation
-
-These instructions assume that Visual Studio is installed and  a conda environment has been 
-activated as described in the Build From Source instructions.  
-
-  ```
-  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 
-  pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix iopath fvcore
-  git clone https://github.com/gatagat/lap
-  cd lap
-  pip install .
-  ```
+```
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix iopath fvcore lap_sdist
+```
 
 Note that when starting the modules, the program is set to automatically download the required 
 pytorch model.  In order to visualize detections, it is necessary to select at least on class

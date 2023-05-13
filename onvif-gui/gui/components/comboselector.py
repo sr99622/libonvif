@@ -37,6 +37,7 @@ class ComboSelector(QWidget):
         lytBox = QGridLayout(self)
         lytBox.addWidget(lblBox,       0, 0, 1, 1)
         lytBox.addWidget(self.cmbBox,  0, 1, 1, 1)
+        lytBox.setColumnStretch(1, 10)
         lytBox.setContentsMargins(0, 0, 0, 0)
 
     def cmbBoxChanged(self, text):

@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
         spec.loader.exec_module(self.videoHook)
         self.worker = None
 
-    def pythonCallback(self, F):
+    def pyVideoCallback(self, F):
         if self.videoPanel.chkEngage.isChecked():
             if self.videoHook is not None:
                 if self.worker is None:
@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
         self.player.disable_audio = self.settingsPanel.chkDisableAudio.isChecked()
         self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()
 
-        self.player.pythonCallback = lambda F : self.pythonCallback(F)
+        self.player.pythonCallback = lambda F : self.pyVideoCallback(F)
         self.player.pyAudioCallback = lambda F: self.pyAudioCallback(F)
         self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
         self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()

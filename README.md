@@ -456,17 +456,17 @@ the web browser with the camera ip address automatically.
 ## Video Stream Processing
 
 onvif-gui has a facility for incorporating python programs to operate on the
-video stream.  The Modules tab is the user interface for this feature. 
+video stream.  The Video tab is the user interface for this feature. 
 <p>
 Developers may extend the functionality of onvif-gui by writing a python
 module that conforms to the class template used by the program.
 <p>
 There is a minimal example program called sample.py that demonstrates how 
-data is trsansferred from the main program to the python module and it's GUI i
-nterface implementation.
+data is trsansferred from the main program to the python module and it's GUI 
+interface implementation.
 <p>
 The program comes with pre-installed modules that may be enabled by following
-the installation instructions following.
+the instructions for Module Installation.
 
 * ### YOLOX with ByteTrack
 
@@ -517,7 +517,7 @@ pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython
 ```
 
 Note that when starting the modules, the program is set to automatically download the required 
-pytorch model.  In order to visualize detections, it is necessary to select at least on class
+pytorch model.  In order to visualize detections, it is necessary to select at least one class
 to be identified on the module GUI panel.  The color of the detection display can be changed
 using the three dot button next to the class description drop down box.
 

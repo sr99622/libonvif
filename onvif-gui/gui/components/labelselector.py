@@ -23,8 +23,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 
 class LabelSelector(QWidget):
-    def __init__(self, mw, name, index):
+    def __init__(self, mw, name, index, labels=None):
         super().__init__()
+
         self.labels = [ "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", 
                         "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
                         "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear",  "zebra",
@@ -36,6 +37,8 @@ class LabelSelector(QWidget):
                         "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard",
                         "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book",
                         "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush" ]
+        if labels is not None:
+            self.labels = labels
         
         self.mw = mw
         self.index = index

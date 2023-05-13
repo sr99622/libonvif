@@ -53,11 +53,10 @@ class VideoConfigure(QWidget):
 
 class VideoWorker:
     def __init__(self, mw):
-        self.mw = mw
-        self.last_ex = ""
-        self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
-
         try:
+            self.mw = mw
+            self.last_ex = ""
+            self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
             ckpt_file = "auto"
             fp16 = True
             self.no_back = True
@@ -124,7 +123,7 @@ class VideoWorker:
                     self.draw_keypoint(img, keypoint, colors[idx])
 
         except Exception as ex:
-            if self.last_ex != str(ex):
+            if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception("Keypoints runtime error")
             self.last_ex = str(ex)
 

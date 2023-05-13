@@ -77,9 +77,9 @@ class VideoConfigure(QWidget):
 
 class VideoWorker:
     def __init__(self, mw):
-        self.mw = mw
-        self.last_ex = ""
         try:
+            self.mw = mw
+            self.last_ex = ""
             self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT)            
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.model.eval().to(self.device)
@@ -94,9 +94,6 @@ class VideoWorker:
 
             with torch.no_grad():
                 outputs = self.model(tensor)
-
-            if self.mw.configure.name != MODULE_NAME:
-                return
 
             threshold = self.mw.configure.sldThreshold.value()
             scores = outputs[0]['scores'].detach().cpu().numpy()
@@ -118,7 +115,7 @@ class VideoWorker:
                         cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), (r, g, b), 2)
 
         except Exception as ex:
-            if self.last_ex != str(ex):
+            if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception("retinanet worker call error")
             self.last_ex = str(ex)
 

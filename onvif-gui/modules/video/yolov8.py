@@ -179,7 +179,7 @@ class VideoWorker:
                     self.mw.configure.getLabel(lbl).setCount(label_counts[lbl])
             
         except Exception as ex:
-            if self.last_ex != str(ex):
+            if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception("yolov8 runtime error")
             self.last_ex = str(ex)
 

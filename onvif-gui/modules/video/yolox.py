@@ -216,9 +216,6 @@ class VideoWorker:
                 outputs = self.model(timg)
                 outputs = postprocess(outputs, self.num_classes, confthre, nmsthre)
 
-            if self.mw.configure.name != MODULE_NAME:
-                return
-            
             if outputs[0] is not None:
                 output = outputs[0].cpu()
                 if self.mw.configure.chkTrack.isChecked():
@@ -231,7 +228,7 @@ class VideoWorker:
                     self.draw_plain_boxes(img, output, ratio)
 
         except Exception as ex:
-            if self.last_ex != str(ex):
+            if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception("yolox runtime error")
             self.last_ex = str(ex)
 

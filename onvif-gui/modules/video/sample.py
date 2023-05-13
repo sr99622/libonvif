@@ -46,14 +46,13 @@ class VideoWorker:
     def __init__(self, mw):
         try:
             self.mw = mw
+            self.last_ex = ""
+
         except:
             logger.exception("sample worker failed to load")
 
     def __call__(self, F):
         try:
-            if self.mw.configure.name != MODULE_NAME:
-                return
-            
             img = np.array(F, copy = False)
             milliseconds = F.m_rts
             seconds, milliseconds = divmod(milliseconds, 1000)
@@ -76,5 +75,8 @@ class VideoWorker:
                 color = (255, 0, 0)
 
             cv2.putText(img, timestamp, (int(textX), int(textY)), cv2.FONT_HERSHEY_PLAIN, 12, color, 12)
-        except:
-            logger.exception("sample worker call error")
+
+        except Exception as ex:
+            if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
+                logger.exception("sample worker call error")
+            self.last_ex = str(ex)

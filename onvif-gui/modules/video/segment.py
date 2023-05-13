@@ -71,11 +71,10 @@ class VideoConfigure(QWidget):
 
 class VideoWorker:
     def __init__(self, mw):
-        self.mw = mw
-        self.last_ex = ""
-        self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
-
         try:
+            self.mw = mw
+            self.last_ex = ""
+            self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
             ckpt_file = 'auto'
             fp16 = True
             self.simple = True
@@ -135,9 +134,6 @@ class VideoWorker:
             test_classes = predictions.pred_classes.cpu().numpy()
             test_boxes = predictions.pred_boxes.tensor.cpu().numpy().astype(int)
 
-            if self.mw.configure.name != MODULE_NAME:
-                return
-
             masks = []
             classes = []
             boxes = []
@@ -178,7 +174,7 @@ class VideoWorker:
                 cv2.line(img, (box[0], box[3]), (box[2], box[3]), color, 2)
 
         except Exception as ex:
-            if self.last_ex != str(ex):
+            if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception("Instance Segmentation runtime error")
             self.last_ex = str(ex)
 

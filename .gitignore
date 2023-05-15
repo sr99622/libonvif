@@ -9,3 +9,6 @@ lib/
 pyvenv.cfg
 share/
 *.pt
+*.engine
+*.onnx
+runs/

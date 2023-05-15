@@ -102,10 +102,10 @@ class VideoConfigure(QWidget):
             lytMain.setRowStretch(8, 10)
 
             if len(IMPORT_ERROR) > 0:
-                QMessageBox.critical(None, "YOLOX Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
+                QMessageBox.critical(None, MODULE_NAME + " Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
 
         except:
-            logger.exception("yolox configure failed to load")
+            logger.exception(MODULE_NAME + " configure failed to load")
 
     def chkAutoClicked(self, state):
         self.mw.settings.setValue(self.autoKey, state)
@@ -168,7 +168,7 @@ class VideoWorker:
             self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
 
         except:
-            logger.exception("yolox initialization failure")
+            logger.exception(MODULE_NAME + " initialization failure")
 
     def __call__(self, F):
         try:
@@ -229,7 +229,7 @@ class VideoWorker:
 
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
-                logger.exception("yolox runtime error")
+                logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
 
     def draw_plain_boxes(self, img, output, ratio):

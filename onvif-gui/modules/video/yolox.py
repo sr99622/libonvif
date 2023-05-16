@@ -33,10 +33,10 @@ try:
     import torch
     from torchvision.transforms import functional
     import torch.nn as nn
-
+    
     from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
     from yolox.utils import postprocess
-    from yolox.tracker.byte_tracker import BYTETracker
+    from tracker.byte_tracker import BYTETracker
 
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
@@ -74,7 +74,7 @@ class VideoConfigure(QWidget):
             self.chkTrack.stateChanged.connect(self.chkTrackClicked)
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
-            self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
+            #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
             number_of_labels = 5
             self.labels = []
@@ -91,9 +91,9 @@ class VideoConfigure(QWidget):
 
             lytMain = QGridLayout(self)
             lytMain.addWidget(self.chkAuto,      0, 0, 1, 1)
-            lytMain.addWidget(self.txtFilename,  1, 0, 1, 1)
-            lytMain.addWidget(self.cmbRes,       2, 0, 1, 1)
-            lytMain.addWidget(self.cmbType,      3, 0, 1, 1)
+            lytMain.addWidget(self.cmbType,      1, 0, 1, 1)
+            lytMain.addWidget(self.txtFilename,  2, 0, 1, 1)
+            lytMain.addWidget(self.cmbRes,       3, 0, 1, 1)
             lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
             lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
             lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
@@ -116,7 +116,7 @@ class VideoConfigure(QWidget):
 
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
-        self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
+        #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
 class VideoWorker:
     def __init__(self, mw):
@@ -133,10 +133,6 @@ class VideoWorker:
             self.fp16 = self.mw.configure.chkFP16.isChecked()
             self.track = self.mw.configure.chkTrack.isChecked()
 
-            track_thresh = 0.5
-            track_buffer = 30
-            match_thresh = 0.8
-
             size = {'yolox_s': [0.33, 0.50], 
                     'yolox_m': [0.67, 0.75],
                     'yolox_l': [1.00, 1.00],
@@ -149,7 +145,6 @@ class VideoWorker:
             self.ckpt_file = None
             if self.mw.configure.chkAuto.isChecked():
                 self.ckpt_file = self.get_auto_ckpt_filename()
-                print("cpkt_file:", self.ckpt_file)
                 cache = Path(self.ckpt_file)
 
                 if not cache.is_file():
@@ -165,7 +160,11 @@ class VideoWorker:
             if self.fp16:
                 self.model = self.model.half()
 
-            self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
+            self.track_thresh = self.mw.configure.sldConfThre.value()
+            self.track_buffer = 30
+            self.match_thresh = 0.8
+
+            self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
 
         except:
             logger.exception(MODULE_NAME + " initialization failure")
@@ -199,7 +198,6 @@ class VideoWorker:
             if self.ckpt_file != tmp:
                 self.__init__(self.mw)
 
-
             if self.mw.configure.chkTrack.isChecked():
                 confthre = 0.001
             else:
@@ -222,6 +220,12 @@ class VideoWorker:
                     labels = output[:, 6].numpy().astype(int)
                     mask = np.in1d(labels, label_filter)
                     output = output[mask]
+                    output = output.cpu().numpy()
+                    
+                    if self.track_thresh != self.mw.configure.sldConfThre.value():
+                        self.track_thresh = self.mw.configure.sldConfThre.value()
+                        self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
+
                     online_targets = self.tracker.update(output, [img.shape[0], img.shape[1]], test_size)
                     self.draw_track_boxes(img, online_targets)
                 else:

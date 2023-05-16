@@ -11,7 +11,7 @@ try:
 
     import torch
     from ultralytics import YOLO
-    from yolox.tracker.byte_tracker import BYTETracker
+    from tracker.byte_tracker import BYTETracker
 
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
@@ -36,7 +36,7 @@ class VideoConfigure(QWidget):
             self.chkAuto.setChecked(int(self.mw.settings.value(self.autoKey, 1)))
             self.chkAuto.stateChanged.connect(self.chkAutoClicked)
 
-            self.cmbModel = ComboSelector(mw, "Model", self.model_names.keys(), "nano", MODULE_NAME)
+            self.cmbModel = ComboSelector(mw, "Model Name", self.model_names.keys(), "nano", MODULE_NAME)
             self.cmbModel.setEnabled(self.chkAuto.isChecked())
 
             self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "320", MODULE_NAME)
@@ -75,10 +75,10 @@ class VideoConfigure(QWidget):
             lytMain.setRowStretch(7, 10)
 
             if len(IMPORT_ERROR) > 0:
-                QMessageBox.critical(None, "YOLOV8 Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
+                QMessageBox.critical(None, MODULE_NAME + " Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
 
         except:
-            logger.exception("yolov8 configure failed to load")
+            logger.exception(MODULE_NAME + " configure failed to load")
 
     def chkAutoClicked(self, state):
         self.mw.settings.setValue(self.autoKey, state)
@@ -108,14 +108,14 @@ class VideoWorker:
             self.model_name = self.mw.configure.getModelName()
             self.model = YOLO(self.model_name)
 
-            track_thresh = 0.5
-            track_buffer = 30
-            match_thresh = 0.8
+            self.track_thresh = self.mw.configure.sldConfThre.value()
+            self.track_buffer = 30
+            self.match_thresh = 0.8
 
-            self.tracker = BYTETracker(track_thresh, track_buffer, match_thresh)
+            self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
 
         except:
-            logger.exception("yolov8 initialization failure")
+            logger.exception(MODULE_NAME + " initialization failure")
 
     def __call__(self, F):
         try:
@@ -146,12 +146,14 @@ class VideoWorker:
                 if self.mw.configure.chkTrack.isChecked():
                     output = result.boxes.xyxy
                     scores = result.boxes.conf.reshape(-1, 1)
-                    dummy = torch.ones_like(scores)
                     labels = result.boxes.cls.reshape(-1, 1)
-
                     output = torch.hstack((output, scores))
-                    output = torch.hstack((output, dummy))
                     output = torch.hstack((output, labels))
+                    output = output.cpu().numpy()
+
+                    if self.track_thresh != self.mw.configure.sldConfThre.value():
+                        self.track_thresh = self.mw.configure.sldConfThre.value()
+                        self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
 
                     online_targets = self.tracker.update(output, [img.shape[0] * res / img.shape[1], res], (res, res))
 
@@ -180,7 +182,7 @@ class VideoWorker:
             
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
-                logger.exception("yolov8 runtime error")
+                logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
 
 

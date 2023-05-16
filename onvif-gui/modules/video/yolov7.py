@@ -4,6 +4,7 @@ try:
     import os
     import sys
     import numpy as np
+    from pathlib import Path
     from loguru import logger
 
     from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
@@ -12,7 +13,7 @@ try:
 
     import cv2
     import torch
-    from numpy import random
+    from tracker.byte_tracker import BYTETracker
 
     sys.path.append("yolov7")
     from models.experimental import attempt_load
@@ -45,18 +46,18 @@ class VideoConfigure(QWidget):
             self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
             self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
-            self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
+            self.cmbType = ComboSelector(mw, "Model Name", ("yolov7", "yolov7x", "yolov7-w6", "yolov7-e6", "yolov7-d6", "yolov7-e6e"), "yolov7", MODULE_NAME)
 
-            self.chkFP16 = QCheckBox("Use half precision math")
-            self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
-            self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
+            #self.chkFP16 = QCheckBox("Use half precision math")
+            #self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
+            #self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
 
             self.chkTrack = QCheckBox("Track Objects")
             self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
             self.chkTrack.stateChanged.connect(self.chkTrackClicked)
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
-            self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
+            #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
             number_of_labels = 5
             self.labels = []
@@ -73,11 +74,11 @@ class VideoConfigure(QWidget):
 
             lytMain = QGridLayout(self)
             lytMain.addWidget(self.chkAuto,      0, 0, 1, 1)
-            lytMain.addWidget(self.txtFilename,  1, 0, 1, 1)
-            lytMain.addWidget(self.cmbRes,       2, 0, 1, 1)
-            lytMain.addWidget(self.cmbType,      3, 0, 1, 1)
+            lytMain.addWidget(self.cmbType,      1, 0, 1, 1)
+            lytMain.addWidget(self.txtFilename,  2, 0, 1, 1)
+            lytMain.addWidget(self.cmbRes,       3, 0, 1, 1)
             lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
-            lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
+            #lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
             lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
             lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
             lytMain.addWidget(QLabel(),          8, 0, 1, 1)
@@ -93,12 +94,17 @@ class VideoConfigure(QWidget):
         self.mw.settings.setValue(self.autoKey, state)
         self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-    def chkFP16Clicked(self, state):
-        self.mw.settings.setValue(self.fp16Key, state)
+    #def chkFP16Clicked(self, state):
+    #    self.mw.settings.setValue(self.fp16Key, state)
 
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
-        self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
+        #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
+
+    def getLabel(self, cls):
+        for lbl in self.labels:
+            if lbl.label() == cls:
+                return lbl
 
 class VideoWorker:
     def __init__(self, mw):
@@ -106,23 +112,43 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
-            weights=['yolov7.pt']
-            self.imgsz=640
-            self.conf_thres=0.25
-            self.iou_thres=0.45
-            self.classes = [0, 2]
+            self.ckpt_file = None
+            if self.mw.configure.chkAuto.isChecked():
+                self.ckpt_file = self.get_auto_ckpt_filename()
+                print("cpkt_file:", self.ckpt_file)
+                cache = Path(self.ckpt_file)
+
+                if not cache.is_file():
+                    cache.parent.mkdir(parents=True, exist_ok=True)
+                    model_name = self.mw.configure.cmbType.currentText()
+                    link = "https://github.com/WongKinYiu/yolov7/releases/download/v0.1/" + model_name + ".pt"
+                    torch.hub.download_url_to_file(link, self.ckpt_file)
+            else:
+                self.ckpt_file = self.mw.configure.txtFilename.text()
+
+
+            #weights=['/home/stephen/source/yolov7/yolov7.pt']
+            weights = self.ckpt_file
+            res = int(self.mw.configure.cmbRes.currentText())
+            #self.conf_thres = 0.25
+            self.iou_thres = 0.45
 
             self.device = select_device('')
             self.half = self.device.type != 'cpu'
             self.model = attempt_load(weights, map_location=self.device)
             self.stride = int(self.model.stride.max())
-            self.imgsz = check_img_size(self.imgsz, s=self.stride)
+            #self.imgsz = check_img_size(self.imgsz, s=self.stride)
             if self.half:
                 self.model.half()
             self.names = self.model.module.names if hasattr(self.model, 'module') else self.model.names
-            self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.names]
             with torch.no_grad():
-                self.model(torch.zeros(1, 3, self.imgsz, self.imgsz).to(self.device).type_as(next(self.model.parameters())))
+                self.model(torch.zeros(1, 3, res, res).to(self.device).type_as(next(self.model.parameters())))
+
+            self.track_thresh = self.mw.configure.sldConfThre.value()
+            self.track_buffer = 30
+            self.match_thresh = 0.8
+
+            self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
 
         except:
             logger.exception(MODULE_NAME + " initialization failure")
@@ -130,7 +156,9 @@ class VideoWorker:
     def __call__(self, F):
         try:
             original_img = np.array(F, copy=False)
-            img = letterbox(original_img, self.imgsz, stride=self.stride)[0]
+
+            res = int(self.mw.configure.cmbRes.currentText())
+            img = letterbox(original_img, res, stride=self.stride)[0]
             img = img[:, :, ::-1].transpose(2, 0, 1)
             img = np.ascontiguousarray(img)
             img = torch.from_numpy(img).to(self.device)
@@ -139,26 +167,79 @@ class VideoWorker:
             if img.ndimension() == 3:
                 img = img.unsqueeze(0)
 
+            tmp = None
+            if self.mw.configure.chkAuto.isChecked():
+                tmp = self.get_auto_ckpt_filename()
+            else:
+                tmp = self.mw.configure.txtFilename.text()
+            if self.ckpt_file != tmp:
+                self.__init__(self.mw)
+
             with torch.no_grad():
                 pred = self.model(img, augment=False)[0]
 
-            pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, classes=self.classes, agnostic=False)
+            conf_thres = self.mw.configure.sldConfThre.value()
+            if self.mw.configure.chkTrack.isChecked():
+                conf_thres = 0.001
+
+            label_counts = {}
+            label_filter = []
+            for lbl in self.mw.configure.labels:
+                if lbl.chkBox.isChecked():
+                    label_filter.append(lbl.label())
+                    label_counts[lbl.label()] = 0
+
+            pred = non_max_suppression(pred, conf_thres, self.iou_thres, classes=label_filter, agnostic=False)
 
             boxes = pred[0]
             if len(boxes):
                 boxes[:, :4] = scale_coords(img.shape[2:], boxes[:, :4], original_img.shape).round()
                 boxes = boxes.cpu().numpy()
 
-                for box in boxes:
-                    x1, y1, x2, y2 = box[:4].astype(int)
-                    cls = box[5].astype(int)
-                    cv2.rectangle(original_img, (x1, y1), (x2, y2), self.colors[cls], 2)
-            else:
-                print("len(boxes) == 0")
+
+                if self.mw.configure.chkTrack.isChecked():
+                    w = original_img.shape[0]
+                    h = original_img.shape[1]
+                    if self.track_thresh != self.mw.configure.sldConfThre.value():
+                        self.track_thresh = self.mw.configure.sldConfThre.value()
+                        self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
+
+                    online_targets = self.tracker.update(boxes, [w * res / h, res], (res, res))
+                    for t in online_targets:
+                        label_counts[t.label] += 1
+                        track_id = int(t.track_id)
+                        id_text = '{}'.format(int(track_id)).zfill(5)
+                        box_color = ((37 * track_id) % 255, (17 * track_id) % 255, (29 * track_id) % 255)
+
+                        x, y, w, h = t.tlwh.astype(int)
+                        cv2.rectangle(original_img, (x, y), (x+w, y+h), box_color, 2)
+                        label_color = self.mw.configure.getLabel(t.label).color()
+                        cv2.putText(original_img, id_text, (x, y), cv2.FONT_HERSHEY_PLAIN, 2, label_color, 2)
+
+                else:
+                    for box in boxes:
+                        x1, y1, x2, y2 = box[:4].astype(int)
+                        cls = box[5].astype(int)
+                        label_counts[cls] += 1
+                        color = self.mw.configure.getLabel(cls).color()
+                        cv2.rectangle(original_img, (x1, y1), (x2, y2), color, 2)
+
+            for lbl in label_filter:
+                self.mw.configure.getLabel(lbl).setCount(label_counts[lbl])
 
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
+
+    def get_auto_ckpt_filename(self):
+        filename = None
+        if sys.platform == "win32":
+            filename = os.environ['HOMEPATH']
+        else:
+            filename = os.environ['HOME']
+
+        filename += "/.cache/torch/hub/checkpoints/" + self.mw.configure.cmbType.currentText() + ".pt"
+        return filename
 
         

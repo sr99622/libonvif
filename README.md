@@ -468,7 +468,7 @@ interface implementation.
 The program comes with pre-installed modules that may be enabled by following
 the instructions for Module Installation.
 
-* ### YOLOX with ByteTrack
+* ### YOLOX, yolov8 and yolov7 with ByteTrack
 
 There is included with onvif-gui a full implementation of the 
 [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) algorithm
@@ -477,11 +477,11 @@ along with an associated tracking algorithm known as
 are implemented using pytorch, which requires some specific configuration, see
 Module Installation for details.
 <p>
-Please note that if running a customized model, the model name parameter must be 
-set to match the model depth.  For example if the custom model using yolox_m 
-format, the Model Name parameter must be set to yolox_m.  The error message
-'Error(s) in loading state_dict for YOLOX' is typical for the failure to 
-correctly match these parameters.
+
+Also included are implementations for
+[yolov8](https://github.com/ultralytics/ultralytics) and
+[yolov7](https://github.com/WongKinYiu/yolov7) which both also have
+bytetrack implementations
 
 * ### Detectron2
 
@@ -513,7 +513,7 @@ has been installed as directed above.
 
 ```
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix iopath fvcore lap_sdist
+pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix iopath fvcore lap_sdist ultralytics
 ```
 
 Note that when starting the modules, the program is set to automatically download the required 
@@ -1059,6 +1059,60 @@ If you use Detectron2 in your research or wish to refer to the baseline results 
   year =         {2019}
 }
 ```
+
+---
+
+&nbsp;
+</details>
+
+<details>
+<summary>yolov7 - <i>GPL-3.0</i></summary>
+
+---
+
+WongKinYiu/yolov7 is licensed under the
+[GNU General Public License v3.0](https://github.com/WongKinYiu/yolov7/blob/main/LICENSE.md)
+
+
+Permissions of this strong copyleft license are conditioned on making available complete source code of licensed works and modifications, which include larger works using a licensed work, under the same license. Copyright and license notices must be preserved. Contributors provide an express grant of patent rights.
+
+
+Citation
+
+```
+
+@article{wang2022yolov7,
+  title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
+  author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
+  journal={arXiv preprint arXiv:2207.02696},
+  year={2022}
+}
+```
+
+```
+
+@article{wang2022designing,
+  title={Designing Network Design Strategies Through Gradient Path Analysis},
+  author={Wang, Chien-Yao and Liao, Hong-Yuan Mark and Yeh, I-Hau},
+  journal={arXiv preprint arXiv:2211.04800},
+  year={2022}
+}
+```
+
+---
+
+&nbsp;
+</details>
+
+<details>
+<summary>yolov8 - <i>AGPL-3.0</i></summary>
+
+---
+
+ultralytics/ultralytics is licensed under the
+[GNU Affero General Public License v3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE)
+
+Permissions of this strongest copyleft license are conditioned on making available complete source code of licensed works and modifications, which include larger works using a licensed work, under the same license. Copyright and license notices must be preserved. Contributors provide an express grant of patent rights. When a modified version is used to provide a service over a network, the complete source code of the modified version must be made available.
 
 ---
 

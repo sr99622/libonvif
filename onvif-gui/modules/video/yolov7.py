@@ -16,6 +16,20 @@ try:
     from tracker.byte_tracker import BYTETracker
 
     sys.path.append("yolov7")
+
+    if not os.path.exists("models"):
+        for path in sys.path:
+            models_dir = os.path.join(path, "models")
+            if os.path.exists(models_dir):
+                sys.path.append(models_dir)
+
+    if not os.path.exists("utils"):
+        for path in sys.path:
+            utils_dir = os.path.join(path, "utils")
+            if os.path.exists(utils_dir):
+                sys.path.append(utils_dir)
+
+
     from models.experimental import attempt_load
     from utils.datasets import letterbox
     from utils.general import check_img_size, non_max_suppression, scale_coords

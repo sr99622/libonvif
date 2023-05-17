@@ -74,7 +74,6 @@ class VideoConfigure(QWidget):
             self.chkTrack.stateChanged.connect(self.chkTrackClicked)
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
-            #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
             number_of_labels = 5
             self.labels = []
@@ -116,7 +115,6 @@ class VideoConfigure(QWidget):
 
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
-        #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
 class VideoWorker:
     def __init__(self, mw):

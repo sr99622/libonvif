@@ -1,3 +1,22 @@
+#/********************************************************************
+# onvif-gui/modules/video/yolov7.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
+
 IMPORT_ERROR = ""
 try:
     import cv2
@@ -16,23 +35,14 @@ try:
     from tracker.byte_tracker import BYTETracker
 
     sys.path.append("yolov7")
-
-    if not os.path.exists("models"):
-        for path in sys.path:
-            models_dir = os.path.join(path, "models")
-            if os.path.exists(models_dir):
-                sys.path.append(models_dir)
-
-    if not os.path.exists("utils"):
-        for path in sys.path:
-            utils_dir = os.path.join(path, "utils")
-            if os.path.exists(utils_dir):
-                sys.path.append(utils_dir)
-
+    for path in sys.path:
+        tmp = os.path.join(path, "yolov7")
+        if os.path.isdir(tmp):
+            sys.path.append(tmp)
 
     from models.experimental import attempt_load
     from utils.datasets import letterbox
-    from utils.general import check_img_size, non_max_suppression, scale_coords
+    from utils.general import non_max_suppression, scale_coords
     from utils.torch_utils import select_device
 
 except ModuleNotFoundError as ex:
@@ -62,16 +72,11 @@ class VideoConfigure(QWidget):
             self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
             self.cmbType = ComboSelector(mw, "Model Name", ("yolov7", "yolov7x", "yolov7-w6", "yolov7-e6", "yolov7-d6", "yolov7-e6e"), "yolov7", MODULE_NAME)
 
-            #self.chkFP16 = QCheckBox("Use half precision math")
-            #self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
-            #self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
-
             self.chkTrack = QCheckBox("Track Objects")
             self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
             self.chkTrack.stateChanged.connect(self.chkTrackClicked)
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
-            #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
             number_of_labels = 5
             self.labels = []
@@ -92,7 +97,6 @@ class VideoConfigure(QWidget):
             lytMain.addWidget(self.txtFilename,  2, 0, 1, 1)
             lytMain.addWidget(self.cmbRes,       3, 0, 1, 1)
             lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
-            #lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
             lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
             lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
             lytMain.addWidget(QLabel(),          8, 0, 1, 1)
@@ -108,12 +112,8 @@ class VideoConfigure(QWidget):
         self.mw.settings.setValue(self.autoKey, state)
         self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-    #def chkFP16Clicked(self, state):
-    #    self.mw.settings.setValue(self.fp16Key, state)
-
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
-        #self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
     def getLabel(self, cls):
         for lbl in self.labels:
@@ -141,17 +141,14 @@ class VideoWorker:
                 self.ckpt_file = self.mw.configure.txtFilename.text()
 
 
-            #weights=['/home/stephen/source/yolov7/yolov7.pt']
             weights = self.ckpt_file
             res = int(self.mw.configure.cmbRes.currentText())
-            #self.conf_thres = 0.25
             self.iou_thres = 0.45
 
             self.device = select_device('')
             self.half = self.device.type != 'cpu'
             self.model = attempt_load(weights, map_location=self.device)
             self.stride = int(self.model.stride.max())
-            #self.imgsz = check_img_size(self.imgsz, s=self.stride)
             if self.half:
                 self.model.half()
             self.names = self.model.module.names if hasattr(self.model, 'module') else self.model.names

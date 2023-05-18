@@ -106,7 +106,6 @@ class VideoConfigure(QWidget):
 
     def chkTrackClicked(self,state):
         self.mw.settings.setValue(self.trackKey, state)
-        self.sldConfThre.setEnabled(not self.chkTrack.isChecked())
 
     def getModelName(self):
         if self.chkAuto.isChecked():
@@ -153,6 +152,8 @@ class VideoWorker:
 
             if self.model_name != self.mw.configure.getModelName():
                 self.model_name = self.mw.configure.getModelName()
+                with torch.no_grad():
+                    torch.cuda.empty_cache()
                 self.model = YOLO(self.model_name)
 
             res = int(self.mw.configure.cmbRes.currentText())
@@ -203,6 +204,3 @@ class VideoWorker:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
-
-
-

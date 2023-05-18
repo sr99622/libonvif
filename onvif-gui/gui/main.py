@@ -35,8 +35,6 @@ sys.path.append("../build/libavio")
 sys.path.append("../build/libavio/Release")
 import avio
 
-FORCE_DIRECT_RENDER = False
-
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)
     stopped = pyqtSignal()
@@ -56,7 +54,7 @@ class MainWindow(QMainWindow):
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
-        self.program_name = "onvif gui version 1.1.6"
+        self.program_name = "onvif gui version 1.1.7"
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
         self.settings = QSettings("onvif", "gui")
@@ -102,13 +100,10 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.audioPanel, "Audio")
         self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
 
-        if FORCE_DIRECT_RENDER:
-            self.glWidget = ViewLabel()
+        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
+            self.glWidget = GLWidget()
         else:
-            if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
-                self.glWidget = GLWidget()
-            else:
-                self.glWidget = ViewLabel()
+            self.glWidget = ViewLabel()
 
         self.split = QSplitter()
         self.split.addWidget(self.glWidget)
@@ -231,13 +226,10 @@ class MainWindow(QMainWindow):
         if len(audio_filter) > 0:
             self.player.audio_filter = audio_filter
 
-        if FORCE_DIRECT_RENDER:
-            self.player.hWnd = self.glWidget.winId()
+        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
+            self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
         else:
-            if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
-                self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
-            else:
-                self.player.hWnd = self.glWidget.winId()
+            self.player.hWnd = self.glWidget.winId()
 
         self.player.disable_audio = self.settingsPanel.chkDisableAudio.isChecked()
         self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()
@@ -254,6 +246,7 @@ class MainWindow(QMainWindow):
         self.player.hw_device_type = self.settingsPanel.getDecoder()
         self.player.hw_encoding = self.settingsPanel.chkHardwareEncode.isChecked()
         self.player.post_encode = self.settingsPanel.chkPostEncode.isChecked()
+        self.player.process_pause = self.settingsPanel.chkProcessPause.isChecked()
         self.player.start()
         self.cameraPanel.setEnabled(False)
 

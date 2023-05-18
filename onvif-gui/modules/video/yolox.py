@@ -52,7 +52,7 @@ class VideoConfigure(QWidget):
             self.mw = mw
             self.name = MODULE_NAME
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
-            self.fp16Key = "Module/" + MODULE_NAME + "/fp16"
+            #self.fp16Key = "Module/" + MODULE_NAME + "/fp16"
             self.trackKey = "Module/" + MODULE_NAME + "/track"
 
             self.chkAuto = QCheckBox("Automatically download model")
@@ -65,9 +65,9 @@ class VideoConfigure(QWidget):
             self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
             self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
 
-            self.chkFP16 = QCheckBox("Use half precision math")
-            self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
-            self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
+            #self.chkFP16 = QCheckBox("Use half precision math")
+            #self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
+            #self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
 
             self.chkTrack = QCheckBox("Track Objects")
             self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
@@ -94,7 +94,7 @@ class VideoConfigure(QWidget):
             lytMain.addWidget(self.txtFilename,  2, 0, 1, 1)
             lytMain.addWidget(self.cmbRes,       3, 0, 1, 1)
             lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
-            lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
+            #lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
             lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
             lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
             lytMain.addWidget(QLabel(),          8, 0, 1, 1)
@@ -110,8 +110,8 @@ class VideoConfigure(QWidget):
         self.mw.settings.setValue(self.autoKey, state)
         self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-    def chkFP16Clicked(self, state):
-        self.mw.settings.setValue(self.fp16Key, state)
+    #def chkFP16Clicked(self, state):
+    #    self.mw.settings.setValue(self.fp16Key, state)
 
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
@@ -128,8 +128,8 @@ class VideoWorker:
 
             self.num_classes = 80
 
-            self.fp16 = self.mw.configure.chkFP16.isChecked()
-            self.track = self.mw.configure.chkTrack.isChecked()
+            #self.fp16 = self.mw.configure.chkFP16.isChecked()
+            #self.track = self.mw.configure.chkTrack.isChecked()
 
             size = {'yolox_s': [0.33, 0.50], 
                     'yolox_m': [0.67, 0.75],
@@ -155,8 +155,8 @@ class VideoWorker:
 
             self.model.load_state_dict(torch.load(self.ckpt_file, map_location="cpu")["model"])
 
-            if self.fp16:
-                self.model = self.model.half()
+            #if self.fp16:
+            #    self.model = self.model.half()
 
             self.track_thresh = self.mw.configure.sldConfThre.value()
             self.track_buffer = 30
@@ -185,16 +185,8 @@ class VideoWorker:
             timg = functional.pad(timg, pad, 114)
             timg = timg.unsqueeze(0)
 
-            if self.fp16:
-                timg = timg.half()  # to FP16
-
-            tmp = None
-            if self.mw.configure.chkAuto.isChecked():
-                tmp = self.get_auto_ckpt_filename()
-            else:
-                tmp = self.mw.configure.txtFilename.text()
-            if self.ckpt_file != tmp:
-                self.__init__(self.mw)
+            #if self.fp16:
+            #    timg = timg.half()  # to FP16
 
             if self.mw.configure.chkTrack.isChecked():
                 confthre = 0.001
@@ -228,6 +220,14 @@ class VideoWorker:
                     self.draw_track_boxes(img, online_targets)
                 else:
                     self.draw_plain_boxes(img, output, ratio)
+
+            tmp = None
+            if self.mw.configure.chkAuto.isChecked():
+                tmp = self.get_auto_ckpt_filename()
+            else:
+                tmp = self.mw.configure.txtFilename.text()
+            if self.ckpt_file != tmp:
+                self.__init__(self.mw)
 
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:

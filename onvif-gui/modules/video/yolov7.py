@@ -22,6 +22,7 @@ try:
     import cv2
     import os
     import sys
+    import gc
     import numpy as np
     from pathlib import Path
     from loguru import logger
@@ -59,7 +60,6 @@ class VideoConfigure(QWidget):
             self.mw = mw
             self.name = MODULE_NAME
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
-            self.fp16Key = "Module/" + MODULE_NAME + "/fp16"
             self.trackKey = "Module/" + MODULE_NAME + "/track"
 
             self.chkAuto = QCheckBox("Automatically download model")
@@ -69,8 +69,8 @@ class VideoConfigure(QWidget):
             self.txtFilename = FileSelector(mw, MODULE_NAME)
             self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-            self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
-            self.cmbType = ComboSelector(mw, "Model Name", ("yolov7", "yolov7x", "yolov7-w6", "yolov7-e6", "yolov7-d6", "yolov7-e6e"), "yolov7", MODULE_NAME)
+            self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280"), "640", MODULE_NAME)
+            self.cmbType = ComboSelector(mw, "Model Name", ("yolov7", "yolov7x"), "yolov7", MODULE_NAME)
 
             self.chkTrack = QCheckBox("Track Objects")
             self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
@@ -147,6 +147,12 @@ class VideoWorker:
 
             self.device = select_device('')
             self.half = self.device.type != 'cpu'
+
+            self.model = None
+            gc.collect()
+            with torch.no_grad():
+                torch.cuda.empty_cache()
+
             self.model = attempt_load(weights, map_location=self.device)
             self.stride = int(self.model.stride.max())
             if self.half:
@@ -178,14 +184,6 @@ class VideoWorker:
             if img.ndimension() == 3:
                 img = img.unsqueeze(0)
 
-            tmp = None
-            if self.mw.configure.chkAuto.isChecked():
-                tmp = self.get_auto_ckpt_filename()
-            else:
-                tmp = self.mw.configure.txtFilename.text()
-            if self.ckpt_file != tmp:
-                self.__init__(self.mw)
-
             with torch.no_grad():
                 pred = self.model(img, augment=False)[0]
 
@@ -206,7 +204,6 @@ class VideoWorker:
             if len(boxes):
                 boxes[:, :4] = scale_coords(img.shape[2:], boxes[:, :4], original_img.shape).round()
                 boxes = boxes.cpu().numpy()
-
 
                 if self.mw.configure.chkTrack.isChecked():
                     w = original_img.shape[0]
@@ -237,6 +234,14 @@ class VideoWorker:
 
             for lbl in label_filter:
                 self.mw.configure.getLabel(lbl).setCount(label_counts[lbl])
+
+            tmp = None
+            if self.mw.configure.chkAuto.isChecked():
+                tmp = self.get_auto_ckpt_filename()
+            else:
+                tmp = self.mw.configure.txtFilename.text()
+            if self.ckpt_file != tmp:
+                self.__init__(self.mw)
 
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:

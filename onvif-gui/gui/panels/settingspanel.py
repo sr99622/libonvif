@@ -46,6 +46,7 @@ class SettingsPanel(QWidget):
         self.disableVideoKey = "settings/disableVideo"
         self.postEncodeKey = "settings/postEncode"
         self.hardwareEncodeKey = "settings/hardwareEncode"
+        self.processPauseKey = "settings/processPause"
         self.processFrameKey = "settings/processFrame"
         self.cacheSizeKey = "settings/cacheSize"
         self.interfaceKey = "settings/interface"
@@ -112,6 +113,10 @@ class SettingsPanel(QWidget):
         self.chkHardwareEncode.setEnabled(self.chkPostEncode.isChecked())
         self.chkHardwareEncode.stateChanged.connect(self.hardwareEncodeChecked)
 
+        self.chkProcessPause = QCheckBox("Process Pause")
+        self.chkProcessPause.setChecked(int(mw.settings.value(self.processPauseKey, 0)))
+        self.chkProcessPause.stateChanged.connect(self.processPauseChecked)
+
         self.chkLowLatency = QCheckBox("Low Latency")
         self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
         self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
@@ -124,6 +129,7 @@ class SettingsPanel(QWidget):
         lytChecks.addWidget(self.chkDisableVideo,   1, 1, 1, 1)
         lytChecks.addWidget(self.chkPostEncode,     2, 0, 1, 1)
         lytChecks.addWidget(self.chkHardwareEncode, 2, 1, 1, 1)
+        lytChecks.addWidget(self.chkProcessPause,   3, 0, 1, 1)
         lytChecks.addWidget(self.chkLowLatency,     3, 1, 1, 1)
 
         self.spnCacheSize = QSpinBox()
@@ -249,6 +255,9 @@ class SettingsPanel(QWidget):
 
     def hardwareEncodeChecked(self, state):
         self.mw.settings.setValue(self.hardwareEncodeKey, state)
+
+    def processPauseChecked(self, state):
+        self.mw.settings.setValue(self.processPauseKey, state)
 
     def lowLatencyChecked(self, state):
         self.mw.settings.setValue(self.latencyKey, state)

@@ -27,7 +27,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(WIN32)
-    find_package(Iconv REQUIRED)
+    if($ENV{CONDA_PREFIX})
+        find_package(Iconv REQUIRED)
+    endif()
 endif()
 
 add_definitions(-w)

@@ -1,3 +1,6 @@
 [submodule "libonvif/pybind11"]
 	path = libonvif/pybind11
 	url = https://github.com/pybind/pybind11
+[submodule "libavio"]
+	path = libavio
+	url = https://github.com/sr99622/libavio

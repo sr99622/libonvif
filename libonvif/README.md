@@ -16,7 +16,7 @@ sudo apt install cmake libxml2-dev
 ```
 
 **Windows**, please use Anaconda.  The dependencies may
-be installed using the following command under a conda prompt.  The 
+be installed using the following command under a conda prompt. 
 Visual Studio C++ compiler must be installed as well.
 
 ```

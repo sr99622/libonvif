@@ -5,7 +5,6 @@ dist/
 sample.pro.user
 __pycache__/
 bin/
-lib/
 pyvenv.cfg
 share/
 *.pt

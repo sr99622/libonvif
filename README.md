@@ -6,11 +6,6 @@ A client side implementation of the ONVIF specification for Linux and Windows.
 Included are two tools for communicating with cameras, a command line program,
 onvif-util, and a program with a Graphical User Interface, onvi-gui.
 
-If installing this project on Windows, please use 
-[Anaconda](https://www.anaconda.com/) 
-with [Visual Studio](https://visualstudio.microsoft.com/) and 
-[CMake](https://cmake.org/) installed.
-
 &nbsp;
 
 ## Quick Start
@@ -26,13 +21,13 @@ Please select the instrucions for your operating system
 <details>
 <summary>Linux</summary>
 
-* ### Step 1. Install Dependecies
+* ## Step 1. Install Dependecies
 
   ```
   sudo apt install cmake g++ python3-pip libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
   ```
 
-* ### Step 2. Set up virtual environment
+* ## Step 2. Set up virtual environment
 
   ```
   sudo apt install virtualenv
@@ -40,13 +35,13 @@ Please select the instrucions for your operating system
   source myenv/bin/activate
   ```
 
-* ### Step 3. Install onvif-gui
+* ## Step 3. Install onvif-gui
 
   ```
   pip install onvif-gui
   ```
 
-* ### Step 4. Launch program
+* ## Step 4. Launch program
 
   ```
   onvif-gui
@@ -59,20 +54,20 @@ Please select the instrucions for your operating system
 <details>
 <summary>Windows</summary>
 
-* ### Step 1. Create virtual environment
+* ## Step 1. Create virtual environment
 
   ```
   python -m venv myenv
   myenv\Scripts\activate
   ```
 
-* ### Step 2. Install onvif-gui
+* ## Step 2. Install onvif-gui
   
   ```
   pip install onvif-gui
   ```
 
-* ### Step 3. Launch program
+* ## Step 3. Launch program
 
   ```
   onvif-gui
@@ -90,21 +85,16 @@ Please select the instrucions for your operating system
 
 ---
 
-### Step 1. Install Dependencies
+<details>
+<summary>Linux</summary>
 
-* ### Linux
+## Step 1. Install Dependencies
+
   ```
   sudo apt install git cmake g++ libxml2-dev
   ```
 
-* ### Windows (use Anaconda prompt)
-  ```
-  conda install -c conda-forge git libxml2
-  ```
-
-### Step 2. Install onvif-util
-
-* ### Linux
+## Step 2. Install onvif-util
 
   ```
   git clone --recursive https://github.com/sr99622/libonvif
@@ -117,10 +107,49 @@ Please select the instrucions for your operating system
   sudo ldconfig
   ```
 
-* ### Windows (use Anaconda prompt)
+## Step 3. Test the program
+
+  ```
+  onvif-util -a
+  ```
+
+## Step 4. Get program help
+
+  ```
+  onvif-util -h
+  ```
+
+</details>
+
+---
+
+<details>
+<summary>Windows</summary>
+
+  &nbsp;
+
+  If installing this project on Windows, please use 
+  [Anaconda](https://www.anaconda.com/) 
+  with [Visual Studio](https://visualstudio.microsoft.com/) and 
+  [CMake](https://cmake.org/) installed.
+
+  &nbsp;
+
+## Step 1. Install dependencies from conda prompt
+
+  ```
+  conda install -c conda-forge git libxml2
+  ```
+
+## Step 2. Clone repository
 
   ```
   git clone --recursive https://github.com/sr99622/libonvif
+
+  ```
+## Step 3. Run cmake and build
+
+  ```
   cd libonvif
   mkdir build
   cd build
@@ -129,17 +158,18 @@ Please select the instrucions for your operating system
   cmake --install .
   ```
 
-### Step 3. Test the program
+## Step 4. Test the program
 
-```
-onvif-util -a
-```
+  ```
+  onvif-util -a
+  ```
 
-### Step 4. Get program help
+## Step 5. Get program help
 
-```
-onvif-util -h
-```
+  ```
+  onvif-util -h
+  ```
+</details>
 
 ---
 &nbsp;

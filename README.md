@@ -19,9 +19,12 @@ with [Visual Studio](https://visualstudio.microsoft.com/) and
 <summary>onvif-gui <i>(Graphical User Interface)</i></summary>
 &nbsp;
 
+Please select the instrucions for your operating system
+
 ---
 
-### Linux
+<details>
+<summary>Linux</summary>
 
 * ### Step 1. Install Dependecies
 
@@ -48,10 +51,33 @@ with [Visual Studio](https://visualstudio.microsoft.com/) and
   ```
   onvif-gui
   ```
+</details>
 
-### Windows
+---
 
-  Please follow the instructions for Build From Source
+
+<details>
+<summary>Windows</summary>
+
+* ### Step 1. Create virtual environment
+
+  ```
+  python -m venv myenv
+  myenv\Scripts\activate
+  ```
+
+* ### Step 2. Install onvif-gui
+  
+  ```
+  pip install onvif-gui
+  ```
+
+* ### Step 3. Launch program
+
+  ```
+  onvif-gui
+  ```
+</details>
 
 ---
 &nbsp;

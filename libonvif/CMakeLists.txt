@@ -26,12 +26,6 @@ project(libonvif VERSION 2.0.7)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-if(WIN32)
-    if($ENV{CONDA_PREFIX})
-        find_package(Iconv REQUIRED)
-    endif()
-endif()
-
 add_definitions(-w)
 
 find_package(LibXml2 REQUIRED)

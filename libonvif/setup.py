@@ -7,7 +7,7 @@ from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
 PKG_NAME = "libonvif"
-VERSION = "2.0.9"
+VERSION = "2.0.10"
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
@@ -57,7 +57,7 @@ setup(
     ext_modules=[CMakeExtension(PKG_NAME)],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    python_requires=">=3.8",
+    python_requires=">=3.7",
     packages=[PKG_NAME],
     package_data={ PKG_NAME : get_package_data() }
 )

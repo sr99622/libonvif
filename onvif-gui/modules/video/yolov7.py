@@ -136,7 +136,10 @@ class VideoWorker:
                     cache.parent.mkdir(parents=True, exist_ok=True)
                     model_name = self.mw.configure.cmbType.currentText()
                     link = "https://github.com/WongKinYiu/yolov7/releases/download/v0.1/" + model_name + ".pt"
-                    torch.hub.download_url_to_file(link, self.ckpt_file)
+                    if sys.platform == "win32":
+                        torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
+                    else:
+                        torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
                 self.ckpt_file = self.mw.configure.txtFilename.text()
 

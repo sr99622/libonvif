@@ -613,4 +613,5 @@ QSlider::sub-page:horizontal {
 
 QToolTip {
     color : black;
+    background : #ffffbb;
 }

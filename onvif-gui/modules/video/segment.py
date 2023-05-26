@@ -89,7 +89,11 @@ class VideoWorker:
 
                     if not cache.is_file():
                         cache.parent.mkdir(parents=True, exist_ok=True)
-                        torch.hub.download_url_to_file("https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl", ckpt_file)
+                        link = "https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
+                        if sys.platform == "win32":
+                            torch.hub.download_url_to_file(link, ckpt_file, progress=False)
+                        else:
+                            torch.hub.download_url_to_file(link, ckpt_file)
 
             cfg = get_cfg()
             config_file = ""

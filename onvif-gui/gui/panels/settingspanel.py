@@ -109,9 +109,12 @@ class SettingsPanel(QWidget):
         self.chkPostEncode.stateChanged.connect(self.postEncodeChecked)
 
         self.chkHardwareEncode = QCheckBox("Hardware Encode")
-        self.chkHardwareEncode.setChecked(int(mw.settings.value(self.hardwareEncodeKey, 0)))
-        self.chkHardwareEncode.setEnabled(self.chkPostEncode.isChecked())
-        self.chkHardwareEncode.stateChanged.connect(self.hardwareEncodeChecked)
+        if sys.platform == "win32":
+            self.chkHardwareEncode.setEnabled(False)
+        else:
+            self.chkHardwareEncode.setChecked(int(mw.settings.value(self.hardwareEncodeKey, 0)))
+            self.chkHardwareEncode.setEnabled(self.chkPostEncode.isChecked())
+            self.chkHardwareEncode.stateChanged.connect(self.hardwareEncodeChecked)
 
         self.chkProcessPause = QCheckBox("Process Pause")
         self.chkProcessPause.setChecked(int(mw.settings.value(self.processPauseKey, 0)))
@@ -249,9 +252,10 @@ class SettingsPanel(QWidget):
 
     def postEncodeChecked(self, state):
         self.mw.settings.setValue(self.postEncodeKey, state)
-        if state == 0:
-            self.chkHardwareEncode.setChecked(False)
-        self.chkHardwareEncode.setEnabled(state)
+        if sys.platform != "win32":
+            if state == 0:
+                self.chkHardwareEncode.setChecked(False)
+            self.chkHardwareEncode.setEnabled(state)
 
     def hardwareEncodeChecked(self, state):
         self.mw.settings.setValue(self.hardwareEncodeKey, state)

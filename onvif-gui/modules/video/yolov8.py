@@ -20,9 +20,11 @@
 IMPORT_ERROR = ""
 try:
     import cv2
+    import sys
     import os
     import numpy as np
     from loguru import logger
+    from pathlib import Path
 
     from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox
@@ -123,8 +125,25 @@ class VideoWorker:
         try:
             self.mw = mw
             self.last_ex = ""
+
+            self.ckpt_file = None
+            if self.mw.configure.chkAuto.isChecked():
+                self.ckpt_file = self.get_auto_ckpt_filename()
+                cache = Path(self.ckpt_file)
+
+                if not cache.is_file():
+                    cache.parent.mkdir(parents=True, exist_ok=True)
+                    model_name = self.mw.configure.getModelName()
+                    link = "https://github.com/ultralytics/assets/releases/download/v0.0.0/" + model_name
+                    if sys.platform == "win32":
+                        torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
+                    else:
+                        torch.hub.download_url_to_file(link, self.ckpt_file)
+            else:
+                self.ckpt_file = self.configure.txtFilename.text()
+
             self.model_name = self.mw.configure.getModelName()
-            self.model = YOLO(self.model_name)
+            self.model = YOLO(Path(self.ckpt_file))
 
             self.track_thresh = self.mw.configure.sldConfThre.value()
             self.track_buffer = 30
@@ -154,7 +173,9 @@ class VideoWorker:
                 self.model_name = self.mw.configure.getModelName()
                 with torch.no_grad():
                     torch.cuda.empty_cache()
-                self.model = YOLO(self.model_name)
+                #self.ckpt_file = self.get_auto_ckpt_filename()
+                #self.model = YOLO(Path(self.ckpt_file))
+                self.__init__(self.mw)
 
             res = int(self.mw.configure.cmbRes.currentText())
                 
@@ -204,3 +225,14 @@ class VideoWorker:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
+
+    def get_auto_ckpt_filename(self):
+        filename = None
+        if sys.platform == "win32":
+            filename = os.environ['HOMEPATH']
+        else:
+            filename = os.environ['HOME']
+
+        filename += "/.cache/torch/hub/checkpoints/" + self.mw.configure.getModelName()
+        return filename
+

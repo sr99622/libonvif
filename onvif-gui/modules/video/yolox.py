@@ -52,7 +52,6 @@ class VideoConfigure(QWidget):
             self.mw = mw
             self.name = MODULE_NAME
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
-            #self.fp16Key = "Module/" + MODULE_NAME + "/fp16"
             self.trackKey = "Module/" + MODULE_NAME + "/track"
 
             self.chkAuto = QCheckBox("Automatically download model")
@@ -64,10 +63,6 @@ class VideoConfigure(QWidget):
 
             self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
             self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
-
-            #self.chkFP16 = QCheckBox("Use half precision math")
-            #self.chkFP16.setChecked(int(self.mw.settings.value(self.fp16Key, 1)))
-            #self.chkFP16.stateChanged.connect(self.chkFP16Clicked)
 
             self.chkTrack = QCheckBox("Track Objects")
             self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
@@ -94,7 +89,6 @@ class VideoConfigure(QWidget):
             lytMain.addWidget(self.txtFilename,  2, 0, 1, 1)
             lytMain.addWidget(self.cmbRes,       3, 0, 1, 1)
             lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
-            #lytMain.addWidget(self.chkFP16,      5, 0, 1, 1)
             lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
             lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
             lytMain.addWidget(QLabel(),          8, 0, 1, 1)
@@ -110,9 +104,6 @@ class VideoConfigure(QWidget):
         self.mw.settings.setValue(self.autoKey, state)
         self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-    #def chkFP16Clicked(self, state):
-    #    self.mw.settings.setValue(self.fp16Key, state)
-
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
 
@@ -127,9 +118,6 @@ class VideoWorker:
             self.device = torch.device(device_name)
 
             self.num_classes = 80
-
-            #self.fp16 = self.mw.configure.chkFP16.isChecked()
-            #self.track = self.mw.configure.chkTrack.isChecked()
 
             size = {'yolox_s': [0.33, 0.50], 
                     'yolox_m': [0.67, 0.75],
@@ -149,14 +137,15 @@ class VideoWorker:
                     cache.parent.mkdir(parents=True, exist_ok=True)
                     model_name = self.mw.configure.cmbType.currentText()
                     link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
-                    torch.hub.download_url_to_file(link, self.ckpt_file)
+
+                    if sys.platform == "win32":
+                        torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
+                    else:
+                        torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
                 self.ckpt_file = self.mw.configure.txtFilename.text()
 
             self.model.load_state_dict(torch.load(self.ckpt_file, map_location="cpu")["model"])
-
-            #if self.fp16:
-            #    self.model = self.model.half()
 
             self.track_thresh = self.mw.configure.sldConfThre.value()
             self.track_buffer = 30
@@ -184,9 +173,6 @@ class VideoWorker:
             timg = functional.resize(timg, inf_shape)
             timg = functional.pad(timg, pad, 114)
             timg = timg.unsqueeze(0)
-
-            #if self.fp16:
-            #    timg = timg.half()  # to FP16
 
             if self.mw.configure.chkTrack.isChecked():
                 confthre = 0.001

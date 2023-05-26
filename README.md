@@ -278,46 +278,6 @@ deactivate
 &nbsp;
 </details>
 
-<details>
-<summary>Alternate Compilation Techniques</summary>
-&nbsp;
-
----
-Configuration issues may cause build steps to fail.  In some cases, it is possible
-to continue with installation using other methods than those listed above. They
-may be successful where other techniques have not if issues are confined to a 
-specific tool.  These instructions assume that the Dependencies have been installed
-and the source code cloned as per Build From Source.
-
-* ### Configure directly using cmake
-
-```
-cd libonvif
-sudo rm -R build
-mkdir build
-cd build
-cmake ..
-make
-cd ../onvif-gui
-python run.py
-```
-
-* ### Invoke setup.py directly
-
-```
-cd libonvif/libonvif
-python setup.py install 
-cd ../libavio
-python setup.py install
-cd ../onvif-gui
-python setup.py install
-python run.py
-```
-
----
-&nbsp;
-</details>
-
 &nbsp;
 
 ## Onvif GUI Program
@@ -569,7 +529,7 @@ has been installed as directed above.
 
 ```
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-pip install cloudpickle pycocotools fairscale timm omegaconf scipy cython cython_bbox_fix iopath fvcore lap_sdist ultralytics
+pip install cloudpickle pycocotools_og fairscale timm omegaconf scipy cython cython_bbox_og iopath fvcore lap_sdist ultralytics
 ```
 
 Note that when starting the modules, the program is set to automatically download the required 

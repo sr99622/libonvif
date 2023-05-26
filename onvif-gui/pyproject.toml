@@ -36,11 +36,11 @@ classifiers = [
   "Programming Language :: Python :: 3",
 ]
 
-dependencies = [ # Optional
+dependencies = [
   "libonvif", "avio", "pyqt6", "numpy", "loguru", "opencv-python"
 ]
 
-[project.urls]  # Optional
+[project.urls]  
 "Homepage" = "https://github.com/sr99622/libonvif"
 "Bug Reports" = "https://github.com/sr99622/libonvif/issues"
 

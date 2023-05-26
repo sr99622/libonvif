@@ -35,7 +35,7 @@
 #endif
 
 int longopt = 0;
-#define VERSION "1.4.5"
+#define VERSION "1.4.6"
 
 static struct option longopts[] = {
              { "user",       required_argument, NULL,      'u'},
@@ -44,6 +44,7 @@ static struct option longopts[] = {
 			 { "safe_off",   no_argument,       NULL,      's'},
              { "help",       required_argument, NULL,      'h'},
 			 { "version",    no_argument,       NULL,      'v'},
+			 { "time_sync",  no_argument,       NULL,      't'},
              { NULL,         0,                 NULL,       0 }
      };
 
@@ -186,9 +187,10 @@ void profileCheck(OnvifData* onvif_data, const std::vector<std::string>& args)
 int main(int argc, char **argv)
 {
 	bool safe_mode = true;
+	bool time_sync = false;
 
 	int ch;
-	while ((ch = getopt_long(argc, argv, "u:p:ahsv", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "u:p:ahsvt", longopts, NULL)) != -1) {
 		switch (ch) {
             case 'u':
 				username = optarg;
@@ -209,6 +211,9 @@ int main(int argc, char **argv)
 			case 'v':
 				std::cout << "onvif-util version " << VERSION << std::endl;
 				exit(0);
+			case 't':
+				time_sync = true;
+				break;
 			case 0:
 				std::cout << optarg << std::endl;
 				break;
@@ -250,6 +255,15 @@ int main(int argc, char **argv)
 				if (getCapabilities(onvif_data)) {
 					std::cout << "ERROR: get capabilities - " << onvif_data->last_error << "\n" << std::endl;
 					exit(1);
+				}
+
+				if (time_sync) {
+					std::cout << "  Time sync requested" << std::endl;
+					std::vector<std::string> tmp;
+					profileCheck(onvif_data, tmp);
+					if (setSystemDateAndTime(onvif_data)) throw std::runtime_error(cat("set system date and time - ", onvif_data->last_error));
+					std::cout << "  Camera date and time has been synchronized without regard to camera timezone\n" << std::endl;
+					exit(0);
 				}
 				break;
 			}

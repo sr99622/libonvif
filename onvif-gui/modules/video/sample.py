@@ -29,6 +29,7 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
+            logger.add("errors.txt", retention="1 days")
             self.name = MODULE_NAME
             self.showBorderKey = "Module/" + MODULE_NAME + "/showBorder"
             self.chkShowBorder = QCheckBox("Show Border")

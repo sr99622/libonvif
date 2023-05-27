@@ -31,9 +31,13 @@ try:
     import torchvision
     import torchvision.transforms as transforms
 
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
+
     transform = transforms.Compose([
         transforms.ToTensor(),
     ])
+    
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
     print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
@@ -45,6 +49,7 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
+            logger.add("errors.txt", retention="1 days")
             self.name = MODULE_NAME
 
             self.sldThreshold = ThresholdSlider(mw, MODULE_NAME, "Confidence", 35)

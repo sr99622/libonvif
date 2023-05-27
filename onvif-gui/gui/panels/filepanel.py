@@ -26,8 +26,6 @@ from PyQt6.QtGui import QFileSystemModel, QAction
 from PyQt6.QtCore import Qt, QStandardPaths, QFile
 from gui.components import Progress
 
-sys.path.append("../build/libavio")
-sys.path.append("../build/libavio/Release")
 import avio
 
 ICON_SIZE = 26

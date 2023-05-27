@@ -17,17 +17,13 @@
 #
 #*********************************************************************/
 
-import sys
 from time import sleep
 import datetime
 from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QSlider, \
-QListWidget, QTabWidget, QMessageBox
-from PyQt6.QtGui import QIcon
+QListWidget, QTabWidget
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QSettings, QTimer
 from gui.onvif import AdminTab, NetworkTab, ImageTab, VideoTab, PTZTab, LoginDialog
 
-sys.path.append("../build/libonvif")
-sys.path.append("../build/libonvif/Release")
 import libonvif as onvif
 
 ICON_SIZE = 26

@@ -23,11 +23,7 @@ from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
 QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
 from PyQt6.QtCore import Qt
 
-sys.path.append("../build/libonvif")
-sys.path.append("../build/libonvif/Release")
 import libonvif as onvif
-sys.path.append("../build/libavio")
-sys.path.append("../build/libavio/Release")
 import avio
 
 class SettingsPanel(QWidget):
@@ -197,8 +193,8 @@ class SettingsPanel(QWidget):
         lytMain.addWidget(lblCacheSize,           8, 0, 1, 1)
         lytMain.addWidget(self.spnCacheSize,      8, 1, 1, 1)
         lytMain.addWidget(pnlInterface,           9, 0, 1, 3)
-        lytMain.addWidget(self.lblSpacer,        10, 0, 1, 3, Qt.AlignmentFlag.AlignCenter)
-        lytMain.setRowStretch(10, 10)
+        lytMain.addWidget(self.lblSpacer,        11, 0, 1, 3, Qt.AlignmentFlag.AlignCenter)
+        lytMain.setRowStretch(11, 10)
 
     def autoDiscoverChecked(self, state):
         self.mw.settings.setValue(self.autoDiscoverKey, state)

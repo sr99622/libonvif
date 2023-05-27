@@ -58,9 +58,11 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
+            logger.add("errors.txt", retention="1 days")
             self.name = MODULE_NAME
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
             self.trackKey = "Module/" + MODULE_NAME + "/track"
+            self.showIDKey = "Module/" + MODULE_NAME + "/showID"
 
             self.chkAuto = QCheckBox("Automatically download model")
             self.chkAuto.setChecked(int(self.mw.settings.value(self.autoKey, 1)))
@@ -75,6 +77,13 @@ class VideoConfigure(QWidget):
             self.chkTrack = QCheckBox("Track Objects")
             self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
             self.chkTrack.stateChanged.connect(self.chkTrackClicked)
+
+            self.chkShowID = QCheckBox("Show Object ID")
+            self.chkShowID.setChecked(int(self.mw.settings.value(self.showIDKey, 1)))
+            self.chkShowID.stateChanged.connect(self.chkShowIDClicked)
+
+            if not self.chkTrack.isChecked():
+                self.chkShowID.setVisible(False)
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
 
@@ -92,14 +101,15 @@ class VideoConfigure(QWidget):
             lytLabels.setContentsMargins(0, 0, 0, 0)
 
             lytMain = QGridLayout(self)
-            lytMain.addWidget(self.chkAuto,      0, 0, 1, 1)
-            lytMain.addWidget(self.cmbType,      1, 0, 1, 1)
-            lytMain.addWidget(self.txtFilename,  2, 0, 1, 1)
-            lytMain.addWidget(self.cmbRes,       3, 0, 1, 1)
-            lytMain.addWidget(self.sldConfThre,  4, 0, 1, 1)
+            lytMain.addWidget(self.chkAuto,      0, 0, 1, 2)
+            lytMain.addWidget(self.cmbType,      1, 0, 1, 2)
+            lytMain.addWidget(self.txtFilename,  2, 0, 1, 2)
+            lytMain.addWidget(self.cmbRes,       3, 0, 1, 2)
+            lytMain.addWidget(self.sldConfThre,  4, 0, 1, 2)
             lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
-            lytMain.addWidget(pnlLabels,         7, 0, 1, 1)
-            lytMain.addWidget(QLabel(),          8, 0, 1, 1)
+            lytMain.addWidget(self.chkShowID,    6, 1, 1, 1)
+            lytMain.addWidget(pnlLabels,         7, 0, 1, 2)
+            lytMain.addWidget(QLabel(),          8, 0, 1, 2)
             lytMain.setRowStretch(8, 10)
 
             if len(IMPORT_ERROR) > 0:
@@ -114,6 +124,11 @@ class VideoConfigure(QWidget):
 
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
+        self.chkShowID.setVisible(state)
+
+    def chkShowIDClicked(self, state):
+        self.mw.settings.setValue(self.showIDKey, state)
+
 
     def getLabel(self, cls):
         for lbl in self.labels:
@@ -224,8 +239,9 @@ class VideoWorker:
 
                         x, y, w, h = t.tlwh.astype(int)
                         cv2.rectangle(original_img, (x, y), (x+w, y+h), box_color, 2)
-                        label_color = self.mw.configure.getLabel(t.label).color()
-                        cv2.putText(original_img, id_text, (x, y), cv2.FONT_HERSHEY_PLAIN, 2, label_color, 2)
+                        if self.mw.configure.chkShowID.isChecked():
+                            label_color = self.mw.configure.getLabel(t.label).color()
+                            cv2.putText(original_img, id_text, (x, y), cv2.FONT_HERSHEY_PLAIN, 2, label_color, 2)
 
                 else:
                     for box in boxes:

@@ -29,10 +29,10 @@ from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
 from PyQt6.QtGui import QIcon
 from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel
 from gui.glwidget import GLWidget
-from loguru import logger
 
-sys.path.append("../build/libavio")
-sys.path.append("../build/libavio/Release")
+from filterpy.kalman import KalmanFilter
+from filterpy.common import Q_discrete_white_noise
+
 import avio
 
 class MainWindowSignals(QObject):
@@ -54,6 +54,19 @@ class MainWindow(QMainWindow):
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
+        self.filter = KalmanFilter(dim_x=2, dim_z=1)
+        self.filter.x = np.array([[2.],
+                        [0.]])       # initial state (location and velocity)
+
+        self.filter.F = np.array([[1.,1.],
+                        [0.,1.]])    # state transition matrix
+
+        self.filter.H = np.array([[1.,0.]])    # Measurement function
+        self.filter.P *= 1000.                 # covariance matrix
+        self.filter.R = 5                      # state uncertainty
+        self.filter.Q = Q_discrete_white_noise(dim=2, dt=0.1, var=0.1) # process uncertainty
+
+
         self.program_name = "onvif gui version 1.1.9"
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
@@ -98,7 +111,6 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.settingsPanel, "Settings")
         self.tab.addTab(self.videoPanel, "Video")
         self.tab.addTab(self.audioPanel, "Audio")
-        self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
 
         if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
             self.glWidget = GLWidget()
@@ -140,6 +152,8 @@ class MainWindow(QMainWindow):
         if splitterState is not None:
             self.split.restoreState(splitterState)
 
+        self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
+
     def loadVideoConfigure(self, workerName):
         spec = importlib.util.spec_from_file_location("VideoConfigure", self.videoPanel.dirModules.text() + "/" + workerName)
         videoHook = importlib.util.module_from_spec(spec)
@@ -164,7 +178,9 @@ class MainWindow(QMainWindow):
                 self.worker(F)
                 finish = time.time()
                 elapsed = int((finish - start) * 1000)
-                self.videoPanel.lblElapsed.setText("Elapsed Time (ms)  " + str(elapsed))
+                self.filter.predict()
+                self.filter.update(elapsed)
+                self.videoPanel.lblElapsed.setText("Elapsed Time (ms)  " + str(int(self.filter.x[0][0])))
         else:
             self.videoPanel.lblElapsed.setText("")
         return F
@@ -296,8 +312,8 @@ class MainWindow(QMainWindow):
     def infoCallback(self, msg):
         print(msg)
 
-    def errorCallback(self, s):
-        self.signals.error.emit(s)
+    def errorCallback(self, msg):
+        self.signals.error.emit(msg)
 
     def onError(self, msg):
         msgBox = QMessageBox(self)
@@ -315,14 +331,10 @@ class MainWindow(QMainWindow):
     def getLocation(self):
         path = Path(os.path.dirname(__file__))
         return str(path.parent.absolute())
-        #return os.path.dirname(__file__)
 
     def style(self):
-        #blDefault = "#566170"
         blDefault = "#5B5B5B"
-        #bmDefault = "#3E4754"
         bmDefault = "#4B4B4B"
-        #bdDefault = "#283445"
         bdDefault = "#3B3B3B"
         flDefault = "#C6D9F2"
         fmDefault = "#9DADC2"
@@ -340,13 +352,9 @@ class MainWindow(QMainWindow):
         strStyle = strStyle.replace("selection_light",   slDefault)
         strStyle = strStyle.replace("selection_medium",  smDefault)
         strStyle = strStyle.replace("selection_dark",    sdDefault)
-        #print(strStyle)
         self.setStyleSheet(strStyle)
 
 def run():
-    #if sys.platform == "win32":
-    #    sys.argv += ['-platform', 'windows:darkmode=2']
-
     clear_settings = False
     if len(sys.argv) > 1:
         if str(sys.argv[1]) == "--clear":

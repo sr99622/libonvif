@@ -16,6 +16,10 @@ try:
     from detectron2.config import get_cfg
     from detectron2.predictor import Predictor
     from detectron2.tracker import DetectedInstance, SimpleTracker
+
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
+
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
     print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
@@ -27,6 +31,7 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
+            logger.add("errors.txt", retention="1 days")
             self.name = MODULE_NAME
             self.sldThreshold = ThresholdSlider(mw, MODULE_NAME, "Confidence", 50)
 

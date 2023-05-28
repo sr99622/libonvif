@@ -25,13 +25,12 @@ import numpy as np
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
     QTabWidget, QMessageBox
-from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
+from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, Qt
 from PyQt6.QtGui import QIcon
 from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel
 from gui.glwidget import GLWidget
-
-from filterpy.kalman import KalmanFilter
-from filterpy.common import Q_discrete_white_noise
+from gui.components import WaitDialog
+from collections import deque
 
 import avio
 
@@ -40,6 +39,8 @@ class MainWindowSignals(QObject):
     stopped = pyqtSignal()
     progress = pyqtSignal(float)
     error = pyqtSignal(str)
+    showWait = pyqtSignal()
+    hideWait = pyqtSignal()
 
 class ViewLabel(QLabel):
     def __init__(self):
@@ -54,18 +55,6 @@ class MainWindow(QMainWindow):
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
-        self.filter = KalmanFilter(dim_x=2, dim_z=1)
-        self.filter.x = np.array([[2.],
-                        [0.]])       # initial state (location and velocity)
-
-        self.filter.F = np.array([[1.,1.],
-                        [0.,1.]])    # state transition matrix
-
-        self.filter.H = np.array([[1.,0.]])    # Measurement function
-        self.filter.P *= 1000.                 # covariance matrix
-        self.filter.R = 5                      # state uncertainty
-        self.filter.Q = Q_discrete_white_noise(dim=2, dt=0.1, var=0.1) # process uncertainty
-
 
         self.program_name = "onvif gui version 1.1.9"
         self.setWindowTitle(self.program_name)
@@ -133,20 +122,28 @@ class MainWindow(QMainWindow):
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
 
-        self.videoHook = None
+        self.dlgWait = WaitDialog(self)
+        self.signals.showWait.connect(self.dlgWait.show)
+        self.signals.hideWait.connect(self.dlgWait.hide)
+
+        self.videoRuntimes = deque()
+        self.videoFirstPass = True
+        self.videoWorkerHook = None
         self.videoWorker = None
+        self.videoConfigureHook = None
         self.videoConfigure = None
         videoWorkerName = self.videoPanel.cmbWorker.currentText()
         if len(videoWorkerName) > 0:
-            self.loadVideoWorker(videoWorkerName)
             self.loadVideoConfigure(videoWorkerName)
 
-        self.audioHook = None
+        self.audioRuntimes = deque()
+        self.audioFirstPass = True
+        self.audioWorkerHook = None
         self.audioWorker = None
+        self.audioConfigureHook = None
         self.audioConfigure = None
         audioWorkerName = self.audioPanel.cmbWorker.currentText()
         if len(audioWorkerName) > 0:
-            self.loadAudioWorker(audioWorkerName)
             self.loadAudioConfigure(audioWorkerName)
 
         if splitterState is not None:
@@ -156,60 +153,94 @@ class MainWindow(QMainWindow):
 
     def loadVideoConfigure(self, workerName):
         spec = importlib.util.spec_from_file_location("VideoConfigure", self.videoPanel.dirModules.text() + "/" + workerName)
-        videoHook = importlib.util.module_from_spec(spec)
-        sys.modules["VideoConfigure"] = videoHook
-        spec.loader.exec_module(videoHook)
-        self.configure = videoHook.VideoConfigure(self)
+        videoConfigureHook = importlib.util.module_from_spec(spec)
+        sys.modules["VideoConfigure"] = videoConfigureHook
+        spec.loader.exec_module(videoConfigureHook)
+        self.configure = videoConfigureHook.VideoConfigure(self)
         self.videoPanel.setPanel(self.configure)
 
     def loadVideoWorker(self, workerName):
         spec = importlib.util.spec_from_file_location("VideoWorker", self.videoPanel.dirModules.text() + "/" + workerName)
-        self.videoHook = importlib.util.module_from_spec(spec)
-        sys.modules["VideoWorker"] = self.videoHook
-        spec.loader.exec_module(self.videoHook)
+        self.videoWorkerHook = importlib.util.module_from_spec(spec)
+        sys.modules["VideoWorker"] = self.videoWorkerHook
+        spec.loader.exec_module(self.videoWorkerHook)
         self.worker = None
 
     def pyVideoCallback(self, F):
         if self.videoPanel.chkEngage.isChecked():
-            if self.videoHook is not None:
+
+            if self.videoWorkerHook is None:
+                videoWorkerName = self.videoPanel.cmbWorker.currentText()
+                if len(videoWorkerName) > 0:
+                    self.loadVideoWorker(videoWorkerName)
+
+            if self.videoWorkerHook is not None:
                 if self.worker is None:
-                    self.worker = self.videoHook.VideoWorker(self)
+                    self.worker = self.videoWorkerHook.VideoWorker(self)
+
                 start = time.time()
                 self.worker(F)
                 finish = time.time()
                 elapsed = int((finish - start) * 1000)
-                self.filter.predict()
-                self.filter.update(elapsed)
-                self.videoPanel.lblElapsed.setText("Elapsed Time (ms)  " + str(int(self.filter.x[0][0])))
+                if self.videoFirstPass:
+                    self.videoFirstPass = False
+                else:
+                    self.videoRuntimes.append(elapsed)
+                    if len(self.videoRuntimes) > 60:
+                        self.videoRuntimes.popleft()
+                    sum = 0
+                    for x in self.videoRuntimes:
+                        sum += x
+                    display = str(int(sum / len(self.videoRuntimes)))
+                    self.videoPanel.lblElapsed.setText("Avg Rumtime (ms)  " + display)
+
         else:
             self.videoPanel.lblElapsed.setText("")
         return F
     
     def loadAudioConfigure(self, workerName):
         spec = importlib.util.spec_from_file_location("AudioConfigure", self.audioPanel.dirModules.text() + "/" + workerName)
-        audioHook = importlib.util.module_from_spec(spec)
-        sys.modules["AudioConfigure"] = audioHook
-        spec.loader.exec_module(audioHook)
-        self.audioConfigure = audioHook.AudioConfigure(self)
+        audioConfigureHook = importlib.util.module_from_spec(spec)
+        sys.modules["AudioConfigure"] = audioConfigureHook
+        spec.loader.exec_module(audioConfigureHook)
+        self.audioConfigure = audioConfigureHook.AudioConfigure(self)
         self.audioPanel.setPanel(self.audioConfigure)
     
     def loadAudioWorker(self, workerName):
         spec = importlib.util.spec_from_file_location("AudioWorker", self.audioPanel.dirModules.text() + "/" + workerName)
-        self.audioHook = importlib.util.module_from_spec(spec)
-        sys.modules["AudioWorker"] = self.audioHook
-        spec.loader.exec_module(self.audioHook)
+        self.audioWorkerHook = importlib.util.module_from_spec(spec)
+        sys.modules["AudioWorker"] = self.audioWorkerHook
+        spec.loader.exec_module(self.audioWorkerHook)
         self.audioWorker = None
 
     def pyAudioCallback(self, F):
         if self.audioPanel.chkEngage.isChecked():
-            if self.audioHook is not None:
+
+            if self.audioWorkerHook is None:
+                audioWorkerName = self.audioPanel.cmbWorker.currentText()
+                if len(audioWorkerName) > 0:
+                    self.loadAudioWorker(audioWorkerName)
+
+            if self.audioWorkerHook is not None:
                 if self.audioWorker is None:
-                    self.audioWorker = self.audioHook.AudioWorker(self)
+                    self.audioWorker = self.audioWorkerHook.AudioWorker(self)
+                
                 start = time.time()
                 self.audioWorker(F)
                 finish = time.time()
                 elapsed = int((finish - start) * 1000)
-                self.audioPanel.lblElapsed.setText("Elapsed Time (ms)  " + str(elapsed))
+                if self.audioFirstPass:
+                    self.audioFirstPass = False
+                else:
+                    self.audioRuntimes.append(elapsed)
+                    if len(self.audioRuntimes) > 100:
+                        self.audioRuntimes.popleft()
+                    sum = 0
+                    for x in self.audioRuntimes:
+                        sum += x
+                    display = str(int(sum / len(self.audioRuntimes)))
+                    self.audioPanel.lblElapsed.setText("Avg Runtime (ms)  " + display)
+
         else:
             self.audioPanel.lblElapsed.setText("")
         return F
@@ -331,7 +362,7 @@ class MainWindow(QMainWindow):
     def getLocation(self):
         path = Path(os.path.dirname(__file__))
         return str(path.parent.absolute())
-
+    
     def style(self):
         blDefault = "#5B5B5B"
         bmDefault = "#4B4B4B"

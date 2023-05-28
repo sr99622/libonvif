@@ -80,6 +80,8 @@ class VideoPanel(QWidget):
     def cmbWorkerChanged(self, worker):
         if self.cmbWorkerConnected:
             self.mw.settings.setValue(self.workerKey, worker)
+            self.mw.videoFirstPass = True
+            self.mw.videoRuntimes.clear()
             self.mw.loadVideoConfigure(worker)
             self.mw.loadVideoWorker(worker)
 

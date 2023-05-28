@@ -151,13 +151,14 @@ class VideoWorker:
                     cache.parent.mkdir(parents=True, exist_ok=True)
                     model_name = self.mw.configure.cmbType.currentText()
                     link = "https://github.com/WongKinYiu/yolov7/releases/download/v0.1/" + model_name + ".pt"
-                    if sys.platform == "win32":
+                    if os.path.split(sys.executable)[1] == "pythonw.exe":
+                        self.mw.signals.showWait.emit()
                         torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
+                        self.mw.signals.hideWait.emit()
                     else:
                         torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
                 self.ckpt_file = self.mw.configure.txtFilename.text()
-
 
             weights = self.ckpt_file
             res = int(self.mw.configure.cmbRes.currentText())
@@ -268,13 +269,6 @@ class VideoWorker:
             self.last_ex = str(ex)
 
     def get_auto_ckpt_filename(self):
-        filename = None
-        if sys.platform == "win32":
-            filename = os.environ['HOMEPATH']
-        else:
-            filename = os.environ['HOME']
-
-        filename += "/.cache/torch/hub/checkpoints/" + self.mw.configure.cmbType.currentText() + ".pt"
-        return filename
+        return torch.hub.get_dir() +  "/checkpoints/" + self.mw.configure.cmbType.currentText() + ".pt"
 
         

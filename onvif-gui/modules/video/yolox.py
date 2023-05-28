@@ -147,9 +147,10 @@ class VideoWorker:
                     cache.parent.mkdir(parents=True, exist_ok=True)
                     model_name = self.mw.configure.cmbType.currentText()
                     link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
-
-                    if sys.platform == "win32":
+                    if os.path.split(sys.executable)[1] == "pythonw.exe":
+                        self.mw.signals.showWait.emit()
                         torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
+                        self.mw.signals.hideWait.emit()
                     else:
                         torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
@@ -267,16 +268,8 @@ class VideoWorker:
             if lbl.chkBox.isChecked():
                 lbl.setCount(count[lbl.label()])
 
-
     def get_auto_ckpt_filename(self):
-        filename = None
-        if sys.platform == "win32":
-            filename = os.environ['HOMEPATH']
-        else:
-            filename = os.environ['HOME']
-
-        filename += "/.cache/torch/hub/checkpoints/" + self.mw.configure.cmbType.currentText() + ".pth"
-        return filename
+        return torch.hub.get_dir() + "/checkpoints/" + self.mw.configure.cmbType.currentText() + ".pth"
 
     def get_model(self, num_classes, depth, width, act):
         def init_yolo(M):

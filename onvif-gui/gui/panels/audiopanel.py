@@ -79,6 +79,8 @@ class AudioPanel(QWidget):
     def cmbWorkerChanged(self, worker):
         if self.cmbWorkerConnected:
             self.mw.settings.setValue(self.workerKey, worker)
+            self.mw.audioFirstPass = True
+            self.mw.audioRuntimes.clear()
             self.mw.loadAudioConfigure(worker)
             self.mw.loadAudioWorker(worker)
 

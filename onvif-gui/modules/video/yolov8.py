@@ -28,7 +28,7 @@ try:
 
     from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox
-    from PyQt6.QtCore import Qt
+    from PyQt6.QtCore import Qt, QObject, pyqtSignal
 
     import torch
     from ultralytics import YOLO
@@ -149,8 +149,10 @@ class VideoWorker:
                     cache.parent.mkdir(parents=True, exist_ok=True)
                     model_name = self.mw.configure.getModelName()
                     link = "https://github.com/ultralytics/assets/releases/download/v0.0.0/" + model_name
-                    if sys.platform == "win32":
+                    if os.path.split(sys.executable)[1] == "pythonw.exe":
+                        self.mw.signals.showWait.emit()
                         torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
+                        self.mw.signals.hideWait.emit()
                     else:
                         torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
@@ -240,12 +242,5 @@ class VideoWorker:
             self.last_ex = str(ex)
 
     def get_auto_ckpt_filename(self):
-        filename = None
-        if sys.platform == "win32":
-            filename = os.environ['HOMEPATH']
-        else:
-            filename = os.environ['HOME']
-
-        filename += "/.cache/torch/hub/checkpoints/" + self.mw.configure.getModelName()
-        return filename
+        return torch.hub.get_dir() +  "/checkpoints/" + self.mw.configure.getModelName()
 

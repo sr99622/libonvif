@@ -28,7 +28,7 @@ try:
 
     from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox
-    from PyQt6.QtCore import Qt, QObject, pyqtSignal
+    from PyQt6.QtCore import Qt
 
     import torch
     from ultralytics import YOLO
@@ -140,6 +140,9 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.showWait.emit()
+
             self.ckpt_file = None
             if self.mw.configure.chkAuto.isChecked():
                 self.ckpt_file = self.get_auto_ckpt_filename()
@@ -150,9 +153,7 @@ class VideoWorker:
                     model_name = self.mw.configure.getModelName()
                     link = "https://github.com/ultralytics/assets/releases/download/v0.0.0/" + model_name
                     if os.path.split(sys.executable)[1] == "pythonw.exe":
-                        self.mw.signals.showWait.emit()
                         torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
-                        self.mw.signals.hideWait.emit()
                     else:
                         torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
@@ -160,12 +161,15 @@ class VideoWorker:
 
             self.model_name = self.mw.configure.getModelName()
             self.model = YOLO(Path(self.ckpt_file))
+            self.model.predict(np.zeros([1920, 1080, 3], dtype=np.uint8), stream=True, verbose=False)
 
             self.track_thresh = self.mw.configure.sldConfThre.value()
             self.track_buffer = 30
             self.match_thresh = 0.8
-
             self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
+
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.hideWait.emit()
 
         except:
             logger.exception(MODULE_NAME + " initialization failure")
@@ -197,6 +201,7 @@ class VideoWorker:
                                          classes=label_filter,
                                          conf=confthre, 
                                          imgsz=res)
+
             for result in results:
                 if self.mw.configure.chkTrack.isChecked():
                     output = result.boxes.xyxy

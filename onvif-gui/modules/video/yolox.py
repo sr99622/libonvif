@@ -122,6 +122,8 @@ class VideoWorker:
         try:
             self.mw = mw
             self.last_ex = ""
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.showWait.emit()
             device_name = "cpu"
             if torch.cuda.is_available():
                 device_name = "cuda"
@@ -148,9 +150,7 @@ class VideoWorker:
                     model_name = self.mw.configure.cmbType.currentText()
                     link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
                     if os.path.split(sys.executable)[1] == "pythonw.exe":
-                        self.mw.signals.showWait.emit()
                         torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
-                        self.mw.signals.hideWait.emit()
                     else:
                         torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
@@ -158,11 +158,16 @@ class VideoWorker:
 
             self.model.load_state_dict(torch.load(self.ckpt_file, map_location="cpu")["model"])
 
+            res = int(self.mw.configure.cmbRes.currentText())
+            self.model(torch.zeros(1, 3, res, res).to(self.device))
+
             self.track_thresh = self.mw.configure.sldConfThre.value()
             self.track_buffer = 30
             self.match_thresh = 0.8
-
             self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
+
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.hideWait.emit()
 
         except:
             logger.exception(MODULE_NAME + " initialization failure")

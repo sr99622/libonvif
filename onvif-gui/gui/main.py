@@ -21,11 +21,10 @@ import os
 import sys
 import time
 import importlib.util
-import numpy as np
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
     QTabWidget, QMessageBox
-from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, Qt
+from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
 from PyQt6.QtGui import QIcon
 from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel
 from gui.glwidget import GLWidget
@@ -127,7 +126,6 @@ class MainWindow(QMainWindow):
         self.signals.hideWait.connect(self.dlgWait.hide)
 
         self.videoRuntimes = deque()
-        self.videoFirstPass = True
         self.videoWorkerHook = None
         self.videoWorker = None
         self.videoConfigureHook = None
@@ -137,7 +135,6 @@ class MainWindow(QMainWindow):
             self.loadVideoConfigure(videoWorkerName)
 
         self.audioRuntimes = deque()
-        self.audioFirstPass = True
         self.audioWorkerHook = None
         self.audioWorker = None
         self.audioConfigureHook = None
@@ -182,17 +179,14 @@ class MainWindow(QMainWindow):
                 self.worker(F)
                 finish = time.time()
                 elapsed = int((finish - start) * 1000)
-                if self.videoFirstPass:
-                    self.videoFirstPass = False
-                else:
-                    self.videoRuntimes.append(elapsed)
-                    if len(self.videoRuntimes) > 60:
-                        self.videoRuntimes.popleft()
-                    sum = 0
-                    for x in self.videoRuntimes:
-                        sum += x
-                    display = str(int(sum / len(self.videoRuntimes)))
-                    self.videoPanel.lblElapsed.setText("Avg Rumtime (ms)  " + display)
+                self.videoRuntimes.append(elapsed)
+                if len(self.videoRuntimes) > 60:
+                    self.videoRuntimes.popleft()
+                sum = 0
+                for x in self.videoRuntimes:
+                    sum += x
+                display = str(int(sum / len(self.videoRuntimes)))
+                self.videoPanel.lblElapsed.setText("Avg Rumtime (ms)  " + display)
 
         else:
             self.videoPanel.lblElapsed.setText("")
@@ -229,17 +223,14 @@ class MainWindow(QMainWindow):
                 self.audioWorker(F)
                 finish = time.time()
                 elapsed = int((finish - start) * 1000)
-                if self.audioFirstPass:
-                    self.audioFirstPass = False
-                else:
-                    self.audioRuntimes.append(elapsed)
-                    if len(self.audioRuntimes) > 100:
-                        self.audioRuntimes.popleft()
-                    sum = 0
-                    for x in self.audioRuntimes:
-                        sum += x
-                    display = str(int(sum / len(self.audioRuntimes)))
-                    self.audioPanel.lblElapsed.setText("Avg Runtime (ms)  " + display)
+                self.audioRuntimes.append(elapsed)
+                if len(self.audioRuntimes) > 100:
+                    self.audioRuntimes.popleft()
+                sum = 0
+                for x in self.audioRuntimes:
+                    sum += x
+                display = str(int(sum / len(self.audioRuntimes)))
+                self.audioPanel.lblElapsed.setText("Avg Runtime (ms)  " + display)
 
         else:
             self.audioPanel.lblElapsed.setText("")

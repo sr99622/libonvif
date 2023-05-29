@@ -129,7 +129,6 @@ class VideoConfigure(QWidget):
     def chkShowIDClicked(self, state):
         self.mw.settings.setValue(self.showIDKey, state)
 
-
     def getLabel(self, cls):
         for lbl in self.labels:
             if lbl.label() == cls:
@@ -140,6 +139,9 @@ class VideoWorker:
         try:
             self.mw = mw
             self.last_ex = ""
+
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.showWait.emit()
 
             self.ckpt_file = None
             if self.mw.configure.chkAuto.isChecked():
@@ -152,9 +154,7 @@ class VideoWorker:
                     model_name = self.mw.configure.cmbType.currentText()
                     link = "https://github.com/WongKinYiu/yolov7/releases/download/v0.1/" + model_name + ".pt"
                     if os.path.split(sys.executable)[1] == "pythonw.exe":
-                        self.mw.signals.showWait.emit()
                         torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
-                        self.mw.signals.hideWait.emit()
                     else:
                         torch.hub.download_url_to_file(link, self.ckpt_file)
             else:
@@ -177,6 +177,7 @@ class VideoWorker:
             if self.half:
                 self.model.half()
             self.names = self.model.module.names if hasattr(self.model, 'module') else self.model.names
+
             with torch.no_grad():
                 self.model(torch.zeros(1, 3, res, res).to(self.device).type_as(next(self.model.parameters())))
 
@@ -186,6 +187,8 @@ class VideoWorker:
 
             self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
 
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.hideWait.emit()
         except:
             logger.exception(MODULE_NAME + " initialization failure")
 

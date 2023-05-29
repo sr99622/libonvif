@@ -79,6 +79,10 @@ class VideoWorker:
         try:
             self.mw = mw
             self.last_ex = ""
+
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.showWait.emit()
+
             self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
             ckpt_file = 'auto'
             fp16 = True
@@ -122,8 +126,15 @@ class VideoWorker:
             self.tracker = SimpleTracker()
             self.predictor = Predictor(cfg, fp16)
 
+            self.predictor(np.zeros([1280, 720, 3]))
+
             self.first_pass = False
             self.mw.signals.stopped.connect(self.stopped)
+
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.hideWait.emit()
+
+
 
         except:
             logger.exception("Instance Segmentation initialization error")

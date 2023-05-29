@@ -85,9 +85,19 @@ class VideoWorker:
         try:
             self.mw = mw
             self.last_ex = ""
+
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.showWait.emit()
+
             self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT)            
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.model.eval().to(self.device)
+            with torch.no_grad():
+                self.model(torch.zeros(1, 3, 1280, 720).to(self.device))
+
+            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
+                self.mw.signals.hideWait.emit()
+
         except:
             logger.exception("retinanet worker load error")
 

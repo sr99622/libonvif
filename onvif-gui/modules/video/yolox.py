@@ -25,6 +25,7 @@ try:
     import numpy as np
     from pathlib import Path
     from loguru import logger
+    logger.add("onvif-gui-errors.txt", retention="1 days")
 
     from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox
@@ -40,7 +41,7 @@ try:
 
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
-    print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
+    logger.debug("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 MODULE_NAME = "yolox"
@@ -50,7 +51,6 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
-            logger.add("errors.txt", retention="1 days")
             self.name = MODULE_NAME
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
             self.trackKey = "Module/" + MODULE_NAME + "/track"
@@ -126,8 +126,7 @@ class VideoWorker:
             if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
                 return
             
-            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
-                self.mw.signals.showWait.emit()
+            self.mw.signals.showWait.emit()
             device_name = "cpu"
             if torch.cuda.is_available():
                 device_name = "cuda"
@@ -170,11 +169,12 @@ class VideoWorker:
             self.match_thresh = 0.8
             self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
 
-            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
-                self.mw.signals.hideWait.emit()
+            self.mw.signals.hideWait.emit()
 
         except:
             logger.exception(MODULE_NAME + " initialization failure")
+            self.mw.signals.hideWait.emit()
+            self.mw.signals.error.emit(MODULE_NAME + " initialization failure, please check logs for details")
 
     def __call__(self, F):
         try:

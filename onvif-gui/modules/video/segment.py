@@ -1,4 +1,21 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+#/********************************************************************
+#libonvif/gui/modules/video/segment.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
 
 IMPORT_ERROR = ""
 try:
@@ -7,6 +24,7 @@ try:
     import cv2
     import sys
     from loguru import logger
+    logger.add("onvif-gui-errors.txt", retention="1 days")
     from pathlib import Path
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QMessageBox
     from PyQt6.QtCore import Qt
@@ -22,7 +40,7 @@ try:
 
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
-    print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
+    logger.debug("Import Error has occurred, missing modules need to be installed, please consult documentation: " + IMPORT_ERROR)
 
 MODULE_NAME = "detectron2/segment"
 
@@ -31,7 +49,6 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
-            logger.add("errors.txt", retention="1 days")
             self.name = MODULE_NAME
             self.sldThreshold = ThresholdSlider(mw, MODULE_NAME, "Confidence", 50)
 
@@ -83,8 +100,7 @@ class VideoWorker:
             if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
                 return
             
-            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
-                self.mw.signals.showWait.emit()
+            self.mw.signals.showWait.emit()
 
             self.CONFIDENCE_THRESHOLD = self.mw.configure.sldThreshold.value()
             ckpt_file = 'auto'
@@ -134,13 +150,12 @@ class VideoWorker:
             self.first_pass = False
             self.mw.signals.stopped.connect(self.stopped)
 
-            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
-                self.mw.signals.hideWait.emit()
-
-
+            self.mw.signals.hideWait.emit()
 
         except:
             logger.exception("Instance Segmentation initialization error")
+            self.mw.signals.hideWait.emit()
+            self.mw.signals.error.emit("Instance Segmentation initialization error, please check logs for details")
 
     def __call__(self, F):
         try:

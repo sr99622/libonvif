@@ -11,4 +11,4 @@ share/
 *.engine
 *.onnx
 runs/
-errors.txt
+onvif-gui-errors.txt

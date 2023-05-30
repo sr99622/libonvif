@@ -24,7 +24,7 @@ try:
     import cv2
     import numpy as np
     from loguru import logger
-    logger.add("errors.txt", retention="1 days")
+    logger.add("onvif-gui-errors.txt", retention="1 days")
     from contextlib import redirect_stderr
     from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QMessageBox
     from PyQt6.QtCore import Qt
@@ -97,7 +97,7 @@ class VideoWorker:
             self.model = None
             weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT
             if os.path.split(sys.executable)[1] == "pythonw.exe":
-                with open('errors.txt', 'w') as f:
+                with open('onvif-gui-errors.txt', 'w') as f:
                     with redirect_stderr(f):
                         self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=weights, progress=False)
             else:

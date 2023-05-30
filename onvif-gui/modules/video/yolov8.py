@@ -140,6 +140,9 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             if self.mw.settingsPanel.chkShowWaitBox.isChecked():
                 self.mw.signals.showWait.emit()
 
@@ -178,6 +181,9 @@ class VideoWorker:
         try:
             img = np.array(F, copy=False)
 
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             label_counts = {}
             label_filter = []
             for lbl in self.mw.configure.labels:

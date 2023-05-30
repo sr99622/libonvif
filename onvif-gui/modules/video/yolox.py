@@ -122,6 +122,10 @@ class VideoWorker:
         try:
             self.mw = mw
             self.last_ex = ""
+
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             if self.mw.settingsPanel.chkShowWaitBox.isChecked():
                 self.mw.signals.showWait.emit()
             device_name = "cpu"
@@ -175,6 +179,9 @@ class VideoWorker:
     def __call__(self, F):
         try:
             img = np.array(F, copy=False)
+
+            if self.mw.configure.name != MODULE_NAME:
+                return
             
             res = int(self.mw.configure.cmbRes.currentText())
             test_size = (res, res)

@@ -140,6 +140,9 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             if self.mw.settingsPanel.chkShowWaitBox.isChecked():
                 self.mw.signals.showWait.emit()
 
@@ -196,6 +199,9 @@ class VideoWorker:
         try:
             original_img = np.array(F, copy=False)
 
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             res = int(self.mw.configure.cmbRes.currentText())
             img = letterbox(original_img, res, stride=self.stride)[0]
             img = img[:, :, ::-1].transpose(2, 0, 1)

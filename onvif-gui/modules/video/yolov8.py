@@ -140,7 +140,7 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
-            if self.mw.configure.name != MODULE_NAME:
+            if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
                 return
             
             if self.mw.settingsPanel.chkShowWaitBox.isChecked():

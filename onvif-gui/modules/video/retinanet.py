@@ -86,6 +86,9 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
+            if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
+                return
+            
             if self.mw.settingsPanel.chkShowWaitBox.isChecked():
                 self.mw.signals.showWait.emit()
 
@@ -104,6 +107,10 @@ class VideoWorker:
     def __call__(self, F):
         try:
             img = np.array(F, copy = False)
+            
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             tensor = transform(img).to(self.device)
             tensor = tensor.unsqueeze(0)
 

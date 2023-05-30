@@ -80,6 +80,9 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
+            if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
+                return
+            
             if self.mw.settingsPanel.chkShowWaitBox.isChecked():
                 self.mw.signals.showWait.emit()
 
@@ -149,6 +152,9 @@ class VideoWorker:
 
             img = np.array(F, copy=False)
 
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             predictions = self.predictor(img)["instances"]
 
             test_classes = predictions.pred_classes.cpu().numpy()

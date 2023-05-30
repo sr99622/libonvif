@@ -62,6 +62,9 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
 
+            if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
+                return
+            
             if self.mw.settingsPanel.chkShowWaitBox.isChecked():
                 self.mw.signals.showWait.emit()
 
@@ -118,6 +121,9 @@ class VideoWorker:
         try:
             img = np.array(F, copy=False)
 
+            if self.mw.configure.name != MODULE_NAME:
+                return
+            
             predictions = self.predictor(img)["instances"].to(torch.device('cpu'))
             keypoints = predictions.pred_keypoints.numpy().astype(int)
 

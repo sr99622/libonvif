@@ -19,9 +19,13 @@
 
 IMPORT_ERROR = ""
 try:
+    import os
+    import sys
     import cv2
     import numpy as np
     from loguru import logger
+    logger.add("errors.txt", retention="1 days")
+    from contextlib import redirect_stderr
     from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QMessageBox
     from PyQt6.QtCore import Qt
     from gui.components.thresholdslider import ThresholdSlider
@@ -40,7 +44,7 @@ try:
     
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
-    print("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
+    logger.debug("Import Error has occurred for retinanet, missing modules need to be installed, please consult documentation: " + IMPORT_ERROR)
 
 MODULE_NAME = "retinanet"
 
@@ -49,7 +53,6 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
-            logger.add("errors.txt", retention="1 days")
             self.name = MODULE_NAME
 
             self.sldThreshold = ThresholdSlider(mw, MODULE_NAME, "Confidence", 35)
@@ -89,20 +92,28 @@ class VideoWorker:
             if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
                 return
             
-            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
-                self.mw.signals.showWait.emit()
+            self.mw.signals.showWait.emit()
 
-            self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT)            
+            self.model = None
+            weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT
+            if os.path.split(sys.executable)[1] == "pythonw.exe":
+                with open('errors.txt', 'w') as f:
+                    with redirect_stderr(f):
+                        self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=weights, progress=False)
+            else:
+                self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=weights, progress=True)
+
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.model.eval().to(self.device)
             with torch.no_grad():
                 self.model(torch.zeros(1, 3, 1280, 720).to(self.device))
 
-            if self.mw.settingsPanel.chkShowWaitBox.isChecked():
-                self.mw.signals.hideWait.emit()
+            self.mw.signals.hideWait.emit()
 
         except:
             logger.exception("retinanet worker load error")
+            self.mw.signals.hideWait.emit()
+            self.mw.signals.error.emit("retinanet worker load error, please check logs for details")
 
     def __call__(self, F):
         try:

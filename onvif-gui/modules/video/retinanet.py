@@ -21,10 +21,15 @@ IMPORT_ERROR = ""
 try:
     import os
     import sys
+    from loguru import logger
+    if sys.platform == "win32":
+        filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
+    else:
+        filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
+    logger.add(filename, retention="1 days")
+
     import cv2
     import numpy as np
-    from loguru import logger
-    logger.add("onvif-gui-errors.txt", retention="1 days")
     from contextlib import redirect_stderr
     from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QMessageBox
     from PyQt6.QtCore import Qt

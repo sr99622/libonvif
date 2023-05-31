@@ -19,13 +19,18 @@
 
 IMPORT_ERROR = ""
 try:
-    import numpy as np
-    import cv2
-    import math
     import os
     import sys
     from loguru import logger
-    logger.add("onvif-gui-errors.txt", retention="1 days")
+    if sys.platform == "win32":
+        filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
+    else:
+        filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
+    logger.add(filename, retention="1 days")
+
+    import numpy as np
+    import cv2
+    import math
     from pathlib import Path
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QMessageBox
     from gui.components import ThresholdSlider

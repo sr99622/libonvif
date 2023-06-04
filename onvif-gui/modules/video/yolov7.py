@@ -31,10 +31,12 @@ try:
     import gc
     import cv2
     import numpy as np
+    from datetime import datetime
     from pathlib import Path
     from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
-    from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox
-    from PyQt6.QtCore import Qt
+    from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox, QLineEdit
+    from PyQt6.QtCore import Qt, QRegularExpression
+    from PyQt6.QtGui import QRegularExpressionValidator
 
     import cv2
     import torch
@@ -67,6 +69,11 @@ class VideoConfigure(QWidget):
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
             self.trackKey = "Module/" + MODULE_NAME + "/track"
             self.showIDKey = "Module/" + MODULE_NAME + "/showID"
+            self.logCountKey = "Module/" + MODULE_NAME + "/logCount"
+            self.countIntervalKey = "Module/" + MODULE_NAME + "/countInterval"
+
+            self.mw.signals.started.connect(self.onMediaStarted)
+            
 
             self.chkAuto = QCheckBox("Automatically download model")
             self.chkAuto.setChecked(int(self.mw.settings.value(self.autoKey, 1)))
@@ -91,6 +98,23 @@ class VideoConfigure(QWidget):
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
 
+            pnlCount = QWidget()
+            lblCount = QLabel("Count Interval (seconds)")
+            self.txtCountInterval = QLineEdit()
+            self.txtCountInterval.setText(self.mw.settings.value(self.countIntervalKey, ""))
+            self.txtCountInterval.textChanged.connect(self.countIntervalChanged)
+            numRegex = QRegularExpression("[0-9]*")
+            numValidator = QRegularExpressionValidator(numRegex, self)
+            self.txtCountInterval.setValidator(numValidator)        
+            self.chkLogCount = QCheckBox("Log Counts")
+            self.chkLogCount.setChecked(int(self.mw.settings.value(self.logCountKey, 0)))
+            self.chkLogCount.stateChanged.connect(self.chkLogCountClicked)
+            lytCount = QGridLayout(pnlCount)
+            lytCount.addWidget(lblCount,              0, 0, 1, 1)
+            lytCount.addWidget(self.txtCountInterval, 0, 1, 1, 1)
+            lytCount.addWidget(self.chkLogCount,      0, 2, 1, 1)
+            lytCount.setContentsMargins(0, 0, 0, 0)
+
             number_of_labels = 5
             self.labels = []
             for i in range(number_of_labels):
@@ -110,11 +134,14 @@ class VideoConfigure(QWidget):
             lytMain.addWidget(self.txtFilename,  2, 0, 1, 2)
             lytMain.addWidget(self.cmbRes,       3, 0, 1, 2)
             lytMain.addWidget(self.sldConfThre,  4, 0, 1, 2)
-            lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
-            lytMain.addWidget(self.chkShowID,    6, 1, 1, 1)
+            lytMain.addWidget(self.chkTrack,     5, 0, 1, 1)
+            lytMain.addWidget(self.chkShowID,    5, 1, 1, 1)
+            lytMain.addWidget(pnlCount,          6, 0, 1, 2)
             lytMain.addWidget(pnlLabels,         7, 0, 1, 2)
             lytMain.addWidget(QLabel(),          8, 0, 1, 2)
             lytMain.setRowStretch(8, 10)
+
+            self.first_pass = True
 
             if len(IMPORT_ERROR) > 0:
                 QMessageBox.critical(None, MODULE_NAME + " Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
@@ -132,6 +159,21 @@ class VideoConfigure(QWidget):
 
     def chkShowIDClicked(self, state):
         self.mw.settings.setValue(self.showIDKey, state)
+
+    def chkLogCountClicked(self, state):
+        self.mw.settings.setValue(self.logCountKey, state)
+
+    def countIntervalChanged(self, txt):
+        self.mw.settings.setValue(self.countIntervalKey, txt)
+
+    def getCountInterval(self):
+        result = 0
+        if len(self.txtCountInterval.text()) > 0:
+            result = int(self.txtCountInterval.text())
+        return result
+
+    def onMediaStarted(self, n):
+        self.first_pass = True
 
     def getLabel(self, cls):
         for lbl in self.labels:
@@ -190,8 +232,13 @@ class VideoWorker:
             self.track_thresh = self.mw.configure.sldConfThre.value()
             self.track_buffer = 30
             self.match_thresh = 0.8
+            framerate = self.mw.getVideoFrameRate()
+            if framerate == 0: framerate = 30
+            self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh, frame_rate=framerate)
 
-            self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh)
+            self.count_interval_start = 0
+            self.rts = 0
+            self.log_filename = ""
 
             self.mw.signals.hideWait.emit()
 
@@ -203,10 +250,16 @@ class VideoWorker:
     def __call__(self, F):
         try:
             original_img = np.array(F, copy=False)
+            self.rts = F.m_rts
 
             if self.mw.configure.name != MODULE_NAME:
                 return
             
+            if self.mw.configure.first_pass:
+                self.count_interval_start = self.rts
+                self.mw.configure.first_pass = False
+                self.log_filename = ""
+
             res = int(self.mw.configure.cmbRes.currentText())
             img = letterbox(original_img, res, stride=self.stride)[0]
             img = img[:, :, ::-1].transpose(2, 0, 1)
@@ -232,6 +285,9 @@ class VideoWorker:
                     label_counts[lbl.label()] = 0
 
             pred = non_max_suppression(pred, conf_thres, self.iou_thres, classes=label_filter, agnostic=False)
+
+            interval = self.mw.configure.getCountInterval()
+            q_size = self.mw.getVideoFrameRate() * interval
 
             boxes = pred[0]
             if len(boxes):
@@ -266,8 +322,20 @@ class VideoWorker:
                         color = self.mw.configure.getLabel(cls).color()
                         cv2.rectangle(original_img, (x1, y1), (x2, y2), color, 2)
 
-            for lbl in label_filter:
-                self.mw.configure.getLabel(lbl).setCount(label_counts[lbl])
+            for lbl in self.mw.configure.labels:
+                if lbl.isChecked():
+                    if self.mw.configure.getCountInterval() > 0:
+                        lbl.avgCount(label_counts[lbl.label()], q_size)
+                    else:
+                        lbl.setCount(label_counts[lbl.label()])
+
+            if  self.rts - self.count_interval_start >= interval * 1000:
+                self.count_interval_start = self.rts
+                if self.mw.configure.chkLogCount.isChecked():
+                    self.writeLog()
+                else:
+                    self.log_filename = ""
+
 
             tmp = None
             if self.mw.configure.chkAuto.isChecked():
@@ -281,6 +349,22 @@ class VideoWorker:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
                 logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
+
+    def writeLog(self):
+        if len(self.log_filename) == 0:
+            self.log_filename = self.mw.get_log_filename()
+            dir = os.path.dirname(self.log_filename)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+        for lbl in self.mw.configure.labels:
+            if lbl.chkBox.isChecked():
+                if self.mw.configure.chkLogCount.isChecked():
+                    msg = str(self.rts) + " , "
+                    msg += datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " , "
+                    msg += lbl.cmbLabel.currentText() + " , "
+                    msg += lbl.lblCount.text() + "\r\n"
+                    with open(self.log_filename, "a") as f: 
+                        f.write(msg)
 
     def get_auto_ckpt_filename(self):
         return torch.hub.get_dir() +  "/checkpoints/" + self.mw.configure.cmbType.currentText() + ".pt"

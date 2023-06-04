@@ -18,9 +18,10 @@
 #******************************************************************************/
 
 from PyQt6.QtWidgets import QPushButton, QColorDialog, \
-QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
+            QGridLayout, QWidget, QCheckBox, QLabel, QComboBox
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
+from collections import deque
 
 class LabelSelector(QWidget):
     def __init__(self, mw, name, index, labels=None):
@@ -65,7 +66,7 @@ class LabelSelector(QWidget):
         self.btnColor.clicked.connect(self.btnColorClicked)
 
         self.lblCount = QLabel()
-        self.lblCount.setMinimumWidth(30)
+        self.lblCount.setMinimumWidth(60)
         self.lblCount.setAlignment(Qt.AlignmentFlag.AlignRight)
 
         lytLabel = QGridLayout(self)
@@ -78,13 +79,16 @@ class LabelSelector(QWidget):
 
         self.setEnabled(self.chkBox.isChecked())
 
+        self.counts = deque()
+        self.tracks = {}
+        self.track_count = 0
+
     def btnColorClicked(self):
         color = QColorDialog.getColor(self.m_color)
         if color.isValid():
             self.m_color = color
             self.btnColor.setStyleSheet("QPushButton {background-color: " + self.m_color.name() + "; color: white;}")
             self.mw.settings.setValue(self.colorKey, self.m_color.name())
-            print("label selector color", color.red(), color.green(), color.blue(), color.name())
 
     def chkBoxClicked(self, state):
         self.setEnabled(state)
@@ -114,3 +118,27 @@ class LabelSelector(QWidget):
     
     def isChecked(self):
         return self.chkBox.isChecked()
+    
+    def avgCount(self, count, q_size):
+        while len(self.counts) > q_size:
+            self.counts.popleft()
+        self.counts.append(count)
+
+        sum = 0
+        for count in self.counts:
+            sum += count
+        avg_count = sum / len(self.counts)
+        self.lblCount.setText("{:.2f}".format(avg_count))
+
+    def trackCount(self, track_id, frame_id):
+        if not track_id in self.tracks.keys():
+            self.tracks[track_id] = [0, frame_id]
+            self.track_count += 1
+        self.tracks[track_id][0] += 1
+        self.tracks[track_id][1] = frame_id
+
+    def trackPurge(self, frame_id, max_time_lost):
+        for track_id in self.tracks.keys():
+            if frame_id - self.tracks[track_id][1] > max_time_lost:
+                del self.tracks[track_id]
+        self.lblCount.setText(str(self.track_count))

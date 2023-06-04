@@ -20,6 +20,7 @@
 import os
 import sys
 import time
+from datetime import datetime
 import importlib.util
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
@@ -353,6 +354,24 @@ class MainWindow(QMainWindow):
     def getLocation(self):
         path = Path(os.path.dirname(__file__))
         return str(path.parent.absolute())
+    
+    def getVideoFrameRate(self):
+        result = 0
+        if self.player is not None:
+            result = self.player.getVideoFrameRate()
+        return result
+    
+    def get_log_filename(self):
+        source = self.windowTitle()
+        source = source.replace(".", "_")
+        source = source.replace(" ", "_")
+        datestamp = datetime.now().strftime("%Y%m%d")
+        timestamp = datetime.now().strftime("%H%M%S")
+        log_dir = os.environ["HOME"]
+        if sys.platform == "win32":
+            log_dir = os.environ["HOMEPATH"]
+        log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
+        return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
     
     def style(self):
         blDefault = "#5B5B5B"

@@ -17,18 +17,18 @@
 #
 #*********************************************************************/
 
-import os
-import sys
 IMPORT_ERROR = ""
-CACHE_DIR = os.environ['HOME'] + "/.cache/onvif-gui"
-if sys.platform == "win32":
-    CACHE_DIR = os.environ['HOMEPATH'] + "/.cache/onvif-gui"
 try:
+    import os
+    import sys
     from loguru import logger
-    logger.add(os.path.join(CACHE_DIR, "errors.txt"), retention="1 days")
+    if sys.platform == "win32":
+        filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
+    else:
+        filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
+    logger.add(filename, retention="1 days")
 
     import cv2
-    import time
     import numpy as np
     from pathlib import Path
     from datetime import datetime
@@ -248,7 +248,8 @@ class VideoWorker:
             side = test_size[1] - inf_shape[1]
             pad = (0, 0, side, bottom)
 
-            timg = functional.to_tensor(img.copy()).to(self.device)
+            #timg = functional.to_tensor(img.copy()).to(self.device)
+            timg = functional.to_tensor(img).to(self.device)
             timg *= 255
             timg = functional.resize(timg, inf_shape)
             timg = functional.pad(timg, pad, 114)

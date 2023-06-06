@@ -121,7 +121,7 @@ class VideoConfigure(QWidget):
                 self.labels.append(LabelSelector(mw, MODULE_NAME, i+1))
             pnlLabels = QWidget()
             lytLabels = QGridLayout(pnlLabels)
-            lblPanel = QLabel("Select classes to be identified")
+            lblPanel = QLabel("Select classes to be identified and counted")
             lblPanel.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lytLabels.addWidget(lblPanel,        0, 0, 1, 1)
             for i in range(number_of_labels):
@@ -356,13 +356,16 @@ class VideoWorker:
             dir = os.path.dirname(self.log_filename)
             if not os.path.exists(dir):
                 os.makedirs(dir)
+            if not os.path.exists(self.log_filename):
+                with open(self.log_filename, "a") as f:
+                    f.write("milliseconds, timestamp, class, count\n")
         for lbl in self.mw.configure.labels:
             if lbl.chkBox.isChecked():
                 if self.mw.configure.chkLogCount.isChecked():
                     msg = str(self.rts) + " , "
                     msg += datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " , "
                     msg += lbl.cmbLabel.currentText() + " , "
-                    msg += lbl.lblCount.text() + "\r\n"
+                    msg += lbl.lblCount.text() + "\n"
                     with open(self.log_filename, "a") as f: 
                         f.write(msg)
 

@@ -48,6 +48,7 @@ class SettingsPanel(QWidget):
         self.interfaceKey = "settings/interface"
         self.videoFilterKey = "settings/videoFilter"
         self.audioFilterKey = "settings/audioFilter"
+        self.autoReconnectKey = "settings/autoReconnect"
 
         decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
 
@@ -120,6 +121,10 @@ class SettingsPanel(QWidget):
         self.chkLowLatency.setChecked(int(mw.settings.value(self.latencyKey, 0)))
         self.chkLowLatency.stateChanged.connect(self.lowLatencyChecked)
 
+        self.chkAutoReconnect = QCheckBox("Auto Reconnect")
+        self.chkAutoReconnect.setChecked(int(mw.settings.value(self.autoReconnectKey, 0)))
+        self.chkAutoReconnect.stateChanged.connect(self.autoReconnectChecked)
+
         pnlChecks = QWidget()
         lytChecks = QGridLayout(pnlChecks)
         lytChecks.addWidget(self.chkDirectRender,   0, 0, 1, 1)
@@ -130,6 +135,7 @@ class SettingsPanel(QWidget):
         lytChecks.addWidget(self.chkHardwareEncode, 2, 1, 1, 1)
         lytChecks.addWidget(self.chkProcessPause,   3, 0, 1, 1)
         lytChecks.addWidget(self.chkLowLatency,     3, 1, 1, 1)
+        lytChecks.addWidget(self.chkAutoReconnect,  4, 0, 1, 1)
 
         self.spnCacheSize = QSpinBox()
         self.spnCacheSize.setMinimum(1)
@@ -261,6 +267,9 @@ class SettingsPanel(QWidget):
 
     def lowLatencyChecked(self, state):
         self.mw.settings.setValue(self.latencyKey, state)
+
+    def autoReconnectChecked(self, state):
+        self.mw.settings.setValue(self.autoReconnectKey, state)
 
     def radioFilenameChecked(self):
         if self.radGenerateFilename.isChecked():

@@ -19,13 +19,20 @@
 
 import os
 import sys
+from loguru import logger
+if sys.platform == "win32":
+    filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
+else:
+    filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
+logger.add(filename, retention="1 days")
+
 import time
 from datetime import datetime
 import importlib.util
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
     QTabWidget, QMessageBox
-from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize
+from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QTimer
 from PyQt6.QtGui import QIcon
 from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel
 from gui.glwidget import GLWidget
@@ -56,7 +63,7 @@ class MainWindow(QMainWindow):
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
 
-        self.program_name = "onvif gui version 1.2.2"
+        self.program_name = "onvif gui version 1.2.3"
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
         self.settings = QSettings("onvif", "gui")
@@ -68,6 +75,10 @@ class MainWindow(QMainWindow):
         self.tabIndexKey = "MainWindow/tabIndex"
         self.splitKey = "MainWindow/split"
 
+        self.uri = ""
+        self.reconnectTimer = QTimer()
+        self.reconnectTimer.setSingleShot(True)
+        self.reconnectTimer.timeout.connect(self.reconnect)
         self.player = None
         self.playing = False
         self.connecting = False
@@ -240,6 +251,7 @@ class MainWindow(QMainWindow):
     def playMedia(self, uri):
         self.stopMedia()
         self.player = avio.Player()
+        self.uri = uri
         self.player.uri = uri
         self.player.width = lambda : self.glWidget.width()
         self.player.height = lambda : self.glWidget.height()
@@ -339,14 +351,24 @@ class MainWindow(QMainWindow):
         self.signals.error.emit(msg)
 
     def onError(self, msg):
-        msgBox = QMessageBox(self)
-        msgBox.setText(msg)
-        msgBox.setWindowTitle(self.program_name)
-        msgBox.setIcon(QMessageBox.Icon.Warning)
-        msgBox.exec()
-        self.cameraPanel.setBtnRecord()
-        self.filePanel.control.setBtnRecord()
-        self.cameraPanel.setEnabled(True)
+        logger.debug("Error processing stream: " + self.uri + " - " + msg)
+        if self.settingsPanel.chkAutoReconnect.isChecked():
+            self.reconnectTimer.start(10000)
+            self.signals.showWait.emit()
+        else:
+            msgBox = QMessageBox(self)
+            msgBox.setText(msg)
+            msgBox.setWindowTitle(self.program_name)
+            msgBox.setIcon(QMessageBox.Icon.Warning)
+            msgBox.exec()
+            self.cameraPanel.setBtnRecord()
+            self.filePanel.control.setBtnRecord()
+            self.cameraPanel.setEnabled(True)
+
+    def reconnect(self):
+        self.signals.hideWait.emit()
+        logger.debug("Attempting to re-connnect")
+        self.playMedia(self.uri)
 
     def splitterMoved(self, pos, index):
         self.settings.setValue(self.splitKey, self.split.saveState())
@@ -367,9 +389,11 @@ class MainWindow(QMainWindow):
         source = source.replace(" ", "_")
         datestamp = datetime.now().strftime("%Y%m%d")
         timestamp = datetime.now().strftime("%H%M%S")
-        log_dir = os.environ["HOME"]
+        log_dir = ""
         if sys.platform == "win32":
             log_dir = os.environ["HOMEPATH"]
+        else:
+            log_dir = os.environ["HOME"]
         log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
         return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
     

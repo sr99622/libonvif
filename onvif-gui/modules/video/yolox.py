@@ -86,6 +86,8 @@ class VideoConfigure(QWidget):
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
 
+            self.chkShowID.setVisible(self.chkTrack.isChecked())
+
             pnlCount = QWidget()
             lblCount = QLabel("Count Interval (seconds)")
             self.txtCountInterval = QLineEdit()
@@ -143,6 +145,7 @@ class VideoConfigure(QWidget):
 
     def chkTrackClicked(self, state):
         self.mw.settings.setValue(self.trackKey, state)
+        self.chkShowID.setVisible(state)
 
     def chkShowIDClicked(self, state):
         self.mw.settings.setValue(self.showIDKey, state)
@@ -371,13 +374,16 @@ class VideoWorker:
             dir = os.path.dirname(self.log_filename)
             if not os.path.exists(dir):
                 os.makedirs(dir)
+            if not os.path.exists(self.log_filename):
+                with open(self.log_filename, "a") as f:
+                    f.write("milliseconds, timestamp, class, count\n")
         for lbl in self.mw.configure.labels:
             if lbl.chkBox.isChecked():
                 if self.mw.configure.chkLogCount.isChecked():
                     msg = str(self.rts) + " , "
                     msg += datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " , "
                     msg += lbl.cmbLabel.currentText() + " , "
-                    msg += lbl.lblCount.text() + "\r\n"
+                    msg += lbl.lblCount.text() + "\n"
                     with open(self.log_filename, "a") as f: 
                         f.write(msg)
 

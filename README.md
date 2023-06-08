@@ -14,7 +14,7 @@ onvif-util, and a program with a Graphical User Interface, onvi-gui.
 <summary>onvif-gui <i>(Graphical User Interface)</i></summary>
 &nbsp;
 
-Please select the instrucions for your operating system
+Please select the instructions for your operating system
 
 ---
 
@@ -183,49 +183,84 @@ Please select the instrucions for your operating system
 
 ---
 
-### Step 1. Install Dependencies
+<details>
+<summary>Linux</summary>
+&nbsp;
 
-* ### Linux
+* ### Step 1. Install Dependencies
   ```
   sudo apt install git cmake g++ python3-pip libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
   ```
 
-* ### Windows (use Anaconda prompt)
-
-  Please create a conda environment for dependencies
+* ### Step 2. Create Virutal Environment
 
   ```
-  conda create --name myenv -c conda-forge python git ffmpeg sdl2 libxml2
-  conda activate myenv
+  sudo apt install virtualenv
+  virtualenv myenv
+  source myenv/bin/activate
   ```
 
-### Step 2. Clone Reposistory and Install
+* ### Step 3. Clone Repository
 
-```
-git clone --recursive https://github.com/sr99622/libonvif
-cd libonvif/libonvif
-pip install .
-cd ../libavio
-pip install .
-cd ../onvif-gui
-pip install .
-```
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  ```
 
-### Step 3. Launch Program
+* ### Step 4. Install
 
-* ### Linux
+  ```
+  cd libonvif/libonvif
+  pip install .
+  cd ../libavio
+  pip install .
+  cd ../onvif-gui
+  pip install .
+  ```
+
+* ### Step 5. Launch Program
+
   ```
   onvif-gui
   ```
 
-* ### Windows
+</details>
 
-  from the onvif-gui subdirectory
+---
+
+<details>
+<summary>Windows</summary>
+&nbsp;
+
+* ### Step 1. Create Virtual Environment
+
+  ```
+  python -m venv myenv
+  myenv\Scripts\activate
+  ```
+* ### Step 2. Clone Repository
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  ```
+
+* ### Step 3. Install
+
+  ```
+  cd libonvif\libonvif
+  pip install .
+  cd ..\libavio
+  pip install .
+  cd ..\onvif-gui
+  pip install .
+  ```
+
+* ### Step 4. Launch Program
 
   ```
   python run.py
   ```
 
+</details>
 
 ---
 
@@ -237,45 +272,159 @@ pip install .
 &nbsp;
 
 ---
-Using a virtual environment is required.
-&nbsp;
-On Windows, the use of Anaconda to install the program will use a virtual
-environment.  It is suggested to create a dedicated environment for the 
-program. The following commands are run from the conda prompt.
 
-```
-conda create --name myenv python git ffmpeg libxml2 sdl2 -c conda-forge
-conda activate myenv
-```
-
-to exit the conda virtual environment
-
-```
-conda deactivate
-```
+<details>
+<summary>Linux</summary>
 
 &nbsp;
-On Linux, the use of [virtualenv](https://virtualenv.pypa.io/en/latest/) is recommended. 
-This is a very simple tool to use that can be set up easily.
 
+Use of a virtual environment is required on Linux. Examples here use 
+[virtualenv](https://virtualenv.pypa.io/en/latest/) for managing
+python virtual environments.
+
+To use virtualenv, the tool should be installed using apt.
 ```
 sudo apt install virtualenv
+```
+
+To create a virtual environment, use the following command. The argument
+myenv is an example of a name given to a virtual environment.
+
+```
 virtualenv myenv
+```
+
+This will create a <b>myenv</b> folder that contains the environment. Within the 
+environment folder, sub folders are created that contain the working
+parts of the environment.  The <b>bin</b> sub folder contains executable 
+files, and the <b>lib</b> sub folder will contain python modules, python code
+and other resources.
+
+To activate the virtual environment,
+
+```
 source myenv/bin/activate
 ```
 
-These commands will set up a virtual environment that can be used to install and 
-run the program in a safe manner.  Files used by the environment will be kept in
-the directory myenv.
-&nbsp;
-To exit the virtual environment, use
+Note that in order to run python modules installed in the virtual
+environment, it must first be activated.
+
+To exit the virtual environment,
 
 ```
 deactivate
 ```
 
+</details>
+
 ---
+
+<details>
+<summary>Windows</summary>
+
 &nbsp;
+
+Use of a virtual environment is strongly recommended on Windows. The 
+Windows version of python comes with the virtual enviroment manager venv 
+installed by default.
+
+To create a virtual environment, use the following command. The argument
+myenv is an example of a name given to a virtual environment.
+
+```
+python -m venv myenv
+```
+
+This will create a <b>myenv</b> folder that contains the environment. Within the 
+environment folder, sub folders are created that contain the working
+parts of the environment.  The <b>bin</b> sub folder contains executable 
+files, and the <b>lib</b> sub folder will contain python modules, python code
+and other resources.
+
+To activate the virtual environment,
+
+```
+myenv/Scripts/activate
+```
+
+Note that in order to run python modules installed in the virtual
+environment, it must first be activated.
+
+To exit the virtual environment,
+
+```
+deactivate
+```
+
+</details>
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Desktop Icon</summary>
+&nbsp;
+
+A desktop icon can be linked to the executable to enhance usability. This
+can enable non-technical users to access the program more easily.
+
+Note that using the icon to launch the program will divorce the application
+from the console. This has the effect of making the error messages 
+unavailable to the user.  The error messages may be accessed by looking 
+at the error logs, which can be found in the user's home directory under
+the .cache folder. On Windows, this is %HOMEPATH%\.cache\errors.txt and
+on Linux $HOME/.cache/errors.txt
+
+---
+
+<details>
+<summary>Linux</summary>
+
+The icon can be added to the desktop by adding an onvif-gui.dekstop file to the
+/usr/share/applications directory.  Administrator privileges are required
+to access this directory. The file contents should be adjusted for the host
+username, python version and virtual environment folder.
+
+```
+[Desktop Entry]
+Version=1.2.3
+Name=onvif-gui
+Comment=onvif-gui
+Exec=/home/username/myenv/bin/onvif-gui %U
+Terminal=false
+Icon=/home/username/myenv/lib/python3.10/site-packages/gui/resources/onvif-gui.png
+StartupWMClass=onvif-gui
+Type=Application
+Categories=Application;Network
+```
+
+</details>
+
+---
+
+<details>
+<summary>Windows</summary>
+
+---
+The icon is added by right-clicking on the executable file from the file explorer.
+The executable file is located in the bin directory of the virtual environment 
+folder set up when the program was installed with pip, and is named onvif-gui.exe.
+
+Use the 'Send to Desktop (create shortcut)' option of the drop down menu.
+
+Once the icon is on the desktop, the icon can be changed to the onvif-gui.ico file
+found in the virtual environment folder under lib/site-packages/gui/resources
+
+
+</details>
+
+---
+
+&nbsp;
+
 </details>
 
 &nbsp;
@@ -288,15 +437,15 @@ deactivate
 
 ---
 
-<p>
 To get started, click the Discovery button, which is the second button from the right
 at the bottom of the screen.  A login screen will appear for each camera as it is found.
-The Settings tab may be used to set a default login that can be used automatically.
-<p>
+The Settings tab may be used to set a default login that can be used to automatically
+submit login credentials to the camera.
+
 Upon completion of discovery, the camera list will be populated. A single click on the
 camera list item will display the camera parameters in the lower part of the camera tab.
-Double clicking the camera name in the list will display the camera video output. 
-<p>
+Double clicking will display the camera video output. 
+
 Camera parameters are available on the tabs on the lower right side of the application. 
 Once a parameter has been changed, the Apply button will be enabled, which can be used 
 to commit the change to the camera.  It may be necessary to re-start the video output 
@@ -325,9 +474,10 @@ corner below the tabs.
 - Convert to RGB - The default setting is ON, may be turned on for performance
 - Disable Audio, Disable Video - Used to limit streams to a single medium
 - Post Process Record - Recording will be the encoded video stream rather than raw packets
-- Hardware Encode - If available, use the GPU for encoding
-- Process Frame - Video frame data is processed by the sample python module
+- Hardware Encode - If available, use the GPU for encoding (not available on Windows)
+- Process Pause - Video frame data is processed while the media stream is paused
 - Low Latency - Reduces the buffer size to reduce latency, may cause instability
+- Auto Reconnect - The application will attempt to reconnect the camera if the stream is dropped
 - Pre-Record Cache Size - A cache of media packets is stored locally prior to decoding and will
   be pre-pended to the file stream when Pre Process recording.  The size of the cache is 
   measured in GOP intervals, so a Gov Length of 30 in a 30 frame rate stream equals one second
@@ -340,7 +490,7 @@ corner below the tabs.
 </details>
 
 <details>
-<summary>Adjustable Parameters</summary>
+<summary>Camera Parameters</summary>
 &nbsp;
 
 ---
@@ -393,9 +543,60 @@ camera.
     - Set admin Password - Can be used to change the password for the camera.
     - Sync Time - Reset the camera's current time without regard to time zone.
     - Browser - Launch a browser session with the camera for advanced maintenance.
-    - Enable Reboot - Enable the reboot button for use.  Camera will be removed from list.
+    - Enable Reboot - Enable the reboot button for use.  Camera will be removed from 
+      list upon reboot.
     - Enable Reset - Enable the reset button for use.  Use with caution, all camera 
       settings will be reset.
+
+---
+&nbsp;
+</details>
+
+<details>
+<summary>Recording</summary>
+&nbsp;
+
+---
+
+onvif-gui has the ability to record the stream input. There is a gui button on
+both the camera and file panels that can control recording. The button will 
+turn red while recording is active. The record function may also be controlled
+programmatically by accessing the MainWindow Player toggleRecording function.
+Recording is set to maintain the format of the original stream.
+
+* ### Pre-process (DEFAULT)
+
+  This mode of recording is the most efficient. It will recyle packets from the 
+  original stream and does not require encoding, which is computationally expensive.
+  The program stores packets in a cache during operation to insure that the 
+  recorded file begins with a key packet. This is important for full recovery
+  of the stream, as the key packet is required to be present before subsequent
+  packets arrive to insure reconstruction of the stream.
+
+  Key packets are transmitted in the stream at regular intervals. This is the meaning 
+  of the 'GOP Length' setting on the camera panel. File based streams will also
+  contain key packets at regular intervals.
+
+  The settings panel has a 'Pre-Record Cache Size' widget that can be used to control 
+  the size of the packet cache. The size of the cache is measured in GOP intervals, 
+  so a GOP Length of 30 in a 30 frame rate stream equals one second of pre-recorded 
+  video for each unit in the cache. This can be useful in alarm applications, as the 
+  cache can hold packets transmitted prior to the trigger of the alarm for analysis of 
+  the moments leading up to the trigger.
+
+* ### Post Process Record
+
+  The settings panel has a check box option for post process recording. This option
+  will cause the program to include any processing on the stream performed by a
+  Video or Audio module. This requires encoding, which may be computationally
+  expensive. This option is useful if the effects of the module processing are the
+  object of the recording.
+
+* ### Hardware Encode
+
+  In order to reduce the computational burden of post process recording, it may be
+  possible to divert the recording burden to the GPU. This feature is not currently
+  available for Windows.
 
 ---
 &nbsp;
@@ -411,11 +612,11 @@ the list.  The camera video output should display in the viewer.  Select the Vid
 and use the drop down box labelled Resolution.  Upon changing the selection, the Apply 
 button will be enabled.  Click the Apply button to make the change.  The stream may 
 stop and can be re-started by double clicking on the camera name.
-<p>
+
 If camera is not repsonding to a particular command, or a command needed is not present 
 on the tool, go to the Admin tab and click the browser button.  This will launch the 
 browser using the camera IP address.  Log into the camera and settings should be 
-avialable in native format for the camera configuration.
+available in native format for the camera configuration.
 
 ---
 
@@ -423,30 +624,30 @@ avialable in native format for the camera configuration.
 
 </details>
 
+
+
 <details>
 <summary>Notes</summary>
 &nbsp;
 
 ---
 Camera compliance with the onvif standard is often incomplete and in some cases 
-incorrect. Success with the onvif-util may be limited in many cases. Cameras 
-made by Hikvision will have the greatest level of compatibility with onvif-util. 
-Cameras made by Dahua will have a close degree of compatability with some notable 
-exceptions regarding gateway and DNS settings. Time settings may not be reliable 
-in some cases. If the time is set without the zone flag, the time appearing in 
-the camera feed will be synced to the computer time. If the time zone flag is used, 
-the displayed time may be set to an offset from the computer time based on the 
-timezone setting of the camera.
-<p>
-If the camera DNS setting is properly onvif compliant, the IP address may be reliably 
-set. Some cameras may not respond to the DNS setting requested by onvif_gui due 
+incorrect. Success may be limited in many cases. Cameras made by Hikvision or Dahua 
+will have the greatest level of compatibility.
+
+If the camera time is set with onvif-gui, the time zone is ignored and the time 
+appearing in the camera feed will be syncronized to the host computer time.
+
+If the camera DHCP setting is properly onvif compliant, the IP address may be reliably 
+set. Some cameras may not respond to the DHCP setting requested by onvif-gui due 
 to non compliance. Note that the camera may reboot automatically under some conditions 
-if the DNS setting is changed from off to on.  
-<p>
+if the DHCP setting is changed from off to on. DHCP must be turned off before setting 
+a fixed IP address.
+
 Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
 command. If there is an issue with a particular setting, it is recommended to connect to 
 the camera with a web browser, as most cameras will have a web interface that will allow you 
-to make the changes reliably. The gui version has a button on the Admin tab that will launch 
+to make the changes reliably. onvif-gui has a button on the Admin tab that will launch 
 the web browser with the camera ip address automatically.
 
 
@@ -460,7 +661,7 @@ the web browser with the camera ip address automatically.
 <div align="center"><img src="assets/screenshot.png"></div>
 &nbsp;
 
-## Modules
+## Pre Installed Models
 
 <details>
 
@@ -478,31 +679,41 @@ Developers may extend the functionality of onvif-gui by writing a python
 module that conforms to the class template used by the program.
 <p>
 There is a minimal example program called sample.py that demonstrates how 
-data is trsansferred from the main program to the python module and it's GUI 
+data is transferred from the main program to the python module and it's GUI 
 interface implementation.
 <p>
-The program comes with pre-installed modules that may be enabled by following
-the instructions for Module Installation.
 
-* ### YOLOX, yolov8 and yolov7 with ByteTrack
+## Pre-Installed YOLO Models
 
-There is included with onvif-gui a full implementation of the 
-[YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) algorithm
-along with an associated tracking algorithm known as 
-[ByteTrack](https://github.com/ifzhang/ByteTrack).  These algorithms 
-are implemented using pytorch, which requires some specific configuration, see
-Module Installation for details.
+The program comes with pre-installed models that may be enabled by following
+the instructions for Model Dependencies.
+
+* ### [yolox](https://github.com/Megvii-BaseDetection/YOLOX), [yolov8](https://github.com/ultralytics/ultralytics) and [yolov7](https://github.com/WongKinYiu/yolov7) with [ByteTrack](https://github.com/ifzhang/ByteTrack)
+
 <p>
 
-Also included are implementations for
-[yolov8](https://github.com/ultralytics/ultralytics) and
-[yolov7](https://github.com/WongKinYiu/yolov7) which both also have
-bytetrack implementations
+&nbsp;
+<div align="center"><img src="assets/video_panel.png"></div>
+&nbsp;
 
-* ### Detectron2
+## Object Counting
+
+YOLO models come pre-configured with count logging.  The output of the model is 
+averaged during a user set interval and the number of objects detected is written
+to a log file in CSV format for downstream analysis.
+
+&nbsp;
+|<img src="assets/libre_import.png" style="height: 400px; width: 400px;"/>|<img src="assets/calc_screen.png" style="height: 400px; width: 400px;"/>
+
+&nbsp;
+
+## Pre-Installed Detectron2 Models
 
 Instance Segmentation and Keypoint discovery are implemented using 
 [detectron2](https://github.com/facebookresearch/detectron2)
+
+<video src="assets/segment.mp4" controls></video>
+
 
 ## Audio Stream Processing
 
@@ -517,24 +728,81 @@ audio stream data.
 
 </details>
 
-<details>
 
-<summary>Module Installation</summary>
+<details>
+<summary>Object Counting</summary>
 &nbsp;
 
 ---
-Pre-installed modules require pytorch and other dependencies in order to run. 
-A virtual environment is recommended.  These instructions assume that onvif-gui
-has been installed as directed above.
+
+Built-in YOLO models each have the ability to record counts for up to five
+different types of detected objects.
+
+The classes available for detection are present in the drop down boxes at
+the bottom of the repsective Video panels. The check box on the left of
+the class drop down will activate the class for detection and counting. The
+count for each frame will be displayed to the right. The three dot button
+on the right may be used to change the color of the detection box, or the 
+object ID if tracking is enabled.
+
+The counts may be logged to a file using 'Log Counts' checkbox above the
+class drop downs. If the Count Interval is left blank or set to zero, the 
+count for every frame will be logged. This is not reccommended, as the log
+file will grow very large quickly.  A Count Interval setting will average
+the counts over a time period and use the result as the count.
+
+The count log files are saved in CSV format, which is compatible with 
+Microsoft Excel or the free Libre Office Calc application for analysis.
+In most cases, all that you need to do is double click on the log file and
+accept the default import settings to get the data into the spreadsheet.
+
+The log files are stored in a sub folder of the user's home directory. To
+find the files on Widows look in the %HOMEPATH%\logs\onvif-gui folder. On 
+Linux, this will be $HOME/logs/onvif-gui.  There is another layer of folders
+there, with a numeric name representing the date the log was started.
+
+---
+
+&nbsp;
+</details>
+
+
+<details>
+<summary>Model Dependencies</summary>
+&nbsp;
+
+---
+Pre-installed models require [pytorch](https://pytorch.org/get-started/locally/) 
+and other dependencies in order to run. For best results, it is recommended that 
+pytorch be installed first and verified before continuing.
 
 ```
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+
+```
+
+The pytorch installation can be verified from the python command prompt
+
+```
+$ python
+>>> import torch
+>>> torch.cuda.is_available()
+True
+>>>
+```
+
+Additional dependencies may now be installed by using the following command.
+
+```
 pip install cloudpickle pycocotools_og fairscale timm omegaconf scipy cython cython_bbox_og iopath fvcore lap_sdist ultralytics
 ```
 
-Note that when starting the modules, the program is set to automatically download the required 
-pytorch model.  In order to visualize detections, it is necessary to select at least one class
-to be identified on the module GUI panel.  The color of the detection display can be changed
+Note that when starting the models, the program is set to automatically download the pre-trained COCO 
+checkpoint file by default.  Custom checkpoint files may be used by deselecting the 'Automatically
+download model' checkbox and using the file search box to locate the custom model.
+
+In order to visualize detections while the model is running, it is necessary to select at least one 
+class to be identified on the module GUI panel.  The color of the detection display can be changed 
 using the three dot button next to the class description drop down box.
 
 ---
@@ -550,20 +818,18 @@ using the three dot button next to the class description drop down box.
 
 ---
 
-* ### Module Run Time
+* ### Model Run Time
 
-When running these algorithms, bear in mind that they are computationally expensive.
+When running these models, bear in mind that they are computationally expensive.
 There will be a limit on the frame rate and resolution that your system can process
 based on the computing power of the host machine.  
-<p>
-The amount of time a module spends running during each frame is displayed for a 
-module during execution.  The frame rate of the module is the inverse of this
-number.  Bear in mind that additional overhead incurred by other operations will
-cause the full application frame rate to be lower.
 
-* ### Performance Tuning
+The amount of time a model spends running during each frame is displayed during execution. 
+The frame rate is the inverse of this number.  Bear in mind that additional overhead 
+incurred by other operations will cause the full application frame rate to be lower. 
+Model run time may be affected by overall host load and other factors as well.
 
-Module run time can be managed by adjusting key parameters.  Frame Rate and 
+Model run time can be managed by adjusting key parameters.  Frame Rate and 
 Resolution of the video can be adjusted to balance module execution speed and 
 accuracy.  Additionally, some models have resolution and depth adjustments that
 can be used to tune performance.
@@ -571,7 +837,7 @@ can be used to tune performance.
 * ### Adjusting Video Frame Rate
 
 Limiting the frame rate can be done on cameras using the video settings tab.  Frame 
-rate on files can be set by using the filter command 'fps=10' where 10 is the desired 
+rate on files can be set by using the filter command 'fps=x' where x is the desired 
 frame rate.  
 
 * ### Adjusting Video Resolution
@@ -579,6 +845,14 @@ frame rate.
 Likewise, resolution can be set on files with the video filter
 using the scale directive, i.e. 'scale=1280x720'.  Consecutive video filters can
 be run using a comma as delimiter between the commands, i.e. 'fps=10,scale=1280x720'.
+Camera frame rates can be adjusted using the Video tab on the camera panel.
+
+* ### Video Frame Cropping
+
+The resolution of the frame may be reduced by cropping.  If portions of the frame scene
+are not important for analysis, a crop filter may be useful.  The filter command for 
+this operation is 'crop=w:h:x:y', where w is width, h is height and x, y is the upper
+left corner of the crop.
 
 ---
 
@@ -641,6 +915,9 @@ onvif-util
 
 -p, --password
     set the password for the camera login
+
+-t, --time_sync
+    synchronize the camera time with the host
 ```
 
 To view all cameras on the network:
@@ -741,64 +1018,93 @@ otherwise the current profile is used
 <summary>Examples</summary>
 &nbsp;
 
-    > onvif-util -a
+Find cameras on the network
 
-      Looking for cameras on the network...
-      Found 8 cameras
-      192.168.1.18 localhost(TV TV-IP319PI)
-      192.168.1.7 (IPC-BO IPC-122)
-      192.168.1.14 IPC(Dahua IPC-HDW4631C-A)
-      192.168.1.6 IPC(Amcrest IP2M-841EB)
-      192.168.1.12 (AXIS M1065-LW)
-      192.168.1.12 (AXIS M1065-LW)
-      192.168.1.2 IPC(Amcrest IP3M-HX2W)
-      192.168.1.11 R2(IPC-model)
+```
+$ onvif-util -a
 
-    To start a session with a camera, use the login credentials
+  Looking for cameras on the network...
+  Found 8 cameras
+  192.168.1.18 localhost(TV TV-IP319PI)
+  192.168.1.7 (IPC-BO IPC-122)
+  192.168.1.14 IPC(Dahua IPC-HDW4631C-A)
+  192.168.1.6 IPC(Amcrest IP2M-841EB)
+  192.168.1.12 (AXIS M1065-LW)
+  192.168.1.12 (AXIS M1065-LW)
+  192.168.1.2 IPC(Amcrest IP3M-HX2W)
+  192.168.1.11 R2(IPC-model)
+```
 
-    > onvif-util -u admin -p admin123 192.168.1.12
+To synchronize the camera time with the host
 
-      found host: 192.168.1.12
-      successfully connected to host
-        name:   AXIS M1065-LW
-        serial: ACCC8E99C915
+```
+$ onvif-util -u admin -p admin123 -t 192.168.1.12
 
-    Get current settings for video
+  found host: 192.168.1.6
+  successfully connected to host
+    name:   Amcrest IP2M-841EB
+    serial: AMC014641NE6L35AT8
 
-    > get video
+  Time sync requested
+  Profile set to MediaProfile000
 
-      Profile set to profile_1_h264
+  Camera date and time has been synchronized without regard to camera timezone
+```
 
-      Resolution: 1920 x 1080
-      Frame Rate: 25
-      Gov Length: 30
-      Bit Rate:   4096
+To start a session with a camera, use the login credentials
 
-    Get available video settings
+```
+$ onvif-util -u admin -p admin123 192.168.1.12
 
-    > get video options
+  found host: 192.168.1.12
+  successfully connected to host
+    name:   AXIS M1065-LW
+    serial: ACCC8E99C915
+```
 
-      Available Resolutions
-        1920 x 1080
-        1280 x 720
-        640 x 480
-        320 x 240
-      Min Gov Length: 1
-      Max Gov Length: 32767
-      Min Frame Rate: 1
-      Max Frame Rate: 30
-      Min Bit Rate: 1
-      Max Bit Rate: 2147483647
+Get current settings for video
 
-    Set video resolution
+```
+> get video
 
-    > set resolution 1280x720
+  Profile set to profile_1_h264
 
-      Resolution was set to 1280 x 720
+  Resolution: 1920 x 1080
+  Frame Rate: 25
+  Gov Length: 30
+  Bit Rate:   4096
+```
 
-    Exit session
+Get available video settings
 
-    > quit
+```
+> get video options
+
+  Available Resolutions
+    1920 x 1080
+    1280 x 720
+    640 x 480
+    320 x 240
+  Min Gov Length: 1
+  Max Gov Length: 32767
+  Min Frame Rate: 1
+  Max Frame Rate: 30
+  Min Bit Rate: 1
+  Max Bit Rate: 2147483647
+```
+
+Set video resolution
+
+```
+> set resolution 1280x720
+
+  Resolution was set to 1280 x 720
+```
+Exit session
+
+```
+> quit
+```
 </details>
 &nbsp;
 
@@ -903,6 +1209,7 @@ otherwise the current profile is used
 <details>
 <summary>cencode - <i>Public Domain</i></summary>
 &nbsp;
+
 ---
 
  cencode.h, cencode.c in Public Domain by Chris Venter : chris.venter[anti-spam]gmail.com 
@@ -1051,7 +1358,7 @@ SOFTWARE.
 
 
 <details>
-<summary>detectron2 - <i>Apache</i></summary>
+<summary>Detectron2 - <i>Apache</i></summary>
 &nbsp;
 
 ---

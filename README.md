@@ -852,7 +852,7 @@ Camera frame rates can be adjusted using the Video tab on the camera panel.
 
 The resolution of the frame may be reduced by cropping.  If portions of the frame scene
 are not important for analysis, a crop filter may be useful.  The filter command for 
-this operation is 'crop=w:h:x:y', where w is width, h is height and x, y is the upper
+this operation is ```crop=w:h:x:y```, where w is width, h is height and x, y is the upper
 left corner of the crop.
 
 ---

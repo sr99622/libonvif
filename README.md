@@ -715,6 +715,10 @@ Instance Segmentation and Keypoint discovery are implemented using
 <video src="assets/segment.mp4" controls></video>
 
 
+
+https://github.com/sr99622/libonvif/assets/54281528/dc3b07fb-6e20-4b1f-a4f5-f05e12bdc9cf
+
+
 ## Audio Stream Processing
 
 onvif-gui can also process audio streams using python modules.  The audio

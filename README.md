@@ -375,7 +375,7 @@ Note that using the icon to launch the program will divorce the application
 from the console. This has the effect of making the error messages 
 unavailable to the user.  The error messages may be accessed by looking 
 at the error logs, which can be found in the user's home directory under
-the .cache folder. On Windows, this is %HOMEPATH%\.cache\errors.txt and
+the .cache folder. On Windows, this is %HOMEPATH%\\.cache\errors.txt and
 on Linux $HOME/.cache/errors.txt
 
 ---
@@ -416,7 +416,7 @@ folder set up when the program was installed with pip, and is named onvif-gui.ex
 Use the 'Send to Desktop (create shortcut)' option of the drop down menu.
 
 Once the icon is on the desktop, the icon can be changed to the onvif-gui.ico file
-found in the virtual environment folder under lib/site-packages/gui/resources
+found in the virtual environment folder under lib\site-packages\gui\resources
 
 
 </details>

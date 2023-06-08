@@ -703,7 +703,7 @@ averaged during a user set interval and the number of objects detected is writte
 to a log file in CSV format for downstream analysis.
 
 &nbsp;
-|<img src="assets/libre_import.png" style="height: 400px; width: 400px;"/>|<img src="assets/calc_screen.png" style="height: 400px; width: 400px;"/>
+|<img src="assets/libre_import.png" style="height: 300px; width: 300px;"/>|<img src="assets/calc_screen.png" style="height: 300px; width: 300px;"/>
 
 &nbsp;
 
@@ -711,9 +711,6 @@ to a log file in CSV format for downstream analysis.
 
 Instance Segmentation and Keypoint discovery are implemented using 
 [detectron2](https://github.com/facebookresearch/detectron2)
-
-<video src="assets/segment.mp4" controls></video>
-
 
 
 https://github.com/sr99622/libonvif/assets/54281528/dc3b07fb-6e20-4b1f-a4f5-f05e12bdc9cf
@@ -868,22 +865,22 @@ left corner of the crop.
 &nbsp;
 
 ---
-Modules allow developers to ectend the functionality of onvif-gui.  The video 
+Modules allow developers to extend the functionality of onvif-gui.  The video 
 stream frames are accessible from a python program configured to operate within 
 the onvif-gui framework.  Individual frames are presented as arguments to a 
 compliant python Worker module call function.
-<p>
+
 No special processing is required to access the frame data, it is presented in
-numpy format, which is compatible with python constucts such as opencv or PIL
+numpy format, which is compatible with python constructs such as opencv or PIL
 image formats.
-<p>
+
 The modules consist of two classes, a Configuration class, which must inherit
 the QWidget object, and a Worker class, which has a default __call__ function
 to receive the frame data.
-<p>
+
 A user defined folder can be specified to hold the module source code.  Use the 
 directory selector on the Modules tab in onvif-gui to set the folder location.
-<p>
+
 Please consult the sample.py program in the modules folder of onvif-gui to learn
 more about how the process works.
 

@@ -390,7 +390,7 @@ username, python version and virtual environment folder.
 
 ```
 [Desktop Entry]
-Version=1.2.3
+Version=1.2.4
 Name=onvif-gui
 Comment=onvif-gui
 Exec=/home/username/myenv/bin/onvif-gui %U

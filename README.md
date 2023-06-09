@@ -337,7 +337,7 @@ python -m venv myenv
 
 This will create a <b>myenv</b> folder that contains the environment. Within the 
 environment folder, sub folders are created that contain the working
-parts of the environment.  The <b>bin</b> sub folder contains executable 
+parts of the environment.  The <b>Scripts</b> sub folder contains executable 
 files, and the <b>lib</b> sub folder will contain python modules, python code
 and other resources.
 
@@ -413,10 +413,10 @@ The icon is added by right-clicking on the executable file from the file explore
 The executable file is located in the bin directory of the virtual environment 
 folder set up when the program was installed with pip, and is named onvif-gui.exe.
 
-Use the 'Send to Desktop (create shortcut)' option of the drop down menu.
+Use the 'Send to -> Desktop (create shortcut)' option of the drop down menu.
 
 Once the icon is on the desktop, the icon can be changed to the onvif-gui.ico file
-found in the virtual environment folder under lib\site-packages\gui\resources
+found in the virtual environment folder under Lib\site-packages\gui\resources
 
 
 </details>

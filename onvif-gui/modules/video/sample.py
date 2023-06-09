@@ -17,10 +17,17 @@
 #
 #*********************************************************************/
 
+import os
+import sys
 import numpy as np
 import cv2
-from loguru import logger
 from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox
+from loguru import logger
+if sys.platform == "win32":
+    filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
+else:
+    filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
+logger.add(filename, retention="10 days")
 
 MODULE_NAME = "sample"
 
@@ -29,7 +36,6 @@ class VideoConfigure(QWidget):
         try:
             super().__init__()
             self.mw = mw
-            logger.add("onvif-gui-errors.txt", retention="1 days")
             self.name = MODULE_NAME
             self.showBorderKey = "Module/" + MODULE_NAME + "/showBorder"
             self.chkShowBorder = QCheckBox("Show Border")

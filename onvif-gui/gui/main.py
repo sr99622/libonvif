@@ -24,7 +24,7 @@ if sys.platform == "win32":
     filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
 else:
     filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
-logger.add(filename, retention="1 days")
+logger.add(filename, retention="10 days")
 
 import time
 from datetime import datetime

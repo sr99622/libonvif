@@ -22,11 +22,12 @@ try:
     import os
     import sys
     from loguru import logger
+    log_filename = ""
     if sys.platform == "win32":
-        filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
+        log_filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
     else:
-        filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
-    logger.add(filename, retention="10 days")
+        log_filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
+    logger.add(log_filename, retention="1 days")
 
     import cv2
     import numpy as np
@@ -101,7 +102,12 @@ class VideoWorker:
 
             self.model = None
             weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT
-            self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=weights, progress=True)
+            if os.path.split(sys.executable)[1] == "pythonw.exe":
+                with open(log_filename, 'w') as f:
+                    with redirect_stderr(f):
+                        self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=weights, progress=False)
+            else:
+                self.model = torchvision.models.detection.retinanet_resnet50_fpn(weights=weights, progress=True)
 
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.model.eval().to(self.device)

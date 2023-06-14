@@ -6,6 +6,10 @@ A client side implementation of the ONVIF specification for Linux and Windows.
 Included are two tools for communicating with cameras, a command line program,
 onvif-util, and a program with a Graphical User Interface, onvi-gui.
 
+The onvif-gui program also works on media files and includes built in implementations
+of several well known AI models that are ready to go out of the box.  Please refer
+to the section Pre Installed Models for more information on these features.
+
 &nbsp;
 
 ## Quick Start
@@ -372,34 +376,33 @@ A desktop icon can be linked to the executable to enhance usability. This
 can enable non-technical users to access the program more easily.
 
 Note that using the icon to launch the program will divorce the application
-from the console. This has the effect of making the error messages 
+from the console. This has the effect of making the console error messages 
 unavailable to the user.  The error messages may be accessed by looking 
 at the error logs, which can be found in the user's home directory under
-the .cache folder. On Windows, this is %HOMEPATH%\\.cache\errors.txt and
-on Linux $HOME/.cache/errors.txt
+the .cache folder. On Windows, this is %HOMEPATH%\\.cache\onvif-gui\errors.txt 
+and on Linux $HOME/.cache/onvif-gui/errors.txt
 
 ---
 
 <details>
 <summary>Linux</summary>
 
-The icon can be added to the desktop by adding an onvif-gui.dekstop file to the
-/usr/share/applications directory.  Administrator privileges are required
-to access this directory. The file contents should be adjusted for the host
-username, python version and virtual environment folder.
+In order to add an icon to the desktop, administrator privileges are required.
+The location of the virtual environment folder must also be known and is
+required when invoking the command to create the desktop icon. Please refer
+to the section on virtual environments for more detail. To add the icon,
+use the following command, substituting the local host virtual environment
+configuration as appropriate.
 
 ```
-[Desktop Entry]
-Version=1.2.5
-Name=onvif-gui
-Comment=onvif-gui
-Exec=/home/username/myenv/bin/onvif-gui %U
-Terminal=false
-Icon=/home/username/myenv/lib/python3.10/site-packages/gui/resources/onvif-gui.png
-StartupWMClass=onvif-gui
-Type=Application
-Categories=Application;Network
+sudo myenv/bin/onvif-gui --icon
 ```
+
+Upon completion of the command, please log out and log back in to activate.
+The icon may be found in the Applications Folder of the system. For example,
+on Ubuntu, the box grid in the lower left corner launches the Application Folder
+and the icon can be found there. Once launched, the application icon can be pinned 
+to the start bar for easier access by right clicking the icon.
 
 </details>
 
@@ -409,15 +412,19 @@ Categories=Application;Network
 <summary>Windows</summary>
 
 ---
-The icon is added by right-clicking on the executable file from the file explorer.
-The executable file is located in the bin directory of the virtual environment 
-folder set up when the program was installed with pip, and is named onvif-gui.exe.
 
-Use the 'Send to -> Desktop (create shortcut)' option of the drop down menu.
+To install a desktop icon on windows, please make sure the virtual environment
+is activated and then add the winshell python module.
 
-Once the icon is on the desktop, the icon can be changed to the onvif-gui.ico file
-found in the virtual environment folder under Lib\site-packages\gui\resources
+```
+pip install winshell
+```
 
+Now run the following command.
+
+```
+onvif-gui --icon
+```
 
 </details>
 
@@ -470,10 +477,11 @@ corner below the tabs.
 - Common Password - Default password used during discover.
 - Hardware Decoder - If available, can be set to use GPU video decoding.
 - Video Filter - FFMPEG filter strings may be used to modify the video
+- Audio Filter - FFMPEG filter strings may be used to modify the audio
 - Direct Rendering - May be used in Windows to increase performance
-- Convert to RGB - The default setting is ON, may be turned on for performance
+- Convert to RGB - The default setting is ON, may be turned off for performance
 - Disable Audio, Disable Video - Used to limit streams to a single medium
-- Post Process Record - Recording will be the encoded video stream rather than raw packets
+- Post Process Record - Record the processed video stream rather than raw packets
 - Hardware Encode - If available, use the GPU for encoding (not available on Windows)
 - Process Pause - Video frame data is processed while the media stream is paused
 - Low Latency - Reduces the buffer size to reduce latency, may cause instability
@@ -566,7 +574,7 @@ Recording is set to maintain the format of the original stream.
 
 * ### Pre-process (DEFAULT)
 
-  This mode of recording is the most efficient. It will recyle packets from the 
+  This mode of recording is the most efficient. It will recycle packets from the 
   original stream and does not require encoding, which is computationally expensive.
   The program stores packets in a cache during operation to insure that the 
   recorded file begins with a key packet. This is important for full recovery
@@ -590,7 +598,7 @@ Recording is set to maintain the format of the original stream.
   will cause the program to include any processing on the stream performed by a
   Video or Audio module. This requires encoding, which may be computationally
   expensive. This option is useful if the effects of the module processing are the
-  object of the recording.
+  subject of the recording.
 
 * ### Hardware Encode
 
@@ -740,13 +748,13 @@ Built-in YOLO models each have the ability to record counts for up to five
 different types of detected objects.
 
 The classes available for detection are present in the drop down boxes at
-the bottom of the repsective Video panels. The check box on the left of
+the bottom of the respective Video panels. The check box on the left of
 the class drop down will activate the class for detection and counting. The
 count for each frame will be displayed to the right. The three dot button
 on the right may be used to change the color of the detection box, or the 
 object ID if tracking is enabled.
 
-The counts may be logged to a file using 'Log Counts' checkbox above the
+The counts may be logged to a file using the 'Log Counts' checkbox above the
 class drop downs. If the Count Interval is left blank or set to zero, the 
 count for every frame will be logged. This is not reccommended, as the log
 file will grow very large quickly.  A Count Interval setting will average
@@ -833,7 +841,8 @@ Model run time may be affected by overall host load and other factors as well.
 Model run time can be managed by adjusting key parameters.  Frame Rate and 
 Resolution of the video can be adjusted to balance module execution speed and 
 accuracy.  Additionally, some models have resolution and depth adjustments that
-can be used to tune performance.
+can be used to tune performance. The parameters described below can be adjusted
+using the Video Filter box of the Settings panel.
 
 * ### Adjusting Video Frame Rate
 
@@ -844,13 +853,13 @@ frame rate.
 * ### Adjusting Video Resolution
 
 Likewise, resolution can be set on files with the video filter
-using the scale directive, i.e. 'scale=1280x720'.  Consecutive video filters can
-be run using a comma as delimiter between the commands, i.e. 'fps=10,scale=1280x720'.
+using the scale directive, for example 'scale=1280x720'.  Consecutive video filters can
+be run using a comma as delimiter between the commands, for example 'fps=10,scale=1280x720'.
 Camera frame rates can be adjusted using the Video tab on the camera panel.
 
 * ### Video Frame Cropping
 
-The resolution of the frame may be reduced by cropping.  If portions of the frame scene
+The resolution of the frame may also be reduced by cropping.  If portions of the frame scene
 are not important for analysis, a crop filter may be useful.  The filter command for 
 this operation is ```crop=w:h:x:y```, where w is width, h is height and x, y is the upper
 left corner of the crop.
@@ -866,7 +875,7 @@ left corner of the crop.
 
 ---
 Modules allow developers to extend the functionality of onvif-gui.  The video 
-stream frames are accessible from a python program configured to operate within 
+stream frames are accessible from a python module configured to operate within 
 the onvif-gui framework.  Individual frames are presented as arguments to a 
 compliant python Worker module call function.
 

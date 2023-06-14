@@ -41,6 +41,8 @@ from collections import deque
 
 import avio
 
+VERSION = "1.2.6"
+
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)
     stopped = pyqtSignal()
@@ -63,7 +65,7 @@ class MainWindow(QMainWindow):
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
 
-        self.program_name = "onvif gui version 1.2.5"
+        self.program_name = f'onvif gui version {VERSION}'
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
         self.settings = QSettings("onvif", "gui")
@@ -198,7 +200,7 @@ class MainWindow(QMainWindow):
                 for x in self.videoRuntimes:
                     sum += x
                 display = str(int(sum / len(self.videoRuntimes)))
-                self.videoPanel.lblElapsed.setText("Avg Rumtime (ms)  " + display)
+                self.videoPanel.lblElapsed.setText(f'Avg Rumtime (ms)  {display}')
 
         else:
             self.videoPanel.lblElapsed.setText("")
@@ -242,7 +244,7 @@ class MainWindow(QMainWindow):
                 for x in self.audioRuntimes:
                     sum += x
                 display = str(int(sum / len(self.audioRuntimes)))
-                self.audioPanel.lblElapsed.setText("Avg Runtime (ms)  " + display)
+                self.audioPanel.lblElapsed.setText(f'Avg Runtime (ms)  {display}')
 
         else:
             self.audioPanel.lblElapsed.setText("")
@@ -351,7 +353,7 @@ class MainWindow(QMainWindow):
         self.signals.error.emit(msg)
 
     def onError(self, msg):
-        logger.debug("Error processing stream: " + self.uri + " - " + msg)
+        logger.debug(f'Error processing stream: {self.uri} - {msg}')
         if self.settingsPanel.chkAutoReconnect.isChecked():
             self.reconnectTimer.start(10000)
             self.signals.showWait.emit()
@@ -424,6 +426,49 @@ def run():
     if len(sys.argv) > 1:
         if str(sys.argv[1]) == "--clear":
             clear_settings = True
+
+        if str(sys.argv[1]) == "--icon":
+            if sys.platform == "win32":
+                icon = f'{os.path.split(__file__)[0]}\\resources\\onvif-gui.ico'
+                working_dir = f'{os.path.split(sys.executable)[0]}\\Scripts'
+                executable = f'{working_dir}\\onvif-gui.exe'
+                try:
+                    import winshell
+                    link_filepath = f'{Path(winshell.desktop())}\\onvif-gui.lnk'
+                    with winshell.shortcut(link_filepath) as link:
+                        link.path = executable
+                        link.description = "onvif-gui"
+                        link.arguments = ""
+                        link.icon_location = (icon, 0)
+                        link.working_directory = working_dir
+
+                    logger.debug("Desktop icon created")
+                except Exception as ex:
+                    logger.debug(f'Error attempting to create desktop icon {str(ex)}')
+
+            else:
+                icon = f'{os.path.split(__file__)[0]}/resources/onvif-gui.png'
+                executable = f'{os.path.split(sys.executable)[0]}/onvif-gui %U'
+
+                contents = (f'[Desktop Entry]\n'
+                            f'Version={VERSION}\n'
+                            f'Name=onvif-gui\n'
+                            f'Comment=onvif-gui\n'
+                            f'Exec={executable}\n'
+                            f'Terminal=false\n'
+                            f'Icon={icon}\n'
+                            f'StartupWMClass=onvif-gui\n'
+                            f'Type=Application\n'
+                            f'Categories=Application;Network\n')
+                
+                try:
+                    with open('/usr/share/applications/onvif-gui.desktop', 'w') as f:
+                        f.write(contents)
+                    print("Desktop icon created, please log out to update")
+                except Exception as ex:
+                    print("Error attempting to create desktop icon " + str(ex))
+
+            sys.exit()
 
     app = QApplication(sys.argv)
     app.setStyle('Fusion')

@@ -14,7 +14,7 @@ to the section Pre Installed Models for more information on these features.
 ## Quick Start
 
 <details>
-<summary>Installation <i>(Graphical User Interface)</i></summary>
+<summary>Installation</summary>
 &nbsp;
 
 Please select the instructions for your operating system
@@ -158,7 +158,7 @@ and other resources.
 To activate the virtual environment,
 
 ```
-myenv/Scripts/activate
+myenv\Scripts\activate
 ```
 
 Note that in order to run python modules installed in the virtual
@@ -524,7 +524,9 @@ there, with a numeric name representing the date the log was started.
 ---
 Pre-installed models require [pytorch](https://pytorch.org/get-started/locally/) 
 and other dependencies in order to run. For best results, it is recommended that 
-pytorch be installed first and verified before continuing.
+pytorch be installed first and verified before continuing.  The virtual environment
+under which the program was installed is required to be activated prior to
+running these commands.
 
 ```
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117

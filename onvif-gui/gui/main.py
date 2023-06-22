@@ -41,7 +41,7 @@ from collections import deque
 
 import avio
 
-VERSION = "1.2.6"
+VERSION = "1.2.7"
 
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)
@@ -189,9 +189,9 @@ class MainWindow(QMainWindow):
                 if self.worker is None:
                     self.worker = self.videoWorkerHook.VideoWorker(self)
 
-                start = time.time()
+                start = time.perf_counter()
                 self.worker(F)
-                finish = time.time()
+                finish = time.perf_counter()
                 elapsed = int((finish - start) * 1000)
                 self.videoRuntimes.append(elapsed)
                 if len(self.videoRuntimes) > 60:
@@ -233,9 +233,9 @@ class MainWindow(QMainWindow):
                 if self.audioWorker is None:
                     self.audioWorker = self.audioWorkerHook.AudioWorker(self)
                 
-                start = time.time()
+                start = time.perf_counter()
                 self.audioWorker(F)
-                finish = time.time()
+                finish = time.perf_counter()
                 elapsed = int((finish - start) * 1000)
                 self.audioRuntimes.append(elapsed)
                 if len(self.audioRuntimes) > 100:
@@ -430,7 +430,7 @@ def run():
         if str(sys.argv[1]) == "--icon":
             if sys.platform == "win32":
                 icon = f'{os.path.split(__file__)[0]}\\resources\\onvif-gui.ico'
-                working_dir = f'{os.path.split(sys.executable)[0]}\\Scripts'
+                working_dir = f'{os.path.split(sys.executable)[0]}'
                 executable = f'{working_dir}\\onvif-gui.exe'
                 try:
                     import winshell
@@ -442,7 +442,7 @@ def run():
                         link.icon_location = (icon, 0)
                         link.working_directory = working_dir
 
-                    logger.debug("Desktop icon created")
+                    logger.debug(f'Desktop icon created for executable {executable}')
                 except Exception as ex:
                     logger.debug(f'Error attempting to create desktop icon {str(ex)}')
 

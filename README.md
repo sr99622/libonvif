@@ -417,7 +417,7 @@ To install a desktop icon on windows, please make sure the virtual environment
 is activated and then add the winshell python module.
 
 ```
-pip install winshell
+pip install pywin32 winshell
 ```
 
 Now run the following command.

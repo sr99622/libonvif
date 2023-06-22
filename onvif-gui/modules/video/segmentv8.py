@@ -34,6 +34,7 @@ try:
     from pathlib import Path
     from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox, QLineEdit
+    from PyQt6.QtCore import Qt
 
     import torch
     from ultralytics import YOLO

@@ -18,6 +18,7 @@
 #*********************************************************************/
 
 import platform
+import webbrowser
 from PyQt6.QtWidgets import QLineEdit, QGridLayout, QWidget, \
 QCheckBox, QLabel, QPushButton, QMessageBox
 from PyQt6.QtCore import QProcess
@@ -116,13 +117,8 @@ class AdminTab(QWidget):
 
     def btnBrowserClicked(self):
         onvif_data = self.cp.devices[self.cp.lstCamera.currentRow()]
-        if platform.system() == "Linux":
-            cmd = "xdg-open"
-        if platform.system() == "Windows":
-            cmd = "\"C:\\Program Files\\Internet Explorer\\iexplore.exe\""
         args = "http://" + onvif_data.host()
-        print(args)
-        self.process.start(cmd, [args,])
+        webbrowser.open(args)
 
     def chkEnableResetChanged(self, state):
         self.btnHardReset.setEnabled(state)

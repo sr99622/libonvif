@@ -41,7 +41,7 @@ from collections import deque
 
 import avio
 
-VERSION = "1.2.8"
+VERSION = "1.2.9"
 
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)
@@ -125,6 +125,7 @@ class MainWindow(QMainWindow):
         self.split.setStretchFactor(0, 10)
         self.split.splitterMoved.connect(self.splitterMoved)
         splitterState = self.settings.value(self.splitKey)
+
         self.setCentralWidget(self.split)
 
         rect = self.settings.value(self.geometryKey)
@@ -159,6 +160,9 @@ class MainWindow(QMainWindow):
 
         if splitterState is not None:
             self.split.restoreState(splitterState)
+        self.splitterCollapsed = False
+        if not self.split.sizes()[1]:
+            self.splitterCollapsed = True
 
         self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
 
@@ -373,6 +377,18 @@ class MainWindow(QMainWindow):
         self.playMedia(self.uri)
 
     def splitterMoved(self, pos, index):
+        if self.split.sizes()[1]:
+            if self.splitterCollapsed:
+                self.splitterCollapsed = False
+                ci = self.tab.currentIndex()
+                self.tab.setCurrentIndex(0)
+                self.tab.setCurrentIndex(ci)
+                ci = self.cameraPanel.tabOnvif.currentIndex()
+                self.cameraPanel.tabOnvif.setCurrentIndex(0)
+                self.cameraPanel.tabOnvif.setCurrentIndex(ci)
+        else:
+            self.splitterCollapsed = True
+
         self.settings.setValue(self.splitKey, self.split.saveState())
 
     def getLocation(self):

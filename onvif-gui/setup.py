@@ -25,7 +25,7 @@ with open("README.md", "r", encoding = 'cp850') as fh:
 
 setup(
     name="onvif-gui",
-    version="1.2.8",
+    version="1.2.9",
     author="Stephen Rhodes",
     author_email="sr99622@gmail.com",
     description="GUI program for onvif",

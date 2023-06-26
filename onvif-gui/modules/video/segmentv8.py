@@ -57,8 +57,7 @@ class VideoConfigure(QWidget):
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
             self.trackKey = "Module/" + MODULE_NAME + "/track"
             self.showIDKey = "Module/" + MODULE_NAME + "/showID"
-            self.logCountKey = "Module/" + MODULE_NAME + "/logCount"
-            self.countIntervalKey = "Module/" + MODULE_NAME + "/countInterval"
+            self.showBoxKey = "Module/" + MODULE_NAME + "/showBox"
 
             self.model_names = {"nano" : "yolov8n-seg.pt", "small" : "yolov8s-seg.pt", "medium" : "yolov8m-seg.pt", "large" : "yolov8l-seg.pt", "XL" : "yolov8x-seg.pt"}
 
@@ -76,6 +75,21 @@ class VideoConfigure(QWidget):
 
             self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
 
+            self.chkShowBox = QCheckBox("Show Detection Box")
+            self.chkShowBox.setChecked(int(self.mw.settings.value(self.showBoxKey, 0)))
+            self.chkShowBox.stateChanged.connect(self.chkShowBoxClicked)
+
+            self.chkTrack = QCheckBox("Track Objects")
+            self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
+            self.chkTrack.stateChanged.connect(self.chkTrackClicked)
+
+            self.chkShowID = QCheckBox("Show Object ID")
+            self.chkShowID.setChecked(int(self.mw.settings.value(self.showIDKey, 1)))
+            self.chkShowID.stateChanged.connect(self.chkShowIDClicked)
+
+            if not self.chkTrack.isChecked():
+                self.chkShowID.setVisible(False)
+
             number_of_labels = 5
             self.labels = []
             for i in range(number_of_labels):
@@ -86,7 +100,7 @@ class VideoConfigure(QWidget):
             lblPanel.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lytLabels.addWidget(lblPanel,        0, 0, 1, 1)
             for i in range(number_of_labels):
-                self.labels[i].btnColor.setVisible(False)
+                self.labels[i].btnColor.setVisible(self.chkShowBox.isChecked())
                 lytLabels.addWidget(self.labels[i], i+1, 0, 1, 1)
             lytLabels.setContentsMargins(0, 0, 0, 0)
 
@@ -96,6 +110,9 @@ class VideoConfigure(QWidget):
             lytMain.addWidget(self.txtModelFile, 2, 0, 1, 2)
             lytMain.addWidget(self.cmbRes,       3, 0, 1, 2)
             lytMain.addWidget(self.sldConfThre,  4, 0, 1, 2)
+            lytMain.addWidget(self.chkShowBox,   5, 0, 1, 2)
+            lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
+            lytMain.addWidget(self.chkShowID,    6, 1, 1, 1)
             lytMain.addWidget(pnlLabels,         7, 0, 1, 2)
             lytMain.addWidget(QLabel(),          8, 0, 1, 2)
             lytMain.setRowStretch(8, 10)
@@ -112,6 +129,18 @@ class VideoConfigure(QWidget):
         self.mw.settings.setValue(self.autoKey, state)
         self.cmbModel.setEnabled(self.chkAuto.isChecked())
         self.txtModelFile.setEnabled(not self.chkAuto.isChecked())
+
+    def chkShowBoxClicked(self, state):
+        self.mw.settings.setValue(self.showBoxKey, state)
+        for label in self.labels:
+            label.btnColor.setVisible(state)
+
+    def chkTrackClicked(self, state):
+        self.mw.settings.setValue(self.trackKey, state)
+        self.chkShowID.setVisible(state)
+
+    def chkShowIDClicked(self, state):
+        self.mw.settings.setValue(self.showIDKey, state)
 
     def getModelName(self):
         if self.chkAuto.isChecked():
@@ -187,12 +216,19 @@ class VideoWorker:
             res = int(self.mw.configure.cmbRes.currentText())
 
             composite = None
-            results = self.model(img, stream=True, verbose=False,
-                                 classes=label_filter,
-                                 conf=confthre,
-                                 imgsz=res)
+            results = None
+
+            if self.mw.configure.chkTrack.isChecked():
+                results = self.model.track(img, stream=True, verbose=False,
+                                classes=label_filter, persist=True,
+                                conf=confthre, imgsz=res)
+            else:
+                results = self.model.predict(img, stream=True, verbose=False,
+                                classes=label_filter, conf=confthre, imgsz=res)
             
+            boxes = None
             for result in results:
+                boxes = result.boxes.cpu().numpy()
                 if result.masks is not None:
                     for mask in result.masks:
                         m = torch.squeeze(mask.data)
@@ -206,6 +242,21 @@ class VideoWorker:
 
             if composite is not None:
                 img *= composite
+
+            if self.mw.configure.chkShowBox.isChecked():
+                if boxes is not None:
+                    for box in boxes:
+                        r = box.xyxy[0].astype(int)
+                        class_id = int(box.cls[0])
+                        class_color = self.mw.configure.getLabel(class_id).color()
+                        if self.mw.configure.chkTrack.isChecked():
+                            id_text = '{}'.format(int(box.id)).zfill(4)
+                            box_color = (int((37 * box.id) % 255), int((17 * box.id) % 255), int((29 * box.id) % 255))
+                            cv2.rectangle(img, r[:2], r[2:], box_color, 2)
+                            if self.mw.configure.chkShowID.isChecked():
+                                cv2.putText(img, id_text, r[:2], cv2.FONT_HERSHEY_PLAIN, 2, class_color, 2)
+                        else:
+                            cv2.rectangle(img, r[:2], r[2:], class_color, 2)
 
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:

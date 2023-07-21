@@ -12,7 +12,7 @@ to the section Pre Installed Models for more information on these features.
 
 &nbsp;
 
-## Quick Start
+## Installation
 
 <details>
 <summary>onvif-gui <i>(Graphical User Interface)</i></summary>
@@ -50,6 +50,14 @@ Please select the instructions for your operating system
   ```
   onvif-gui
   ```
+
+* ## Note
+
+  Many Linux distributions use the Nouveau drivers as the default for NVIDIA graphics cards. 
+  For correct operation, the proprietary NVIDIA drivers should be installed. Please refer to
+  [this page](https://linuxconfig.org/install-the-latest-nvidia-linux-driver) for more details 
+  if you are unsure if you have the correct drivers.
+
 </details>
 
 ---

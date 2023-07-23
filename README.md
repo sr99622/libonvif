@@ -51,13 +51,6 @@ Please select the instructions for your operating system
   onvif-gui
   ```
 
-* ## Note
-
-  Many Linux distributions use the Nouveau drivers as the default for NVIDIA graphics cards. 
-  For correct operation, the proprietary NVIDIA drivers should be installed. Please refer to
-  [this page](https://linuxconfig.org/install-the-latest-nvidia-linux-driver) for more details 
-  if you are unsure if you have the correct drivers.
-
 </details>
 
 ---
@@ -66,20 +59,35 @@ Please select the instructions for your operating system
 <details>
 <summary>Windows</summary>
 
-* ## Step 1. Create virtual environment
+* ## Step 1. Install Python
+
+  Python is required for this application and is not installed on Windows by default. 
+  The minimum required version for this application is 3.8. The python installer can 
+  be downloaded from https://www.python.org/downloads/. To check if python has already
+  been installed on the machine, use the command
+
+  ```
+  python --version
+  ```
+
+  Note that windows may present an installation prompt if python is not already present, 
+  however, the default version may be 3.7, which is insufficient to properly run the
+  application.  Please select a python version which is 3.8 or higher.
+
+* ## Step 2. Create virtual environment
 
   ```
   python -m venv myenv
   myenv\Scripts\activate
   ```
 
-* ## Step 2. Install onvif-gui
+* ## Step 3. Install onvif-gui
   
   ```
   pip install onvif-gui
   ```
 
-* ## Step 3. Launch program
+* ## Step 4. Launch program
 
   ```
   onvif-gui

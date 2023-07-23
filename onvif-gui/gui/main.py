@@ -41,7 +41,7 @@ from collections import deque
 
 import avio
 
-VERSION = "1.2.9"
+VERSION = "1.2.10"
 
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)
@@ -164,6 +164,7 @@ class MainWindow(QMainWindow):
         if not self.split.sizes()[1]:
             self.splitterCollapsed = True
 
+        self.tab.setCurrentIndex(4)
         self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
 
     def loadVideoConfigure(self, workerName):
@@ -439,6 +440,10 @@ class MainWindow(QMainWindow):
 
 def run():
     clear_settings = False
+
+    if sys.platform == "linux":
+        os.environ["QT_QPA_PLATFORM"] = "xcb"
+
     if len(sys.argv) > 1:
         if str(sys.argv[1]) == "--clear":
             clear_settings = True

@@ -17,7 +17,12 @@
 #
 #******************************************************************************/
 
+import os
 import sys
+
+if sys.platform == "linux":
+    os.environ["QT_QPA_PLATFORM"] = "xcb"
+
 from PyQt6.QtWidgets import QApplication
 from gui import MainWindow
 

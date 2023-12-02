@@ -233,8 +233,7 @@ Please select the instructions for your operating system
   pip install .
   cd ../libavio
   pip install .
-  cd ../onvif-gui
-  pip install .
+  pip install onvif-gui
   ```
 
 * ### Step 5. Launch Program

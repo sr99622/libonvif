@@ -41,7 +41,7 @@ from collections import deque
 
 import avio
 
-VERSION = "1.2.10"
+VERSION = "1.2.11"
 
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)

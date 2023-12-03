@@ -234,7 +234,7 @@ Please select the instructions for your operating system
   cd ../libavio
   pip install .
   cd ../onvif-gui
-  pip install onvif-gui
+  pip install .
   ```
 
 * ### Step 5. Launch Program
@@ -271,7 +271,7 @@ Please select the instructions for your operating system
   cd ..\libavio
   pip install .
   cd ..\onvif-gui
-  pip install onvif-gui
+  pip install .
   ```
 
 * ### Step 4. Launch Program

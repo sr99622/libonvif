@@ -25,7 +25,7 @@ with open("README.md", "r", encoding = 'cp850') as fh:
 
 setup(
     name="onvif-gui",
-    version="1.2.10",
+    version="1.2.11",
     author="Stephen Rhodes",
     author_email="sr99622@gmail.com",
     description="GUI program for onvif",
@@ -40,7 +40,7 @@ setup(
     python_requires='>=3.8',
     entry_points={
         'gui_scripts': [
-            'onvif-gui=gui.main:run'
-        ]
+            'onvif-gui=gui.main:run',
+        ],
     }
 )

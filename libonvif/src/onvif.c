@@ -1987,7 +1987,6 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     if (send(sock , cmd , strlen(cmd) , 0 ) < 0) {
         return NULL;
     }
-    valread = recv( sock , buffer, 4096, 0);
 
     char http_terminate[5];
     http_terminate[0] = '\r';
@@ -1996,6 +1995,21 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     http_terminate[3] = '\n';
     http_terminate[4] = '\0';
 
+    int loop = 10;
+    valread = 0;
+
+    while (loop-- > 0) {
+        int nvalread = recv( sock , buffer + valread, 4096 - 1 - valread, 0);
+        if (nvalread <= 0) {
+            break;
+        }
+        valread += nvalread;
+
+	char * substr = strstr(buffer, http_terminate);
+	if (substr) {
+	    break;
+	}
+    }
     char * substr = strstr(buffer, http_terminate);
     if (substr == NULL)
         return NULL;

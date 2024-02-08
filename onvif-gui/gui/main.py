@@ -41,7 +41,7 @@ from collections import deque
 
 import avio
 
-VERSION = "1.2.11"
+VERSION = "1.2.13"
 
 class MainWindowSignals(QObject):
     started = pyqtSignal(int)
@@ -491,12 +491,15 @@ def run():
 
             sys.exit()
 
-    app = QApplication(sys.argv)
-    app.setStyle('Fusion')
-    window = MainWindow(clear_settings)
-    window.style()
-    window.show()
-    app.exec()
+    try:
+        app = QApplication(sys.argv)
+        app.setStyle('Fusion')
+        window = MainWindow(clear_settings)
+        window.style()
+        window.show()
+        app.exec()
+    except Exception as ex:
+        print("Error starting application: " + str(ex))
 
 if __name__ == '__main__':
     run()

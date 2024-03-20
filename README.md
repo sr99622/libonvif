@@ -5,9 +5,13 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 
 &nbsp;
 
+<!---
 <table>
   <tr><td><image src="onvif-gui/gui/resources/onvif-gui.png"></td><td><h2>Onvif GUI</h2><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
 <table>
+--->
+
+<image src="assets/images/header.png">
 
 &nbsp;
 

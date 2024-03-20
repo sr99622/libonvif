@@ -1,4 +1,5 @@
 
+<!---
 <style>
   summary {font-size:18px; font-weight:400;}
   p {font-size:16px; font-weight:400;}
@@ -6,6 +7,7 @@
     display:inline-block;
   }
 </style>
+--->
 
 libonvif
 ========
@@ -14,6 +16,7 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 
 &nbsp;
 
+<!---
 <div class="container">
   <image src="onvif-gui/gui/resources/onvif-gui.png">
 </div>
@@ -23,12 +26,11 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 <div class="container">
 <p style="font-size:36px; font-weight:bold">Onvif GUI</p><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a><br><img src="assets/images/blank.png" height="30" />
 </div>
+--->
 
-<!---
 <table>
   <tr><td><image src="onvif-gui/gui/resources/onvif-gui.png"></td><td><p style="font-size:36px; font-weight:bold">Onvif GUI</p><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
 <table>
---->
 
 &nbsp;
 
@@ -62,7 +64,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 <summary>Install onvif-gui</summary>
 &nbsp;
 
-<p style="font-size:16px; font-weight:300; font-style:italic;">The minimum required python version is 3.10.</p>
+<i>The minimum required python version is 3.10.</i>
 
 ---
 
@@ -227,7 +229,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 <summary>Build From Source</summary>
 &nbsp;
 
-<p style="font-size:16px; font-weight:300; font-style:italic;">Note that most functionality of the application is implemented in python and can be modified without compiling. The instructions that follow include compilation for the libonvif and libavio supporting libraries, which provide lower level functionality to the python application.</p>
+<i>Note that most functionality of the application is implemented in python and can be modified without compiling. The instructions that follow include compilation for the libonvif and libavio supporting libraries, which provide lower level functionality to the python application.</i>
 
 ---
 
@@ -426,7 +428,7 @@ In order to build from source on Windows, development tools and python are requi
 <summary>Desktop Icon</summary>
 &nbsp;
 
-<p style="font-size:16px; font-weight:300; font-style:italic;">Please select the instructions for your operating system</p>
+<i>Please select the instructions for your operating system</i>
 
 ---
 
@@ -526,7 +528,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 <summary>Camera Parameters</summary>
 &nbsp;
 
-<p style="font-size:16px; font-weight:300; font-style:italic;">Changes are commited to the camera by using the Apply button, if necessary</p>
+<i>Changes are commited to the camera by using the Apply button, if necessary</i>
 
 ---
 
@@ -696,6 +698,7 @@ File playback is configured such that one file is played at a time. Keyboard sho
 
 ---
 
+<!---
 <div class="container">
   <image src="onvif-gui/gui/resources/play.png">
   <br><p>Play</p>
@@ -735,14 +738,12 @@ File playback is configured such that one file is played at a time. Keyboard sho
   <image src="onvif-gui/gui/resources/audio.png">
   <br><p>Mute</p>
 </div>
+--->
 
-
-<!---
 <table>
 <tr><td><image src="onvif-gui/gui/resources/play.png"></td><td><image src="onvif-gui/gui/resources/pause.png"></td><td><image src="onvif-gui/gui/resources/stop.png"></td><td><image src="onvif-gui/gui/resources/previous.png"></td><td><image src="onvif-gui/gui/resources/next.png"></td><td><image src="onvif-gui/gui/resources/audio.png"></td></tr>
 <tr><td><p>Play</p></td><td><p>Pause</p></td><td><p>Stop</p></td><td><p>Prev</p></td><td><p>Next</p></td><td><p>Mute</p></td></tr>
 </table>
---->
 
 <!---
 <image src="onvif-gui/gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/audio.png">
@@ -890,7 +891,7 @@ Shows this file.
 <summary>Video Panel</summary>
 &nbsp;
 
-<p style="font-size:16px; font-weight:300; font-style:italic;">Video streams cam be analyzed to generate alarms</p>
+<i>Video streams cam be analyzed to generate alarms</i>
 
 ---
 
@@ -938,7 +939,7 @@ It is necessary to assign at least one target to the panel in order to observe d
 <summary>Audio Panel</summary>
 &nbsp;
 
-<p style="font-size:16px; font-weight:300; font-style:italic;">Audio streams cam be analyzed to generate alarms</p>
+<i>Audio streams cam be analyzed to generate alarms</i>
 
 ---
 
@@ -1039,7 +1040,7 @@ If there is an issue with a particular setting, it is recommended to connect to 
 <summary>Install onvif-util</summary>
 &nbsp;
 
-<p style="font-size:16px; font-weight:300; font-style:italic;">Please select the instructions for your operating system</p>
+<i>Please select the instructions for your operating system</i>
 
 <details>
 <summary>Linux</summary>

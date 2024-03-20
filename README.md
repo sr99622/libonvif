@@ -583,6 +583,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 <details>
 <summary>Image</summary>
+
 &nbsp;
 
 <img src="assets/images/image_tab.png" style="height: 280px; width: 540px;"/>
@@ -595,6 +596,7 @@ The sliders control various parameters of the video quality.  The Apply button m
 
 <details>
 <summary>Network</summary>
+
 &nbsp;
 
 <img src="assets/images/network_tab.png" style="height: 280px; width: 540px;"/>
@@ -613,6 +615,7 @@ The Apply button must be clicked to enact any of these changes on the camera.
 
 <details>
 <summary>PTZ</summary>
+
 &nbsp;
 
 <img src="assets/images/ptz_tab.png" style="height: 280px; width: 540px;"/>
@@ -627,6 +630,7 @@ Settings pertain to preset selections or current camera position. The arrow keys
 
 <details>
 <summary>System</summary>
+
 &nbsp;
 
 <img src="assets/images/system_tab.png" style="height: 280px; width: 540px;"/>

@@ -696,9 +696,9 @@ File playback is configured such that one file is played at a time. Keyboard sho
 
 <h3>File Playback Controls For Mouse</h3>
 
+<!---
 ---
 
-<!---
 <div class="container">
   <image src="onvif-gui/gui/resources/play.png">
   <br><p>Play</p>
@@ -740,16 +740,16 @@ File playback is configured such that one file is played at a time. Keyboard sho
 </div>
 --->
 
+<!---
 <table>
 <tr><td><image src="onvif-gui/gui/resources/play.png"></td><td><image src="onvif-gui/gui/resources/pause.png"></td><td><image src="onvif-gui/gui/resources/stop.png"></td><td><image src="onvif-gui/gui/resources/previous.png"></td><td><image src="onvif-gui/gui/resources/next.png"></td><td><image src="onvif-gui/gui/resources/audio.png"></td></tr>
 <tr><td><p>Play</p></td><td><p>Pause</p></td><td><p>Stop</p></td><td><p>Prev</p></td><td><p>Next</p></td><td><p>Mute</p></td></tr>
 </table>
+--->
 
-<!---
 <image src="onvif-gui/gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/audio.png">
 
 Play&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pause&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prev&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Next&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mute
---->
 
 ---
 
@@ -794,7 +794,9 @@ Keyboard shortcuts are available when the file list of the File Panel has the ap
 Right clicking over the file will bring up a menu that can be used to intiate file operations as well.
 
 ---
+
 &nbsp;
+
 </details>
 
 <details>

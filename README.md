@@ -52,6 +52,8 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 <details>
 <summary>Linux</summary>
 
+&nbsp;
+
 <details>
 <summary>Ubuntu</summary>
 
@@ -216,6 +218,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 
 <details>
 <summary>Linux</summary>
+
 &nbsp;
 
 <details>

@@ -455,6 +455,7 @@ onvif-gui --icon
 
 <details>
 <summary>Getting Started</summary>
+
 &nbsp;
 
 <image src="onvif-gui/gui/resources/discover.png">
@@ -515,8 +516,8 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 <details>
 <summary>Media</summary>
-&nbsp;
 
+&nbsp;
 
 <img src="assets/images/media_tab.png" style="height: 280px; width: 540px;"/>
 
@@ -823,7 +824,7 @@ Shows this file.
 <summary>Video Panel</summary>
 &nbsp;
 
-<i>Video streams cam be analyzed to generate alarms</i>
+<i>Video streams cam be analyzed to generate alarms.</i>
 
 ---
 
@@ -871,7 +872,7 @@ It is necessary to assign at least one target to the panel in order to observe d
 <summary>Audio Panel</summary>
 &nbsp;
 
-<i>Audio streams cam be analyzed to generate alarms</i>
+<i>Audio streams cam be analyzed to generate alarms.</i>
 
 ---
 

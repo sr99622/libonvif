@@ -1,14 +1,3 @@
-
-<!---
-<style>
-  summary {font-size:18px; font-weight:400;}
-  p {font-size:16px; font-weight:400;}
-  div.container {
-    display:inline-block;
-  }
-</style>
---->
-
 libonvif
 ========
 
@@ -16,20 +5,8 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 
 &nbsp;
 
-<!---
-<div class="container">
-  <image src="onvif-gui/gui/resources/onvif-gui.png">
-</div>
-<div class="container">
-  <img src="assets/images/blank.png" width="30" />
-</div>
-<div class="container">
-<p style="font-size:36px; font-weight:bold">Onvif GUI</p><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a><br><img src="assets/images/blank.png" height="30" />
-</div>
---->
-
 <table>
-  <tr><td><image src="onvif-gui/gui/resources/onvif-gui.png"></td><td><p style="font-size:36px; font-weight:bold">Onvif GUI</p><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
+  <tr><td><image src="onvif-gui/gui/resources/onvif-gui.png"></td><td><h2>Onvif GUI</h2><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
 <table>
 
 &nbsp;
@@ -695,57 +672,6 @@ Settings pertain to preset selections or current camera position. The arrow keys
 File playback is configured such that one file is played at a time. Keyboard shortcuts are available. A file may be played along side cameras if desired. Note that if the application is under heavy load with a large number of cameras streaming, file playback performance may suffer. In such a case, a second instance of onvif-gui or an external media player like VLC can be used to review files.
 
 <h3>File Playback Controls For Mouse</h3>
-
-<!---
----
-
-<div class="container">
-  <image src="onvif-gui/gui/resources/play.png">
-  <br><p>Play</p>
-</div>
-<div class="container">
-  <image src="assets/images/blank.png" width="20">
-</div>
-<div class="container">
-  <image src="onvif-gui/gui/resources/pause.png">
-  <br><p>Pause</p>
-</div>
-<div class="container">
-  <image src="assets/images/blank.png" width="20">
-</div>
-<div class="container">
-  <image src="onvif-gui/gui/resources/stop.png">
-  <br><p>Stop</p>
-</div>
-<div class="container">
-  <image src="assets/images/blank.png" width="20">
-</div>
-<div class="container">
-  <image src="onvif-gui/gui/resources/previous.png">
-  <br><p>Prev</p>
-</div>
-<div class="container">
-  <image src="assets/images/blank.png" width="20">
-</div>
-<div class="container">
-  <image src="onvif-gui/gui/resources/next.png">
-  <br><p>Next</p>
-</div>
-<div class="container">
-  <image src="assets/images/blank.png" width="20">
-</div>
-<div class="container">
-  <image src="onvif-gui/gui/resources/audio.png">
-  <br><p>Mute</p>
-</div>
---->
-
-<!---
-<table>
-<tr><td><image src="onvif-gui/gui/resources/play.png"></td><td><image src="onvif-gui/gui/resources/pause.png"></td><td><image src="onvif-gui/gui/resources/stop.png"></td><td><image src="onvif-gui/gui/resources/previous.png"></td><td><image src="onvif-gui/gui/resources/next.png"></td><td><image src="onvif-gui/gui/resources/audio.png"></td></tr>
-<tr><td><p>Play</p></td><td><p>Pause</p></td><td><p>Stop</p></td><td><p>Prev</p></td><td><p>Next</p></td><td><p>Mute</p></td></tr>
-</table>
---->
 
 <image src="onvif-gui/gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/audio.png">
 

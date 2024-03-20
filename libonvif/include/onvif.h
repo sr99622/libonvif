@@ -62,23 +62,19 @@ struct OnvifData {
     int gov_length;
     int frame_rate;
     int bitrate;
-    char video_encoder_name_buf[128];
+    char video_encoder_name[128];
     int use_count;
     float quality;
-    char h264_profile_buf[128];
-    char multicast_address_type_buf[128];
-    char multicast_address_buf[128];
+    char h264_profile[128];
+    char multicast_address_type[128];
+    char multicast_address[128];
     int multicast_port;
     int multicast_ttl;
     bool autostart;
-    char session_time_out_buf[128];
+    char session_time_out[128];
 	bool guaranteed_frame_rate;
     char encoding[128];
-    int conf_width;
-    int conf_height;
-    int conf_frame_rate_limit;
-    int conf_encoding_interval;
-    int conf_bitrate_limit;
+    int encoding_interval;
     /*network*/
     char networkInterfaceToken[128];
     char networkInterfaceName[128];
@@ -116,7 +112,6 @@ struct OnvifData {
     char profileToken[128];
     char username[128];
     char password[128];
-    time_t time_offset;
     char stream_uri[1024];
     char camera_name[1024];
     char serial_number[128];
@@ -125,12 +120,37 @@ struct OnvifData {
     /*error*/
     char last_error[1024];
 	/*date/time*/
+    time_t time_offset;
 	char datetimetype;
 	bool dst;
 	char timezone[128];
 	bool ntp_dhcp;
 	char ntp_type[128];
 	char ntp_addr[128];
+    /*audio*/
+    char audio_encoders[3][128];
+    int audio_sample_rates[3][8];
+    int audio_bitrates[3][8];
+    char audio_encoding[128];
+    char audio_name[128];
+    char audioEncoderConfigurationToken[128];
+    char audioSourceConfigurationToken[128];
+    int audio_bitrate;
+    int audio_sample_rate;
+    int audio_use_count;
+    char audio_session_timeout[128];
+    char audio_multicast_type[128];
+    char audio_multicast_address[128];
+    int audio_multicast_port;
+    int audio_multicast_TTL;
+    bool audio_multicast_auto_start;
+    /*gui interface*/
+    bool disable_video;
+    bool analyze_video;
+    bool disable_audio;
+    bool analyze_audio;
+    int desired_aspect;
+    bool hidden;
 };
 
 struct OnvifSession {
@@ -167,6 +187,9 @@ LIBRARY_API int setHostname(struct OnvifData *onvif_data);
 LIBRARY_API int getVideoEncoderConfigurationOptions(struct OnvifData *onvif_data);
 LIBRARY_API int getVideoEncoderConfiguration(struct OnvifData *onvif_data);
 LIBRARY_API int setVideoEncoderConfiguration(struct OnvifData *onvif_data);
+LIBRARY_API int getAudioEncoderConfigurationOptions(struct OnvifData *onvif_data);
+LIBRARY_API int getAudioEncoderConfiguration(struct OnvifData *onvif_data);
+LIBRARY_API int setAudioEncoderConfiguration(struct OnvifData *onvif_data);
 
 LIBRARY_API int getOptions(struct OnvifData *onvif_data);
 LIBRARY_API int getImagingSettings(struct OnvifData *onvif_data);
@@ -197,26 +220,6 @@ LIBRARY_API void saveServiceCapabilities(char * filename, struct OnvifData *onvi
 
 LIBRARY_API int eventSubscribe(struct OnvifData *onvif_data);
 LIBRARY_API int eventRenew(struct OnvifData *onvif_data);
-
-/*
-LIBRARY_API xmlDocPtr sendCommandToCamera(char * cmd, char * xaddrs);
-LIBRARY_API void getBase64(unsigned char * buffer, int chunk_size, unsigned char * result);
-LIBRARY_API void getUUID(char uuid_buf[47]);
-LIBRARY_API void addUsernameDigestHeader(xmlNodePtr root, xmlNsPtr ns_env, char * user, char * password, time_t offset);
-LIBRARY_API void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char * xaddrs, char * post_type, char cmd[], int cmd_length);
-LIBRARY_API void getDiscoveryXml(char buffer[], int buf_size, char uuid[47]);
-LIBRARY_API void getDiscoveryXml2(char buffer[], int buf_size);
-LIBRARY_API void getScopeField(char *, char *, char[1024]);
-LIBRARY_API void getCameraName(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
-LIBRARY_API void extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
-LIBRARY_API void extractOnvifService(char service[1024], bool post);
-LIBRARY_API void extractHost(char * xaddrs, char host[128]);
-LIBRARY_API int checkForXmlErrorMsg(xmlDocPtr doc, char error_msg[1024]);
-LIBRARY_API int getXmlValue(xmlDocPtr doc, xmlChar *xpath, char buf[], int buf_length);
-LIBRARY_API int getNodeAttributen (xmlDocPtr doc, xmlChar *xpath, xmlChar *attribute, char buf[], int buf_length, int profileIndex);
-#define getNodeAttribute(doc,xpath,attribute,buf,buf_length) getNodeAttributen(doc,xpath,attribute,buf,buf_length,0)
-LIBRARY_API xmlXPathObjectPtr getNodeSet (xmlDocPtr doc, xmlChar *xpath);
-*/
 
 LIBRARY_API void getDiscoveryXml(char buffer[], int buf_size, char uuid[47]);
 LIBRARY_API void getDiscoveryXml2(char buffer[], int buf_size);

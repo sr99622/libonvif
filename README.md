@@ -1,40 +1,86 @@
 
+<style>
+  summary {font-size:18px; font-weight:400;}
+  p {font-size:16px; font-weight:400;}
+  div.container {
+    display:inline-block;
+  }
+</style>
+
 libonvif
 ========
 
-A client side implementation of the ONVIF specification for Linux and Windows.
-Included are two tools for communicating with cameras, a command line program,
-onvif-util, and a program with a Graphical User Interface, onvi-gui.
-
-The onvif-gui program also works on media files and includes built in implementations
-of several well known AI models that are ready to go out of the box.  Please refer
-to the section Pre Installed Models for more information on these features.
+A client side implementation of the ONVIF specification for Linux, Mac and Windows. Included are two tools for communicating with cameras, a command line program, onvif-util, and a program with a Graphical User Interface, onvi-gui.
 
 &nbsp;
+
+<div class="container">
+  <image src="onvif-gui/gui/resources/onvif-gui.png">
+</div>
+<div class="container">
+  <img src="assets/images/blank.png" width="30" />
+</div>
+<div class="container">
+<p style="font-size:36px; font-weight:bold">Onvif GUI</p><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a><br><img src="assets/images/blank.png" height="30" />
+</div>
+
+<!---
+<table>
+  <tr><td><image src="onvif-gui/gui/resources/onvif-gui.png"></td><td><p style="font-size:36px; font-weight:bold">Onvif GUI</p><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
+<table>
+--->
+
+&nbsp;
+
+## Introduction
+
+<details>
+<summary>Description</summary>
+&nbsp;
+
+---
+
+Onvif GUI is an integrated camera management and NVR system with an intuitive user interface that can easily manage a fleet of cameras and create high resolution recordings based on alarm conditions. A best of breed YOLO detector is included with the system to facilitate accurate alarm signals without false detections. The system is designed to scale with available hardware and will run on simple configurations with minimal hardware requirements as well as high end multi core CPUs with NVIDIA GPU for maximum performance. The system can be configured with auto start settings and a user friendly icon so that non-technical users can feel comfortable working with the application without specialized training. File management is easy with an automated disk space manager and file playback controls.
+
+---
+
+</details>
+
+<details>
+<summary>Screenshot</summary>
+&nbsp;
+
+Here is the application running 14 cameras through the yolox detector on an RTX 3090 GPU with i9-12900K CPU on Ubuntu 23.10.
+
+<image src="assets/images/screenshot.png">
+
+</details>
 
 ## Installation
 
 <details>
-<summary>onvif-gui <i>(Graphical User Interface)</i></summary>
+<summary>Install onvif-gui</summary>
 &nbsp;
 
-Please select the instructions for your operating system
+<p style="font-size:16px; font-weight:300; font-style:italic;">The minimum required python version is 3.10.</p>
 
 ---
 
 <details>
 <summary>Linux</summary>
 
+<details>
+<summary>Ubuntu</summary>
+
 * ## Step 1. Install Dependecies
 
   ```
-  sudo apt install cmake g++ python3-pip libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
+  sudo apt install cmake g++ git python3-pip virtualenv libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
   ```
 
-* ## Step 2. Set up virtual environment
+* ## Step 2. Create Virtual Environment
 
   ```
-  sudo apt install virtualenv
   virtualenv myenv
   source myenv/bin/activate
   ```
@@ -45,7 +91,89 @@ Please select the instructions for your operating system
   pip install onvif-gui
   ```
 
-* ## Step 4. Launch program
+* ## Step 4. Launch Program
+
+  ```
+  onvif-gui
+  ```
+</details>
+
+<details>
+<summary>Fedora</summary>
+
+* ## Step 1. Install Dependecies
+
+  ```
+  sudo dnf install cmake g++ libxml2-devel python3-devel python3-pip SDL2-devel virtualenv git
+  sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf -y install ffmpeg-devel --allowerasing
+  ```
+
+* ## Step 2. Create Virtual Environment
+
+  ```
+  virtualenv myenv
+  source myenv/bin/activate
+  ```
+
+* ## Step 3. Install onvif-gui
+
+  ```
+  pip install onvif-gui
+  ```
+
+* ## Step 4. Launch Program
+
+  ```
+  onvif-gui
+  ```
+</details>
+
+---
+
+</details>
+
+<details>
+<summary>Mac</summary>
+
+* ### Step 1. Install Python
+
+  Python minimum version 3.10 is required for the application. There are several approaches that can be used to achieve this requirement. Anaconda is recommended here, but other techniques may be preferred depending on the situation. Please refer to the [Anaconda Installation Instructions](https://www.anaconda.com/download#downloads).
+
+* ### Step 2. Install Xcode
+
+  Please refer to the [Xcode Installation Instructions](https://developer.apple.com/xcode/).
+
+* ### Step 3. Install Homebrew
+
+  Please refer to the [Homebrew Installation Instructions](https://docs.brew.sh/Installation).
+
+* ### Step 4. Install Dependencies
+
+  ```
+  brew update
+  brew upgrade
+  brew install ffmpeg
+  brew install libxml2
+  brew install cmake
+  brew install git
+  ```
+
+* ### Step 5. Create Virtual Environment
+
+  ```
+  conda create --name onvif python
+  conda activate onvif
+  ```
+
+* ## Step 6. Install onvif-gui
+
+  ```
+  pip install onvif-gui
+  ```
+
+* ### Step 7. Launch Program
 
   ```
   onvif-gui
@@ -53,28 +181,20 @@ Please select the instructions for your operating system
 
 </details>
 
----
-
-
 <details>
 <summary>Windows</summary>
 
 * ## Step 1. Install Python
 
-  Python is required for this application and is not installed on Windows by default. 
-  The minimum required version for this application is 3.8. The python installer can 
-  be downloaded from https://www.python.org/downloads/. To check if python has already
-  been installed on the machine, use the command
+  Python is required for this application and is not installed on Windows by default. The minimum required version for this application is 3.10. The python installer can be downloaded from https://www.python.org/downloads/. To check if python has already been installed on the machine, use the command
 
   ```
   python --version
   ```
 
-  Note that windows may present an installation prompt if python is not already present, 
-  however, the default version may be 3.7, which is insufficient to properly run the
-  application.  Please select a python version which is 3.8 or higher.
+  Note that windows may present an installation prompt if python is not already present, however, the default version may be insufficient to properly run the application.  Please select a python version which is 3.10 or higher.
 
-* ## Step 2. Create virtual environment
+* ## Step 2. Create Virtual Environment
 
   ```
   python -m venv myenv
@@ -87,7 +207,109 @@ Please select the instructions for your operating system
   pip install onvif-gui
   ```
 
-* ## Step 4. Launch program
+* ## Step 4. Launch Program
+
+  ```
+  onvif-gui
+  ```
+
+</details>
+
+---
+
+&nbsp;
+</details>
+
+
+
+<details>
+
+<summary>Build From Source</summary>
+&nbsp;
+
+<p style="font-size:16px; font-weight:300; font-style:italic;">Note that most functionality of the application is implemented in python and can be modified without compiling. The instructions that follow include compilation for the libonvif and libavio supporting libraries, which provide lower level functionality to the python application.</p>
+
+---
+
+<details>
+<summary>Linux</summary>
+&nbsp;
+
+<details>
+<summary>Ubuntu</summary>
+
+* ### Step 1. Install Dependencies
+  ```
+  sudo apt install git cmake g++ python3-pip virtualenv libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
+  ```
+
+* ### Step 2. Create Virutal Environment
+
+  ```
+  virtualenv myenv
+  source myenv/bin/activate
+  ```
+
+* ### Step 3. Clone Repository
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  ```
+
+* ### Step 4. Install
+
+  ```
+  cd libonvif/libonvif
+  pip install -v .
+  cd ../libavio
+  pip install -v .
+  cd ../onvif-gui
+  pip install .
+  ```
+
+* ### Step 5. Launch Program
+
+  ```
+  onvif-gui
+  ```
+</details>
+
+<details>
+<summary>Fedora</summary>
+
+* ### Step 1. Install Dependencies
+  ```
+  sudo dnf install cmake g++ libxml2-devel python3-devel python3-pip SDL2-devel virtualenv git
+  sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf -y install ffmpeg-devel --allowerasing
+  ```
+
+* ### Step 2. Create Virutal Environment
+
+  ```
+  virtualenv myenv
+  source myenv/bin/activate
+  ```
+
+* ### Step 3. Clone Repository
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  ```
+
+* ### Step 4. Install
+
+  ```
+  cd libonvif/libonvif
+  pip install -v .
+  cd ../libavio
+  pip install -v .
+  cd ../onvif-gui
+  pip install .
+  ```
+
+* ### Step 5. Launch Program
 
   ```
   onvif-gui
@@ -95,15 +317,729 @@ Please select the instructions for your operating system
 </details>
 
 ---
+
+</details>
+
+<details>
+<summary>Mac</summary>
+
+* ### Step 1. Install Python
+
+  Python minimum version 3.10 is required for the application. There are several approaches that can be used to achieve this requirement. Anaconda is recommended here, but other techniques may be preferred depending on the situation. Please refer to the [Anaconda Installation Instructions](https://www.anaconda.com/download#downloads).
+
+* ### Step 2. Install Xcode
+
+  Please refer to the [Xcode Installation Instructions](https://developer.apple.com/xcode/).
+
+* ### Step 3. Install Homebrew
+
+  Please refer to the [Homebrew Installation Instructions](https://docs.brew.sh/Installation).
+
+* ### Step 4. Install Dependencies
+
+  ```
+  brew update
+  brew upgrade
+  brew install ffmpeg
+  brew install libxml2
+  brew install cmake
+  brew install git
+  ```
+
+* ### Step 5. Create Virtual Environment
+
+  ```
+  conda create --name onvif python
+  conda activate onvif
+  ```
+
+* ### Step 6. Clone Repository
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  ```
+
+* ### Step 7. Install
+
+  ```
+  cd libonvif/libonvif
+  pip install -v .
+  cd ../libavio
+  pip install -v .
+  cd ../onvif-gui
+  pip install .
+  ```
+
+* ### Step 8. Launch Program
+
+  ```
+  onvif-gui
+  ```
+
+</details>
+
+<details>
+<summary>Windows</summary>
 &nbsp;
+
+In order to build from source on Windows, development tools and python are required. Please follow the instructions for installing [Visual Studio](https://visualstudio.microsoft.com/), [cmake](https://cmake.org/download/), [git](https://git-scm.com/download/win) and [python](https://www.python.org/downloads/windows/). When installing Visual Studio, select the desktop C++ development libraries to get the compiler.
+
+* ### Step 1. Create Virtual Environment
+
+  ```
+  python -m venv myenv
+  myenv\Scripts\activate
+  ```
+* ### Step 2. Clone Repository
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  ```
+
+* ### Step 3. Install
+
+  ```
+  cd libonvif\libonvif
+  pip install -v .
+  cd ..\libavio
+  pip install -v .
+  cd ..\onvif-gui
+  pip install onvif-gui
+  ```
+
+* ### Step 4. Launch Program
+
+  ```
+  python run.py
+  ```
+
+</details>
+
+---
+
+&nbsp;
+</details>
+
+</details>
+
+<details>
+<summary>Desktop Icon</summary>
+&nbsp;
+
+<p style="font-size:16px; font-weight:300; font-style:italic;">Please select the instructions for your operating system</p>
+
+---
+
+<details>
+<summary>Linux</summary>
+
+In order to add an icon to the desktop, administrator privileges are required. The location of the virtual environment folder must also be known and is required when invoking the command to create the desktop icon. To add the icon, use the following command, substituting the local host virtual environment configuration as appropriate.
+
+```
+sudo myenv/bin/onvif-gui --icon
+```
+
+Upon completion of the command, the icon may be found in the Applications Folder of the system. For example, on Ubuntu, the box grid in the lower left corner launches the Application Folder and the icon can be found there. Once launched, the application icon can be pinned to the start bar for easier access by right clicking the icon.
+
+---
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+To install a desktop icon on windows, please make sure the virtual environment is activated and then add the winshell python module.
+
+```
+pip install pywin32 winshell
+```
+
+Now run the following command.
+
+```
+onvif-gui --icon
+```
+
+</details>
+
+---
+
+&nbsp;
+
+</details>
+
+## Operation
+
+<details>
+<summary>Getting Started</summary>
+&nbsp;
+
+<image src="onvif-gui/gui/resources/discover.png">
+
+Discover
+
+To get started, click the Discover button. A login screen will appear for each camera as it is found. The Settings tab may be used to set a default login that can be used to automatically submit login credentials to cameras. There is also an Auto Discover check box on the Settings panel.
+
+Initially, cameras will populate the list using the default name provided by the manufacturer. To change the camera name, use the F2 key, or the right click context menu over the camera list.
+
+<image src="onvif-gui/gui/resources/play.png">
+
+Play
+
+Upon completion of discovery, the camera list will be populated. A single click on a camera in the list will display the camera parameters in the lower part of the tab. Double clicking will start the camera output stream. The camera stream may also be started by clicking the play button or by typing the enter key while a camera is highlighted in the list.
+
+Multiple cameras can stream simoultaneously. The application will add camera output to the display for each camera as it is started. The controls for camera operations apply to the current camera, which is the highlighted camera in the list on the camera panel. The current camera will have a thin white border around it in the display.
+
+<image src="onvif-gui/gui/resources/stop.png">
+
+Stop
+
+When the camera stream is running, the play button for that camera will change appearance to the stop icon. Clicking the button will stop the stream.  The stream can also be stopped from the camera list by double clicking or typing the enter key.
+
+<image src="onvif-gui/gui/resources/record.png">
+
+Record
+
+Recording can be initiated manually by clicking the record button. The file name is generated automatically and is based on the start time of the recording in date format as YYYYMMDDmmSS.mp4. The Archive Directory setting will determine the location of the file. A subdirectory is created for each camera to help organize files within the archive.
+
+During manually initiated recording, a rotating red colored tick mark will show in the lower right corner of the stream display. The Record Button on the Camera Panel will show red during all recording operations. Note that recording initiated automatically during Alarm conditions or Record Always will disable the Record Button. 
+
+Files created by the application are limited in length to 15 minutes. Recordings that require a longer time will be broken up into several parts that are each 15 minutes long. There will be a slight overlap between files broken up this way corresponding to the length of the Pre Record Buffer setting.
+
+<image src="onvif-gui/gui/resources/apply.png">
+
+Apply
+
+Camera parameters are available on the tabs on the lower right side of the application. Initially, the Apply button will be disabled with a dimmed icon. Once a parameter has been changed, the Apply button will be enabled, which can be used to commit the change to the camera. The camera may re-start the stream in order to make the changes.
+
+<image src="onvif-gui/gui/resources/audio.png">
+
+Mute
+
+Camera audio can be controlled from the panel. The mute button can be clicked to mute the audio. The mute button appearance indicates the state of the audio. The volume slider can be used to control the volume. Note that the mute and volume controls are applied to each camera individually.
+
+---
+&nbsp;
+</details>
+
+<details>
+<summary>Camera Parameters</summary>
+&nbsp;
+
+<p style="font-size:16px; font-weight:300; font-style:italic;">Changes are commited to the camera by using the Apply button, if necessary</p>
+
+---
+
+<details>
+<summary>Media</summary>
+&nbsp;
+
+
+<img src="assets/images/media_tab.png" style="height: 280px; width: 540px;"/>
+
+* ### W x H (Resolution)
+
+    Camera resolution is adjusted using the combo box which has available settings. To change the camera resolution, make a selection from the combo box and then click the apply button. The camera may re-start the video stream in order to effect the change.
+
+* ### Aspect
+
+    Aspect ratio of the camera video stream. In some cases, particularly when using substreams, the aspect ratio may be distorted. Changing the aspect ratio by using the combo box can restore the correct appearance of the video. If the aspect ratio has been changed this way, the label of the box will have a * appended. This setting is not native to the camera, so it is not necessary to click the apply button for this change.
+
+* ### FPS
+
+    Frame rate of the camera can be adjusted using the spin box. The change is made on the camera when the apply button is clicked. Higher frame rates will have a better appearance with smoother motion at the expense of increased compute load.
+
+* ### GOP
+
+    Keyframe interval of the video stream. Keyframes are a full frame encoding, whereas intermediate frames are differential representations of the changes between frames.  Keyframes are larger and require more computing power to process. Higher GOP intervals mean fewer keyframes and as a  result, less accurate represention of the video.  Lower GOP rates increase the accuracy of the  video at the expense of higher bandwidth and compute load. It is necessary to click the Apply button to enact these changes on the camera.
+
+* ### Cache
+
+    A read only field showing the size of the video packet input buffer for the camera prior to decoding. Higher cache values represent longer latency in the video processing, which may be observed as a delay between the time an event occurs and the event being shown in the video. 
+    
+    The maximum cache size is 100. If the cache is full, incoming packets are discarded, which will affect the quality of the stream. If the cache is full and video packets are being discarded, the video display on the screen will have a yellow border around it. The cache may be cleared by clicking the clear button, but if the host is overwhelmed, the cache will just fill up again.
+
+    Network conditions, compute load or internal camera buffering may cause the cache to stabilize at size greater than zero. Aside from the latency effect, this will not present a problem for the stream, as long as the cache size remains stable.
+
+* ### Bitrate
+
+    The bitrate of the video stream. Higher bitrates increase the quality of the video appearance at the expense of larger file sizes. This is most relevant when maintaining recordings of videos on the host file system. Bitrates are generally expressed in kbps by cameras, but may be inaccurate or scaled differently.  Use the Apply button after changing this setting to enact the change on the camera.
+
+* ### Profile
+
+    Most cameras are capable of producing multiple media streams. This feature can be useful when running many cameras on the same computer or if a compute intensive task is being run on a stream. The default stream of the camera is called the Main Stream. A secondary stream running at lower settings is called the Sub Stream. The application uses the terms Display Profile and Record Profile to describe these settings.
+
+    Initially, the Main Profile is selected by default. By changing the selection to a secondary profile, a lower order Sub Stream can be displayed. The term lower order implies that the Sub Stream has lower resolution, lower frame rate and lower bitrate than the Main Stream. Note that the application may be processing both streams, but only the Display Profile selected on the Video Tab is displayed. The other stream, referred to as the Record Stream, is not decoded, but its packets are collected for writing to disk storage.
+
+    The Display Profile will change automatically when the Video Tab Profile combo box is changed, so it is not necessary to click the Apply button when changing this setting.
+
+* ### Audio
+
+    The audio encoder used by the camera is set here.  If the camera does not have audio capability, the audio section will be disabled. Note that some cameras may have audio capability, but the stream is not available due to configuration issues or lack of hardware accessories.  Available audio encoders will be shown in the combo box and may be set by the user. Changes to the audio parameter require that the Apply button is clicked to enact the change on the camera.
+    
+    AAC encoding is highly recommended, as G style encoders may have issues during playback. Note that some cameras have incorrect implementations for encoders and the audio may not be usable in the stream recording to disk. 
+
+* ### Samples
+
+    The sample rate of the audio stream. Available sample rates are shown in the combo box. Use the Apply button to enact the change on the camera.  Higher sample rates increase the quality of the audio at the expense of higher bandwidth and disk space when recording. The audio bitrate is implied by the sample rate based on encoder parameters.
+
+* ### No Audio
+
+    Audio can be disabled by clicking this check box. This is different than mute in the sense that under mute, the audio stream is decoded, but not played on the computer speakers. If the No Audio check box is clicked, the audio stream is discarded, which can reduce compute load and may improve performance. If the No Audio checkbox is de-selected, the stream must restart in order to initialize the audio. The Apply button is not clicked when changing this parameter.
+
+* ### Video Alarm
+
+    This check box enables video analytic processing for alarm generation. See the section on Video Panel for reference to video alarm functions.  Note that the Video Alarm check box must be selected in order to enable the Video Panel for that camera. The Apply button is not used for this setting. During Alarm condition, a solid red circle will show in the stream display if not recording, or a blinking red circle if the stream is being recorded.
+
+* ### Audio Alarm
+ 
+    This check box enables audio analytic processing for alarm generation. See the section on Audio Panel for reference to audio alarm functions.  Note that the Audio Alarm check box must be selected in order to enable the Audio Panel for that camera. The Apply button is not used for this box. During Alarm condition, a solid red circle will show in the stream display if not recording, or a blinking red circle if the stream is being recorded.
+
+</details>
+
+<details>
+<summary>Image</summary>
+&nbsp;
+
+<img src="assets/images/image_tab.png" style="height: 280px; width: 540px;"/>
+
+&nbsp;
+
+The sliders control various parameters of the video quality.  The Apply button must be clicked after changing the setting to enact the change on the camera.
+
+</details>
+
+<details>
+<summary>Network</summary>
+&nbsp;
+
+<img src="assets/images/network_tab.png" style="height: 280px; width: 540px;"/>
+
+&nbsp;
+
+If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other network settings may be completed manually. Note that IP setting changes may cause the camera to be inaccesible if using cached addresses. Use the Discover button to find the camera, or enter the new address manually from the settings panel.
+
+Take care when changing these settings, the program does not check for errors and it maybe possible to set the camera into an unreachable configuration. 
+
+The Apply button must be clicked to enact any of these changes on the camera.
+
+---
+
+</details>
+
+<details>
+<summary>PTZ</summary>
+&nbsp;
+
+<img src="assets/images/ptz_tab.png" style="height: 280px; width: 540px;"/>
+
+&nbsp;
+
+Settings pertain to preset selections or current camera position. The arrow keys, Zoom In (+) and Zoom Out (-) control the position and zoom. The numbered buttons on the left correspond to preset positions. Clicking one of the numbered buttons will send the camera to the corresponding preset position. To set a preset, position the camera, then check Set Preset, then click the numbered preset button. It is not necessary to use the Apply button with any of the settings on this panel.
+
+---
+
+</details>
+
+<details>
+<summary>System</summary>
+&nbsp;
+
+<img src="assets/images/system_tab.png" style="height: 280px; width: 540px;"/>
+
+* ### Recording
+
+    The check box at the top of the Record group box will enable automatic recording of camera streams when selected. The Record combo box below will select the camera profile to be recorded.
+    
+    If the Record Alarms radio button is selected, the application will record automatically during alarm condition. While the stream is being recorded during alarm condition, there will be a blinking red circle in the lower right corner of the stream display. File sizes are limited to 15 minute lengths, so multiple files will be created if the alarm condition lasts longer than this limit.
+
+    Selecting the Record Always radio button will cause the application to record the camera at all times that it is streaming. The files are written to disk in 15 minute file lengths, and are named in a time format representing the start time of the recording. Unlike other recording modes, the Record Always condition does not display an indicator in the stream display.
+
+    It not necessary to use the Apply button for any of the settings on this panel.
+
+* ### Alarm Sounds
+
+    The check box at the top of the Sounds group box will enable alarm sounds on the computer speaker when checked.  If the Loop radio button is selected, the sound will play continuously during an alarm condition.  Selection of the Once radio button will cause the application to play the alarm sound once per alarm condition.
+
+* ### Reboot
+
+    Click to reboot the camera.
+
+* ### Sync Time
+
+    Click to syncronize the camera time to the computer time.
+
+* ### Browser
+
+    This will lauch the web browser and connect to the camera.  Cameras will have a web interface that can be used to set parameters that are not available to the application.
+
+* ### JPEG
+
+    This button will write a jpeg file of the current camera screen to the directory specified on the Settings Panel.
+
+</details>
+
+---
+
+&nbsp;
+</details>
+
+<details>
+<summary>File Operations</summary>
+&nbsp;
+
+---
+
+File playback is configured such that one file is played at a time. Keyboard shortcuts are available. A file may be played along side cameras if desired. Note that if the application is under heavy load with a large number of cameras streaming, file playback performance may suffer. In such a case, a second instance of onvif-gui or an external media player like VLC can be used to review files.
+
+<h3>File Playback Controls For Mouse</h3>
+
+---
+
+<div class="container">
+  <image src="onvif-gui/gui/resources/play.png">
+  <br><p>Play</p>
+</div>
+<div class="container">
+  <image src="assets/images/blank.png" width="20">
+</div>
+<div class="container">
+  <image src="onvif-gui/gui/resources/pause.png">
+  <br><p>Pause</p>
+</div>
+<div class="container">
+  <image src="assets/images/blank.png" width="20">
+</div>
+<div class="container">
+  <image src="onvif-gui/gui/resources/stop.png">
+  <br><p>Stop</p>
+</div>
+<div class="container">
+  <image src="assets/images/blank.png" width="20">
+</div>
+<div class="container">
+  <image src="onvif-gui/gui/resources/previous.png">
+  <br><p>Prev</p>
+</div>
+<div class="container">
+  <image src="assets/images/blank.png" width="20">
+</div>
+<div class="container">
+  <image src="onvif-gui/gui/resources/next.png">
+  <br><p>Next</p>
+</div>
+<div class="container">
+  <image src="assets/images/blank.png" width="20">
+</div>
+<div class="container">
+  <image src="onvif-gui/gui/resources/audio.png">
+  <br><p>Mute</p>
+</div>
+
+
+<!---
+<table>
+<tr><td><image src="onvif-gui/gui/resources/play.png"></td><td><image src="onvif-gui/gui/resources/pause.png"></td><td><image src="onvif-gui/gui/resources/stop.png"></td><td><image src="onvif-gui/gui/resources/previous.png"></td><td><image src="onvif-gui/gui/resources/next.png"></td><td><image src="onvif-gui/gui/resources/audio.png"></td></tr>
+<tr><td><p>Play</p></td><td><p>Pause</p></td><td><p>Stop</p></td><td><p>Prev</p></td><td><p>Next</p></td><td><p>Mute</p></td></tr>
+</table>
+--->
+
+<!---
+<image src="onvif-gui/gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/audio.png">
+
+Play&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pause&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prev&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Next&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mute
+--->
+
+---
+
+### Keyboard Shortcuts
+
+Keyboard shortcuts are available when the file list of the File Panel has the application focus. A single click on any file in the list will achieve this focus.
+
+* Enter
+
+  The Enter key can be used to Play the file.
+
+* Space
+
+  The space bar can be used to Pause the current file playing.
+    
+* Escape
+
+  The Escape key can be used to stop the current file playing.
+    
+* Delete
+
+  Files may be deleted by typing the Delete key. Multiple files may be deleted simoultaneously by selecting multiple files using the Shift or Control keys while selecting.
+
+* F1
+
+  The F1 key will show a dialog with file properties.
+    
+* F2
+
+  Files can be renamed using the F2 key.
+    
+* Right Arrow
+
+  The Right Arrow will fast forward the file playing by 10 seconds.
+    
+* Left Arrow
+
+  The Left Arrow will rewind the file playing by 10 seconds.
+
+### Pop Up Menu
+
+Right clicking over the file will bring up a menu that can be used to intiate file operations as well.
+
+---
+&nbsp;
+</details>
+
+<details>
+<summary>Application Settings</summary>
+&nbsp;
+
+---
+
+<image src="assets/images/settings_panel.png">
+
+### Common Username and Password
+
+Default camera login credentials.
+
+### Hardware Decoder
+
+A hardware decoder may be selected for the application. Mulitcore CPUs with more than a few cores will handle the decoding just as easily as a hardware decoder. Smaller CPUs with a small number of cores may benefit from hardware decoding. VAAPI and VDPAU pertain to Linux systems and DXVA2 and D3D11VA are for Windows. CUDA decoding is platform independent and requires NVIDIA GPU. If the hardware decoder is unavailable, the application will silently default to CPU decoding.
+
+### Start Full Screen
+
+Selecting this check box will cause the application to start in full screen mode. The full screen mode can be cancelled with the Escape key. The F12 key will also toggle full screen mode.
+
+### Auto Discovery
+
+When selected, this option will cause the application to discover cameras automatically when it starts. This holds true whether the application is using Broadcast Discovery or Cached Addresses.  Note that if this option is selected and the Broadcast Discovery Option is also selected, the application will poll the network once per minute to find missing or new cameras.
+
+### Auto Start
+
+When selected in combination with the Auto Discovery check box, cameras shown in the list will start automatically when the application starts. This feature will work with either Discovery Broadcast or Cached Adresses.
+
+### Auto TIme Sync
+
+This selection will send a time sync message to each of the cameras once an hour. The camera time is set to the host computer time without regard for time zone.
+
+### Pre-Alarm Buffer Size
+
+When a camera is recording, this length of media is prepended to the file so that the moments prior to the alarm are preserved. If always recording, or the file length is limited by the system to 15 minutes, this feature will insure that there is a small overlap between adjacent files.
+
+### Post-Alarm Lag Time
+
+In the case where a camera is configured to record during alarms, this length of time must pass after the cessation of the alarm before the file recording is turned off.  This helps to prevent excessive file creation.
+
+### Alarm Sounds
+
+A few default alarm sounds for selection.  A system wide volume setting for the alarm volume can be made with the slider.
+
+### Discovery Options
+
+* Discovery Broadcast
+
+  This option will broadcast a discovery packet to find cameras on the network. If the host computer is attached to multiple networks it is possible to broadcast across all networks or only one selected network. Cameras discovered will have their data entered into the address cache so that they may be found without discovery later.
+
+* Cached Addresses
+
+  This option will cause the application to find cameras based on the cache data rather than the discovery broadcast. Note that cameras may be deleted from the cache by using the Delete key or the right click context menu on the camera list. This can be useful if a subset of cameras on the network is going to be streamed. Note that some cameras may respond with incomplete data when using a cached address.
+
+* Add Camera
+
+  It is possible to add a camera manually to the address cache by using the Add Camera button. The IP address and ONVIF port are required to connect.  The ONVIF port by default is 80. If successful, the camera will be added silently to the camera list.
+
+### Disk Usage
+
+The application has the ability to manage the disk space used by the recorded media files. This setting is recommended as the files can overwhelm the computer and cause the application to crash. Allocating a directory for the camera recordings is done by assigning a directory using the Archive Dir selection widget. The default setting for the Archive Dir is the user's Video directory. It is advised to change this setting if the host computer employs the user's Video directory for other applications.
+
+* Current Disk Usage
+
+  When the application starts, or a new file is created for a camera recording, the approximate amount of disk space used by the application is displayed. This number is not exact, but can give a general idea of the amount of disk space used.
+
+* Auto Manage Checkbox
+
+  Select this check box to enable disk management.  A warning dialog will inform the user of the risk of the loss of files within the directory. Note that the application will only delete files that conform to the date style file naming convention that it uses. It is a good idea to use a directory that can be dedicated exclusively to the application.
+
+  The maximum available disk space that could be allocated to the application based on the Archive Dir setting will be displayed next to the checkbox.
+
+  The spin box can be used to limit the application disk usage in GB. Note that the application is conservative in it's estimate of required file size and the actual space occupied by the media files will be a few GB less than the allocated space.
+
+### Start All Cameras / Close All Streams
+
+This button will change appearance depending on whether there are streams playing or not. It can be used to batch control cameras to start or stop as a group. It will start all cameras on the Camera List. It will stop all streams, including files if playing.
+
+### Show Logs
+
+This button will show the logs of the application. Many events and errors encountered will be documented here. The log rolls over at 1 MB. The older logs can be managed using the Archive button on the logs display dialog. Note that on Linux, the archive file selection dialog may be slow to open or may require some mouse movement to visualize.
+
+### Help
+
+Shows this file.
+
+---
+&nbsp;
+</details>
+
+<details>
+<summary>Video Panel</summary>
+&nbsp;
+
+<p style="font-size:16px; font-weight:300; font-style:italic;">Video streams cam be analyzed to generate alarms</p>
+
+---
+
+The Video Panel has two modes of operation, motion and yolox. The default setting is for motion, which can be used without further configuration and will run easily on a CPU only computer. Yolox requires the installation of the pytorch module and will consume significant computing resources for which a GPU is recommended, but not required.
+
+In order for the panel to be enabled, either a camera or a file must be selected. If a camera is selected, the Video Alarm check box must also be selected on the Media Tab of the Camera Panel. If a file is selected, the Enable File check box on the Video Panel must also be selected.
+
+Parameters set on the panel are applied to files globally, and to cameras individually.
+
+If the analysis produces an alarm, record and alarm sound actions are taken based on the settings made on the System Tab of the Camera Panel. Files are not connected to alarm processing.
+
+* ### Motion
+
+<image src="assets/images/motion.png" style="width: 640px;">
+
+&nbsp;
+
+The motion detector measures the difference between two consecutive frames by calculating the percentage of pixels that have changed. If that result is over a threshold value, an alarm is triggered. The Diff check box will show a visualization of the differential pixel map that is used by the calcuation. The status bar will light green to red as the value of the algorithm result increases. The Gain slider can amplify or attenuate the result to adjust the sensitivity of the detector. Higher Gain slider values increase the sensitivity of the detector.
+
+* ### YOLOX
+
+YOLOX requires [installation of pytorch](https://pytorch.org/get-started/locally/)
+
+<image src="assets/images/yolox.png" style="width: 640px;">
+
+&nbsp;
+
+The upper portion of the yolox panel has a model managment box. Model parameters are system wide, as there will be one model running that is shared by all cameras. The Model Name selects the file containing the model, which is named according to the size of the number of parameters in the model. Larger models may produce more accurate results at the cost of increased compute load. The Model Size is the resolution to which the video is scaled for model input. Larger sizes may increase accuracy at the cost of increased compute load.
+
+By default the application is configured to download a model automatically when a stream is started with the yolox alarm option for the first time. There may be a delay while the model is downloaded. Subsequent stream launches will run the model with less delay. A model may be specified manually by de-selecting the Automatically download model checkbox and populating the Model file name box. Note that if a model is manually specified, it is still necessary to assign the correct Model Name corresponding to the parameter size. It is recommended to stop all streams before changing a running model.
+
+The lower portion of the panel has settings for detector configuration. Parameters on this section are assigned to each camera individually.
+
+The yolox detector counts the number of frames during a one second interval in which at least one detection was observed, then normalizes that value by dividing by the number of frames. The value output from the detector algorithm can be adjusted using the Gain slider.  Higher Gain slider values increase the sensitivity of the detector.
+
+There is also a Confidence slider that applies to the yolox model output. Higher confidence settings require stricter conformance to model expectations to qualify a positive detection. Lower confidence settings will increase the number of detections at the risk of false detections.
+
+It is necessary to assign at least one target to the panel in order to observe detections. The + button will launch a dialog box with a list of the available targets. Targets may be removed by using the - button or the delete key while the target is highlghted in the list.
+
+---
+&nbsp;
+</details>
+
+<details>
+<summary>Audio Panel</summary>
+&nbsp;
+
+<p style="font-size:16px; font-weight:300; font-style:italic;">Audio streams cam be analyzed to generate alarms</p>
+
+---
+
+The audio panel can analyze streams in both amplitude and frequency domains. Note that frequency analysis requires slightly more computing power than amplitude analysis. 
+
+In order for the panel to be enabled, either a camera or a file must be selected. If a camera is selected, the Video Alarm check box must also be selected on the Media Tab of the Camera Panel. If a file is selected, the Enable File check box on the Video Panel must also be selected.
+
+Parameters set on the panel are applied to files globally, and to cameras individually.
+
+If the analysis produces an alarm, record and alarm sound actions are taken based on the settings made on the System Tab of the Camera Panel. Files are not connected to alarm processing.
+
+&nbsp;
+
+<image src="assets/images/audio_panel.png" style="width: 400px;">
+
+* ### Amplitude
+
+The amplitude is measured by calculating the Root Mean Square (rms) value of the audio waveform. If the rms exceeds threshold, an alarm condition is triggered. The Gain slider can be used to amplify or attenuate the value of the signal in order to adjust the sensitivity of the detector.
+
+* ### Frequency
+
+The frequency spectrum is measured by the integrated area under the spectrum curve normalized. The spectrum may be filtered to eliminate undesired frequencies. Lower frequencies are often common background sounds that do not warrant an alarm condition, whereas higher frequency sounds are often associated with a sudden, sharp noise such as breaking glass.
+
+There are filter bars that can be adjusted using the cursor handles. Frequencies excluded by the filter are depicted in gray. The Gain slider can be used to amplify or attenuate the value of the signal in order to adjust the sensitivity of the detector.
+
+* ### Over/Under
+
+The detector can be configured to alarm in the absence of sound by selecting the Under radio button. This may be useful in situations such as an engine room monitor configured to alarm if the engine stops running. This mode will invert the status bar level.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Full Screen</summary>
+&nbsp;
+
+---
+
+The application can be configured to run in full screen mode. Double clicking the display area will toggle full screen operation. The F12 key may also be used to toggle full screen. If the application is running full screen, the Escape key can be used to return to windowed operation.
+
+The control tab on the right of the application window may be toggled using the F11 key. On Mac, it is necessary to use the command key + F11 combination to override the default workspace action. The size of the control tab can be changed using the barely visible handle grip in the middle of the left hand edge of the tab. Reducing the size of the tab beyond it's minimum will hide the tab. If there is at least one stream in the display and the control tab is hidden, clicking on the stream display area will restore the control tab.
+
+---
+
+&nbsp;
+
 </details>
 
 
 <details>
-<summary>onvif-util <i>(Command Line Tool)</i></summary>
+<summary>Notes</summary>
 &nbsp;
 
 ---
+
+* ### Recommended Configuration
+
+The application is optimized for performance on Ubuntu Linux. Apple Mac should have good performance as well due to similarity between the systems. The application will run on Windows, but performance will be lower. The difference is due primarily to the use of OpenGL for video rendering, which performs better on *nix style platforms. When using GPU, Ubuntu Linux NVIDIA drivers generally outperform those on other operating systems.
+
+Linux offers additional advantages in network configuration as well. Linux can easily be configured to run a DHCP server to manage a separate network in which to isolate the cameras. A good way to configure the system is to use the wired network port of the host computer to manage the camera network, and use the wireless network connection of the host computer to connect with the wifi router and internet. The cameras will be isolated from the internet and will not increase network load on the wifi.
+
+* ### Running Multiple Cameras
+
+When running multiple cameras, performance can be improved by using substreams. Most cameras are capable of running two streams simoultaneously which are configured independently. The default stream is called the Main Stream and has higher resolution, bitrate and frame rate. The Sub Stream is an alternate stream and will have lower resolution, bitrate and frame rate. The Sub Stream is more easily decoded, processed and displayed and can be thought of as a view finder for the Main Stream. The application uses the generic terms Display Profile and Record Profile when describing these types of streams.
+
+The Profile combo box on the Media Tab of the Camera Panel is used to select the Display Profile. The System Tab of the Camera Panel has a combo box selector for the Record Profile. If the Display Profile and the Record Profile are matched, only that stream is processed. If the Display Profile and Record Profile are different, the Display Profile stream is decoded and displayed while the Record Profile stream is cached in a buffer and written to disk when alarm conditions warrant or the user clicks the Record Button.
+
+* ### Performance Tuning
+
+As the number of cameras and stream analytics added to the system increases, the host may become overwhelmed, causing cache buffer overflow resulting in dropped frames. If a camera stream is dropping frames, a yellow border will be displayed over the camera output. The Cache value for each camera is a good indicator of system performance, and reaches maximum capacity at 100. If a cache is overflowing, the load placed on the system by the camera can be reduced by lowering frame rate and to a lesser degree by lowering resolution.
+
+Lower powered CPUs with a small number of cores may benefit from hardware decoding. More powerful CPUs with a large core count will decode as easily as a hardware decoder.
+
+Stream analysis can potentially place significant burden on system resources. Motion detection and Audio Amplitude analysis have very little load. Audio Frequency analysis does present a moderate load which may be an issue for lower powered systems. Yolox is by far the most intensive load and will limit the number of streams it can process. A GPU is recommended for Yolox, as a CPU only system will be able to process maybe one or two streams at the most.
+
+If a system is intended for GPU use with yolox, it is advised to connect the monitor of the host computer to the motherboard output of the CPU integrated graphics chip. This has the effect of reducing memory transfers between CPU and GPU, which are a source of latency.
+
+* ### Camera Compliance With Standards
+
+Camera compliance with the onvif standard is often incomplete and in some cases incorrect. Success may be limited in many cases. Cameras made by Hikvision or Dahua will have the greatest level of compatibility. Note that some third party OEM vendors who sell branded versions of these cameras might significantly alter the functionality of the camera software.
+
+If the camera DHCP setting is properly onvif compliant, the IP address may be reliably set. Some cameras may not respond to the DHCP setting requested by onvif-gui due to non compliance. Note that the camera may reboot automatically under some conditions if the DHCP setting is changed from off to on. DHCP must be turned off before setting a fixed IP address.
+
+If there is an issue with a particular setting, it is recommended to connect to the camera with a web browser, as most cameras will have a web interface that will allow you to make the changes reliably. onvif-gui has a button on the Camera Panel System Tab that will launch the web browser connection with the camera.
+
+---
+
+&nbsp;
+
+</details>
+
+## Onvif Utility Program
+
+<details>
+<summary>Install onvif-util</summary>
+&nbsp;
+
+<p style="font-size:16px; font-weight:300; font-style:italic;">Please select the instructions for your operating system</p>
 
 <details>
 <summary>Linux</summary>
@@ -139,9 +1075,9 @@ Please select the instructions for your operating system
   onvif-util -h
   ```
 
-</details>
-
 ---
+
+</details>
 
 <details>
 <summary>Windows</summary>
@@ -189,745 +1125,19 @@ Please select the instructions for your operating system
   ```
   onvif-util -h
   ```
-</details>
 
 ---
-&nbsp;
 
 </details>
-
-<details>
-
-<summary>Build From Source</summary>
-&nbsp;
-
----
-
-<details>
-<summary>Linux</summary>
-&nbsp;
-
-* ### Step 1. Install Dependencies
-  ```
-  sudo apt install git cmake g++ python3-pip libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
-  ```
-
-* ### Step 2. Create Virutal Environment
-
-  ```
-  sudo apt install virtualenv
-  virtualenv myenv
-  source myenv/bin/activate
-  ```
-
-* ### Step 3. Clone Repository
-
-  ```
-  git clone --recursive https://github.com/sr99622/libonvif
-  ```
-
-* ### Step 4. Install
-
-  ```
-  cd libonvif/libonvif
-  pip install .
-  cd ../libavio
-  pip install .
-  cd ../onvif-gui
-  pip install .
-  ```
-
-* ### Step 5. Launch Program
-
-  ```
-  onvif-gui
-  ```
-
-</details>
-
----
-
-<details>
-<summary>Windows</summary>
-&nbsp;
-
-* ### Step 1. Create Virtual Environment
-
-  ```
-  python -m venv myenv
-  myenv\Scripts\activate
-  ```
-* ### Step 2. Clone Repository
-
-  ```
-  git clone --recursive https://github.com/sr99622/libonvif
-  ```
-
-* ### Step 3. Install
-
-  ```
-  cd libonvif\libonvif
-  pip install .
-  cd ..\libavio
-  pip install .
-  cd ..\onvif-gui
-  pip install .
-  ```
-
-* ### Step 4. Launch Program
-
-  ```
-  python run.py
-  ```
-
-</details>
-
----
-
 &nbsp;
 </details>
-
-<details>
-<summary>Virtual Environments</summary>
-&nbsp;
-
----
-
-<details>
-<summary>Linux</summary>
-
-&nbsp;
-
-Use of a virtual environment is required on Linux. Examples here use 
-[virtualenv](https://virtualenv.pypa.io/en/latest/) for managing
-python virtual environments.
-
-To use virtualenv, the tool should be installed using apt.
-```
-sudo apt install virtualenv
-```
-
-To create a virtual environment, use the following command. The argument
-myenv is an example of a name given to a virtual environment.
-
-```
-virtualenv myenv
-```
-
-This will create a <b>myenv</b> folder that contains the environment. Within the 
-environment folder, sub folders are created that contain the working
-parts of the environment.  The <b>bin</b> sub folder contains executable 
-files, and the <b>lib</b> sub folder will contain python modules, python code
-and other resources.
-
-To activate the virtual environment,
-
-```
-source myenv/bin/activate
-```
-
-Note that in order to run python modules installed in the virtual
-environment, it must first be activated.
-
-To exit the virtual environment,
-
-```
-deactivate
-```
-
-</details>
-
----
-
-<details>
-<summary>Windows</summary>
-
-&nbsp;
-
-Use of a virtual environment is strongly recommended on Windows. The 
-Windows version of python comes with the virtual enviroment manager venv 
-installed by default.
-
-To create a virtual environment, use the following command. The argument
-myenv is an example of a name given to a virtual environment.
-
-```
-python -m venv myenv
-```
-
-This will create a <b>myenv</b> folder that contains the environment. Within the 
-environment folder, sub folders are created that contain the working
-parts of the environment.  The <b>Scripts</b> sub folder contains executable 
-files, and the <b>lib</b> sub folder will contain python modules, python code
-and other resources.
-
-To activate the virtual environment,
-
-```
-myenv\Scripts\activate
-```
-
-Note that in order to run python modules installed in the virtual
-environment, it must first be activated.
-
-To exit the virtual environment,
-
-```
-deactivate
-```
-
-</details>
-
----
-
-&nbsp;
-
-</details>
-
-<details>
-<summary>Desktop Icon</summary>
-&nbsp;
-
-A desktop icon can be linked to the executable to enhance usability. This
-can enable non-technical users to access the program more easily.
-
-Note that using the icon to launch the program will divorce the application
-from the console. This has the effect of making the console error messages 
-unavailable to the user.  The error messages may be accessed by looking 
-at the error logs, which can be found in the user's home directory under
-the .cache folder. On Windows, this is %HOMEPATH%\\.cache\onvif-gui\errors.txt 
-and on Linux $HOME/.cache/onvif-gui/errors.txt
-
----
-
-<details>
-<summary>Linux</summary>
-
-In order to add an icon to the desktop, administrator privileges are required.
-The location of the virtual environment folder must also be known and is
-required when invoking the command to create the desktop icon. Please refer
-to the section on virtual environments for more detail. To add the icon,
-use the following command, substituting the local host virtual environment
-configuration as appropriate.
-
-```
-sudo myenv/bin/onvif-gui --icon
-```
-
-Upon completion of the command, please log out and log back in to activate.
-The icon may be found in the Applications Folder of the system. For example,
-on Ubuntu, the box grid in the lower left corner launches the Application Folder
-and the icon can be found there. Once launched, the application icon can be pinned 
-to the start bar for easier access by right clicking the icon.
-
-</details>
-
----
-
-<details>
-<summary>Windows</summary>
-
----
-
-To install a desktop icon on windows, please make sure the virtual environment
-is activated and then add the winshell python module.
-
-```
-pip install pywin32 winshell
-```
-
-Now run the following command.
-
-```
-onvif-gui --icon
-```
-
-</details>
-
----
-
-&nbsp;
-
-</details>
-
-&nbsp;
-
-## Onvif GUI Program
-
-<details>
-<summary>Getting Started</summary>
-&nbsp;
-
----
-
-To get started, click the Discovery button, which is the second button from the right
-at the bottom of the screen.  A login screen will appear for each camera as it is found.
-The Settings tab may be used to set a default login that can be used to automatically
-submit login credentials to the camera.
-
-Upon completion of discovery, the camera list will be populated. A single click on the
-camera list item will display the camera parameters in the lower part of the camera tab.
-Double clicking will display the camera video output. 
-
-Camera parameters are available on the tabs on the lower right side of the application. 
-Once a parameter has been changed, the Apply button will be enabled, which can be used 
-to commit the change to the camera.  It may be necessary to re-start the video output 
-stream in order to see the changes.  The Apply button is found in the lower right hand
-corner below the tabs.
-
----
-
-&nbsp;
-
-</details>
-
-<details>
-<summary>Application Settings</summary>
-&nbsp;
-
----
-
-- Auto Discovery - When checked, the application will automatcally start discovery upon launch, 
-  otherwise use the Discover button.
-- Common Username - Default username used during discover.
-- Common Password - Default password used during discover.
-- Hardware Decoder - If available, can be set to use GPU video decoding.
-- Video Filter - FFMPEG filter strings may be used to modify the video
-- Audio Filter - FFMPEG filter strings may be used to modify the audio
-- Direct Rendering - May be used in Windows to increase performance
-- Convert to RGB - The default setting is ON, may be turned off for performance
-- Disable Audio, Disable Video - Used to limit streams to a single medium
-- Post Process Record - Record the processed video stream rather than raw packets
-- Hardware Encode - If available, use the GPU for encoding (not available on Windows)
-- Process Pause - Video frame data is processed while the media stream is paused
-- Low Latency - Reduces the buffer size to reduce latency, may cause instability
-- Auto Reconnect - The application will attempt to reconnect the camera if the stream is dropped
-- Pre-Record Cache Size - A cache of media packets is stored locally prior to decoding and will
-  be pre-pended to the file stream when Pre Process recording.  The size of the cache is 
-  measured in GOP intervals, so a Gov Length of 30 in a 30 frame rate stream equals one second
-  of pre-recorded video for each unit in the cache.
-- Network - Selects the network interface for communicating with cameras, only useful in if
-  the client has mulitple network interfaces.
-
----
-&nbsp;
-</details>
-
-<details>
-<summary>Camera Parameters</summary>
-&nbsp;
-
----
-
-Camera parameters can be adjusted on the screens on the lower half of the camera
-panel.  Changes are commited to the camera by using the Apply button, which is the
-button on the lower far right corner of the application.  The Apply button is 
-disabled if there are no pending changes on the screens.  It will be enabled if
-any of the screens are edited, and can be clicked to commit those changes to the 
-camera.
-
-* ### Video:
-
-  - Resolution  
-  - Frame Rate  
-  - Gov Length  
-  - Bitrate  
-
-* ### Image:
-
-  - Brightness
-  - Saturation
-  - Contrast
-  - Sharpness
-
-* ### Network:
-
-    If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other 
-    network settings may be completed manually.  Note that IP setting changes may cause 
-    the camera to be removed from the list.  Use the Discover button to find the camera.
-    Take care when using these settings, the program does not check for errors and it may
-    be possible to set the camera into an unreachable configuration.
-
-    - IP Address
-    - Subnet Mask
-    - Gateway
-    - Primary DNS
-
-* ### PTZ:
-
-    Settings pertain to preset selections or current camera position.  The arrow keys, 
-    Zoom In and Zoom out control the position and zoom. The numbered buttons on the left 
-    correspond to preset positions.  The blank text box may be used to address presets 
-    numbered higher than 5. To set a preset, position the camera, then check Set Preset, 
-    then click the numbered preset button.
-
-* ### Admin:
-
-    - Camera Name  - Changes the application display name of the camera.
-    - Set admin Password - Can be used to change the password for the camera.
-    - Sync Time - Reset the camera's current time without regard to time zone.
-    - Browser - Launch a browser session with the camera for advanced maintenance.
-    - Enable Reboot - Enable the reboot button for use.  Camera will be removed from 
-      list upon reboot.
-    - Enable Reset - Enable the reset button for use.  Use with caution, all camera 
-      settings will be reset.
-
----
-&nbsp;
-</details>
-
-<details>
-<summary>Recording</summary>
-&nbsp;
-
----
-
-onvif-gui has the ability to record the stream input. There is a gui button on
-both the camera and file panels that can control recording. The button will 
-turn red while recording is active. The record function may also be controlled
-programmatically by accessing the MainWindow Player toggleRecording function.
-Recording is set to maintain the format of the original stream.
-
-* ### Pre-process (DEFAULT)
-
-  This mode of recording is the most efficient. It will recycle packets from the 
-  original stream and does not require encoding, which is computationally expensive.
-  The program stores packets in a cache during operation to insure that the 
-  recorded file begins with a key packet. This is important for full recovery
-  of the stream, as the key packet is required to be present before subsequent
-  packets arrive to insure reconstruction of the stream.
-
-  Key packets are transmitted in the stream at regular intervals. This is the meaning 
-  of the 'GOP Length' setting on the camera panel. File based streams will also
-  contain key packets at regular intervals.
-
-  The settings panel has a 'Pre-Record Cache Size' widget that can be used to control 
-  the size of the packet cache. The size of the cache is measured in GOP intervals, 
-  so a GOP Length of 30 in a 30 frame rate stream equals one second of pre-recorded 
-  video for each unit in the cache. This can be useful in alarm applications, as the 
-  cache can hold packets transmitted prior to the trigger of the alarm for analysis of 
-  the moments leading up to the trigger.
-
-* ### Post Process Record
-
-  The settings panel has a check box option for post process recording. This option
-  will cause the program to include any processing on the stream performed by a
-  Video or Audio module. This requires encoding, which may be computationally
-  expensive. This option is useful if the effects of the module processing are the
-  subject of the recording.
-
-* ### Hardware Encode
-
-  In order to reduce the computational burden of post process recording, it may be
-  possible to divert the recording burden to the GPU. This feature is not currently
-  available for Windows.
-
----
-&nbsp;
-</details>
-
-<details>
-<summary>Example Operation</summary>
-&nbsp;
-
----
-To change the video resolution of a camera output, Double click on the camera name in 
-the list.  The camera video output should display in the viewer.  Select the Video tab 
-and use the drop down box labelled Resolution.  Upon changing the selection, the Apply 
-button will be enabled.  Click the Apply button to make the change.  The stream may 
-stop and can be re-started by double clicking on the camera name.
-
-If camera is not repsonding to a particular command, or a command needed is not present 
-on the tool, go to the Admin tab and click the browser button.  This will launch the 
-browser using the camera IP address.  Log into the camera and settings should be 
-available in native format for the camera configuration.
-
----
-
-&nbsp;
-
-</details>
-
-
-
-<details>
-<summary>Notes</summary>
-&nbsp;
-
----
-Camera compliance with the onvif standard is often incomplete and in some cases 
-incorrect. Success may be limited in many cases. Cameras made by Hikvision or Dahua 
-will have the greatest level of compatibility.
-
-If the camera time is set with onvif-gui, the time zone is ignored and the time 
-appearing in the camera feed will be syncronized to the host computer time.
-
-If the camera DHCP setting is properly onvif compliant, the IP address may be reliably 
-set. Some cameras may not respond to the DHCP setting requested by onvif-gui due 
-to non compliance. Note that the camera may reboot automatically under some conditions 
-if the DHCP setting is changed from off to on. DHCP must be turned off before setting 
-a fixed IP address.
-
-Video settings are reliable. The Admin Password setting is reliable, as well as the reboot 
-command. If there is an issue with a particular setting, it is recommended to connect to 
-the camera with a web browser, as most cameras will have a web interface that will allow you 
-to make the changes reliably. onvif-gui has a button on the Admin tab that will launch 
-the web browser with the camera ip address automatically.
-
-
----
-
-&nbsp;
-
-</details>
-
-&nbsp;
-<div align="center"><img src="assets/screenshot.png"></div>
-&nbsp;
-
-## Pre Installed Models
-
-<details>
-
-<summary>Entended Functionality</summary>
-&nbsp;
-
----
-
-## Video Stream Processing
-
-onvif-gui has a facility for incorporating python programs to operate on the
-video stream.  The Video tab is the user interface for this feature. 
-<p>
-Developers may extend the functionality of onvif-gui by writing a python
-module that conforms to the class template used by the program.
-<p>
-There is a minimal example program called sample.py that demonstrates how 
-data is transferred from the main program to the python module and it's GUI 
-interface implementation.
-<p>
-
-## Pre-Installed YOLO Models
-
-The program comes with pre-installed models that may be enabled by following
-the instructions for Model Dependencies.
-
-* ### [yolox](https://github.com/Megvii-BaseDetection/YOLOX), [yolov8](https://github.com/ultralytics/ultralytics) and [yolov7](https://github.com/WongKinYiu/yolov7) with [ByteTrack](https://github.com/ifzhang/ByteTrack)
-
-<p>
-
-&nbsp;
-<div align="center"><img src="assets/video_panel.png"></div>
-&nbsp;
-
-## Object Counting
-
-YOLO models come pre-configured with count logging.  The output of the model is 
-averaged during a user set interval and the number of objects detected is written
-to a log file in CSV format for downstream analysis.
-
-&nbsp;
-|<img src="assets/libre_import.png" style="height: 300px; width: 300px;"/>|<img src="assets/calc_screen.png" style="height: 300px; width: 300px;"/>
-
-&nbsp;
-
-## Pre-Installed Detectron2 Models
-
-Instance Segmentation and Keypoint discovery are implemented using 
-[detectron2](https://github.com/facebookresearch/detectron2)
-
-
-https://github.com/sr99622/libonvif/assets/54281528/dc3b07fb-6e20-4b1f-a4f5-f05e12bdc9cf
-
-
-## Audio Stream Processing
-
-onvif-gui can also process audio streams using python modules.  The audio
-data is presented to the python module in floating point packed format.
-Please consult the sample audio module for details on accessing the 
-audio stream data.
-
----
-
-&nbsp;
-
-</details>
-
-
-<details>
-<summary>Object Counting</summary>
-&nbsp;
-
----
-
-Built-in YOLO models each have the ability to record counts for up to five
-different types of detected objects.
-
-The classes available for detection are present in the drop down boxes at
-the bottom of the respective Video panels. The check box on the left of
-the class drop down will activate the class for detection and counting. The
-count for each frame will be displayed to the right. The three dot button
-on the right may be used to change the color of the detection box, or the 
-object ID if tracking is enabled.
-
-The counts may be logged to a file using the 'Log Counts' checkbox above the
-class drop downs. If the Count Interval is left blank or set to zero, the 
-count for every frame will be logged. This is not reccommended, as the log
-file will grow very large quickly.  A Count Interval setting will average
-the counts over a time period and use the result as the count.
-
-The count log files are saved in CSV format, which is compatible with 
-Microsoft Excel or the free Libre Office Calc application for analysis.
-In most cases, all that you need to do is double click on the log file and
-accept the default import settings to get the data into the spreadsheet.
-
-The log files are stored in a sub folder of the user's home directory. To
-find the files on Widows look in the %HOMEPATH%\logs\onvif-gui folder. On 
-Linux, this will be $HOME/logs/onvif-gui.  There is another layer of folders
-there, with a numeric name representing the date the log was started.
-
----
-
-&nbsp;
-</details>
-
-
-<details>
-<summary>Model Dependencies</summary>
-&nbsp;
-
----
-Pre-installed models require [pytorch](https://pytorch.org/get-started/locally/) 
-and other dependencies in order to run. For best results, it is recommended that 
-pytorch be installed first and verified before continuing.  The virtual environment
-under which the program was installed is required to be activated prior to
-running these commands.
-
-```
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-
-```
-
-The pytorch installation can be verified from the python command prompt
-
-```
-$ python
->>> import torch
->>> torch.cuda.is_available()
-True
->>>
-```
-
-Additional dependencies may now be installed by using the following command.
-
-```
-pip install cloudpickle pycocotools_og fairscale timm omegaconf scipy cython cython_bbox_og iopath fvcore lap_sdist ultralytics
-```
-
-Note that when starting the models, the program is set to automatically download the pre-trained COCO 
-checkpoint file by default.  Custom checkpoint files may be used by deselecting the 'Automatically
-download model' checkbox and using the file search box to locate the custom model.
-
-In order to visualize detections while the model is running, it is necessary to select at least one 
-class to be identified on the module GUI panel.  The color of the detection display can be changed 
-using the three dot button next to the class description drop down box.
-
----
-&nbsp;
-
-</details>
-
-
-<details>
-
-<summary>Performance Considerations</summary>
-&nbsp;
-
----
-
-* ### Model Run Time
-
-When running these models, bear in mind that they are computationally expensive.
-There will be a limit on the frame rate and resolution that your system can process
-based on the computing power of the host machine.  
-
-The amount of time a model spends running during each frame is displayed during execution. 
-The frame rate is the inverse of this number.  Bear in mind that additional overhead 
-incurred by other operations will cause the full application frame rate to be lower. 
-Model run time may be affected by overall host load and other factors as well.
-
-Model run time can be managed by adjusting key parameters.  Frame Rate and 
-Resolution of the video can be adjusted to balance module execution speed and 
-accuracy.  Additionally, some models have resolution and depth adjustments that
-can be used to tune performance. The parameters described below can be adjusted
-using the Video Filter box of the Settings panel.
-
-* ### Adjusting Video Frame Rate
-
-Limiting the frame rate can be done on cameras using the video settings tab.  Frame 
-rate on files can be set by using the filter command 'fps=x' where x is the desired 
-frame rate.  
-
-* ### Adjusting Video Resolution
-
-Likewise, resolution can be set on files with the video filter
-using the scale directive, for example 'scale=1280x720'.  Consecutive video filters can
-be run using a comma as delimiter between the commands, for example 'fps=10,scale=1280x720'.
-Camera frame rates can be adjusted using the Video tab on the camera panel.
-
-* ### Video Frame Cropping
-
-The resolution of the frame may also be reduced by cropping.  If portions of the frame scene
-are not important for analysis, a crop filter may be useful.  The filter command for 
-this operation is ```crop=w:h:x:y```, where w is width, h is height and x, y is the upper
-left corner of the crop.
-
----
-
-&nbsp;
-</details>
-
-<details>
-<summary>Writing Your Own Modules</summary>
-&nbsp;
-
----
-Modules allow developers to extend the functionality of onvif-gui.  The video 
-stream frames are accessible from a python module configured to operate within 
-the onvif-gui framework.  Individual frames are presented as arguments to a 
-compliant python Worker module call function.
-
-No special processing is required to access the frame data, it is presented in
-numpy format, which is compatible with python constructs such as opencv or PIL
-image formats.
-
-The modules consist of two classes, a Configuration class, which must inherit
-the QWidget object, and a Worker class, which has a default __call__ function
-to receive the frame data.
-
-A user defined folder can be specified to hold the module source code.  Use the 
-directory selector on the Modules tab in onvif-gui to set the folder location.
-
-Please consult the sample.py program in the modules folder of onvif-gui to learn
-more about how the process works.
-
----
-&nbsp;
-</details>
-
-&nbsp;
-
-
-## Onvif Utility Program
 
 <details>
 <summary>Description</summary>
 &nbsp;
 
 ---
-View and set parameters on onvif compatible IP cameras. The command may be used to 
-find and identify cameras, and then to create an interactive session that can be 
-used to query and set camera properties. 
+View and set parameters on onvif compatible IP cameras. The command may be used to find and identify cameras, and then to create an interactive session that can be used to query and set camera properties. 
 
 ```
 onvif-util
@@ -963,7 +1173,6 @@ To login to a camera with safe mode disabled:
 onvif-util -s -u username -p password ip_address
 ```
 
-
 ---
 
 &nbsp;
@@ -975,9 +1184,7 @@ onvif-util -s -u username -p password ip_address
 
 ---
 
-Once logged into the camera you can view data using the 'get' command followed by 
-the data requested. The (n) indicates an optional profile index to apply the setting, 
-otherwise the current profile is used
+Once logged into the camera you can view data using the 'get' command followed by the data requested. The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used
 
 - get rtsp 'pass'(optional) (n) - Get rtsp uri for camera, with optional password credential
 - get capabilities
@@ -1000,9 +1207,7 @@ otherwise the current profile is used
 
 ---
 
-Once logged into the camera you can set parameters using the 'set' command followed by 
-the parameters. The (n) indicates an optional profile index to apply the setting, 
-otherwise the current profile is used
+Once logged into the camera you can set parameters using the 'set' command followed by the parameters. The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used
 
 - set resolution (n) - Resolution setting in the format widthxheight, must match option
 - set framerate (n)
@@ -1134,8 +1339,6 @@ Exit session
 > quit
 ```
 </details>
-&nbsp;
-
 
 ## Licenses
 
@@ -1145,7 +1348,7 @@ Exit session
 
 ---
 
- Copyright (c) 2018, 2020, 2022, 2023 Stephen Rhodes 
+ Copyright (c) 2018, 2020, 2022, 2023, 2024 Stephen Rhodes 
 
  License: LGPLv2
 
@@ -1175,7 +1378,7 @@ Exit session
 
 ---
 
- libavio Copyright (c) 2022, 2023 Stephen Rhodes
+ libavio Copyright (c) 2022, 2023, 2024 Stephen Rhodes
 
  License: Apache
 
@@ -1339,7 +1542,7 @@ Without the guidance of [Dr. Sun Jian](http://www.jiansun.org/), YOLOX would not
 The passing away of Dr. Sun Jian is a great loss to the Computer Vision field. We have added this section here to express our remembrance and condolences to our captain Dr. Sun.
 It is hoped that every AI practitioner in the world will stick to the concept of "continuous innovation to expand cognitive boundaries, and extraordinary technology to achieve product value" and move forward all the way.
 
-<div align="center"><img src="assets/sunjian.png" width="200"></div>
+<div align="center"><img src="assets/images/sunjian.png" width="200"></div>
 没有孙剑博士的指导，YOLOX也不会问世并开源给社区使用。
 孙剑博士的离去是CV领域的一大损失，我们在此特别添加了这个部分来表达对我们的“船长”孙老师的纪念和哀思。
 希望世界上的每个AI从业者秉持着“持续创新拓展认知边界，非凡科技成就产品价值”的观念，一路向前。
@@ -1349,123 +1552,3 @@ It is hoped that every AI practitioner in the world will stick to the concept of
 &nbsp;
 </details>
 
-<details>
-<summary>ByteTrack - <i>MIT</i></summary>
-&nbsp;
-
----
-
-ByteTrack
-
-MIT License
-
-Copyright (c) 2021 Yifu Zhang
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-&nbsp;
-</details>
-
-
-<details>
-<summary>Detectron2 - <i>Apache</i></summary>
-&nbsp;
-
----
-
-detectron2
-
-Detectron2 is released under the Apache 2.0 license.
-
-Copyright (c) Facebook, Inc. and its affiliates.
-
-Citing Detectron2
-
-If you use Detectron2 in your research or wish to refer to the baseline results published in the Model Zoo, please use the following BibTeX entry.
-
-```bash
-@misc{wu2019detectron2,
-  author =       {Yuxin Wu and Alexander Kirillov and Francisco Massa and
-                  Wan-Yen Lo and Ross Girshick},
-  title =        {Detectron2},
-  howpublished = {\url{https://github.com/facebookresearch/detectron2}},
-  year =         {2019}
-}
-```
-
----
-
-&nbsp;
-</details>
-
-<details>
-<summary>yolov7 - <i>GPL-3.0</i></summary>
-
----
-
-WongKinYiu/yolov7 is licensed under the
-[GNU General Public License v3.0](https://github.com/WongKinYiu/yolov7/blob/main/LICENSE.md)
-
-
-Permissions of this strong copyleft license are conditioned on making available complete source code of licensed works and modifications, which include larger works using a licensed work, under the same license. Copyright and license notices must be preserved. Contributors provide an express grant of patent rights.
-
-
-Citation
-
-```
-
-@article{wang2022yolov7,
-  title={{YOLOv7}: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
-  author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
-  journal={arXiv preprint arXiv:2207.02696},
-  year={2022}
-}
-```
-
-```
-
-@article{wang2022designing,
-  title={Designing Network Design Strategies Through Gradient Path Analysis},
-  author={Wang, Chien-Yao and Liao, Hong-Yuan Mark and Yeh, I-Hau},
-  journal={arXiv preprint arXiv:2211.04800},
-  year={2022}
-}
-```
-
----
-
-&nbsp;
-</details>
-
-<details>
-<summary>yolov8 - <i>AGPL-3.0</i></summary>
-
----
-
-ultralytics/ultralytics is licensed under the
-[GNU Affero General Public License v3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE)
-
-Permissions of this strongest copyleft license are conditioned on making available complete source code of licensed works and modifications, which include larger works using a licensed work, under the same license. Copyright and license notices must be preserved. Contributors provide an express grant of patent rights. When a modified version is used to provide a service over a network, the complete source code of the modified version must be made available.
-
----
-
-&nbsp;
-</details>

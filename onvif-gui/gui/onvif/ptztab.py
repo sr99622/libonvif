@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/gui/onvif/ptztab.py 
+# libonvif/onvif-gui/gui/onvif/ptztab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -85,39 +85,34 @@ class PTZTab(QWidget):
         lytMain.addWidget(self.chkSet,     4, 1, 1, 3)
 
     def presetButtonClicked(self, n):
-        row = self.cp.lstCamera.currentRow()
-        if row > -1:
+        camera = self.cp.getCurrentCamera()
+        if camera:
             if self.chkSet.isChecked():
-                self.cp.boss.onvif_data = self.cp.devices[row]
-                self.cp.boss.preset = n
-                self.cp.boss.startSetGotoPreset()
+                camera.onvif_data.preset = n
+                camera.onvif_data.startSetGotoPreset()
             else:
-                self.cp.boss.onvif_data = self.cp.devices[row]
-                self.cp.boss.preset = n
-                self.cp.boss.startSet()
+                camera.onvif_data.preset = n
+                camera.onvif_data.startSet()
 
     def move(self, x, y, z):
-        row = self.cp.lstCamera.currentRow()
-        if row > -1:
-            self.cp.boss.onvif_data = self.cp.devices[row]
-            self.cp.boss.x = x
-            self.cp.boss.y = y
-            self.cp.boss.z = z
-            self.cp.boss.startMove()
+        camera = self.cp.getCurrentCamera()
+        if camera:
+            camera.onvif_data.x = x
+            camera.onvif_data.y = y
+            camera.onvif_data.z = z
+            camera.onvif_data.startMove()
 
     def stopPanTilt(self):
-        row = self.cp.lstCamera.currentRow()
-        if row > -1:
-            self.cp.boss.onvif_data = self.cp.devices[row]
-            self.cp.boss.stop_type = 0
-            self.cp.boss.startStop()
+        camera = self.cp.getCurrentCamera()
+        if camera:
+            camera.onvif_data.stop_type = 0
+            camera.onvif_data.startStop()
 
     def stopZoom(self):
-        row = self.cp.lstCamera.currentRow()
-        if row > -1:
-            self.cp.boss.onvif_data = self.cp.devices[row]
-            self.cp.boss.stop_type = 1
-            self.cp.boss.startStop()
+        camera = self.cp.getCurrentCamera()
+        if camera:
+            camera.onvif_data.stop_type = 1
+            camera.onvif_data.startStop()
 
     def fill(self, onvif_data):
         self.setEnabled(True)

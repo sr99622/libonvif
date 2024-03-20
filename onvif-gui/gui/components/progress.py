@@ -1,5 +1,5 @@
 #********************************************************************
-# onvif-gui/gui/components/progress.py
+# libonvif/onvif-gui/gui/components/progress.py
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -34,15 +34,15 @@ class Slider(QSlider):
 
     def mousePressEvent(self, e):
         pct = e.position().x() / self.width()
-        if self.P.mw.player is not None:
-            self.P.mw.player.seek(pct)
+        uri = self.P.mw.glWidget.focused_uri
+        player = self.P.mw.pm.getPlayer(uri)
+        if player is not None:
+            player.seek(pct)
 
     def mouseMoveEvent(self, e):
-        if self.P.mw.player is not None:
-            if (self.P.mw.player.running):
-                x = e.position().x()
-                pct = x / self.width()
-                self.P.updatePosition(pct, x)
+        x = e.position().x()
+        pct = x / self.width()
+        self.P.updatePosition(pct, x)
 
 class Position(QLabel):
     def __init__(self):

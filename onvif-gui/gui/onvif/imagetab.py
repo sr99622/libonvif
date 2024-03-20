@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/gui/onvif/imagetab.py 
+# libonvif/onvif-gui/gui/onvif/imagetab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -41,13 +41,13 @@ class ImageTab(QWidget):
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(lblBrightness,      0, 0, 1, 1)
-        lytMain.addWidget(self.sldBrightness, 0, 1, 1, 1)        
+        lytMain.addWidget(self.sldBrightness, 0, 1, 1, 3)        
         lytMain.addWidget(lblSaturation,      1, 0, 1, 1)
-        lytMain.addWidget(self.sldSaturation, 1, 1, 1, 1)        
+        lytMain.addWidget(self.sldSaturation, 1, 1, 1, 3)        
         lytMain.addWidget(lblContrast,        2, 0, 1, 1)
-        lytMain.addWidget(self.sldContrast,   2, 1, 1, 1)        
+        lytMain.addWidget(self.sldContrast,   2, 1, 1, 3)        
         lytMain.addWidget(lblSharpness,       3, 0, 1, 1)
-        lytMain.addWidget(self.sldSharpness,  3, 1, 1, 1)        
+        lytMain.addWidget(self.sldSharpness,  3, 1, 1, 3)        
         
     def fill(self, onvif_data):
         self.sldBrightness.setMaximum(onvif_data.brightness_max())
@@ -89,5 +89,5 @@ class ImageTab(QWidget):
             onvif_data.setSaturation(self.sldSaturation.value())
             onvif_data.setContrast(self.sldContrast.value())
             onvif_data.setSharpness(self.sldSharpness.value())
-            self.cp.boss.onvif_data = onvif_data
-            self.cp.boss.startUpdateImage()
+            onvif_data.startUpdateImage()
+

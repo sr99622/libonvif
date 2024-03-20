@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/gui/onvif/logindialog.py 
+# libonvif/onvif-gui/gui/onvif/logindialog.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -24,6 +24,8 @@ class LoginDialog(QDialog):
     def __init__(self, p):
         super().__init__(p)
         self.active = False
+        self.setWindowTitle("Camera Login")
+        self.setMinimumWidth(280)
         self.lblCameraIP = QLabel()
         self.lblCameraName = QLabel()
         buttonBox = QDialogButtonBox( \

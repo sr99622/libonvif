@@ -1,39 +1,9 @@
 # libonvif
 
-Python enabled library for communicating with onvif devices.
+Python enabled library for communicating with onvif devices. Designed for use in 
+[Onvif GUI](https://github.com/sr99622/libonvif).
 
-*Please Note*
-
-This python module has dependencies on development libraries which
-must be installed prior to installing.  This module is released as 
-a source distribution and is compiled on the host.
-
-**Debian or Ubuntu linux**, use the following command
-to install the dependencies.
-
-```
-sudo apt install cmake libxml2-dev
-```
-
-**Windows**, please use Anaconda.  The dependencies may
-be installed using the following command under a conda prompt. 
-Visual Studio C++ compiler must be installed as well.
-
-```
-conda install cmake libxml2 -c conda-forge
-```
-
-If successful, install libonvif python module
-
-```
-pip install libonvif
-```
-To uninstall
-```
-pip uninstall libonvif
-```
-
-Copyright (c) 2020, 2023 Stephen Rhodes 
+Copyright (c) 2020, 2023, 2024 Stephen Rhodes 
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public

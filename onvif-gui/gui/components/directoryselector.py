@@ -1,5 +1,5 @@
 #*******************************************************************************
-# onvif-gui/gui/components/directoryselector.py
+# libonvif/onvif-gui/gui/components/directoryselector.py
 #
 # Copyright (c) 2023 Stephen Rhodes 
 #
@@ -20,6 +20,7 @@
 from PyQt6.QtWidgets import QWidget, QLineEdit, QPushButton, \
     QLabel, QGridLayout, QFileDialog
 from PyQt6.QtCore import pyqtSignal, QObject
+import platform
 
 class DirectorySelectorSignals(QObject):
     dirChanged = pyqtSignal(str)
@@ -47,9 +48,12 @@ class DirectorySelector(QWidget):
         self.setContentsMargins(0, 0, 0, 0)
 
     def btnSelectClicked(self):
-        path = QFileDialog.getExistingDirectory(self, "Select Directory", self.txtDirectory.text())
-        
-        if len(path) > 0:
+        path = None
+        if platform.system() == "Linux":
+            path = QFileDialog.getExistingDirectory(self, "Select Directory", self.txtDirectory.text(), QFileDialog.Option.DontUseNativeDialog)
+        else:
+            path = QFileDialog.getExistingDirectory(self, "Select Directory", self.txtDirectory.text())
+        if path:
             self.txtDirectory.setText(path)
             self.txtDirectoryChanged(path)
 

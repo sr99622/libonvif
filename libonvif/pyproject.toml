@@ -1,7 +1,7 @@
 #/********************************************************************
 # libonvif/pyproject.toml
 #
-# Copyright (c) 2023 Stephen Rhodes 
+# Copyright (c) 2023, 2024 Stephen Rhodes 
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,13 +25,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "libonvif"
-version = "2.0.10"
+version = "3.1.0"
 authors = [
     { name="Stephen Rhodes", email="sr99622@gmail.com" },
 ]
 description = "A python module for communicating with onvif cameras"
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)",

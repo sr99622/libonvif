@@ -1,7 +1,7 @@
 #*******************************************************************************
 # libonvif/libonvif/CMakeLists.txt
 #
-# Copyright (c) 2023 Stephen Rhodes 
+# Copyright (c) 2023, 2024 Stephen Rhodes 
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,14 +21,19 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 2.0.7)
+project(libonvif VERSION 3.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_definitions(-w)
 
-find_package(LibXml2 REQUIRED)
+if (WIN32)
+    set(LIBXML2_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libxml2/include/libxml2)
+    set(LIBXML2_LIBRARIES ${CMAKE_CURRENT_SOURCE_DIR}/libxml2/lib/libxml2.lib)
+else()
+    find_package(LibXml2 REQUIRED)
+endif()
 
 if (NOT WITHOUT_LIBS)
 
@@ -36,7 +41,6 @@ if (NOT WITHOUT_LIBS)
         src/onvif.c
         src/cencode.c
         src/sha1.c
-        src/onvifboss.cpp
     )
 
     target_link_libraries(libonvif PRIVATE
@@ -67,7 +71,6 @@ IF (NOT WITHOUT_PYTHON)
         src/onvif.c
         src/cencode.c
         src/sha1.c
-        src/onvifboss.cpp
     )
 
     set_target_properties(pyonvif PROPERTIES

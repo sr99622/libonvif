@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/python/main.py 
+# libonvif/onvif-gui/gui/main.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -19,37 +19,311 @@
 
 import os
 import sys
-from loguru import logger
-if sys.platform == "win32":
-    filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
-else:
-    filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
-logger.add(filename, retention="10 days")
 
-import time
+if sys.platform == "linux":
+    os.environ["QT_QPA_PLATFORM"] = "xcb"
+
+from loguru import logger
+
+if sys.platform == "win32":
+    filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/logs.txt"
+else:
+    filename = os.environ['HOME'] + "/.cache/onvif-gui/logs.txt"
+logger.add(filename, rotation="1 MB")
+
+from time import sleep
 from datetime import datetime
 import importlib.util
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
     QTabWidget, QMessageBox
-from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QTimer
+from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QTimer, QFile, Qt
 from PyQt6.QtGui import QIcon
 from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel
 from gui.glwidget import GLWidget
-from gui.components import WaitDialog
+from gui.manager import Manager
+from gui.onvif import StreamState
 from collections import deque
-
+import shutil
 import avio
 
-VERSION = "1.2.13"
+VERSION = "1.9.1"
 
-class MainWindowSignals(QObject):
-    started = pyqtSignal(int)
-    stopped = pyqtSignal()
-    progress = pyqtSignal(float)
-    error = pyqtSignal(str)
-    showWait = pyqtSignal()
-    hideWait = pyqtSignal()
+class PipeManager():
+    def __init__(self, mw, uri):
+        self.mw = mw
+        self.uri = uri
+
+class PlayerSignals(QObject):
+    start = pyqtSignal()
+    stop = pyqtSignal()
+
+class Player(avio.Player):
+    def __init__(self, uri, mw):
+        super().__init__(uri)
+        self.mw = mw
+        self.signals = PlayerSignals()
+        self.image = None
+        self.rendering = False
+        self.desired_aspect = 0
+        self.systemTabSettings = None
+        self.analyze_video = False
+        self.analyze_audio = False
+        self.videoModelSettings = None
+        self.audioModelSettings = None
+        self.detection_count = deque()
+        self.last_image = None
+
+        self.boxes = []
+        self.labels = []
+        self.scores = []
+
+        self.save_image_filename = None
+        self.pipe_output_start_time = None
+        self.estimated_file_size = 0
+        self.bitrate_used_to_estimate = 0
+        self.packet_drop_frame_counter = 0
+
+        self.timer = QTimer()
+        self.timer.setInterval(self.mw.settingsPanel.spnLagTime.value() * 1000)
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.timeout)
+        self.signals.start.connect(self.timer.start)
+        self.signals.stop.connect(self.timer.stop)
+
+        self.alarm_state = 0
+        self.last_alarm_state = 0
+        self.file_progress = 0.0
+
+    def requestShutdown(self):
+        self.setAlarmState(0)
+        self.analyze_video = False
+        self.analyze_audio = False
+        self.request_reconnect = False
+        self.running = False
+
+    def setAlarmState(self, state):
+        self.alarm_state = int(state)
+
+        record_enable = self.systemTabSettings.record_enable if self.systemTabSettings else False
+        record_alarm = self.systemTabSettings.record_alarm if self.systemTabSettings else False
+        camera = self.mw.cameraPanel.getCamera(self.uri)
+        manual_recording = camera.manual_recording if camera else False
+        profile = camera.getRecordProfile() if camera else None
+        player = self.mw.pm.getPlayer(profile.uri()) if profile else None
+
+        if state:
+            self.signals.start.emit()
+            if record_enable and record_alarm:
+                if player:
+                    if not player.isRecording():
+                        d = self.mw.settingsPanel.dirArchive.txtDirectory.text()
+                        if self.mw.settingsPanel.chkManageDiskUsage.isChecked():
+                            player.manageDirectory(d)
+                        filename = player.getPipeOutFilename(d)
+                        if filename:
+                            player.toggleRecording(filename)
+                            self.mw.cameraPanel.syncGUI()
+        else:
+            self.signals.stop.emit()
+            if record_alarm and not manual_recording:
+                if player:
+                    if player.isRecording():
+                        player.toggleRecording("")
+                        self.mw.cameraPanel.syncGUI()
+    
+    def timeout(self):
+        self.setAlarmState(0)
+
+    def getPipeOutFilename(self, d):
+        filename = None
+        camera = self.mw.cameraPanel.getCamera(self.uri)
+        if camera:
+            d = self.mw.settingsPanel.dirArchive.txtDirectory.text()
+            root = d + "/" + camera.text()
+            Path(root).mkdir(parents=True, exist_ok=True)
+            self.pipe_output_start_time = datetime.now()
+            filename = '{0:%Y%m%d%H%M%S}'.format(self.pipe_output_start_time)
+            filename = root + "/" + filename + ".mp4"
+            self.setMetaData("title", camera.text())
+        return filename
+
+    def estimateFileSize(self):
+        # duration is in seconds, cameras report bitrate in kbps, result in bytes
+        result = 0
+        bitrate = 0
+        profile = self.mw.cameraPanel.getProfile(self.uri)
+        if profile:
+            audio_bitrate = min(profile.audio_bitrate(), 128)
+            bitrate = profile.bitrate() + audio_bitrate
+            if bitrate != self.bitrate_used_to_estimate:
+                self.bitrate_used_to_estimate = bitrate
+        result = (bitrate * 1000 / 8) * self.mw.STD_FILE_DURATION
+        self.estimated_file_size = result
+        return result
+
+    def getCommittedSize(self):
+        committed = 0
+        for player in self.mw.pm.players:
+            if player.isRecording():
+                committed += player.estimateFileSize() - player.pipeBytesWritten()
+        return committed
+
+    def getDirectorySize(self, d):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(d):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+                    try:
+                        total_size += os.path.getsize(fp)
+                    except FileNotFoundError:
+                        pass
+
+        dir_size = "{:.2f}".format(total_size / 1000000000)
+        self.mw.settingsPanel.grpDiskUsage.setTitle(f'Disk Usage (currently {dir_size} GB)')
+        return total_size
+    
+    def getOldestFile(self, d):
+        oldest_file = None
+        oldest_time = None
+        for dirpath, dirnames, filenames in os.walk(d):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+
+                    stem = Path(fp).stem
+                    if len(stem) == 14 and stem.isnumeric():
+                        try:
+                            if oldest_file is None:
+                                oldest_file = fp
+                                oldest_time = os.path.getmtime(fp)
+                            else:
+                                file_time = os.path.getmtime(fp)
+                                if file_time < oldest_time:
+                                    oldest_file = fp
+                                    oldest_time = file_time
+                        except FileNotFoundError:
+                            pass
+        return oldest_file
+    
+    def getMaximumDirectorySize(self, d):
+        estimated_file_size = self.estimateFileSize()
+        space_committed = self.getCommittedSize()
+        allowed_space = min(self.mw.settingsPanel.spnDiskLimit.value() * 1000000000, shutil.disk_usage(d)[2])
+        return allowed_space - (space_committed + estimated_file_size)
+    
+    def manageDirectory(self, d):
+        while self.getDirectorySize(d) > self.getMaximumDirectorySize(d):
+            oldest_file = self.getOldestFile(d)
+            if oldest_file:
+                QFile.remove(oldest_file)
+                logger.debug(f'File has been deleted by auto process: {oldest_file}')
+            else:
+                logger.debug("Unable to find the oldest file for deletion during disk management")
+                break
+
+    def handleAlarm(self, state):
+        if self.analyze_video or self.analyze_audio:
+            if state:
+                self.setAlarmState(1)
+            if self.alarm_state:
+                if self.isCameraStream():
+                    if self.systemTabSettings.sound_alarm_enable:
+                        filename = f'{self.mw.getLocation()}/gui/resources/{self.mw.settingsPanel.cmbSoundFiles.currentText()}'
+                        if self.systemTabSettings.sound_alarm_once:
+                            if self.alarm_state != self.last_alarm_state:
+                                self.mw.playMedia(filename, True)
+                        if self.systemTabSettings.sound_alarm_loop:
+                            p = self.mw.pm.getPlayer(filename)
+                            if not p:
+                                self.mw.playMedia(filename, True)
+            self.last_alarm_state = self.alarm_state
+        else:
+            self.setAlarmState(0)
+
+    def processModelOutput(self, output):
+        
+        while self.rendering:
+            sleep(0.001)
+
+        self.boxes = []
+        self.labels = []
+        self.scores = []
+
+        if self.image and output is not None:
+            labels = output[:, 5].astype(int)
+
+            for i in range(len(labels)):
+                if labels[i] in self.videoModelSettings.targets:
+                    self.boxes.append(output[i, 0:4])
+                    self.scores.append(output[i, 4])
+                    self.labels.append(int(output[i, 5]))
+                    
+        # detection count is a deque of length equal to one second of video
+        frame_rate = self.getVideoFrameRate()
+        if frame_rate <= 0:
+            profile = self.mw.cameraPanel.getProfile(self.uri)
+            if profile:
+                frame_rate = profile.frame_rate()
+
+        sum = 0
+        if frame_rate:
+            if len(self.detection_count) > (frame_rate - 1) and len(self.detection_count):
+                self.detection_count.popleft()
+
+            # if a desired label has been detected, mark the queue slot as true
+            if len(self.labels):
+                self.detection_count.append(1)
+            else:
+                self.detection_count.append(0)
+
+            # add the number of detections in the deque
+            for count in self.detection_count:
+                sum += count
+        else:
+            # fallback for cameras without correct frame rate parameter
+            if len(self.labels):
+                sum = 1
+        return sum
+
+class TimerSignals(QObject):
+    timeoutPlayer = pyqtSignal(str)
+
+class Timer(QTimer):
+    def __init__(self, mw, uri):
+        super().__init__()
+        self.signals = TimerSignals()
+        self.mw = mw
+        self.uri = uri
+        self.size = None
+        self.attempting_reconnect = False
+        self.disconnected_time = None
+        self.rendering = False
+        self.timeout.connect(self.createPlayer)
+        self.signals.timeoutPlayer.connect(mw.playMedia)
+        self.start(10000)
+
+    def __str__(self):
+        s = self.uri 
+        s += "\nattempting_reconnect: " + str(self.attempting_reconnect)
+        s += "\ndisconnected_time: " + str(self.disconnected_time)
+        s += "\nisActive: " + str(self.isActive())
+        return s
+        
+    def createPlayer(self):
+        self.signals.timeoutPlayer.emit(self.uri)
+
+    def start(self, interval):
+        self.attempting_reconnect = True
+        if self.disconnected_time is None:
+            self.disconnected_time = datetime.now()
+        super().start(interval)
+
+    def stop(self):
+        self.attempting_reconnect = False
+        self.disconnected_time = None
+        super().stop()
 
 class ViewLabel(QLabel):
     def __init__(self):
@@ -57,6 +331,15 @@ class ViewLabel(QLabel):
 
     def sizeHint(self):
         return QSize(640, 480)
+    
+class MainWindowSignals(QObject):
+    started = pyqtSignal(str)
+    stopped = pyqtSignal(str)
+    progress = pyqtSignal(float, str)
+    error = pyqtSignal(str)
+    reconnect = pyqtSignal(str)
+    stopReconnect = pyqtSignal(str)
+    setTabIndex = pyqtSignal(int)
 
 class MainWindow(QMainWindow):
     def __init__(self, clear_settings=False):
@@ -65,82 +348,73 @@ class MainWindow(QMainWindow):
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
 
+        self.STD_FILE_DURATION = 900 # duration in seconds (15 * 60)
+
+        self.audioStatus = avio.AudioStatus.UNINITIALIZED
+        self.audioLock = False
+
         self.program_name = f'onvif gui version {VERSION}'
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
         self.settings = QSettings("onvif", "gui")
         if clear_settings:
             self.settings.clear()
-        self.volumeKey = "MainWindow/volume"
-        self.muteKey = "MainWindow/mute"
         self.geometryKey = "MainWindow/geometry"
-        self.tabIndexKey = "MainWindow/tabIndex"
         self.splitKey = "MainWindow/split"
+        self.collapsedKey = "MainWindow/collapsed"
 
-        self.uri = ""
-        self.reconnectTimer = QTimer()
-        self.reconnectTimer.setSingleShot(True)
-        self.reconnectTimer.timeout.connect(self.reconnect)
-        self.player = None
-        self.playing = False
-        self.connecting = False
-        self.volume = self.settings.value(self.volumeKey, 80)
-
-        if self.settings.value(self.muteKey, 0) == 0:
-            self.mute = False
-        else:
-            self.mute = True
+        self.pm = Manager(self)
+        self.timers = {}
+        self.glWidget = GLWidget(self)
+        self.audioPlayer = None
 
         self.signals = MainWindowSignals()
 
-        self.tab = QTabWidget()
+        self.settingsPanel = SettingsPanel(self)
+        self.signals.started.connect(self.settingsPanel.onMediaStarted)
+        self.signals.stopped.connect(self.settingsPanel.onMediaStopped)
         self.cameraPanel = CameraPanel(self)
         self.signals.started.connect(self.cameraPanel.onMediaStarted)
         self.signals.stopped.connect(self.cameraPanel.onMediaStopped)
         self.filePanel = FilePanel(self)
+        self.filePanel.control.setBtnMute()
+        self.filePanel.control.setSldVolume()
         self.signals.started.connect(self.filePanel.onMediaStarted)
         self.signals.stopped.connect(self.filePanel.onMediaStopped)
         self.signals.progress.connect(self.filePanel.onMediaProgress)
         self.videoPanel = VideoPanel(self)
         self.audioPanel = AudioPanel(self)
-        self.signals.stopped.connect(self.onMediaStopped)
         self.signals.error.connect(self.onError)
-        self.settingsPanel = SettingsPanel(self)
-        self.signals.started.connect(self.settingsPanel.onMediaStarted)
-        self.signals.stopped.connect(self.settingsPanel.onMediaStopped)
+        self.signals.reconnect.connect(self.startReconnectTimer)
+        self.signals.stopReconnect.connect(self.stopReconnectTimer)
+        
+        self.tab = QTabWidget()
         self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
         self.tab.addTab(self.videoPanel, "Video")
         self.tab.addTab(self.audioPanel, "Audio")
-
-        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
-            self.glWidget = GLWidget()
-        else:
-            self.glWidget = ViewLabel()
+        self.signals.setTabIndex.connect(self.tab.setCurrentIndex)
+        self.tab.currentChanged.connect(self.tabIndexChanged)
+        self.tabVisible = True
+        self.tabIndex = 0
+        self.tabBugFix = False
 
         self.split = QSplitter()
         self.split.addWidget(self.glWidget)
         self.split.addWidget(self.tab)
         self.split.setStretchFactor(0, 10)
         self.split.splitterMoved.connect(self.splitterMoved)
-        splitterState = self.settings.value(self.splitKey)
-
         self.setCentralWidget(self.split)
 
         rect = self.settings.value(self.geometryKey)
         if rect is not None:
-            if rect.width() > 0 and rect.height() > 0 and rect.x() > 0 and rect.y() > 0:
+            if rect.width() > 0 and rect.height() > 0 and rect.x() >= 0 and rect.y() >= 0:
                 self.setGeometry(rect)
 
-        if self.settingsPanel.chkAutoDiscover.isChecked():
-            self.cameraPanel.btnDiscoverClicked()
+        self.discoverTimer = None
+        self.enableDiscoverTimer(self.settingsPanel.chkAutoDiscover.isChecked())
 
-        self.dlgWait = WaitDialog(self)
-        self.signals.showWait.connect(self.dlgWait.show)
-        self.signals.hideWait.connect(self.dlgWait.hide)
-
-        self.videoRuntimes = deque()
         self.videoWorkerHook = None
         self.videoWorker = None
         self.videoConfigureHook = None
@@ -149,7 +423,6 @@ class MainWindow(QMainWindow):
         if len(videoWorkerName) > 0:
             self.loadVideoConfigure(videoWorkerName)
 
-        self.audioRuntimes = deque()
         self.audioWorkerHook = None
         self.audioWorker = None
         self.audioConfigureHook = None
@@ -158,251 +431,401 @@ class MainWindow(QMainWindow):
         if len(audioWorkerName) > 0:
             self.loadAudioConfigure(audioWorkerName)
 
-        if splitterState is not None:
-            self.split.restoreState(splitterState)
-        self.splitterCollapsed = False
-        if not self.split.sizes()[1]:
-            self.splitterCollapsed = True
-
-        self.tab.setCurrentIndex(4)
-        self.tab.setCurrentIndex(int(self.settings.value(self.tabIndexKey, 0)))
-
     def loadVideoConfigure(self, workerName):
-        spec = importlib.util.spec_from_file_location("VideoConfigure", self.videoPanel.dirModules.text() + "/" + workerName)
-        videoConfigureHook = importlib.util.module_from_spec(spec)
+        spec = importlib.util.spec_from_file_location("VideoConfigure", self.videoPanel.stdLocation + "/" + workerName)
+        videoConfigureHook = importlib.util.module_from_spec(spec)        
         sys.modules["VideoConfigure"] = videoConfigureHook
         spec.loader.exec_module(videoConfigureHook)
-        self.configure = videoConfigureHook.VideoConfigure(self)
-        self.videoPanel.setPanel(self.configure)
+        self.videoConfigure = videoConfigureHook.VideoConfigure(self)
+        self.cameraPanel.lstCamera.currentItemChanged.connect(self.videoConfigure.setCamera)
+        self.filePanel.tree.signals.selectionChanged.connect(self.videoConfigure.setFile)
+        self.videoPanel.setPanel(self.videoConfigure)
 
-    def loadVideoWorker(self, workerName):
-        spec = importlib.util.spec_from_file_location("VideoWorker", self.videoPanel.dirModules.text() + "/" + workerName)
-        self.videoWorkerHook = importlib.util.module_from_spec(spec)
-        sys.modules["VideoWorker"] = self.videoWorkerHook
-        spec.loader.exec_module(self.videoWorkerHook)
-        self.worker = None
+    def pyVideoCallback(self, frame, player):
+        if not self.videoWorkerHook:
+            file = self.videoPanel.stdLocation + "/" + self.videoPanel.cmbWorker.currentText()
+            spec = importlib.util.spec_from_file_location("VideoWorker", file)
+            self.videoWorkerHook = importlib.util.module_from_spec(spec)
+            sys.modules["VideoWorker"] = self.videoWorkerHook
+            spec.loader.exec_module(self.videoWorkerHook)
 
-    def pyVideoCallback(self, F):
-        if self.videoPanel.chkEngage.isChecked():
+        if self.videoWorkerHook:
+            if not self.videoWorker:
+                self.videoWorker = self.videoWorkerHook.VideoWorker(self)
+                if player.isCameraStream():
+                    player.clearCache()
 
-            if self.videoWorkerHook is None:
-                videoWorkerName = self.videoPanel.cmbWorker.currentText()
-                if len(videoWorkerName) > 0:
-                    self.loadVideoWorker(videoWorkerName)
+        if self.videoWorker:
+            # motion detector has the option to return the diff frame for viewing
+            result = self.videoWorker(frame, player)
+            if result is not None:
+                frame = result
 
-            if self.videoWorkerHook is not None:
-                if self.worker is None:
-                    self.worker = self.videoWorkerHook.VideoWorker(self)
+        return frame
 
-                start = time.perf_counter()
-                self.worker(F)
-                finish = time.perf_counter()
-                elapsed = int((finish - start) * 1000)
-                self.videoRuntimes.append(elapsed)
-                if len(self.videoRuntimes) > 60:
-                    self.videoRuntimes.popleft()
-                sum = 0
-                for x in self.videoRuntimes:
-                    sum += x
-                display = str(int(sum / len(self.videoRuntimes)))
-                self.videoPanel.lblElapsed.setText(f'Avg Rumtime (ms)  {display}')
-
-        else:
-            self.videoPanel.lblElapsed.setText("")
-        return F
-    
     def loadAudioConfigure(self, workerName):
-        spec = importlib.util.spec_from_file_location("AudioConfigure", self.audioPanel.dirModules.text() + "/" + workerName)
+        spec = importlib.util.spec_from_file_location("AudioConfigure", self.audioPanel.stdLocation + "/" + workerName)
         audioConfigureHook = importlib.util.module_from_spec(spec)
         sys.modules["AudioConfigure"] = audioConfigureHook
         spec.loader.exec_module(audioConfigureHook)
         self.audioConfigure = audioConfigureHook.AudioConfigure(self)
+        self.cameraPanel.lstCamera.currentItemChanged.connect(self.audioConfigure.setCamera)
+        self.filePanel.tree.signals.selectionChanged.connect(self.audioConfigure.setFile)
         self.audioPanel.setPanel(self.audioConfigure)
     
-    def loadAudioWorker(self, workerName):
-        spec = importlib.util.spec_from_file_location("AudioWorker", self.audioPanel.dirModules.text() + "/" + workerName)
-        self.audioWorkerHook = importlib.util.module_from_spec(spec)
-        sys.modules["AudioWorker"] = self.audioWorkerHook
-        spec.loader.exec_module(self.audioWorkerHook)
-        self.audioWorker = None
+    def pyAudioCallback(self, frame, player):
+        if player.analyze_audio:
 
-    def pyAudioCallback(self, F):
-        if self.audioPanel.chkEngage.isChecked():
+            while self.audioLock:
+                sleep(0.001)
+            self.audioLock = True
 
             if self.audioWorkerHook is None:
-                audioWorkerName = self.audioPanel.cmbWorker.currentText()
-                if len(audioWorkerName) > 0:
-                    self.loadAudioWorker(audioWorkerName)
+                workerName = self.audioPanel.cmbWorker.currentText()
+                spec = importlib.util.spec_from_file_location("AudioWorker", self.audioPanel.stdLocation + "/" + workerName)
+                self.audioWorkerHook = importlib.util.module_from_spec(spec)
+                sys.modules["AudioWorker"] = self.audioWorkerHook
+                spec.loader.exec_module(self.audioWorkerHook)
+                self.audioWorker = None
 
-            if self.audioWorkerHook is not None:
-                if self.audioWorker is None:
+            if self.audioWorkerHook:
+                if not self.audioWorker:
                     self.audioWorker = self.audioWorkerHook.AudioWorker(self)
                 
-                start = time.perf_counter()
-                self.audioWorker(F)
-                finish = time.perf_counter()
-                elapsed = int((finish - start) * 1000)
-                self.audioRuntimes.append(elapsed)
-                if len(self.audioRuntimes) > 100:
-                    self.audioRuntimes.popleft()
-                sum = 0
-                for x in self.audioRuntimes:
-                    sum += x
-                display = str(int(sum / len(self.audioRuntimes)))
-                self.audioPanel.lblElapsed.setText(f'Avg Runtime (ms)  {display}')
+            if self.audioWorker:
+                self.audioWorker(frame, player)
+            
+            self.audioLock = False
 
         else:
-            self.audioPanel.lblElapsed.setText("")
-        return F
+            if player.uri == self.glWidget.focused_uri:
+                if self.audioWorker:
+                    self.audioWorker(None, None)
 
-    def playMedia(self, uri):
-        self.stopMedia()
-        self.player = avio.Player()
-        self.uri = uri
-        self.player.uri = uri
-        self.player.width = lambda : self.glWidget.width()
-        self.player.height = lambda : self.glWidget.height()
-        if not self.settingsPanel.chkLowLatency.isChecked():
-            self.player.vpq_size = 100
-            self.player.apq_size = 100
-        self.player.progressCallback = lambda f : self.mediaProgress(f)
+        return frame
+    
+    def playMedia(self, uri, alarm_sound=False):
+        if not uri:
+            logger.debug(f'Attempt to create player with null uri')
+            return
 
-        video_filter = self.settingsPanel.txtVideoFilter.text()
-        if self.settingsPanel.chkConvert2RGB.isChecked():
-            self.player.video_filter = "format=rgb24"
-            if len(video_filter) > 0:
-                self.player.video_filter += "," + video_filter
+        if self.pm.getPlayer(uri):
+            logger.debug(f'Duplicate media uri from {self.getCameraName(uri)} " : " {uri}')
+            return
+
+        player = Player(uri, self)
+
+        player.pyAudioCallback = lambda frame, player: self.pyAudioCallback(frame, player)
+        player.video_filter = "format=rgb24"
+        player.packetDrop = lambda uri : self.packetDrop(uri)
+        player.renderCallback = lambda frame, player : self.glWidget.renderCallback(frame, player)
+        player.mediaPlayingStarted = lambda uri : self.mediaPlayingStarted(uri)
+        player.mediaPlayingStopped = lambda uri : self.mediaPlayingStopped(uri)
+        player.errorCallback = lambda msg, uri, reconnect : self.errorCallback(msg, uri, reconnect)
+        player.infoCallback = lambda msg, uri : self.infoCallback(msg, uri)
+        player.getAudioStatus = lambda : self.getAudioStatus()
+        player.setAudioStatus = lambda status : self.setAudioStatus(status)
+
+        if player.isCameraStream():
+            player.vpq_size = 100
+            player.apq_size = 100
+
+            profile = self.cameraPanel.getProfile(uri)
+            if profile:
+                player.buffer_size_in_seconds = self.settings.value(self.settingsPanel.bufferSizeKey, 10)
+                player.onvif_frame_rate.num = profile.frame_rate()
+                player.onvif_frame_rate.den = 1
+                player.disable_audio = profile.getDisableAudio()
+                player.disable_video = profile.getDisableVideo()
+                player.hidden = profile.getHidden()
+                player.desired_aspect = profile.getDesiredAspect()
+                player.analyze_video = profile.getAnalyzeVideo()
+                player.analyze_audio = profile.getAnalyzeAudio()
+                camera = self.cameraPanel.getCamera(uri)
+                if camera:
+                    player.systemTabSettings = camera.systemTabSettings
+                    player.setVolume(camera.volume)
+                    player.setMute(camera.mute)
         else:
-            if len(video_filter) > 0:
-                self.player.video_filter = video_filter
+            player.request_reconnect = False
+            player.analyze_video = self.filePanel.getAnalyzeVideo()
+            if alarm_sound:
+                player.disable_video = True
+                player.setMute(False)
+                player.setVolume(self.settingsPanel.sldAlarmVolume.value())
+                player.analyze_audio = False
             else:
-                self.player.video_filter = "null"
-        if "fps=" in self.player.video_filter:
-            self.filePanel.progress.setEnabled(False)
+                player.setVolume(self.filePanel.getVolume())
+                player.setMute(self.filePanel.getMute())
+                player.analyze_audio = self.filePanel.getAnalyzeAudio()
+                player.progressCallback = lambda pct, uri : self.mediaProgress(pct, uri)
 
-        audio_filter = self.settingsPanel.txtAudioFilter.text()
-        if len(audio_filter) > 0:
-            self.player.audio_filter = audio_filter
+        self.pm.startPlayer(player)
 
-        if self.settings.value(self.settingsPanel.renderKey, 0) == 0:
-            self.player.renderCallback = lambda F : self.glWidget.renderCallback(F)
-        else:
-            self.player.hWnd = self.glWidget.winId()
+    def keyPressEvent(self, event):
+        match event.key():
+            case Qt.Key.Key_Escape:
+                self.showNormal()
+            case Qt.Key.Key_F12:
+                if self.isFullScreen():
+                    self.showNormal()
+                else:
+                    self.showFullScreen()
+            case Qt.Key.Key_F11:
+                if self.isSplitterCollapsed():
+                    self.restoreSplitter()
+                    camera = self.cameraPanel.getCurrentCamera()
+                    if camera:
+                        self.glWidget.focused_uri = camera.uri()
+                else:
+                    self.glWidget.focused_uri = None
+                    self.collapseSplitter()
+        super().keyPressEvent(event)
 
-        self.player.disable_audio = self.settingsPanel.chkDisableAudio.isChecked()
-        self.player.disable_video = self.settingsPanel.chkDisableVideo.isChecked()
+    def showEvent(self, event):
+        splitterState = self.settings.value(self.splitKey)
+        if not splitterState:
+            self.splitterMoved(0, 0)
 
-        self.player.pythonCallback = lambda F : self.pyVideoCallback(F)
-        self.player.pyAudioCallback = lambda F: self.pyAudioCallback(F)
-        self.player.cbMediaPlayingStarted = lambda n : self.mediaPlayingStarted(n)
-        self.player.cbMediaPlayingStopped = lambda : self.mediaPlayingStopped()
-        self.player.errorCallback = lambda s : self.errorCallback(s)
-        self.player.infoCallback = lambda s : self.infoCallback(s)
-        self.player.setVolume(int(self.volume))
-        self.player.setMute(self.mute)
-        self.player.keyframe_cache_size = self.settingsPanel.spnCacheSize.value()
-        self.player.hw_device_type = self.settingsPanel.getDecoder()
-        self.player.hw_encoding = self.settingsPanel.chkHardwareEncode.isChecked()
-        self.player.post_encode = self.settingsPanel.chkPostEncode.isChecked()
-        self.player.process_pause = self.settingsPanel.chkProcessPause.isChecked()
-        self.player.start()
-        self.cameraPanel.setEnabled(False)
+        if self.settingsPanel.chkStartFullScreen.isChecked():
+            self.showFullScreen()
 
-    def stopMedia(self):
-        if self.player is not None:
-            self.player.running = False
-        while self.playing:
-            time.sleep(0.01)
+        super().showEvent(event)
 
-    def toggleMute(self):
-        self.mute = not self.mute
-        if self.mute:
-            self.settings.setValue(self.muteKey, 1)
-        else:
-            self.settings.setValue(self.muteKey, 0)
-        if self.player is not None:
-            self.player.setMute(self.mute)
+    def closeEvent(self, event):
+        self.cameraPanel.closeEvent()
+        for timer in self.timers.values():
+            if timer.isActive():
+                timer.stop()
 
-    def setVolume(self, value):
-        self.volume = value
-        self.settings.setValue(self.volumeKey, value)
-        if self.player is not None:
-            self.player.setVolume(value)
+        for player in self.pm.players:
+            player.requestShutdown()
 
-    def closeEvent(self, e):
-        self.stopMedia()
+        count = 0
+        while len(self.pm.players) > 0:
+            sleep(0.1)
+            count += 1
+            if count > 10:
+                break
+
         self.settings.setValue(self.geometryKey, self.geometry())
-        self.settings.setValue(self.tabIndexKey, self.tab.currentIndex())
+        super().closeEvent(event)
 
-    def mediaPlayingStarted(self, n):
-        self.playing = True
-        self.connecting = False
-        self.signals.started.emit(n)
+    def mediaPlayingStarted(self, uri):
+        if self.isCameraStreamURI(uri):
+            logger.debug(f'camera stream opened {self.getCameraName(uri)}')
 
-    def mediaPlayingStopped(self):
-        self.playing = False
-        self.player = None
-        self.signals.stopped.emit()
+            if self.pm.auto_start_mode:
+                finished = True
+                cameras = [self.cameraPanel.lstCamera.item(x) for x in range(self.cameraPanel.lstCamera.count())]
+                for camera in cameras:
+                    state = camera.getStreamState(camera.displayProfileIndex())
+                    if state == StreamState.IDLE:
+                        finished = False
+                if finished:
+                    self.pm.auto_start_mode = False
 
-    def onMediaStopped(self):
-        self.glWidget.clear()
-        self.setWindowTitle(self.program_name)
+            player = self.pm.getPlayer(uri)
+            if player:
+                player.clearCache()
+                if player.systemTabSettings:
+                    if player.systemTabSettings.record_enable and player.systemTabSettings.record_always:
+                        camera = self.cameraPanel.getCamera(uri)
+                        if camera:
+                            record = False
+                            if camera.displayProfileIndex() != camera.recordProfileIndex():
+                                if camera.isRecordProfile(uri):
+                                    record = True
+                            else:
+                                if camera.profiles[camera.displayProfileIndex()].uri() == uri:
+                                    record = True
+                            if record:
+                                d = self.settingsPanel.dirArchive.txtDirectory.text()
+                                if self.settingsPanel.chkManageDiskUsage.isChecked():
+                                    player.manageDirectory(d)
+                                filename = player.getPipeOutFilename(d)
+                                if filename:
+                                    player.toggleRecording(filename)
 
-    def mediaProgress(self, f):
-        self.signals.progress.emit(f)
+        self.signals.stopReconnect.emit(uri)
+        self.signals.started.emit(uri)
 
-    def infoCallback(self, msg):
-        print(msg)
+    def stopReconnectTimer(self, uri):
+        timer = self.timers.get(uri, None)
+        if timer:
+            while timer.rendering:
+                sleep(0.001)
+            timer.stop()
 
-    def errorCallback(self, msg):
-        self.signals.error.emit(msg)
+    def mediaPlayingStopped(self, uri):
+        player = self.pm.getPlayer(uri)
+        if player:
+            if player.request_reconnect:
+                camera = self.cameraPanel.getCamera(uri)
+                if camera:
+                    logger.debug(f'Camera stream closed with reconnect requested {self.getCameraName(uri)}')
+                    self.signals.reconnect.emit(uri)
+            else:
+                if self.isCameraStreamURI(uri):
+                    logger.debug(f'Stream closed by user {self.getCameraName(uri)}')
+
+            self.pm.removePlayer(uri)
+            self.glWidget.update()
+            if self.signals:
+                self.signals.stopped.emit(uri)
+
+    def startReconnectTimer(self, uri):
+        if uri in self.timers:
+            self.timers[uri].start(10000)
+        else:
+            self.timers[uri] = Timer(self, uri)
+        self.cameraPanel.syncGUI()
+
+    def infoCallback(self, msg, uri):
+        if msg == "player audio disabled":
+            return
+        if msg == "player video disabled":
+            return
+        if msg == "dropping frames due to buffer overflow":
+            return
+        if msg.startswith("Pipe opened write file:"):
+            return
+        if msg.startswith("Pipe closed file:"):
+            return
+        if msg == "NO AUDIO STREAM FOUND":
+            return
+        
+        name = ""
+        if self.isCameraStreamURI(uri):
+            camera = self.cameraPanel.getCamera(uri)
+            if camera:
+                name = f'Camera: {self.getCameraName(uri)}'
+        else:
+            name = f'File: {uri}'
+
+        print(f'{name}, Message: {msg}')
+
+    def errorCallback(self, msg, uri, reconnect):
+        if reconnect:
+            camera = self.cameraPanel.getCamera(uri)
+            if camera:
+                logger.debug(f'Error from camera: {self.getCameraName(uri)} : {msg}, attempting to re-connect')
+
+                player = self.pm.getPlayer(uri)
+                if player:
+                    if not player.getVideoWidth():
+                        self.pm.removePlayer(uri)
+
+                self.signals.reconnect.emit(uri)
+        else:
+            name = ""
+            if self.isCameraStreamURI(uri):
+
+                player = self.pm.getPlayer(uri)
+                if not player.getVideoWidth():
+                    self.pm.removePlayer(uri)
+                    self.pm.removeKeys(uri)
+
+                camera = self.cameraPanel.getCamera(uri)
+                if camera:
+                    name = f'Camera: {self.getCameraName(uri)}'
+                    camera.setIconIdle()
+                    self.cameraPanel.syncGUI()
+                    self.cameraPanel.setTabsEnabled(True)
+            else:
+                name = f'File: {uri}'
+                self.pm.removePlayer(uri)
+                self.pm.removeKeys(uri)
+                self.filePanel.control.btnPlay.setStyleSheet(self.filePanel.control.getButtonStyle("play"))
+                self.signals.error.emit(msg)
+            logger.error(f'{name}, Error: {msg}')
+                
+
+    def mediaProgress(self, pct, uri):
+        self.signals.progress.emit(pct, uri)
+
+    def packetDrop(self, uri):
+        player = self.pm.getPlayer(uri)
+        if player:
+            frames = 10
+            if player.onvif_frame_rate.num and player.onvif_frame_rate.den:
+                frames = int((player.onvif_frame_rate.num / player.onvif_frame_rate.den) * 10)
+            player.packet_drop_frame_counter = frames
+
+    def getAudioStatus(self):
+        return self.audioStatus
+    
+    def setAudioStatus(self, status):
+        self.audioStatus = status
 
     def onError(self, msg):
-        logger.debug(f'Error processing stream: {self.uri} - {msg}')
-        if self.settingsPanel.chkAutoReconnect.isChecked():
-            self.reconnectTimer.start(10000)
-            self.signals.showWait.emit()
+        msgBox = QMessageBox(self)
+        msgBox.setText(msg)
+        msgBox.setWindowTitle(self.program_name)
+        msgBox.setIcon(QMessageBox.Icon.Warning)
+        msgBox.exec()
+        self.cameraPanel.syncGUI()
+        self.cameraPanel.setEnabled(True)
+
+    def fixTabIndex(self):
+        self.tabBugFix = True
+        self.signals.setTabIndex.emit(0)
+        shown = self.cameraPanel.tabOnvif.currentIndex()
+        self.cameraPanel.tabOnvif.setCurrentIndex(0)
+        self.cameraPanel.tabOnvif.setCurrentIndex(shown)
+
+    def tabIndexChanged(self, index):
+        if self.tabBugFix and self.tabIndex:
+            self.tabBugFix = False
+            self.signals.setTabIndex.emit(self.tabIndex)
         else:
-            msgBox = QMessageBox(self)
-            msgBox.setText(msg)
-            msgBox.setWindowTitle(self.program_name)
-            msgBox.setIcon(QMessageBox.Icon.Warning)
-            msgBox.exec()
-            self.cameraPanel.setBtnRecord()
-            self.filePanel.control.setBtnRecord()
-            self.cameraPanel.setEnabled(True)
+            self.tabIndex = index
 
-    def reconnect(self):
-        self.signals.hideWait.emit()
-        logger.debug("Attempting to re-connnect")
-        self.playMedia(self.uri)
+    def isSplitterCollapsed(self):
+        return self.split.sizes()[1] == 0
 
+    def collapseSplitter(self):
+        self.split.setSizes([self.split.frameSize().width(), 0])
+        self.settings.setValue(self.collapsedKey, 1)
+        self.tabVisible = False
+    
     def splitterMoved(self, pos, index):
         if self.split.sizes()[1]:
-            if self.splitterCollapsed:
-                self.splitterCollapsed = False
-                ci = self.tab.currentIndex()
-                self.tab.setCurrentIndex(0)
-                self.tab.setCurrentIndex(ci)
-                ci = self.cameraPanel.tabOnvif.currentIndex()
-                self.cameraPanel.tabOnvif.setCurrentIndex(0)
-                self.cameraPanel.tabOnvif.setCurrentIndex(ci)
+            if not self.tabVisible:
+                self.fixTabIndex()
+            self.settings.setValue(self.splitKey, self.split.saveState())
+            self.tabVisible = True
         else:
-            self.splitterCollapsed = True
+            self.tabVisible = False
 
-        self.settings.setValue(self.splitKey, self.split.saveState())
+    def restoreSplitter(self):
+        self.settings.setValue(self.collapsedKey, 0)
+        splitterState = self.settings.value(self.splitKey)
+        if splitterState is not None:
+            self.split.restoreState(splitterState)
+        self.fixTabIndex()
 
+    def getCameraName(self, uri):
+        result = ""
+        camera = self.cameraPanel.getCamera(uri)
+        if camera:
+            result = camera.text() + " ( " + camera.profileName(uri) + ")"
+        return result
+    
     def getLocation(self):
         path = Path(os.path.dirname(__file__))
         return str(path.parent.absolute())
-    
-    def getVideoFrameRate(self):
-        result = 0
-        if self.player is not None:
-            result = self.player.getVideoFrameRate()
+
+    def isCameraStreamURI(self, uri):
+        result = False
+        if uri:
+            result = uri.lower().startswith("rtsp") or uri.lower().startswith("http")
         return result
     
-    def get_log_filename(self):
+    def getAlarmSound(self):
+        return f'{self.getLocation()}/gui/resources/drops.mp3'
+    
+    def getLogFilename(self):
         source = self.windowTitle()
         source = source.replace(".", "_")
         source = source.replace(" ", "_")
@@ -415,6 +838,21 @@ class MainWindow(QMainWindow):
             log_dir = os.environ["HOME"]
         log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
         return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
+    
+    def enableDiscoverTimer(self, state):
+        DISCOVER_TIME_INTERVAL = 60000
+        if int(state) == 0:
+            logger.debug("Auto Discover has been turned off")
+            if self.discoverTimer:
+                self.discoverTimer.stop()
+        else:
+            logger.debug("Auto Discover has been turned on")
+            self.cameraPanel.btnDiscoverClicked()
+            if self.settingsPanel.radDiscover.isChecked():
+                if not self.discoverTimer:
+                    self.discoverTimer = QTimer()
+                    self.discoverTimer.timeout.connect(self.cameraPanel.btnDiscoverClicked)
+                    self.discoverTimer.start(DISCOVER_TIME_INTERVAL)
     
     def style(self):
         blDefault = "#5B5B5B"
@@ -441,9 +879,6 @@ class MainWindow(QMainWindow):
 def run():
     clear_settings = False
 
-    if sys.platform == "linux":
-        os.environ["QT_QPA_PLATFORM"] = "xcb"
-
     if len(sys.argv) > 1:
         if str(sys.argv[1]) == "--clear":
             clear_settings = True
@@ -466,7 +901,6 @@ def run():
                     logger.debug(f'Desktop icon created for executable {executable}')
                 except Exception as ex:
                     logger.debug(f'Error attempting to create desktop icon {str(ex)}')
-
             else:
                 icon = f'{os.path.split(__file__)[0]}/resources/onvif-gui.png'
                 executable = f'{os.path.split(sys.executable)[0]}/onvif-gui %U'
@@ -485,21 +919,18 @@ def run():
                 try:
                     with open('/usr/share/applications/onvif-gui.desktop', 'w') as f:
                         f.write(contents)
-                    print("Desktop icon created, please log out to update")
+                    print("Desktop icon created successfully")
                 except Exception as ex:
                     print("Error attempting to create desktop icon " + str(ex))
 
             sys.exit()
 
-    try:
-        app = QApplication(sys.argv)
-        app.setStyle('Fusion')
-        window = MainWindow(clear_settings)
-        window.style()
-        window.show()
-        app.exec()
-    except Exception as ex:
-        print("Error starting application: " + str(ex))
+    app = QApplication(sys.argv)
+    app.setStyle('Fusion')
+    window = MainWindow(clear_settings)
+    window.style()
+    window.show()
+    app.exec()
 
 if __name__ == '__main__':
     run()

@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/gui/panels/modulepanel.py 
+# libonvif/onvif-gui/gui/panels/videopanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -20,7 +20,8 @@
 import os
 from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox, \
     QLabel, QComboBox, QVBoxLayout
-from gui.components import DirectorySelector
+from PyQt6.QtCore import Qt
+from gui.onvif.datastructures import MediaSource
 
 class VideoPanel(QWidget):
     def __init__(self, mw):
@@ -29,38 +30,36 @@ class VideoPanel(QWidget):
         self.panel = None
         self.layout = QVBoxLayout(self)
         self.workerKey = "VideoPanel/worker"
-        self.engageKey = "VideoPanel/engage"
-        self.directoryKey = "VideoPanel/directory"
-        self.cmbWorkerConnected = True
+        self.enableFileKey = "VideoPanel/enableFile"
+        self.stdLocation = mw.getLocation() + "/modules/video"
 
-        stdLocation = mw.getLocation() + "/modules/video"
-        self.dirModules = DirectorySelector(mw, self.directoryKey, "Modules Dir", stdLocation)
-        self.dirModules.signals.dirChanged.connect(self.dirModulesChanged)
+        self.lblCamera = QLabel("Please select a camera to enable this panel")
 
         self.cmbWorker = QComboBox()
         self.fillModules()
-        self.cmbWorker.setCurrentText(mw.settings.value(self.workerKey, "sample.py"))
+        self.cmbWorker.setCurrentText(mw.settings.value(self.workerKey, "motion.py"))
         self.cmbWorker.currentTextChanged.connect(self.cmbWorkerChanged)
         lblWorkers = QLabel("Python Worker")
 
-        self.chkEngage = QCheckBox("Engage")
-        self.chkEngage.setChecked(int(mw.settings.value(self.engageKey, 0)))
-        self.chkEngage.stateChanged.connect(self.chkEngageClicked)
-
-        self.lblElapsed = QLabel()
+        self.chkEnableFile = QCheckBox("Enable File")
+        self.chkEnableFile.setChecked(self.mw.filePanel.getAnalyzeVideo())
+        self.chkEnableFile.stateChanged.connect(self.chkEnableFileChanged)
 
         fixedPanel = QWidget()
         lytFixed = QGridLayout(fixedPanel)
-        lytFixed.addWidget(self.dirModules,  0, 0, 1, 2)
-        lytFixed.addWidget(lblWorkers,       1, 0, 1, 1)
-        lytFixed.addWidget(self.cmbWorker,   1, 1, 1, 1)
-        lytFixed.addWidget(self.chkEngage,   2, 0, 1, 1)
-        lytFixed.addWidget(self.lblElapsed,  2, 1, 1, 1)
+        lytFixed.addWidget(lblWorkers,         2, 0, 1, 1)
+        lytFixed.addWidget(self.cmbWorker,     2, 1, 1, 1)
+        lytFixed.addWidget(self.chkEnableFile, 3, 0, 1, 1)
+        lytFixed.addWidget(self.lblCamera,     4, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
         lytFixed.setColumnStretch(1, 10)
         self.layout.addWidget(fixedPanel)
 
+    def showEvent(self, event):
+        self.lblCamera.setFocus()
+        super().showEvent(event)
+
     def fillModules(self):
-        d = self.dirModules.text()
+        d = self.stdLocation
         workers = [f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f))]
         for worker in workers:
             if not worker.endswith(".py") or worker == "__init__.py":
@@ -78,18 +77,47 @@ class VideoPanel(QWidget):
         self.layout.setStretch(1, 10)
 
     def cmbWorkerChanged(self, worker):
-        if self.cmbWorkerConnected:
-            self.mw.settings.setValue(self.workerKey, worker)
-            self.mw.videoFirstPass = True
-            self.mw.videoRuntimes.clear()
-            self.mw.loadVideoConfigure(worker)
-            self.mw.loadVideoWorker(worker)
+        source = None
+        media = None
+        if self.panel:
+            source = self.panel.source
+            media = self.panel.media
 
-    def chkEngageClicked(self, state):
-        self.mw.settings.setValue(self.engageKey, state)
+        self.mw.loadVideoConfigure(worker)
 
-    def dirModulesChanged(self, path):
-        self.cmbWorkerConnected = False
-        self.fillModules()
-        self.cmbWorkerConnected = True
-        self.cmbWorkerChanged(self.cmbWorker.currentText())
+        if source:
+            self.mw.videoConfigure.source = source
+            match source:
+                case MediaSource.CAMERA:
+                    self.mw.videoConfigure.setCamera(media)
+                case MediaSource.FILE:
+                    self.mw.videoConfigure.setFile(media)
+            #self.mw.videoConfigure.enableControls(True)
+
+        existing = False
+        for player in self.mw.pm.players:
+            if player.analyze_video:
+                existing = True
+
+        if existing:
+            self.mw.videoWorkerHook = None
+            self.mw.videoWorker = None
+
+        player = self.mw.pm.getCurrentPlayer()
+        if player:
+            if player.isCameraStream():
+                camera = self.mw.cameraPanel.getCamera(player.uri)
+                if camera:
+                    self.mw.videoConfigure.setCamera(camera)
+            else:
+                self.mw.videoConfigure.setFile(player.uri)
+
+        self.mw.settings.setValue(self.workerKey, worker)
+        
+    def chkEnableFileChanged(self, state):
+        self.mw.filePanel.setAnalyzeVideo(state)
+        for player in self.mw.pm.players:
+            if not player.isCameraStream():
+                player.analyze_video = bool(state)
+        if self.mw.videoConfigure.source == MediaSource.FILE:
+            self.mw.videoConfigure.enableControls(state)

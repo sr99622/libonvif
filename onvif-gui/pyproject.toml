@@ -1,7 +1,7 @@
 #/********************************************************************
-# onvif-gui/pyproject.toml
+# libonvif/onvif-gui/pyproject.toml
 #
-# Copyright (c) 2023  Stephen Rhodes
+# Copyright (c) 2023, 2024  Stephen Rhodes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@
 
 [project]
 name = "onvif-gui" 
-version = "1.2.13"  
+version = "2.0.1"  
 dynamic = ["gui-scripts"]
 description = "A client gui for Onvif"  
 readme = "README.md" 
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = {file = "LICENSE.txt"}
 keywords = ["sample", "setuptools", "development"]  
 authors = [
@@ -38,7 +38,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "libonvif==2.0.10", "avio==2.1.8", "pyqt6", "numpy", "loguru", "opencv-python"
+  "libonvif==3.1.0", "avio==3.1.0", "PyQt6-Qt6==6.6.1", "pyqt6==6.6.1", "numpy", "loguru", "opencv-python"
 ]
 
 [project.urls]  

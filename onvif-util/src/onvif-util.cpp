@@ -389,7 +389,7 @@ int main(int argc, char **argv)
 					}
 					else {
 						profileCheck(onvif_data, args);
-						if(getVideoEncoderConfigurationOptions(onvif_data)) throw std::runtime_error(cat("get video encoder configuration options - ", onvif_data->last_error));
+						if(getVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("get video encoder configuration - ", onvif_data->last_error));
 						std::cout << "  Resolution: " << onvif_data->width << " x " << onvif_data->height << "\n";
 						std::cout << "  Frame Rate: " << onvif_data->frame_rate << "\n";
 						std::cout << "  Gov Length: " << onvif_data->gov_length << "\n";

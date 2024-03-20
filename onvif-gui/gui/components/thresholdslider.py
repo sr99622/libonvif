@@ -1,5 +1,5 @@
 #********************************************************************
-# onvif-gui/gui/components/thresholdslider.py
+# libonvif/onvif-gui/gui/components/thresholdslider.py
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -19,15 +19,14 @@
 
 from PyQt6.QtWidgets import QWidget, QSlider, QLabel, QGridLayout
 from PyQt6.QtCore import Qt
+from gui.onvif.datastructures import MediaSource
 
 class ThresholdSlider(QWidget):
-    def __init__(self, mw, name, title, initValue):
+    def __init__(self, mw, title, module):
         super().__init__()
         self.mw = mw
-        self.thresholdKey = "Module/" + name + "/threshold"
+        self.module = module
         self.sldThreshold = QSlider(Qt.Orientation.Horizontal)
-        value = int(self.mw.settings.value(self.thresholdKey, initValue))
-        self.sldThreshold.setValue(value)
         self.sldThreshold.valueChanged.connect(self.sldThresholdChanged)
         lblThreshold = QLabel(title)
         self.lblValue = QLabel(str(self.sldThreshold.value()))
@@ -39,7 +38,30 @@ class ThresholdSlider(QWidget):
 
     def sldThresholdChanged(self, value):
         self.lblValue.setText(str(value))
-        self.mw.settings.setValue(self.thresholdKey, value)
+        match self.mw.videoConfigure.source:
+            case MediaSource.CAMERA:
+                camera = self.mw.cameraPanel.getCurrentCamera()
+                if camera:
+                    camera.videoModelSettings.setModelConfidence(value)
+                '''
+                profile = self.mw.cameraPanel.getCurrentProfile()
+                if profile:
+                    profile.setModelConfidence(value, self.module)
+                '''
+            case MediaSource.FILE:
+                #self.mw.filePanel.setModelConfidence(value, self.module)
+                self.mw.filePanel.videoModelSettings.setModelConfidence(value)
+
+        '''
+        player = self.mw.pm.getCurrentPlayer()
+        if player:
+            player.model_confidence = value / 100
+        '''
 
     def value(self):
+        # return a value between 0 and 1
         return self.sldThreshold.value() / 100
+    
+    def setValue(self, value):
+        self.sldThreshold.setValue(value)
+

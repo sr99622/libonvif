@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/gui/onvif/networktab.py 
+# libonvif/onvif-gui/gui/onvif/networktab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -17,7 +17,7 @@
 #
 #*********************************************************************/
 
-from PyQt6.QtWidgets import QCheckBox, QLineEdit, QGridLayout, QWidget, QLabel, QMessageBox
+from PyQt6.QtWidgets import QCheckBox, QLineEdit, QGridLayout, QWidget, QLabel
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
 
@@ -36,19 +36,19 @@ class NetworkTab(QWidget):
         self.txtIPAddress = QLineEdit()
         self.txtIPAddress.setValidator(ipValidator)
         self.txtIPAddress.textEdited.connect(cp.onEdit)
-        lblIPAddress = QLabel("IP Address")
+        lblIPAddress = QLabel("Address")
         self.txtSubnetMask = QLineEdit()
         self.txtSubnetMask.setValidator(ipValidator)
         self.txtSubnetMask.textEdited.connect(cp.onEdit)
-        lblSubnetMask = QLabel("Subnet Mask")
+        lblSubnetMask = QLabel("Subnet")
         self.txtDefaultGateway = QLineEdit()
         self.txtDefaultGateway.setValidator(ipValidator)
         self.txtDefaultGateway.textEdited.connect(cp.onEdit)
-        lblDefaultGateway = QLabel("Default Gateway")
+        lblDefaultGateway = QLabel("Gateway")
         self.txtDNS = QLineEdit()
         self.txtDNS.setValidator(ipValidator)
         self.txtDNS.textEdited.connect(cp.onEdit)
-        lblDNS = QLabel("Primary DNS")
+        lblDNS = QLabel("DNS")
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.chkDHCP,           0, 1, 1, 1)
@@ -92,22 +92,12 @@ class NetworkTab(QWidget):
     
     def update(self, onvif_data):
         if self.edited(onvif_data):
-
-            remove = onvif_data.ip_address_buf() != self.txtIPAddress.text() or \
-                (onvif_data.dhcp_enabled != self.chkDHCP.isChecked() and \
-                 self.chkDHCP.isChecked())
-
             onvif_data.setDHCPEnabled(self.chkDHCP.isChecked())
             onvif_data.setIPAddressBuf(self.txtIPAddress.text())
             onvif_data.setDefaultGatewayBuf(self.txtDefaultGateway.text())
             onvif_data.setDNSBuf(self.txtDNS.text())
             onvif_data.setMaskBuf(self.txtSubnetMask.text())
-            self.cp.boss.onvif_data = onvif_data
-            self.cp.boss.startUpdateNetwork()
-            if remove:
-                if self.cp.mw.playing:
-                    self.cp.mw.stopMedia()
-                self.cp.removeCurrent()
+            onvif_data.startUpdateNetwork()
 
     def onChkDHCPChecked(self):
         checked = self.chkDHCP.isChecked()

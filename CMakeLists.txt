@@ -67,5 +67,5 @@ endif()
 
 
 install(TARGETS onvif-util DESTINATION bin)
-install(FILES libonvif/include/onvif.h libonvif/include/onvifboss.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(FILES libonvif/include/onvif.h libonvif/include/onvif_data.h libonvif/include/session.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(FILES onvif-util/docs/onvif-util.1 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man1")

@@ -1,5 +1,5 @@
 #/********************************************************************
-# onvif-gui/modules/video/yolox.py 
+# libonvif/onvif-gui/modules/video/yolox.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -22,28 +22,20 @@ try:
     import os
     import sys
     from loguru import logger
-    if sys.platform == "win32":
-        filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/errors.txt"
-    else:
-        filename = os.environ['HOME'] + "/.cache/onvif-gui/errors.txt"
-    logger.add(filename, retention="10 days")
-
-    import cv2
     import numpy as np
     from pathlib import Path
-    from datetime import datetime
-    from gui.components import ComboSelector, FileSelector, LabelSelector, ThresholdSlider
-    from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox, QLineEdit
-    from PyQt6.QtCore import Qt, QRegularExpression
-    from PyQt6.QtGui import QRegularExpressionValidator
-
+    from gui.components import ComboSelector, FileSelector, ThresholdSlider, TargetSelector
+    from gui.onvif.datastructures import MediaSource
+    from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox, \
+        QGroupBox, QDialog
+    from PyQt6.QtCore import Qt, QSize, QObject, pyqtSignal
+    from PyQt6.QtGui import QMovie
+    from time import sleep
     import torch
     from torchvision.transforms import functional
     import torch.nn as nn
-    
     from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
     from yolox.utils import postprocess
-    from tracker.byte_tracker import BYTETracker
 
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
@@ -52,19 +44,106 @@ except ModuleNotFoundError as ex:
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 MODULE_NAME = "yolox"
 
+class YoloxWaitDialog(QDialog):
+    def __init__(self, p):
+        super().__init__(p)
+        self.lblMessage = QLabel("Please wait for model to download")
+        self.lblProgress = QLabel()
+        self.movie = QMovie("image:spinner.gif")
+        self.movie.setScaledSize(QSize(50, 50))
+        self.lblProgress.setMovie(self.movie)
+        self.setWindowTitle("yolox")
+
+        lytMain = QGridLayout(self)
+        lytMain.addWidget(self.lblMessage,  0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.lblProgress, 1, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+
+        self.movie.start()
+        self.setModal(True)
+
+    def sizeHint(self):
+        return QSize(300, 100)
+    
+class YoloxSettings():
+    def __init__(self, mw, camera=None):
+        self.camera = camera
+        self.mw = mw
+        self.id = "File"
+        if camera:
+            self.id = camera.serial_number()
+
+        self.targets = self.getTargetsForPlayer()
+        self.gain = self.getModelOutputGain()
+        self.confidence = self.getModelConfidence()
+        self.show = self.getModelShowBoxes()
+
+    def getTargets(self):
+        key = f'{self.id}/{MODULE_NAME}/Targets'
+        return str(self.mw.settings.value(key, "")).strip()
+    
+    def getTargetsForPlayer(self):
+        var = self.getTargets()
+        ary = []
+        if len(var):
+            tmp = var.split(":")
+            for t in tmp:
+                ary.append(int(t))
+        return ary    
+
+    def setTargets(self, targets):
+        key = f'{self.id}/{MODULE_NAME}/Targets'
+        self.targets.clear()
+        if len(targets):
+            tmp = targets.split(":")
+            for t in tmp:
+                self.targets.append(int(t))
+        self.mw.settings.setValue(key, targets)
+
+    def getModelConfidence(self):
+        key = f'{self.id}/{MODULE_NAME}/ConfidenceThreshold'
+        return int(self.mw.settings.value(key, 50))
+    
+    def setModelConfidence(self, value):
+        key = f'{self.id}/{MODULE_NAME}/ConfidenceThreshold'
+        self.confidence = value
+        self.mw.settings.setValue(key, value)
+
+    def getModelOutputGain(self):
+        key = f'{self.id}/{MODULE_NAME}/ModelOutputGain'
+        return int(self.mw.settings.value(key, 50))
+    
+    def setModelOutputGain(self, value):
+        key = f'{self.id}/{MODULE_NAME}/ModelOutputGain'
+        self.gain = value
+        self.mw.settings.setValue(key, value)
+
+    def getModelShowBoxes(self):
+        key = f'{self.id}/{MODULE_NAME}/ModelShowBoxes'
+        return bool(int(self.mw.settings.value(key, 1)))
+    
+    def setModelShowBoxes(self, value):
+        key = f'{self.id}/{MODULE_NAME}/ModelShowBoxes'
+        self.show = value
+        self.mw.settings.setValue(key, int(value))
+
+class YoloxSignals(QObject):
+    showWaitDialog = pyqtSignal()
+    hideWaitDialog = pyqtSignal()
+
 class VideoConfigure(QWidget):
     def __init__(self, mw):
         try:
             super().__init__()
             self.mw = mw
             self.name = MODULE_NAME
+            self.source = None
+            self.media = None
             self.autoKey = "Module/" + MODULE_NAME + "/autoDownload"
-            self.trackKey = "Module/" + MODULE_NAME + "/track"
-            self.showIDKey = "Module/" + MODULE_NAME + "/showID"
-            self.logCountKey = "Module/" + MODULE_NAME + "/logCount"
-            self.countIntervalKey = "Module/" + MODULE_NAME + "/countInterval"
 
-            self.mw.signals.started.connect(self.onMediaStarted)
+            self.dlgWait = YoloxWaitDialog(self.mw)
+            self.signals = YoloxSignals()
+            self.signals.showWaitDialog.connect(self.showWaitDialog)
+            self.signals.hideWaitDialog.connect(self.hideWaitDialog)
             
             self.chkAuto = QCheckBox("Automatically download model")
             self.chkAuto.setChecked(int(self.mw.settings.value(self.autoKey, 1)))
@@ -72,66 +151,35 @@ class VideoConfigure(QWidget):
 
             self.txtFilename = FileSelector(mw, MODULE_NAME)
             self.txtFilename.setEnabled(not self.chkAuto.isChecked())
-
             self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
             self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
 
-            self.chkTrack = QCheckBox("Track Objects")
-            self.chkTrack.setChecked(int(self.mw.settings.value(self.trackKey, 0)))
-            self.chkTrack.stateChanged.connect(self.chkTrackClicked)
+            self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-            self.chkShowID = QCheckBox("Show Object ID")
-            self.chkShowID.setChecked(int(self.mw.settings.value(self.showIDKey, 1)))
-            self.chkShowID.stateChanged.connect(self.chkShowIDClicked)
+            self.sldConfThre = ThresholdSlider(mw, "Confidence", MODULE_NAME)
+            self.selTargets = TargetSelector(self.mw, MODULE_NAME)
 
-            self.sldConfThre = ThresholdSlider(mw, MODULE_NAME + "/confidence", "Confidence", 25)
+            grpSystem = QGroupBox("System wide model parameters")
+            lytSystem = QGridLayout(grpSystem)
+            lytSystem.addWidget(self.chkAuto,      0, 0, 1, 1)
+            lytSystem.addWidget(self.cmbType,      1, 0, 1, 1)
+            lytSystem.addWidget(self.txtFilename,  2, 0, 1, 1)
+            lytSystem.addWidget(self.cmbRes,       3, 0, 1, 1)
 
-            self.chkShowID.setVisible(self.chkTrack.isChecked())
-
-            pnlCount = QWidget()
-            lblCount = QLabel("Count Interval (seconds)")
-            self.txtCountInterval = QLineEdit()
-            self.txtCountInterval.setText(self.mw.settings.value(self.countIntervalKey, ""))
-            self.txtCountInterval.textChanged.connect(self.countIntervalChanged)
-            numRegex = QRegularExpression("[0-9]*")
-            numValidator = QRegularExpressionValidator(numRegex, self)
-            self.txtCountInterval.setValidator(numValidator)        
-            self.chkLogCount = QCheckBox("Log Counts")
-            self.chkLogCount.setChecked(int(self.mw.settings.value(self.logCountKey, 0)))
-            self.chkLogCount.stateChanged.connect(self.chkLogCountClicked)
-            lytCount = QGridLayout(pnlCount)
-            lytCount.addWidget(lblCount,              0, 0, 1, 1)
-            lytCount.addWidget(self.txtCountInterval, 0, 1, 1, 1)
-            lytCount.addWidget(self.chkLogCount,      0, 2, 1, 1)
-            lytCount.setContentsMargins(0, 0, 0, 0)
-
-            number_of_labels = 5
-            self.labels = []
-            for i in range(number_of_labels):
-                self.labels.append(LabelSelector(mw, MODULE_NAME, i+1))
-            pnlLabels = QWidget()
-            lytLabels = QGridLayout(pnlLabels)
-            lblPanel = QLabel("Select classes to be identified and counted")
-            lblPanel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lytLabels.addWidget(lblPanel,        0, 0, 1, 1)
-            for i in range(number_of_labels):
-                lytLabels.addWidget(self.labels[i], i+1, 0, 1, 1)
-            lytLabels.setContentsMargins(0, 0, 0, 0)
+            self.grpCamera = QGroupBox("Check camera video alarm to enable")
+            lytCamera = QGridLayout(self.grpCamera)
+            lytCamera.addWidget(self.sldConfThre,  0, 0, 1, 1)
+            lytCamera.addWidget(QLabel(),          1, 0, 1, 1)
+            lytCamera.addWidget(self.selTargets,   2, 0, 1, 1)
 
             lytMain = QGridLayout(self)
-            lytMain.addWidget(self.chkAuto,      0, 0, 1, 2)
-            lytMain.addWidget(self.cmbType,      1, 0, 1, 2)
-            lytMain.addWidget(self.txtFilename,  2, 0, 1, 2)
-            lytMain.addWidget(self.cmbRes,       3, 0, 1, 2)
-            lytMain.addWidget(self.sldConfThre,  4, 0, 1, 2)
-            lytMain.addWidget(self.chkTrack,     6, 0, 1, 1)
-            lytMain.addWidget(self.chkShowID,    6, 1, 1, 1)
-            lytMain.addWidget(pnlCount,          7, 0, 1, 2)
-            lytMain.addWidget(pnlLabels,         8, 0, 1, 2)
-            lytMain.addWidget(QLabel(),          9, 0, 1, 2)
-            lytMain.setRowStretch(9, 10)
+            lytMain.addWidget(grpSystem,         0, 0, 1, 1)
+            lytMain.addWidget(QLabel(),          1, 0, 1, 1)
+            lytMain.addWidget(self.grpCamera,    2, 0, 1, 1)
+            lytMain.addWidget(QLabel(),          3, 0, 1, 1)
+            lytMain.setRowStretch(3, 10)
 
-            self.first_pass = True
+            self.enableControls(False)
 
             if len(IMPORT_ERROR) > 0:
                 QMessageBox.critical(None, MODULE_NAME + " Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
@@ -143,107 +191,128 @@ class VideoConfigure(QWidget):
         self.mw.settings.setValue(self.autoKey, state)
         self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
-    def chkTrackClicked(self, state):
-        self.mw.settings.setValue(self.trackKey, state)
-        self.chkShowID.setVisible(state)
+    def setCamera(self, camera):
+        self.source = MediaSource.CAMERA
+        self.media = camera
 
-    def chkShowIDClicked(self, state):
-        self.mw.settings.setValue(self.showIDKey, state)
+        if camera:
+            if not self.isModelSettings(camera.videoModelSettings):
+                camera.videoModelSettings = YoloxSettings(self.mw, camera)
+            self.mw.videoPanel.lblCamera.setText(f'Camera - {camera.name()}')
+            self.selTargets.setTargets(camera.videoModelSettings.targets)
+            self.sldConfThre.setValue(camera.videoModelSettings.confidence)
+            self.selTargets.sldGain.setValue(camera.videoModelSettings.gain)
+            self.selTargets.chkShowBoxes.setChecked(camera.videoModelSettings.show)
+            self.selTargets.barLevel.setLevel(0)
+            self.selTargets.indAlarm.setState(0)
+            profile = self.mw.cameraPanel.getProfile(camera.uri())
+            if profile:
+                self.enableControls(profile.getAnalyzeVideo())
 
-    def chkLogCountClicked(self, state):
-        self.mw.settings.setValue(self.logCountKey, state)
+    def setFile(self, file):
+        self.source = MediaSource.FILE
+        self.media = file
 
-    def countIntervalChanged(self, txt):
-        self.mw.settings.setValue(self.countIntervalKey, txt)
+        if file:
+            if not self.isModelSettings(self.mw.filePanel.videoModelSettings):
+                self.mw.filePanel.videoModelSettings = YoloxSettings(self.mw)
+            self.mw.videoPanel.lblCamera.setText(f'File - {os.path.split(file)[1]}')
+            self.selTargets.setTargets(self.mw.filePanel.videoModelSettings.targets)
+            self.sldConfThre.setValue(self.mw.filePanel.videoModelSettings.confidence)
+            self.selTargets.sldGain.setValue(self.mw.filePanel.videoModelSettings.gain)
+            self.selTargets.chkShowBoxes.setChecked(self.mw.filePanel.videoModelSettings.show)
+            self.selTargets.barLevel.setLevel(0)
+            self.selTargets.indAlarm.setState(0)
+            self.enableControls(self.mw.videoPanel.chkEnableFile.isChecked())
 
-    def getCountInterval(self):
-        result = 0
-        if len(self.txtCountInterval.text()) > 0:
-            result = int(self.txtCountInterval.text())
-        return result
+    def isModelSettings(self, arg):
+        return type(arg) == YoloxSettings
+    
+    def enableControls(self, state):
+        self.grpCamera.setEnabled(bool(state))
+        if self.source == MediaSource.CAMERA:
+            if state:
+                self.grpCamera.setTitle("Camera Parameters")
+            else:
+                self.grpCamera.setTitle("Check camera video alarm to enable")
 
-    def onMediaStarted(self, n):
-        self.first_pass = True
+    def showWaitDialog(self):
+        self.dlgWait.exec()
+
+    def hideWaitDialog(self):
+        self.dlgWait.hide()
 
 class VideoWorker:
     def __init__(self, mw):
         try:
             self.mw = mw
             self.last_ex = ""
+            self.lock = False
 
-            if self.mw.configure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
+            if self.mw.videoConfigure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
                 return
             
-            self.mw.signals.showWait.emit()
             device_name = "cpu"
             if torch.cuda.is_available():
                 device_name = "cuda"
             self.device = torch.device(device_name)
+
+            self.mw.glWidget.model_loading = True
 
             self.num_classes = 80
 
             size = {'yolox_s': [0.33, 0.50], 
                     'yolox_m': [0.67, 0.75],
                     'yolox_l': [1.00, 1.00],
-                    'yolox_x': [1.33, 1.25]}[self.mw.configure.cmbType.currentText()]
+                    'yolox_x': [1.33, 1.25]}[self.mw.videoConfigure.cmbType.currentText()]
 
             self.model = None
             self.model = self.get_model(self.num_classes, size[0], size[1], None).to(self.device)
             self.model.eval()
 
             self.ckpt_file = None
-            if self.mw.configure.chkAuto.isChecked():
+            if self.mw.videoConfigure.chkAuto.isChecked():
                 self.ckpt_file = self.get_auto_ckpt_filename()
                 cache = Path(self.ckpt_file)
 
                 if not cache.is_file():
+                    self.mw.videoConfigure.signals.showWaitDialog.emit()
                     cache.parent.mkdir(parents=True, exist_ok=True)
-                    model_name = self.mw.configure.cmbType.currentText()
+                    model_name = self.mw.videoConfigure.cmbType.currentText()
                     link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
                     if os.path.split(sys.executable)[1] == "pythonw.exe":
                         torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
                     else:
                         torch.hub.download_url_to_file(link, self.ckpt_file)
+                    self.mw.videoConfigure.signals.hideWaitDialog.emit()
             else:
-                self.ckpt_file = self.mw.configure.txtFilename.text()
+                self.ckpt_file = self.mw.videoConfigure.txtFilename.text()
 
             self.model.load_state_dict(torch.load(self.ckpt_file, map_location="cpu")["model"])
 
-            res = int(self.mw.configure.cmbRes.currentText())
+            res = int(self.mw.videoConfigure.cmbRes.currentText())
             self.model(torch.zeros(1, 3, res, res).to(self.device))
-
-            self.track_thresh = self.mw.configure.sldConfThre.value()
-            self.track_buffer = 30
-            self.match_thresh = 0.8
-            framerate = self.mw.getVideoFrameRate()
-            if framerate == 0: framerate = 30
-            self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh, frame_rate=framerate)
-
-            self.count_interval_start = 0
-            self.rts = 0
-            self.log_filename = ""
-
-            self.mw.signals.hideWait.emit()
+            self.mw.glWidget.model_loading = False
 
         except:
             logger.exception(MODULE_NAME + " initialization failure")
-            self.mw.signals.hideWait.emit()
             self.mw.signals.error.emit(MODULE_NAME + " initialization failure, please check logs for details")
-
-    def __call__(self, F):
+            for player in self.mw.pm.players:
+                player.request_reconnect = False
+                player.running = False
+            self.mw.glWidget.model_loading = False
+                
+    def __call__(self, F, player):
         try:
-            img = np.array(F, copy=False)
-            self.rts = F.m_rts
 
-            if self.mw.configure.name != MODULE_NAME:
+            if not F or not player or self.mw.videoConfigure.name != MODULE_NAME:
+                self.mw.videoConfigure.selTargets.barLevel.setLevel(0)
+                self.mw.videoConfigure.selTargets.indAlarm.setState(0)
                 return
-            
-            if self.mw.configure.first_pass:
-                self.count_interval_start = self.rts
-                self.mw.configure.first_pass = False
-                self.log_filename = ""
 
-            res = int(self.mw.configure.cmbRes.currentText())
+            img = np.array(F, copy=False)
+
+            res = int(self.mw.videoConfigure.cmbRes.currentText())
             test_size = (res, res)
             ratio = min(test_size[0] / img.shape[0], test_size[1] / img.shape[1])
             inf_shape = (int(img.shape[0] * ratio), int(img.shape[1] * ratio))
@@ -251,144 +320,82 @@ class VideoWorker:
             side = test_size[1] - inf_shape[1]
             pad = (0, 0, side, bottom)
 
-            #timg = functional.to_tensor(img.copy()).to(self.device)
             timg = functional.to_tensor(img).to(self.device)
             timg *= 255
             timg = functional.resize(timg, inf_shape)
             timg = functional.pad(timg, pad, 114)
             timg = timg.unsqueeze(0)
 
-            if self.mw.configure.chkTrack.isChecked():
-                confthre = 0.001
-            else:
-                confthre = self.mw.configure.sldConfThre.value()
-            
+            camera = self.mw.cameraPanel.getCamera(player.uri)
+            if not self.mw.videoConfigure.isModelSettings(player.videoModelSettings):
+                if player.isCameraStream():
+                    if camera:
+                        if not self.mw.videoConfigure.isModelSettings(camera.videoModelSettings):
+                            camera.videoModelSettings = YoloxSettings(self.mw, camera)
+                        player.videoModelSettings = camera.videoModelSettings
+                else:
+                    if not self.mw.videoConfigure.isModelSettings(self.mw.filePanel.videoModelSettings):
+                        self.mw.filePanel.videoModelSettings = YoloxSettings(self.mw)
+                    player.videoModelSettings = self.mw.filePanel.videoModelSettings
+
+            if not player.videoModelSettings:
+                raise Exception("Unable to set video model parameters for player")
+
+            confthre = player.videoModelSettings.confidence / 100
             nmsthre = 0.65
 
-            label_filter = []
-            for lbl in self.mw.configure.labels:
-                if lbl.chkBox.isChecked():
-                    label_filter.append(lbl.label())
-
+            while self.lock:
+                sleep(0.001)
+            
+            self.lock = True
             with torch.no_grad():
                 outputs = self.model(timg)
                 outputs = postprocess(outputs, self.num_classes, confthre, nmsthre)
+            self.lock = False
 
+            output = None
             if outputs[0] is not None:
-                output = outputs[0].cpu()
-                if self.mw.configure.chkTrack.isChecked():
-                    labels = output[:, 6].numpy().astype(int)
-                    mask = np.in1d(labels, label_filter)
-                    output = output[mask]
-                    output = output.cpu().numpy()
+                output = outputs[0].cpu().numpy().astype(float)
+                output[:, 0:4] /= ratio
+                output[:, 4] *= output[:, 5]
+                output = np.delete(output, 5, 1)
+
+            result = player.processModelOutput(output)
+            frame_rate = player.getVideoFrameRate()
+            if frame_rate <= 0:
+                profile = self.mw.cameraPanel.getProfile(player.uri)
+                if profile:
+                    frame_rate = profile.frame_rate()
+
+            gain = 1
+            if frame_rate:
+                gain = player.videoModelSettings.gain / frame_rate
+
+            alarmState = result * gain >= 1.0
+
+            if self.mw.glWidget.focused_uri == player.uri:
+                self.mw.videoConfigure.selTargets.barLevel.setLevel(result * gain)
+                if alarmState:
+                    self.mw.videoConfigure.selTargets.indAlarm.setState(1)
                     
-                    if self.track_thresh != self.mw.configure.sldConfThre.value():
-                        self.track_thresh = self.mw.configure.sldConfThre.value()
-                        framerate = self.mw.getVideoFrameRate()
-                        if framerate == 0: framerate = 30
-                        self.tracker = BYTETracker(self.track_thresh, self.track_buffer, self.match_thresh, frame_rate=framerate)
+            player.handleAlarm(alarmState)
 
-                    online_targets = self.tracker.update(output, [img.shape[0], img.shape[1]], test_size)
-                    self.draw_track_boxes(img, online_targets)
-                else:
-                    self.draw_plain_boxes(img, output, ratio)
-
+            # restart the model if changed during run time
             tmp = None
-            if self.mw.configure.chkAuto.isChecked():
+            if self.mw.videoConfigure.chkAuto.isChecked():
                 tmp = self.get_auto_ckpt_filename()
             else:
-                tmp = self.mw.configure.txtFilename.text()
+                tmp = self.mw.videoConfigure.txtFilename.text()
             if self.ckpt_file != tmp:
                 self.__init__(self.mw)
 
         except Exception as ex:
-            if self.last_ex != str(ex) and self.mw.configure.name == MODULE_NAME:
+            if self.last_ex != str(ex) and self.mw.videoConfigure.name == MODULE_NAME:
                 logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
 
-    def draw_plain_boxes(self, img, output, ratio):
-        interval = self.mw.configure.getCountInterval()
-        q_size = self.mw.getVideoFrameRate() * interval
-
-        boxes = output[:, 0:4] / ratio
-        labels = output[:, 6].numpy().astype(int)
-
-        for lbl in self.mw.configure.labels:
-            if lbl.chkBox.isChecked():
-                lbl_boxes = boxes[labels == lbl.label()].numpy().astype(int)
-                for box in lbl_boxes:
-                    cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), lbl.color(), 2)
-                if self.mw.configure.getCountInterval() > 0:
-                    lbl.avgCount(lbl_boxes.shape[0], q_size)
-                else:
-                    lbl.setCount(lbl_boxes.shape[0])
-
-        if  self.rts - self.count_interval_start >= interval * 1000:
-            self.count_interval_start = self.rts
-            if self.mw.configure.chkLogCount.isChecked():
-                self.writeLog()
-            else:
-                self.log_filename = ""
-
-    def draw_track_boxes(self, img, online_targets):
-        interval = self.mw.configure.getCountInterval()
-        q_size = self.mw.getVideoFrameRate() * interval
-        label_colors = {}
-        count = {}
-
-        for lbl in self.mw.configure.labels:
-            if lbl.chkBox.isChecked():
-                label_colors[lbl.label()] = lbl.color()
-                count[lbl.label()] = 0
-
-        for t in online_targets:
-            count[t.label] += 1
-
-            track_id = int(t.track_id)
-            id_text = '{}'.format(int(track_id)).zfill(5)
-            color = ((37 * track_id) % 255, (17 * track_id) % 255, (29 * track_id) % 255)
-
-            tlwh = t.tlwh
-            x, y, w, h = tlwh.astype(int)
-            cv2.rectangle(img, (x, y), (x+w, y+h), color, 2)
-            if self.mw.configure.chkShowID.isChecked():
-                cv2.putText(img, id_text, (x, y), cv2.FONT_HERSHEY_PLAIN, 2, label_colors[t.label], 2)
-
-        for lbl in self.mw.configure.labels:
-            if lbl.chkBox.isChecked():
-                if self.mw.configure.getCountInterval() > 0:
-                    lbl.avgCount(count[lbl.label()], q_size)
-                else:
-                    lbl.setCount(count[lbl.label()])
-
-        if  self.rts - self.count_interval_start >= interval * 1000:
-            self.count_interval_start = self.rts
-            if self.mw.configure.chkLogCount.isChecked():
-                self.writeLog()
-            else:
-                self.log_filename = ""
-
-    def writeLog(self):
-        if len(self.log_filename) == 0:
-            self.log_filename = self.mw.get_log_filename()
-            dir = os.path.dirname(self.log_filename)
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-            if not os.path.exists(self.log_filename):
-                with open(self.log_filename, "a") as f:
-                    f.write("milliseconds, timestamp, class, count\n")
-        for lbl in self.mw.configure.labels:
-            if lbl.chkBox.isChecked():
-                if self.mw.configure.chkLogCount.isChecked():
-                    msg = str(self.rts) + " , "
-                    msg += datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " , "
-                    msg += lbl.cmbLabel.currentText() + " , "
-                    msg += lbl.lblCount.text() + "\n"
-                    with open(self.log_filename, "a") as f: 
-                        f.write(msg)
-
     def get_auto_ckpt_filename(self):
-        return torch.hub.get_dir() + "/checkpoints/" + self.mw.configure.cmbType.currentText() + ".pth"
+        return torch.hub.get_dir() + "/checkpoints/" + self.mw.videoConfigure.cmbType.currentText() + ".pth"
 
     def get_model(self, num_classes, depth, width, act):
         def init_yolo(M):

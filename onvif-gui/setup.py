@@ -1,7 +1,7 @@
 #*******************************************************************************
-# onvif-gui/setup.py
+# libonvif/onvif-gui/setup.py
 #
-# Copyright (c) 2023 Stephen Rhodes 
+# Copyright (c) 2023, 2024 Stephen Rhodes 
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@
 #******************************************************************************/
 
 from setuptools import setup, find_packages
-from setuptools.command.install import install
+#from setuptools.command.install import install
 
 with open("README.md", "r", encoding = 'cp850') as fh:
     long_description = fh.read()
 
 setup(
     name="onvif-gui",
-    version="1.2.11",
+    version="2.0.1",
     author="Stephen Rhodes",
     author_email="sr99622@gmail.com",
     description="GUI program for onvif",
@@ -37,10 +37,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.10',
     entry_points={
         'gui_scripts': [
-            'onvif-gui=gui.main:run',
-        ],
+            'onvif-gui=gui.main:run'
+        ]
     }
 )

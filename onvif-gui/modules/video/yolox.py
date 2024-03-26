@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/modules/video/yolox.py 
+# onvif-gui/modules/video/yolox.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -27,10 +27,10 @@ try:
     from gui.components import ComboSelector, FileSelector, ThresholdSlider, TargetSelector
     from gui.onvif.datastructures import MediaSource
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox, \
-        QGroupBox, QDialog
+        QGroupBox, QSlider, QDialog
     from PyQt6.QtCore import Qt, QSize, QObject, pyqtSignal
     from PyQt6.QtGui import QMovie
-    from time import sleep
+    import time
     import torch
     from torchvision.transforms import functional
     import torch.nn as nn
@@ -148,13 +148,10 @@ class VideoConfigure(QWidget):
             self.chkAuto = QCheckBox("Automatically download model")
             self.chkAuto.setChecked(int(self.mw.settings.value(self.autoKey, 1)))
             self.chkAuto.stateChanged.connect(self.chkAutoClicked)
-
             self.txtFilename = FileSelector(mw, MODULE_NAME)
             self.txtFilename.setEnabled(not self.chkAuto.isChecked())
             self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
             self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
-
-            self.txtFilename.setEnabled(not self.chkAuto.isChecked())
 
             self.sldConfThre = ThresholdSlider(mw, "Confidence", MODULE_NAME)
             self.selTargets = TargetSelector(self.mw, MODULE_NAME)
@@ -255,6 +252,7 @@ class VideoWorker:
             device_name = "cpu"
             if torch.cuda.is_available():
                 device_name = "cuda"
+
             self.device = torch.device(device_name)
 
             self.mw.glWidget.model_loading = True
@@ -297,21 +295,20 @@ class VideoWorker:
         except:
             logger.exception(MODULE_NAME + " initialization failure")
             self.mw.signals.error.emit(MODULE_NAME + " initialization failure, please check logs for details")
-            for player in self.mw.pm.players:
-                player.request_reconnect = False
-                player.running = False
-            self.mw.glWidget.model_loading = False
-                
+
     def __call__(self, F, player):
         try:
 
-            if not F or not player or self.mw.videoConfigure.name != MODULE_NAME:
+            if not F or not player:
                 self.mw.videoConfigure.selTargets.barLevel.setLevel(0)
                 self.mw.videoConfigure.selTargets.indAlarm.setState(0)
                 return
 
             img = np.array(F, copy=False)
 
+            if self.mw.videoConfigure.name != MODULE_NAME:
+                return
+            
             res = int(self.mw.videoConfigure.cmbRes.currentText())
             test_size = (res, res)
             ratio = min(test_size[0] / img.shape[0], test_size[1] / img.shape[1])
@@ -341,11 +338,12 @@ class VideoWorker:
             if not player.videoModelSettings:
                 raise Exception("Unable to set video model parameters for player")
 
+
             confthre = player.videoModelSettings.confidence / 100
             nmsthre = 0.65
 
             while self.lock:
-                sleep(0.001)
+                time.sleep(0.001)
             
             self.lock = True
             with torch.no_grad():
@@ -373,11 +371,12 @@ class VideoWorker:
 
             alarmState = result * gain >= 1.0
 
-            if self.mw.glWidget.focused_uri == player.uri:
-                self.mw.videoConfigure.selTargets.barLevel.setLevel(result * gain)
-                if alarmState:
-                    self.mw.videoConfigure.selTargets.indAlarm.setState(1)
-                    
+            if camera:
+                if camera.isFocus():
+                    self.mw.videoConfigure.selTargets.barLevel.setLevel(result * gain)
+                    if alarmState:
+                        self.mw.videoConfigure.selTargets.indAlarm.setState(1)
+
             player.handleAlarm(alarmState)
 
             # restart the model if changed during run time

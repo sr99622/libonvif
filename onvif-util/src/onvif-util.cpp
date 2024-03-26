@@ -178,7 +178,7 @@ void profileCheck(OnvifData* onvif_data, const std::vector<std::string>& args)
 			std::cout << "  Profile set to " << onvif_data->profileToken << "\n" << std::endl;
 		}
 		else {
-			std::cout << std::endl;
+			std::cout << "  Profile set to " << onvif_data->profileToken << "\n" << std::endl;
 		}
 	}
 	if (getProfile(onvif_data)) throw std::runtime_error(cat("get profile - ", onvif_data->last_error));
@@ -336,6 +336,7 @@ int main(int argc, char **argv)
 				}
 				else if (args[0] == "profile") {
 					profileCheck(onvif_data, args);
+					if(getVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("get video encoder configuration - ", onvif_data->last_error));
 					std::cout << "  Width:      " << onvif_data->width << "\n";
 					std::cout << "  Height:     " << onvif_data->height << "\n";
 					std::cout << "  Frame Rate: " << onvif_data->frame_rate << "\n";
@@ -385,6 +386,14 @@ int main(int argc, char **argv)
 							std::cout <<  "  Max Frame Rate: " << onvif_data->frame_rate_max << "\n";
 							std::cout <<  "  Min Bit Rate: " << onvif_data->bitrate_min << "\n";
 							std::cout <<  "  Max Bit Rate: " << onvif_data->bitrate_max << "\n" << std::endl;
+						}
+						else {
+							profileCheck(onvif_data, args);
+							if(getVideoEncoderConfiguration(onvif_data)) throw std::runtime_error(cat("get video encoder configuration - ", onvif_data->last_error));
+							std::cout << "  Resolution: " << onvif_data->width << " x " << onvif_data->height << "\n";
+							std::cout << "  Frame Rate: " << onvif_data->frame_rate << "\n";
+							std::cout << "  Gov Length: " << onvif_data->gov_length << "\n";
+							std::cout << "  Bit Rate:   " << onvif_data->bitrate << "\n" << std::endl;
 						}
 					}
 					else {

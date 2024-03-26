@@ -170,6 +170,8 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 
 </details>
 
+---
+
 <details>
 <summary>Windows</summary>
 
@@ -416,7 +418,7 @@ In order to build from source on Windows, development tools and python are requi
 <summary>Desktop Icon</summary>
 &nbsp;
 
-<i>Please select the instructions for your operating system</i>
+<i>Please select the instructions for your operating system.</i>
 
 ---
 
@@ -517,7 +519,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 <summary>Camera Parameters</summary>
 &nbsp;
 
-<i>Changes are commited to the camera by using the Apply button, if necessary</i>
+<i>Changes are commited to the camera by using the Apply button, if necessary.</i>
 
 ---
 
@@ -731,9 +733,13 @@ Keyboard shortcuts are available when the file list of the File Panel has the ap
 
   The Left Arrow will rewind the file playing by 10 seconds.
 
+### Progress / Seek Indicator
+
+The File Panel has a progress bar that will show the state of the playback. The total duration of the file is shown on the right hand side of the progress bar, and the left hand side will show the current file position which is indicated by the progress bar handle. If the mouse hovers over the bar, the position within the file will be shown above. The seek function will set the file position to the mouse location if the mouse is clicked on the progress bar. Sliding operation is not supported.
+
 ### Pop Up Menu
 
-Right clicking over the file will bring up a menu that can be used to intiate file operations as well.
+Right clicking over the file will bring up a context menu that can be used to perform file operations.
 
 ---
 
@@ -789,7 +795,7 @@ A few default alarm sounds for selection.  A system wide volume setting for the 
 
 * Discovery Broadcast
 
-  This option will broadcast a discovery packet to find cameras on the network. If the host computer is attached to multiple networks it is possible to broadcast across all networks or only one selected network. Cameras discovered will have their data entered into the address cache so that they may be found without discovery later.
+  This option will broadcast a discovery packet to find cameras on the local network. If the host computer is attached to multiple networks it is possible to broadcast across all networks or only one selected network. Cameras discovered will have their data entered into the address cache so that they may be found without discovery later.
 
 * Cached Addresses
 
@@ -954,6 +960,8 @@ When running multiple cameras, performance can be improved by using substreams. 
 
 The Profile combo box on the Media Tab of the Camera Panel is used to select the Display Profile. The System Tab of the Camera Panel has a combo box selector for the Record Profile. If the Display Profile and the Record Profile are matched, only that stream is processed. If the Display Profile and Record Profile are different, the Display Profile stream is decoded and displayed while the Record Profile stream is cached in a buffer and written to disk when alarm conditions warrant or the user clicks the Record Button.
 
+Many camera substreams will have a distorted aspect ratio, which can be corrected by using the Aspect combo box of the Camera Panel Media Tab.
+
 * ### Performance Tuning
 
 As the number of cameras and stream analytics added to the system increases, the host may become overwhelmed, causing cache buffer overflow resulting in dropped frames. If a camera stream is dropping frames, a yellow border will be displayed over the camera output. The Cache value for each camera is a good indicator of system performance, and reaches maximum capacity at 100. If a cache is overflowing, the load placed on the system by the camera can be reduced by lowering frame rate and to a lesser degree by lowering resolution.
@@ -962,7 +970,9 @@ Lower powered CPUs with a small number of cores may benefit from hardware decodi
 
 Stream analysis can potentially place significant burden on system resources. Motion detection and Audio Amplitude analysis have very little load. Audio Frequency analysis does present a moderate load which may be an issue for lower powered systems. Yolox is by far the most intensive load and will limit the number of streams it can process. A GPU is recommended for Yolox, as a CPU only system will be able to process maybe one or two streams at the most.
 
-If a system is intended for GPU use with yolox, it is advised to connect the monitor of the host computer to the motherboard output of the CPU integrated graphics chip. This has the effect of reducing memory transfers between CPU and GPU, which are a source of latency.
+If a system is intended for GPU use with yolox, it is advised to connect the monitor of the host computer to the motherboard output of the CPU integrated graphics chip. This has the effect of reducing memory transfers between CPU and GPU, which are a source of latency. 
+
+GPU cards with PCIe 4 compatability will outperform those designed for PCIe 3. Note that not all cards utilize the full 16 lanes of the bus. GPU cards with 16 lanes will outperform those with only 8 lanes. Memory transfer between CPU and GPU occurs on the PCIe bus and can be a bottleneck for the system. GPU memory requirements are minimal, the yolox small model (yolox_s) will consume less than 2 GB. Yolox will employ a large number of cuda cores, so more is better in this category. Ubutnu NVIDIA drivers will outperform those on other operating systems.
 
 * ### Camera Compliance With Standards
 

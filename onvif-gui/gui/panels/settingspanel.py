@@ -456,16 +456,6 @@ class SettingsPanel(QWidget):
             filename = os.environ['HOME'] + "/.cache/onvif-gui/logs.txt"
         return filename
 
-    def getDirectorySize(self, d):
-        total_size = 0
-        for dirpath, dirnames, filenames in os.walk(d):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                if not os.path.islink(fp):
-                    total_size += os.path.getsize(fp)
-        
-        return total_size
-    
     def btnShowLogsClicked(self):
         filename = self.getLogFilename()
         if not self.dlgLog:
@@ -570,3 +560,14 @@ class SettingsPanel(QWidget):
         total, used, free = shutil.disk_usage(d)
         max_available = (free + d_size - 10000000000) / 1000000000
         return max_available
+
+    def getDirectorySize(self, d):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(d):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+        
+        return total_size
+    

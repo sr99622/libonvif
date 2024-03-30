@@ -1,5 +1,3 @@
 include README.md LICENSE
 recursive-include gui/resources *
-recursive-include detectron2/configs/COCO-InstanceSegmentation *
-recursive-include detectron2/configs/COCO-Keypoints *
-recursive-include detectron2/configs *
+

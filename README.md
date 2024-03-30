@@ -218,7 +218,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 <summary>Build From Source</summary>
 &nbsp;
 
-<i>Note that most functionality of the application is implemented in python and can be modified without compiling. The instructions that follow include compilation for the libonvif and libavio supporting libraries, which provide lower level functionality to the python application.</i>
+<i>Note that in order to compile the source code, it is necessary to use the --recursive flag when git cloning the repository.</i>
 
 ---
 
@@ -952,7 +952,7 @@ The control tab on the right of the application window may be toggled using the 
 
 The application is optimized for performance on Ubuntu Linux. Apple Mac should have good performance as well due to similarity between the systems. The application will run on Windows, but performance will be lower. The difference is due primarily to the use of OpenGL for video rendering, which performs better on *nix style platforms. When using GPU, Ubuntu Linux NVIDIA drivers generally outperform those on other operating systems.
 
-Linux offers additional advantages in network configuration as well. Linux can easily be configured to run a DHCP server to manage a separate network in which to isolate the cameras. A good way to configure the system is to use the wired network port of the host computer to manage the camera network, and use the wireless network connection of the host computer to connect with the wifi router and internet. The cameras will be isolated from the internet and will not increase network load on the wifi.
+Linux offers additional advantages in network configuration as well. Linux can easily be configured to run a [DHCP server](https://ubuntu.com/server/docs/how-to-install-and-configure-isc-kea) to manage a separate network in which to isolate the cameras. A good way to configure the system is to use the wired network port of the host computer to manage the camera network, and use the wireless network connection of the host computer to connect with the wifi router and internet. The cameras will be isolated from the internet and will not increase network load on the wifi.
 
 * ### Running Multiple Cameras
 

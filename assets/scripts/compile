@@ -1,3 +1,4 @@
+#!/bin/bash
 cd libonvif
 rm -R build
 rm -R libonvif.egg-info
@@ -10,3 +11,4 @@ cd ../onvif-gui
 rm -R build
 rm -R onvif_gui.egg-info
 pip install .
+cd ..

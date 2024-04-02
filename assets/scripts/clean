@@ -1,9 +1,14 @@
+#!/bin/bash
 cd libonvif
 rm -R build
 rm -R libonvif.egg-info
+rm -R dist
 cd ../libavio
 rm -R build
 rm -R avio.egg-info
+rm -R dist
 cd ../onvif-gui
 rm -R build
 rm -R onvif_gui.egg-info
+rm -R dist
+cd ..

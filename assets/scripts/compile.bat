@@ -10,3 +10,4 @@ cd ../onvif-gui
 rmdir /s /q build
 rmdir /s /q onvif_gui.egg-info
 pip install .
+cd ..

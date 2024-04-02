@@ -21,8 +21,6 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 <summary>Description</summary>
 &nbsp;
 
----
-
 Onvif GUI is an integrated camera management and NVR system with an intuitive user interface that can easily manage a fleet of cameras and create high resolution recordings based on alarm conditions. A best of breed YOLO detector is included with the system to facilitate accurate alarm signals without false detections. 
 
 The system is designed to scale with available hardware and will run on simple configurations with minimal hardware requirements as well as high end multi core CPUs with NVIDIA GPU for maximum performance. The system can be configured with auto start settings and a user friendly icon so that non-technical users can feel comfortable working with the application without specialized training. 
@@ -85,6 +83,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   ```
   onvif-gui
   ```
+
 </details>
 
 <details>
@@ -168,9 +167,9 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   onvif-gui
   ```
 
-</details>
-
 ---
+
+</details>
 
 <details>
 <summary>Windows</summary>
@@ -264,6 +263,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   ```
   onvif-gui
   ```
+
 </details>
 
 <details>
@@ -368,6 +368,8 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   onvif-gui
   ```
 
+---
+
 </details>
 
 <details>
@@ -424,6 +426,7 @@ In order to build from source on Windows, development tools and python are requi
 
 <details>
 <summary>Linux</summary>
+&nbsp;
 
 In order to add an icon to the desktop, administrator privileges are required. The location of the virtual environment folder must also be known and is required when invoking the command to create the desktop icon. To add the icon, use the following command, substituting the local host virtual environment configuration as appropriate.
 
@@ -439,6 +442,7 @@ Upon completion of the command, the icon may be found in the Applications Folder
 
 <details>
 <summary>Windows</summary>
+&nbsp;
 
 To install a desktop icon on windows, please make sure the virtual environment is activated and then add the winshell python module.
 

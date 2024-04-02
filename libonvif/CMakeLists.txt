@@ -21,16 +21,23 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 3.1.0)
+project(libonvif VERSION 3.1.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_definitions(-w)
 
+# pass current dir in from host when building in virtual env
+set (MY_CURRENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+if (DEFINED ENV{CMAKE_CURRENT_SOURCE_DIR})
+    set(MY_CURRENT_DIR $ENV{CMAKE_CURRENT_SOURCE_DIR})
+endif()
+file(TO_CMAKE_PATH "${MY_CURRENT_DIR}" MY_DIR_VAR)
+
 if (WIN32)
-    set(LIBXML2_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libxml2/include/libxml2)
-    set(LIBXML2_LIBRARIES ${CMAKE_CURRENT_SOURCE_DIR}/libxml2/lib/libxml2.lib)
+    set(LIBXML2_INCLUDE_DIRS ${MY_DIR_VAR}/libxml2/include/libxml2)
+    set(LIBXML2_LIBRARIES ${MY_DIR_VAR}/libxml2/lib/libxml2.lib)
 else()
     find_package(LibXml2 REQUIRED)
 endif()
@@ -56,7 +63,6 @@ if (NOT WITHOUT_LIBS)
 
     target_include_directories(libonvif PUBLIC
         include
-        ${Iconv_INCLUDE_DIRS}
         ${LIBXML2_INCLUDE_DIRS}
     )
 
@@ -81,9 +87,11 @@ IF (NOT WITHOUT_PYTHON)
         ${LIBXML2_LIBRARIES}
     )
 
+    message("-- LIBXML2_INCLUDE_DIRS: "${LIBXML2_INCLUDE_DIRS})
+    message("-- LIBXML2_LIBRARIES: "${LIBXML2_LIBRARIES})
+
     target_include_directories(pyonvif PUBLIC
         include
-        ${Iconv_INCLUDE_DIRS}
         ${LIBXML2_INCLUDE_DIRS}
     )
 

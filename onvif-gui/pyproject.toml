@@ -19,15 +19,15 @@
 
 [project]
 name = "onvif-gui" 
-version = "2.0.5"  
+version = "2.0.9"
 dynamic = ["gui-scripts"]
-description = "A client gui for Onvif"  
-readme = "README.md" 
+description = "A client gui for Onvif"
+readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE.txt"}
-keywords = ["sample", "setuptools", "development"]  
+keywords = ["sample", "setuptools", "development"]
 authors = [
-  {name = "Stephen Rhodes", email = "sr99622@gmail.com" } 
+  {name = "Stephen Rhodes", email = "sr99622@gmail.com" }
 ]
 classifiers = [ 
   "Development Status :: 5 - Production/Stable",
@@ -38,7 +38,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "libonvif==3.1.0", "avio==3.1.1", "PyQt6-Qt6==6.6.1", "pyqt6==6.6.1", "numpy", "loguru", "opencv-python"
+  "libonvif==3.1.1", "avio==3.1.2", "PyQt6-Qt6==6.6.1", "pyqt6==6.6.1", "numpy", "loguru", "opencv-python"
 ]
 
 [project.urls]  

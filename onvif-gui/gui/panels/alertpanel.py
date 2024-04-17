@@ -9,7 +9,6 @@ class AlertPanel(QWidget):
         self.mw = mw
         self.layout = QVBoxLayout(self)
 
-        
         self.chkEnableAlert = QCheckBox("If you enable this, you will receive Alert's on Telegram along with the image of detected object")
         self.chkEnableAlert.stateChanged.connect(self.enableAlertChanged)
         self.layout.addWidget(self.chkEnableAlert) 
@@ -38,25 +37,9 @@ class AlertPanel(QWidget):
 
         
     def enableAlertChanged(self, checked):
-        # Enable or disable text inputs and button based on the checkbox state
         self.txtBotId.setEnabled(checked)
         self.txtChatId.setEnabled(checked)
         self.btnTest.setEnabled(checked)
-
-    # def testConnection(self):
-    #     if self.txtBotId.isEnabled():
-    #         # Implement connection testing logic
-    #         bot_id = self.txtBotId.text()
-    #         chat_id = self.txtChatId.text()
-    #         bot = Bot(token=bot_id)
-
-    #         try:
-                
-    #             bot.send_message(chat_id=chat_id, text="Successfully enabled Telegram Alerts")
-    #             # You can update the UI or notify the user of success here
-    #         except Exception as e:
-    #             # Handle exceptions, e.g., invalid token or chat ID
-    #             print(f"Failed to send message: {str(e)}")
 
     def testConnection(self):
         if self.txtBotId.isEnabled():

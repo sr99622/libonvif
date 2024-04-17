@@ -10,10 +10,12 @@ class AlertPanel(QWidget):
         
         self.lblBotId = QLabel("BOT ID")
         self.txtBotId = QLineEdit()
+        self.txtBotId.setEchoMode(QLineEdit.EchoMode.Password)
         
         self.lblChatId = QLabel("Your_CHAT_ID")
         self.txtChatId = QLineEdit()
-        
+        self.txtChatId.setEchoMode(QLineEdit.EchoMode.Password)
+
         self.btnTest = QPushButton("Test")
         self.btnTest.clicked.connect(self.testConnection)
 

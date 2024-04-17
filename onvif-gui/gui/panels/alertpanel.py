@@ -115,7 +115,7 @@ class AlertPanel(QWidget):
         self.btnSavePath.setEnabled(False)  # Disabled by default
         self.layout.addWidget(self.btnSavePath)
 
-                # Button to clear the selected directory
+        # Button to clear the selected directory
         self.btnClearSavePath = QPushButton("Clear Selected Directory")
         self.btnClearSavePath.clicked.connect(self.clearSaveDirectory)
         self.btnClearSavePath.setEnabled(False)  # Disabled by default
@@ -130,13 +130,16 @@ class AlertPanel(QWidget):
         self.lblBotId = QLabel("BOT ID")
         self.txtBotId = QLineEdit()
         self.txtBotId.setEchoMode(QLineEdit.EchoMode.Password)
+        self.txtBotId.setEnabled(False)
         
         self.lblChatId = QLabel("Your_CHAT_ID")
         self.txtChatId = QLineEdit()
         self.txtChatId.setEchoMode(QLineEdit.EchoMode.Password)
+        self.txtChatId.setEnabled(False)
 
         self.btnTest = QPushButton("Test Configuration")
         self.btnTest.clicked.connect(self.testConnection)
+        self.btnTest.setEnabled(False)
         
         lytFixed.addWidget(self.lblBotId,    0, 0, 1, 1)
         lytFixed.addWidget(self.txtBotId,    0, 1, 1, 1)

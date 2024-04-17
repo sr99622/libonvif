@@ -72,7 +72,7 @@ class AlertPanel(QWidget):
         self.txtBotId.setEnabled(checked)
         self.txtChatId.setEnabled(checked)
         self.btnTest.setEnabled(checked)
-        self.checkCredentials()
+        self.btnTest.setEnabled(checked and bool(self.txtBotId.text() and self.txtChatId.text()))
     
     def checkCredentials(self):
         # Check both text fields to determine if the test button should be enabled

@@ -1,30 +1,111 @@
+# import os
+# import asyncio
+# from telegram import Bot
+# from PyQt6.QtCore import Qt
+# from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QCheckBox, QMessageBox, QApplication, QFileDialog
+# class AlertPanel(QWidget):
+#     def __init__(self, mw):
+#         super().__init__()
+#         self.mw = mw
+#         self.layout = QVBoxLayout(self)
+
+#         self.chkEnableAlert = QCheckBox("Enable alerts on Telegram with the image of detected object")
+#         self.chkEnableAlert.stateChanged.connect(self.enableAlertChanged)
+#         self.layout.addWidget(self.chkEnableAlert) 
+        
+#         self.lblBotId = QLabel("BOT ID")
+#         self.txtBotId = QLineEdit()
+#         self.txtBotId.setEchoMode(QLineEdit.EchoMode.Password)
+        
+#         self.lblChatId = QLabel("Your_CHAT_ID")
+#         self.txtChatId = QLineEdit()
+#         self.txtChatId.setEchoMode(QLineEdit.EchoMode.Password)
+
+#         self.btnTest = QPushButton("Test")
+#         self.btnTest.clicked.connect(self.testConnection)
+
+#         fixedPanel = QWidget()
+#         lytFixed = QGridLayout(fixedPanel)
+#         lytFixed.addWidget(self.lblBotId,    0, 0, 1, 1)
+#         lytFixed.addWidget(self.txtBotId,    0, 1, 1, 1)
+#         lytFixed.addWidget(self.lblChatId,   1, 0, 1, 1)
+#         lytFixed.addWidget(self.txtChatId,   1, 1, 1, 1)
+#         lytFixed.addWidget(self.btnTest,     2, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
+#         lytFixed.setColumnStretch(1, 10)
+#         self.layout.addWidget(fixedPanel)
+
+#         self.chkSaveImages = QCheckBox("Save detected images locally")
+#         self.chkSaveImages.stateChanged.connect(self.saveImagesChanged)
+#         self.layout.addWidget(self.chkSaveImages)
+        
+#         self.btnSavePath = QPushButton("Select save directory")
+#         self.btnSavePath.clicked.connect(self.selectSaveDirectory)
+#         self.btnSavePath.setEnabled(False)  # Disabled by default
+#         self.layout.addWidget(self.btnSavePath)
+
+#         self.selectedSavePath = ""  # To store the selected directorys
+
+
+#     def enableAlertChanged(self, checked):
+#         self.txtBotId.setEnabled(checked)
+#         self.txtChatId.setEnabled(checked)
+#         self.btnTest.setEnabled(checked)
+
+#     def testConnection(self):
+#         if self.txtBotId.isEnabled():
+#             asyncio.run(self.async_testConnection())
+
+#     async def async_testConnection(self):
+#         bot_id = self.txtBotId.text()
+#         chat_id = self.txtChatId.text()
+#         bot = Bot(token=bot_id)
+
+#         try:
+#             await bot.send_message(chat_id=chat_id, text="Successfully enabled Telegram Alerts")
+#             QMessageBox.information(self, "Success", "Message sent successfully!")
+#         except Exception as e:
+#             QMessageBox.critical(self, "Error", f"Failed to send message: {str(e)}")
+#         finally:
+#             QApplication.processEvents()
+
+#     def saveImagesChanged(self, checked):
+#         # Enable or disable the save path button
+#         self.btnSavePath.setEnabled(checked)
+
+#     def selectSaveDirectory(self):
+#         # Open a dialog to select a directory
+#         path = QFileDialog.getExistingDirectory(self, "Select Save Directory")
+#         if path:
+#             self.selectedSavePath = path
+#             QMessageBox.information(self, "Directory Selected", f"Files will be saved to: {path}")
+
+
+
+
 import os
 import asyncio
-from telegram import Bot
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QCheckBox, QMessageBox, QApplication, QFileDialog
+from PyQt6.QtWidgets import (
+    QGridLayout, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout,
+    QCheckBox, QMessageBox, QApplication, QFileDialog
+)
+from telegram import Bot
+
 class AlertPanel(QWidget):
     def __init__(self, mw):
         super().__init__()
         self.mw = mw
         self.layout = QVBoxLayout(self)
 
+        # Telegram alert setup
         self.chkEnableAlert = QCheckBox("Enable alerts on Telegram with the image of detected object")
         self.chkEnableAlert.stateChanged.connect(self.enableAlertChanged)
-        self.layout.addWidget(self.chkEnableAlert) 
+        self.layout.addWidget(self.chkEnableAlert)
         
-        self.lblBotId = QLabel("BOT ID")
-        self.txtBotId = QLineEdit()
-        self.txtBotId.setEchoMode(QLineEdit.EchoMode.Password)
-        
-        self.lblChatId = QLabel("Your_CHAT_ID")
-        self.txtChatId = QLineEdit()
-        self.txtChatId.setEchoMode(QLineEdit.EchoMode.Password)
+        # UI for Telegram bot credentials
+        self.setupTelegramUI()
 
-        self.btnTest = QPushButton("Test")
-        self.btnTest.clicked.connect(self.testConnection)
-
-                # Checkbox and button for saving detected images
+        # Checkbox and button for saving detected images
         self.chkSaveImages = QCheckBox("Save detected images locally")
         self.chkSaveImages.stateChanged.connect(self.saveImagesChanged)
         self.layout.addWidget(self.chkSaveImages)
@@ -34,10 +115,29 @@ class AlertPanel(QWidget):
         self.btnSavePath.setEnabled(False)  # Disabled by default
         self.layout.addWidget(self.btnSavePath)
 
-        self.selectedSavePath = ""  # To store the selected directorys
+                # Button to clear the selected directory
+        self.btnClearSavePath = QPushButton("Clear Selected Directory")
+        self.btnClearSavePath.clicked.connect(self.clearSaveDirectory)
+        self.btnClearSavePath.setEnabled(False)  # Disabled by default
+        self.layout.addWidget(self.btnClearSavePath)
 
+        self.selectedSavePath = ""  # To store the selected directory
+
+    def setupTelegramUI(self):
         fixedPanel = QWidget()
         lytFixed = QGridLayout(fixedPanel)
+        
+        self.lblBotId = QLabel("BOT ID")
+        self.txtBotId = QLineEdit()
+        self.txtBotId.setEchoMode(QLineEdit.EchoMode.Password)
+        
+        self.lblChatId = QLabel("Your_CHAT_ID")
+        self.txtChatId = QLineEdit()
+        self.txtChatId.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.btnTest = QPushButton("Test Configuration")
+        self.btnTest.clicked.connect(self.testConnection)
+        
         lytFixed.addWidget(self.lblBotId,    0, 0, 1, 1)
         lytFixed.addWidget(self.txtBotId,    0, 1, 1, 1)
         lytFixed.addWidget(self.lblChatId,   1, 0, 1, 1)
@@ -47,26 +147,22 @@ class AlertPanel(QWidget):
         self.layout.addWidget(fixedPanel)
 
     def enableAlertChanged(self, checked):
+        # Enable or disable Telegram settings based on checkbox
         self.txtBotId.setEnabled(checked)
         self.txtChatId.setEnabled(checked)
         self.btnTest.setEnabled(checked)
 
     def testConnection(self):
-        if self.txtBotId.isEnabled():
-            asyncio.run(self.async_testConnection())
+        # Simple Telegram message test
+        asyncio.run(self.async_testConnection())
 
     async def async_testConnection(self):
-        bot_id = self.txtBotId.text()
-        chat_id = self.txtChatId.text()
-        bot = Bot(token=bot_id)
-
+        bot = Bot(token=self.txtBotId.text())
         try:
-            await bot.send_message(chat_id=chat_id, text="Successfully enabled Telegram Alerts")
+            await bot.send_message(chat_id=self.txtChatId.text(), text="Successfully enabled Telegram Alerts")
             QMessageBox.information(self, "Success", "Message sent successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to send message: {str(e)}")
-        finally:
-            QApplication.processEvents()
 
     def saveImagesChanged(self, checked):
         # Enable or disable the save path button
@@ -78,3 +174,12 @@ class AlertPanel(QWidget):
         if path:
             self.selectedSavePath = path
             QMessageBox.information(self, "Directory Selected", f"Files will be saved to: {path}")
+            self.btnSavePath.setText("Directory Selected")
+            self.btnClearSavePath.setEnabled(True)  # Enable the clear button when a directory is selected
+
+    def clearSaveDirectory(self):
+        # Clear the currently selected directory
+        self.selectedSavePath = ""
+        self.btnSavePath.setText("Select save directory")
+        self.btnClearSavePath.setEnabled(False)  # Disable the clear button once the selection is cleared
+        QMessageBox.information(self, "Clear Directory", "Selected save directory has been cleared.")

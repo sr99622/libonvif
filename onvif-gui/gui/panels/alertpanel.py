@@ -1,12 +1,18 @@
 import os
-from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout
+import asyncio
+from telegram import Bot
 from PyQt6.QtCore import Qt
-
+from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QCheckBox, QMessageBox, QApplication
 class AlertPanel(QWidget):
     def __init__(self, mw):
         super().__init__()
         self.mw = mw
         self.layout = QVBoxLayout(self)
+
+        
+        self.chkEnableAlert = QCheckBox("If you enable this, you will receive Alert's on Telegram along with the image of detected object")
+        self.chkEnableAlert.stateChanged.connect(self.enableAlertChanged)
+        self.layout.addWidget(self.chkEnableAlert) 
         
         self.lblBotId = QLabel("BOT ID")
         self.txtBotId = QLineEdit()
@@ -19,6 +25,7 @@ class AlertPanel(QWidget):
         self.btnTest = QPushButton("Test")
         self.btnTest.clicked.connect(self.testConnection)
 
+
         fixedPanel = QWidget()
         lytFixed = QGridLayout(fixedPanel)
         lytFixed.addWidget(self.lblBotId,    0, 0, 1, 1)
@@ -29,9 +36,41 @@ class AlertPanel(QWidget):
         lytFixed.setColumnStretch(1, 10)
         self.layout.addWidget(fixedPanel)
 
+        
+    def enableAlertChanged(self, checked):
+        # Enable or disable text inputs and button based on the checkbox state
+        self.txtBotId.setEnabled(checked)
+        self.txtChatId.setEnabled(checked)
+        self.btnTest.setEnabled(checked)
+
+    # def testConnection(self):
+    #     if self.txtBotId.isEnabled():
+    #         # Implement connection testing logic
+    #         bot_id = self.txtBotId.text()
+    #         chat_id = self.txtChatId.text()
+    #         bot = Bot(token=bot_id)
+
+    #         try:
+                
+    #             bot.send_message(chat_id=chat_id, text="Successfully enabled Telegram Alerts")
+    #             # You can update the UI or notify the user of success here
+    #         except Exception as e:
+    #             # Handle exceptions, e.g., invalid token or chat ID
+    #             print(f"Failed to send message: {str(e)}")
+
     def testConnection(self):
-        # Implement connection testing logic
+        if self.txtBotId.isEnabled():
+            asyncio.run(self.async_testConnection())
+
+    async def async_testConnection(self):
         bot_id = self.txtBotId.text()
         chat_id = self.txtChatId.text()
-        print(f"Testing connection with BOT ID: {bot_id} and CHAT ID: {chat_id}")
-        # Additional logic to actually test the connection can be implemented here
+        bot = Bot(token=bot_id)
+
+        try:
+            await bot.send_message(chat_id=chat_id, text="Successfully enabled Telegram Alerts")
+            QMessageBox.information(self, "Success", "Message sent successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to send message: {str(e)}")
+        finally:
+            QApplication.processEvents()

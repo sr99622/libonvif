@@ -33,14 +33,3 @@ class AlertPanel(QWidget):
         chat_id = self.txtChatId.text()
         print(f"Testing connection with BOT ID: {bot_id} and CHAT ID: {chat_id}")
         # Additional logic to actually test the connection can be implemented here
-
-# Example usage
-if __name__ == "__main__":
-    from PyQt6.QtWidgets import QApplication
-    import sys
-
-    app = QApplication(sys.argv)
-    main_window = QWidget()  # This should be your main window class
-    panel = AlertPanel(main_window)
-    panel.show()
-    sys.exit(app.exec())

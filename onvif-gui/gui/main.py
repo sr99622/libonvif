@@ -39,7 +39,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
     QTabWidget, QMessageBox
 from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QTimer, QFile, Qt
 from PyQt6.QtGui import QIcon
-from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel
+from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, AudioPanel, AlertPanel
 from gui.glwidget import GLWidget
 from gui.manager import Manager
 from gui.onvif import StreamState
@@ -384,6 +384,7 @@ class MainWindow(QMainWindow):
         self.signals.progress.connect(self.filePanel.onMediaProgress)
         self.videoPanel = VideoPanel(self)
         self.audioPanel = AudioPanel(self)
+        self.alertPanel = AlertPanel(self)
         self.signals.error.connect(self.onError)
         self.signals.reconnect.connect(self.startReconnectTimer)
         self.signals.stopReconnect.connect(self.stopReconnectTimer)
@@ -394,6 +395,7 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.settingsPanel, "Settings")
         self.tab.addTab(self.videoPanel, "Video")
         self.tab.addTab(self.audioPanel, "Audio")
+        self.tab.addTab(self.alertPanel, "Alert")
         self.signals.setTabIndex.connect(self.tab.setCurrentIndex)
         self.tab.currentChanged.connect(self.tabIndexChanged)
         self.tabVisible = True

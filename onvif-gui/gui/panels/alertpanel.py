@@ -19,7 +19,7 @@ class AlertPanel(QWidget):
         
         # UI for Telegram bot credentials
         self.setupTelegramUI()
-
+        
         # Checkbox and button for saving detected images
         self.chkSaveImages = QCheckBox("Save detected images locally")
         self.chkSaveImages.stateChanged.connect(self.saveImagesChanged)

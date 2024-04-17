@@ -12,14 +12,21 @@ class AlertPanel(QWidget):
         self.mw = mw
         self.layout = QVBoxLayout(self)
 
+        # Keys for settings
+        self.enableAlertKey = "AlertPanel/enableAlert"
+        self.saveImagesKey = "AlertPanel/saveImages"
+        self.savePathKey = "AlertPanel/savePath"
+        self.botIdKey = "AlertPanel/botId"
+        self.chatIdKey = "AlertPanel/chatId"
+
         # Telegram alert setup
         self.chkEnableAlert = QCheckBox("Enable alerts on Telegram with the image of detected object")
         self.chkEnableAlert.stateChanged.connect(self.enableAlertChanged)
         self.layout.addWidget(self.chkEnableAlert)
-        
+
         # UI for Telegram bot credentials
         self.setupTelegramUI()
-        
+
         # Checkbox and button for saving detected images
         self.chkSaveImages = QCheckBox("Save detected images locally")
         self.chkSaveImages.stateChanged.connect(self.saveImagesChanged)
@@ -47,25 +54,56 @@ class AlertPanel(QWidget):
         self.txtBotId.setEchoMode(QLineEdit.EchoMode.Password)
         self.txtBotId.setEnabled(False)
         self.txtBotId.textChanged.connect(self.checkCredentials)
-        
-        
+        self.txtBotId.textChanged.connect(self.updateButtonsState)
+
         self.lblChatId = QLabel("Your_CHAT_ID")
         self.txtChatId = QLineEdit()
         self.txtChatId.setEchoMode(QLineEdit.EchoMode.Password)
         self.txtChatId.setEnabled(False)
         self.txtChatId.textChanged.connect(self.checkCredentials)
-
+        self.txtChatId.textChanged.connect(self.updateButtonsState)
+        
         self.btnTest = QPushButton("Test Configuration")
         self.btnTest.clicked.connect(self.testConnection)
         self.btnTest.setEnabled(False)
+
+        self.btnClearConfig = QPushButton("Clear Configuration")
+        self.btnClearConfig.clicked.connect(self.clearConfiguration)
+        self.btnClearConfig.setEnabled(False)
+        
+        self.btnToggleVisibility = QPushButton("Toggle Text Visibility")
+        self.btnToggleVisibility.clicked.connect(self.toggleVisibility)
+        self.btnToggleVisibility.setEnabled(False)
         
         lytFixed.addWidget(self.lblBotId,    0, 0, 1, 1)
         lytFixed.addWidget(self.txtBotId,    0, 1, 1, 1)
         lytFixed.addWidget(self.lblChatId,   1, 0, 1, 1)
         lytFixed.addWidget(self.txtChatId,   1, 1, 1, 1)
         lytFixed.addWidget(self.btnTest,     2, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
+        lytFixed.addWidget(self.btnClearConfig, 3, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
+        lytFixed.addWidget(self.btnToggleVisibility, 4, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
         lytFixed.setColumnStretch(1, 10)
         self.layout.addWidget(fixedPanel)
+
+    def updateButtonsState(self):
+        # Enable or disable the buttons based on text fields content
+        has_text = bool(self.txtBotId.text() or self.txtChatId.text())
+        self.btnClearConfig.setEnabled(has_text)
+        self.btnToggleVisibility.setEnabled(has_text)
+
+    def clearConfiguration(self):
+        # Clear the configuration in both text fields
+        self.txtBotId.clear()
+        self.txtChatId.clear()
+
+    def toggleVisibility(self):
+        # Toggle the EchoMode between Password and Normal to show/hide text
+        if self.txtBotId.echoMode() == QLineEdit.EchoMode.Password:
+            self.txtBotId.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.txtChatId.setEchoMode(QLineEdit.EchoMode.Normal)
+        else:
+            self.txtBotId.setEchoMode(QLineEdit.EchoMode.Password)
+            self.txtChatId.setEchoMode(QLineEdit.EchoMode.Password)
 
     def enableAlertChanged(self, checked):
         # Enable or disable Telegram settings based on checkbox

@@ -142,7 +142,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   ```
   brew update
   brew upgrade
-  brew install ffmpeg
+  brew install ffmpeg@6
   brew install libxml2
   brew install cmake
   brew install git

@@ -170,7 +170,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 
 * ### Note:
 
-  <i>The ffmpeg06 version installed under this sequence of commands is not the current version and is a keg only package. If there are issues during the pip install regarding avio, check the environment variable </i> FFMPEG_INSTALL_DIR <i> to insure that the lib and bin sub-directories exist. The message produced by brew when installing ffmeg06 may help provide some info.</i>
+  <i>The ffmpeg@6 version installed under this sequence of commands is not the current version and is a keg only package. If there are issues during the pip install regarding avio, check the environment variable </i> FFMPEG_INSTALL_DIR <i> to insure that the lib and bin sub-directories exist. The message produced by brew when installing ffmeg@6 may help provide some info.</i>
 
 ---
 
@@ -340,7 +340,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   brew install libxml2
   brew install cmake
   brew install git
-  brew install ffmpeg06
+  brew install ffmpeg@6
   export FFMPEG_INSTALL_DIR=/opt/homebrew/opt/ffmpeg@6
   ```
 
@@ -376,7 +376,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 
 * ### Note:
 
-  <i>The ffmpeg06 version installed under this sequence of commands is not the current version and is a keg only package. If there are issues during the pip install regarding avio, check the environment variable </i> FFMPEG_INSTALL_DIR <i> to insure that the lib and bin sub-directories exist. The message produced by brew when installing ffmeg06 may help provide some info.</i>
+  <i>The ffmpeg@6 version installed under this sequence of commands is not the current version and is a keg only package. If there are issues during the pip install regarding avio, check the environment variable </i> FFMPEG_INSTALL_DIR <i> to insure that the lib and bin sub-directories exist. The message produced by brew when installing ffmeg@6 may help provide some info.</i>
 
 
 ---

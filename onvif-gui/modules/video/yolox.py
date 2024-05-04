@@ -27,7 +27,7 @@ try:
     from gui.components import ComboSelector, FileSelector, ThresholdSlider, TargetSelector
     from gui.onvif.datastructures import MediaSource
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox, \
-        QGroupBox, QSlider, QDialog
+        QGroupBox, QDialog
     from PyQt6.QtCore import Qt, QSize, QObject, pyqtSignal
     from PyQt6.QtGui import QMovie
     import time
@@ -36,6 +36,7 @@ try:
     import torch.nn as nn
     from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
     from yolox.utils import postprocess
+    import openvino as ov
 
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
@@ -150,18 +151,24 @@ class VideoConfigure(QWidget):
             self.chkAuto.stateChanged.connect(self.chkAutoClicked)
             self.txtFilename = FileSelector(mw, MODULE_NAME)
             self.txtFilename.setEnabled(not self.chkAuto.isChecked())
-            self.cmbRes = ComboSelector(mw, "Model Size", ("320", "480", "640", "960", "1280", "1440"), "640", MODULE_NAME)
-            self.cmbType = ComboSelector(mw, "Model Name", ("yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
+            self.cmbRes = ComboSelector(mw, "Size", ("160", "320", "480", "640", "960", "1240"), "640", MODULE_NAME)
+            self.cmbModelName = ComboSelector(mw, "Name", ("yolox_tiny", "yolox_s", "yolox_m", "yolox_l", "yolox_x"), "yolox_s", MODULE_NAME)
+            self.cmbAPI = ComboSelector(mw, "API", ("PyTorch", "OpenVINO"), "OpenVINO", MODULE_NAME)
+            self.cmbAPI.cmbBox.currentTextChanged.connect(self.cmbAPIChanged)
+
+            self.cmbDevice = ComboSelector(mw, "Device", self.getDevices(self.cmbAPI.currentText()), "AUTO", MODULE_NAME)
 
             self.sldConfThre = ThresholdSlider(mw, "Confidence", MODULE_NAME)
             self.selTargets = TargetSelector(self.mw, MODULE_NAME)
 
             grpSystem = QGroupBox("System wide model parameters")
             lytSystem = QGridLayout(grpSystem)
-            lytSystem.addWidget(self.chkAuto,      0, 0, 1, 1)
-            lytSystem.addWidget(self.cmbType,      1, 0, 1, 1)
-            lytSystem.addWidget(self.txtFilename,  2, 0, 1, 1)
-            lytSystem.addWidget(self.cmbRes,       3, 0, 1, 1)
+            lytSystem.addWidget(self.chkAuto,      0, 0, 1, 4)
+            lytSystem.addWidget(self.txtFilename,  1, 0, 1, 4)
+            lytSystem.addWidget(self.cmbModelName, 2, 0, 1, 2)
+            lytSystem.addWidget(self.cmbRes,       2, 2, 1, 2)
+            lytSystem.addWidget(self.cmbAPI,       3, 0, 1, 2)
+            lytSystem.addWidget(self.cmbDevice,    3, 2, 1, 2)
 
             self.grpCamera = QGroupBox("Check camera video alarm to enable")
             lytCamera = QGridLayout(self.grpCamera)
@@ -187,6 +194,20 @@ class VideoConfigure(QWidget):
     def chkAutoClicked(self, state):
         self.mw.settings.setValue(self.autoKey, state)
         self.txtFilename.setEnabled(not self.chkAuto.isChecked())
+
+    def getDevices(self, api):
+        devices = []
+        if api == "OpenVINO":
+            devices = ["AUTO"] + ov.Core().available_devices
+        if api == "PyTorch":
+            devices = ["auto", "cpu"]
+            if torch.cuda.is_available():
+                devices.append("cuda")
+        return devices
+
+    def cmbAPIChanged(self, text):
+        self.cmbDevice.clear()
+        self.cmbDevice.addItems(self.getDevices(text))
 
     def setCamera(self, camera):
         self.source = MediaSource.CAMERA
@@ -242,86 +263,108 @@ class VideoConfigure(QWidget):
 class VideoWorker:
     def __init__(self, mw):
         try:
+            print("Video Worker initialization")
             self.mw = mw
             self.last_ex = ""
-            self.lock = False
 
             if self.mw.videoConfigure.name != MODULE_NAME or len(IMPORT_ERROR) > 0:
                 return
             
-            device_name = "cpu"
-            if torch.cuda.is_available():
-                device_name = "cuda"
-
-            self.device = torch.device(device_name)
-
             self.mw.glWidget.model_loading = True
+            self.lock = True
+
+            self.torch_device = None
+            self.torch_device_name = None
+            self.ov_device = None
+            self.compiled_model = None
+            ov_model = None
 
             self.num_classes = 80
+            self.res = int(self.mw.videoConfigure.cmbRes.currentText())
+            initializer_data = torch.rand(1, 3, self.res, self.res)
+            self.model_name = self.mw.videoConfigure.cmbModelName.currentText()
 
-            size = {'yolox_s': [0.33, 0.50], 
-                    'yolox_m': [0.67, 0.75],
-                    'yolox_l': [1.00, 1.00],
-                    'yolox_x': [1.33, 1.25]}[self.mw.videoConfigure.cmbType.currentText()]
+            self.api = self.mw.videoConfigure.cmbAPI.currentText()
+            if self.api == "PyTorch":
+                self.torch_device_name = self.mw.videoConfigure.cmbDevice.currentText()
+            if self.api == "OpenVINO":
+                self.ov_device = self.mw.videoConfigure.cmbDevice.currentText()
 
-            self.model = None
-            self.model = self.get_model(self.num_classes, size[0], size[1], None).to(self.device)
-            self.model.eval()
 
-            self.ckpt_file = None
-            if self.mw.videoConfigure.chkAuto.isChecked():
-                self.ckpt_file = self.get_auto_ckpt_filename()
-                cache = Path(self.ckpt_file)
+            if self.api == "OpenVINO" and Path(self.get_ov_model_filename()).is_file():
+                ov_model = ov.Core().read_model(self.get_ov_model_filename())
+            
+            if (self.api == "OpenVINO" and not ov_model) or self.api == "PyTorch":
+                self.torch_device_name = "cpu"
+                if self.api == "PyTorch":
+                    if torch.cuda.is_available():
+                        self.torch_device_name = "cuda"
+                    if self.mw.videoConfigure.cmbDevice.currentText() == "cpu":
+                        self.torch_device_name = "cpu"
+                self.torch_device = torch.device(self.torch_device_name)
 
-                if not cache.is_file():
-                    self.mw.videoConfigure.signals.showWaitDialog.emit()
-                    cache.parent.mkdir(parents=True, exist_ok=True)
-                    model_name = self.mw.videoConfigure.cmbType.currentText()
-                    link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + model_name + ".pth"
-                    if os.path.split(sys.executable)[1] == "pythonw.exe":
-                        torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
-                    else:
-                        torch.hub.download_url_to_file(link, self.ckpt_file)
-                    self.mw.videoConfigure.signals.hideWaitDialog.emit()
-            else:
-                self.ckpt_file = self.mw.videoConfigure.txtFilename.text()
+                size = {'yolox_tiny': [0.33, 0.375],
+                        'yolox_s': [0.33, 0.50], 
+                        'yolox_m': [0.67, 0.75],
+                        'yolox_l': [1.00, 1.00],
+                        'yolox_x': [1.33, 1.25]}[self.model_name]
 
-            self.model.load_state_dict(torch.load(self.ckpt_file, map_location="cpu")["model"])
+                self.model = None
+                self.model = self.get_model(self.num_classes, size[0], size[1], None).to(self.torch_device)
+                self.model.eval()
 
-            res = int(self.mw.videoConfigure.cmbRes.currentText())
-            self.model(torch.zeros(1, 3, res, res).to(self.device))
-            self.mw.glWidget.model_loading = False
+                self.ckpt_file = None
+                if self.mw.videoConfigure.chkAuto.isChecked():
+                    self.ckpt_file = self.get_auto_ckpt_filename()
+                    cache = Path(self.ckpt_file)
+
+                    if not cache.is_file():
+                        self.mw.videoConfigure.signals.showWaitDialog.emit()
+                        cache.parent.mkdir(parents=True, exist_ok=True)
+                        link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + self.model_name + ".pth"
+                        if os.path.split(sys.executable)[1] == "pythonw.exe":
+                            torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
+                        else:
+                            torch.hub.download_url_to_file(link, self.ckpt_file)
+                        self.mw.videoConfigure.signals.hideWaitDialog.emit()
+                else:
+                    self.ckpt_file = self.mw.videoConfigure.txtFilename.text()
+
+                self.model.load_state_dict(torch.load(self.ckpt_file, map_location="cpu")["model"])
+                self.model(initializer_data.to(self.torch_device))
+
+                if self.api == "OpenVINO":
+                    ov_model = ov.convert_model(self.model, example_input=initializer_data)
+                    ov.save_model(ov_model, self.get_ov_model_filename())
+
+            if self.api == "OpenVINO":
+                self.ov_device = self.mw.videoConfigure.cmbDevice.currentText()
+                core = ov.Core()
+                if self.ov_device != "CPU":
+                    ov_model.reshape({0: [1, 3, self.res, self.res]})
+                ov_config = {}
+                if "GPU" in self.ov_device or ("AUTO" in self.ov_device and "GPU" in core.available_devices):
+                    ov_config = {"GPU_DISABLE_WINOGRAD_CONVOLUTION": "YES"}
+
+                self.compiled_model = ov.compile_model(ov_model, self.ov_device, ov_config)
+                self.compiled_model(initializer_data)
+
+            if not self.torch_device:
+                self.torch_device = torch.device("cpu")
 
         except:
             logger.exception(MODULE_NAME + " initialization failure")
             self.mw.signals.error.emit(MODULE_NAME + " initialization failure, please check logs for details")
 
+        self.mw.glWidget.model_loading = False
+        self.lock = False
+
     def __call__(self, F, player):
         try:
-
-            if not F or not player:
+            if not F or not player or self.mw.videoConfigure.name != MODULE_NAME:
                 self.mw.videoConfigure.selTargets.barLevel.setLevel(0)
                 self.mw.videoConfigure.selTargets.indAlarm.setState(0)
                 return
-
-            img = np.array(F, copy=False)
-
-            if self.mw.videoConfigure.name != MODULE_NAME:
-                return
-            
-            res = int(self.mw.videoConfigure.cmbRes.currentText())
-            test_size = (res, res)
-            ratio = min(test_size[0] / img.shape[0], test_size[1] / img.shape[1])
-            inf_shape = (int(img.shape[0] * ratio), int(img.shape[1] * ratio))
-            bottom = test_size[0] - inf_shape[0]
-            side = test_size[1] - inf_shape[1]
-            pad = (0, 0, side, bottom)
-
-            timg = functional.to_tensor(img).to(self.device)
-            timg *= 255
-            timg = functional.resize(timg, inf_shape)
-            timg = functional.pad(timg, pad, 114)
-            timg = timg.unsqueeze(0)
 
             camera = self.mw.cameraPanel.getCamera(player.uri)
             if not self.mw.videoConfigure.isModelSettings(player.videoModelSettings):
@@ -338,6 +381,20 @@ class VideoWorker:
             if not player.videoModelSettings:
                 raise Exception("Unable to set video model parameters for player")
 
+            img = np.array(F, copy=False)
+
+            test_size = (self.res, self.res)
+            ratio = min(test_size[0] / img.shape[0], test_size[1] / img.shape[1])
+            inf_shape = (int(img.shape[0] * ratio), int(img.shape[1] * ratio))
+            bottom = test_size[0] - inf_shape[0]
+            side = test_size[1] - inf_shape[1]
+            pad = (0, 0, side, bottom)
+
+            timg = functional.to_tensor(img).to(self.torch_device)
+            timg *= 255
+            timg = functional.resize(timg, inf_shape)
+            timg = functional.pad(timg, pad, 114)
+            timg = timg.unsqueeze(0)
 
             confthre = player.videoModelSettings.confidence / 100
             nmsthre = 0.65
@@ -346,12 +403,18 @@ class VideoWorker:
                 time.sleep(0.001)
             
             self.lock = True
-            with torch.no_grad():
-                outputs = self.model(timg)
-                outputs = postprocess(outputs, self.num_classes, confthre, nmsthre)
+
+            if self.api == "PyTorch":
+                with torch.no_grad():
+                    outputs = self.model(timg)
+
+            if self.api == "OpenVINO":
+                outputs = torch.from_numpy(self.compiled_model(timg)[0])
+            
             self.lock = False
 
             output = None
+            outputs = postprocess(outputs, self.num_classes, confthre, nmsthre)
             if outputs[0] is not None:
                 output = outputs[0].cpu().numpy().astype(float)
                 output[:, 0:4] /= ratio
@@ -379,23 +442,44 @@ class VideoWorker:
 
             player.handleAlarm(alarmState)
 
-            # restart the model if changed during run time
-            tmp = None
-            if self.mw.videoConfigure.chkAuto.isChecked():
-                tmp = self.get_auto_ckpt_filename()
-            else:
-                tmp = self.mw.videoConfigure.txtFilename.text()
-            if self.ckpt_file != tmp:
+            if self.parameters_changed():
                 self.__init__(self.mw)
 
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.videoConfigure.name == MODULE_NAME:
                 logger.exception(MODULE_NAME + " runtime error")
             self.last_ex = str(ex)
+            self.lock = False
+
+    def parameters_changed(self):
+        result = False
+
+        api = self.api == self.mw.videoConfigure.cmbAPI.currentText()
+        name = self.model_name == self.mw.videoConfigure.cmbModelName.currentText()
+        res = str(self.res) == self.mw.videoConfigure.cmbRes.currentText()
+
+        dev = False
+        if self.api == "PyTorch":
+            dev = True
+            if self.mw.videoConfigure.cmbDevice.currentText() != "auto":
+                dev = self.torch_device_name == self.mw.videoConfigure.cmbDevice.currentText()
+        if self.api == "OpenVINO":
+            dev = self.ov_device == self.mw.videoConfigure.cmbDevice.currentText()
+
+        if not api or not name or not res or not dev:
+            result = True
+
+        return result
+
+    def get_ov_model_filename(self):
+        model_name = self.mw.videoConfigure.cmbModelName.currentText()
+        openvino_device = self.mw.videoConfigure.cmbDevice.currentText()
+        return f'{torch.hub.get_dir()}/checkpoints/{model_name}/{openvino_device}/model.xml' 
 
     def get_auto_ckpt_filename(self):
-        return torch.hub.get_dir() + "/checkpoints/" + self.mw.videoConfigure.cmbType.currentText() + ".pth"
-
+        model_name = self.mw.videoConfigure.cmbModelName.currentText()
+        return f'{torch.hub.get_dir()}/checkpoints/{model_name}.pth'
+    
     def get_model(self, num_classes, depth, width, act):
         def init_yolo(M):
             for m in M.modules():

@@ -3175,7 +3175,19 @@ bool extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct Onvif
         char *sub = strstr(onvif_data->xaddrs, " ");
         if (sub != NULL) {
             int mark = sub - onvif_data->xaddrs;
-            onvif_data->xaddrs[mark] = '\0';
+            char test[16] = {0};
+            strncpy(test, onvif_data->xaddrs, 15);
+            if (strcmp(test, "http://169.254.")) {
+                onvif_data->xaddrs[mark] = '\0';
+            }
+            else {
+                char other[128] = {0};
+                if (strlen(sub) > 1) {
+                    strcpy(other, sub+1);
+                    memset(onvif_data->xaddrs, 0, 1024);
+                    strcpy(onvif_data->xaddrs, other);
+                }
+            }
         }
         strcpy(onvif_data->device_service, onvif_data->xaddrs);
         result = true;

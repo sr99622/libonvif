@@ -97,6 +97,14 @@ class Manager():
                     break
         return result
     
+    def getPlayerByOrdinal(self, ordinal):
+        result = None
+        for key, value in self.ordinals.items():
+            if value == ordinal:
+                result = self.getPlayer(key)
+                break
+        return result
+
     def getCurrentPlayer(self):
         return self.getPlayer(self.mw.glWidget.focused_uri)
     

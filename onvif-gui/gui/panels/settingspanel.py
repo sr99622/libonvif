@@ -384,7 +384,6 @@ class SettingsPanel(QWidget):
 
     def autoDiscoverChecked(self, state):
         self.mw.settings.setValue(self.autoDiscoverKey, state)
-        #self.mw.enableDiscoverTimer(state)
 
     def startFullScreenChecked(self, state):
         self.mw.settings.setValue(self.startFullScreenKey, state)

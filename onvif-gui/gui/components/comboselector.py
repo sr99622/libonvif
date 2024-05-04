@@ -45,3 +45,9 @@ class ComboSelector(QWidget):
 
     def currentText(self):
         return self.cmbBox.currentText()
+
+    def clear(self):
+        self.cmbBox.clear()
+
+    def addItems(self, items):
+        self.cmbBox.addItems(items)

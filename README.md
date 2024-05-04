@@ -878,7 +878,14 @@ The motion detector measures the difference between two consecutive frames by ca
 
 * ### YOLOX
 
-YOLOX requires [installation of pytorch](https://pytorch.org/get-started/locally/)
+YOLOX requires installation of [PyTorch](https://pytorch.org/get-started/locally/) and [OpenVINO](https://docs.openvino.ai/2024/get-started/install-openvino.html?VERSION=v_2024_1_0&OP_SYSTEM=LINUX&DISTRIBUTION=ARCHIVE)
+
+TLDR: From a python virtual environment on Ubunu Linux, use the commands below. Windows please see above.
+
+```
+pip install torch torchvision torchaudio
+pip install openvino
+```
 
 <image src="assets/images/yolox.png" style="width: 640px;">
 
@@ -915,6 +922,7 @@ In order for the panel to be enabled, either a camera or a file must be selected
 Parameters set on the panel are applied to files globally, and to cameras individually.
 
 If the analysis produces an alarm, record and alarm sound actions are taken based on the settings made on the System Tab of the Camera Panel. Files are not connected to alarm processing.
+
 
 &nbsp;
 

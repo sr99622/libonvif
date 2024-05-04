@@ -241,8 +241,6 @@ class GLWidget(QOpenGLWidget):
                     else:
                         if camera.isAlarming():
                             painter.drawImage(rectBlinker, QImage("image:alarm_plain.png"))
-                    #if camera.isCurrent():
-                    #    self.mw.cameraPanel.syncGUI()
 
                 if self.isFocusedURI(player.uri):
                     painter.setPen(QColorConstants.White)

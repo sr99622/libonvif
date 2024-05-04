@@ -143,6 +143,7 @@ class CameraPanel(QWidget):
         self.dlgLogin = LoginDialog(self)
         self.fillers = []
         self.fill_first_pass = True
+        self.cameras_awaiting_authentication = []
 
         self.autoTimeSyncer = None
         self.enableAutoTimeSync(self.mw.settingsPanel.chkAutoTimeSync.isChecked())
@@ -251,7 +252,7 @@ class CameraPanel(QWidget):
 
     def btnDiscoverClicked(self):
         if self.mw.settingsPanel.radDiscover.isChecked():
-            #logger.debug("Using broadcast discovery")
+            logger.debug("Using broadcast discovery")
             interfaces = []
             self.sessions.clear()
 
@@ -266,8 +267,10 @@ class CameraPanel(QWidget):
                 session.start()
                 self.sessions.append(session)
                 self.btnDiscover.setEnabled(False)
+                if len(interfaces) > 1:
+                    sleep(1)
         else:
-            #logger.debug("Using cached camera addresses for discovery")
+            logger.debug("Using cached camera addresses for discovery")
             self.fillers.clear()
             tmp = self.mw.settings.value(self.mw.settingsPanel.cameraListKey)
             if tmp:
@@ -318,6 +321,11 @@ class CameraPanel(QWidget):
 
             else:
                 while self.dlgLogin.active:
+                    #print("1", onvif_data.host())
+                    #print("2", self.dlgLogin.lblCameraIP.text())
+                    #if onvif_data.host() == self.dlgLogin.lblCameraIP.text():
+                    #    onvif_data.cancelled = True
+                    #    return onvif_data
                     sleep(0.01)
 
                 self.dlgLogin.active = True

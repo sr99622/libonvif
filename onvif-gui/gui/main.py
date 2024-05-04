@@ -47,7 +47,7 @@ from collections import deque
 import shutil
 import avio
 
-VERSION = "2.0.9"
+VERSION = "2.0.18"
 
 class PipeManager():
     def __init__(self, mw, uri):
@@ -242,8 +242,16 @@ class Player(avio.Player):
         else:
             self.setAlarmState(0)
 
+    def getFrameRate(self):
+        frame_rate = self.getVideoFrameRate()
+        if frame_rate <= 0:
+            profile = self.mw.cameraPanel.getProfile(self.uri)
+            if profile:
+                frame_rate = profile.frame_rate()
+        return frame_rate
+
     def processModelOutput(self, output):
-        
+
         while self.rendering:
             sleep(0.001)
 
@@ -347,7 +355,6 @@ class MainWindow(QMainWindow):
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
         self.style()
-
         self.STD_FILE_DURATION = 900 # duration in seconds (15 * 60)
 
         self.audioStatus = avio.AudioStatus.UNINITIALIZED
@@ -413,7 +420,9 @@ class MainWindow(QMainWindow):
                 self.setGeometry(rect)
 
         self.discoverTimer = None
-        self.enableDiscoverTimer(self.settingsPanel.chkAutoDiscover.isChecked())
+        #self.enableDiscoverTimer(self.settingsPanel.chkAutoDiscover.isChecked())
+        if self.settingsPanel.chkAutoDiscover.isChecked():
+            self.cameraPanel.btnDiscoverClicked()
 
         self.videoWorkerHook = None
         self.videoWorker = None
@@ -430,6 +439,8 @@ class MainWindow(QMainWindow):
         audioWorkerName = self.audioPanel.cmbWorker.currentText()
         if len(audioWorkerName) > 0:
             self.loadAudioConfigure(audioWorkerName)
+
+        logger.debug(f'FFMPEG VERSION: {Player("", self).getFFMPEGVersions()}')
 
     def loadVideoConfigure(self, workerName):
         spec = importlib.util.spec_from_file_location("VideoConfigure", self.videoPanel.stdLocation + "/" + workerName)
@@ -839,6 +850,7 @@ class MainWindow(QMainWindow):
         log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
         return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
     
+    '''
     def enableDiscoverTimer(self, state):
         DISCOVER_TIME_INTERVAL = 60000
         if int(state) == 0:
@@ -853,6 +865,7 @@ class MainWindow(QMainWindow):
                     self.discoverTimer = QTimer()
                     self.discoverTimer.timeout.connect(self.cameraPanel.btnDiscoverClicked)
                     self.discoverTimer.start(DISCOVER_TIME_INTERVAL)
+    #'''
     
     def style(self):
         blDefault = "#5B5B5B"

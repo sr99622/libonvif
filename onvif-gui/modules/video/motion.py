@@ -38,14 +38,13 @@ class MotionSettings():
             self.id = camera.serial_number()
         self.show = False
         self.gain = self.getModelOutputGain()
-        self.limit = 0
 
     def getModelOutputGain(self):
-        key = f'{self.id}/{MODULE_NAME}/ModelAlarmLimit'
+        key = f'{self.id}/{MODULE_NAME}/MotionGain'
         return int(self.mw.settings.value(key, 50))
     
     def setModelOutputGain(self, value):
-        key = f'{self.id}/{MODULE_NAME}/ModelAlarmLimit'
+        key = f'{self.id}/{MODULE_NAME}/MotionGain'
         self.gain = value
         self.mw.settings.setValue(key, value)
 
@@ -108,7 +107,7 @@ class VideoConfigure(QWidget):
             if not self.isModelSettings(camera.videoModelSettings):
                 camera.videoModelSettings = MotionSettings(self.mw, camera)
             self.mw.videoPanel.lblCamera.setText(f'Camera - {camera.name()}')
-            self.sldGain.setValue(camera.videoModelSettings.limit)
+            self.sldGain.setValue(camera.videoModelSettings.gain)
             self.barLevel.setLevel(0)
             self.indAlarm.setState(0)
             profile = self.mw.cameraPanel.getProfile(camera.uri())
@@ -122,7 +121,7 @@ class VideoConfigure(QWidget):
             if not self.isModelSettings(self.mw.filePanel.videoModelSettings):
                 self.mw.filePanel.videoModelSettings = MotionSettings(self.mw)
             self.mw.videoPanel.lblCamera.setText(f'File - {os.path.split(file)[1]}')
-            self.sldGain.setValue(self.mw.filePanel.videoModelSettings.limit)
+            self.sldGain.setValue(self.mw.filePanel.videoModelSettings.gain)
             self.barLevel.setLevel(0)
             self.indAlarm.setState(0)
             self.enableControls(self.mw.videoPanel.chkEnableFile.isChecked())
@@ -140,7 +139,6 @@ class VideoWorker:
             self.last_ex = ""
             self.last_img = None
             self.first_pass = True
-            self.gain = 1.0
             self.kernel = np.array((9, 9), dtype=np.uint8)
             self.last_alarm_state = False
 
@@ -183,7 +181,7 @@ class VideoWorker:
                 diff = cv2.morphologyEx(diff, cv2.MORPH_CLOSE, self.kernel, iterations=1)
 
                 motion = diff.sum() / (diff.shape[0] * diff.shape[1])
-                level = math.exp(0.2 * (player.videoModelSettings.limit - 50)) * motion
+                level = math.exp(0.2 * (player.videoModelSettings.gain - 50)) * motion
 
             player.last_image = img
 

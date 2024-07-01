@@ -49,7 +49,7 @@ from collections import deque
 import shutil
 import avio
 
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 
 class PipeManager():
     def __init__(self, mw, uri):

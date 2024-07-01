@@ -21,6 +21,8 @@ from PyQt6.QtWidgets import QComboBox, QLineEdit, QSpinBox, \
     QGridLayout, QWidget, QLabel, QCheckBox, QPushButton
 from PyQt6.QtCore import Qt
 from loguru import logger
+import datetime
+import pathlib
 
 class SpinBox(QSpinBox):
     def __init__(self, qle):
@@ -94,6 +96,10 @@ class VideoTab(QWidget):
         self.cmbSampleRates.setMaximumWidth(50)
         self.lblSampleRates = QLabel("Samples")
 
+        self.chkSyncAudio = QCheckBox("Sync Audio")
+        self.chkSyncAudio.clicked.connect(self.chkSyncAudioChecked)
+        self.chkSyncAudio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
         pnlRow1 = QWidget()
         lytRow1 = QGridLayout(pnlRow1)
         lytRow1.addWidget(self.lblResolutions,  0, 0, 1, 1)
@@ -137,10 +143,12 @@ class VideoTab(QWidget):
 
         pnlRow5 = QWidget()
         lytRow5 = QGridLayout(pnlRow5)
-        lytRow5.addWidget(QLabel(),              0, 0, 1, 1)
-        lytRow5.addWidget(self.chkAnalyzeVideo,  0, 1, 1, 1)
+        #lytRow5.addWidget(self.btnSnapshot,      0, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytRow5.addWidget(self.chkAnalyzeVideo,  0, 0, 1, 1)
+        #lytRow5.addWidget(QLabel(),              0, 1, 1, 1)
+        lytRow5.addWidget(self.chkAnalyzeAudio,  0, 1, 1, 1)
         lytRow5.addWidget(QLabel(),              0, 2, 1, 1)
-        lytRow5.addWidget(self.chkAnalyzeAudio,  0, 3, 1, 1)
+        lytRow5.addWidget(self.chkSyncAudio,     0, 3, 1, 1)
         lytRow5.setColumnStretch(0, 10)
         lytRow5.setContentsMargins(0, 0, 0, 0)
 
@@ -265,6 +273,7 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(True)
                 self.lblSampleRates.setEnabled(True)
                 self.chkAnalyzeAudio.setEnabled(True)
+                self.chkSyncAudio.setEnabled(True)
             else:
                 self.chkDisableAudio.setChecked(False)
                 self.chkDisableAudio.setEnabled(False)
@@ -273,6 +282,7 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(False)
                 self.lblSampleRates.setEnabled(False)
                 self.chkAnalyzeAudio.setEnabled(False)
+                self.chkSyncAudio.setEnabled(False)
 
             self.chkDisableAudio.setChecked(profile.getDisableAudio())
             if self.chkDisableAudio.isChecked():
@@ -281,7 +291,9 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(False)
                 self.lblSampleRates.setEnabled(False)
                 self.chkAnalyzeAudio.setEnabled(False)
+                self.chkSyncAudio.setEnabled(False)
 
+            self.chkSyncAudio.setChecked(profile.getSyncAudio())
             self.chkAnalyzeVideo.setChecked(profile.getAnalyzeVideo())
             self.chkAnalyzeAudio.setChecked(profile.getAnalyzeAudio())
 
@@ -379,6 +391,13 @@ class VideoTab(QWidget):
         self.cp.syncGUI()
         self.syncGUI()
 
+    def chkSyncAudioChecked(self, state):
+        if profile := self.cp.getCurrentProfile():
+            profile.setSyncAudio(state)
+
+        if player := self.cp.getCurrentPlayer():
+            player.sync_audio = bool(state)
+
     def chkAnalyzeVideoChecked(self, state):
         profile = self.cp.getCurrentProfile()
         if profile:
@@ -427,8 +446,7 @@ class VideoTab(QWidget):
         self.lblCacheSize.setText("Cache: " + arg)
 
     def btnClearCacheClicked(self):
-        player = self.cp.getCurrentPlayer()
-        if player:
+        if player := self.cp.getCurrentPlayer():
             player.clearCache()
 
     def cmbAudioChanged(self):

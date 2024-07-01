@@ -1,14 +1,36 @@
 #!/bin/bash
+
 cd libonvif
-rm -R build
-rm -R libonvif.egg-info
+
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=libonvif.egg-info
+if [ -d "$FILE" ]; then
+    rm -R libonvif.egg-info
+fi
 pip install -v .
+
 cd ../libavio
-rm -R build
-rm -R avio.egg-info
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=avio.egg-info
+if [ -d "$FILE" ]; then
+    rm -R avio.egg-info
+fi
 pip install -v .
+
 cd ../onvif-gui
-rm -R build
-rm -R onvif_gui.egg-info
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=onvif_gui.egg-info
+if [ -d "$FILE" ]; then
+    rm -R onvif_gui.egg-info
+fi
 pip install .
 cd ..

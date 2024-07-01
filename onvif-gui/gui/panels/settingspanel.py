@@ -32,6 +32,7 @@ import avio
 import shutil
 from time import sleep
 import webbrowser
+import platform
 
 class AddCameraDialog(QDialog):
     def __init__(self, mw):
@@ -127,9 +128,14 @@ class LogDialog(QDialog):
         self.editor.scrollToBottom()
 
     def btnArchiveClicked(self):
-        path = QFileDialog.getOpenFileName(self, "Select File", self.windowTitle())[0]
-        if len(path) > 0:
-            self.readLogFile(path)
+        path = None
+        if platform.system() == "Linux":
+            path = QFileDialog.getOpenFileName(self, "Select File", self.windowTitle(), options=QFileDialog.Option.DontUseNativeDialog)[0]
+        else:
+            path = QFileDialog.getOpenFileName(self, "Select File", self.windowTitle())[0]
+        if path:
+            if len(path) > 0:
+                self.readLogFile(path)
 
     def btnClearClicked(self):
         filename = self.windowTitle()
@@ -178,8 +184,14 @@ class SettingsPanel(QWidget):
         self.alarmSoundVolumeKey = "settings/alarmSoundVolume"
         self.diskLimitKey = "settings/diskLimit"
         self.mangageDiskUsagekey = "settings/manageDiskUsage"
+        self.displayRefreshKey = "settings/displayRefresh"
+        self.cacheMaxSizeKey = "settings/cacheMaxSize"
 
-        decoders = ["NONE", "CUDA", "VAAPI", "VDPAU", "DXVA2", "D3D11VA"]
+        decoders = ["NONE"]
+        if sys.platform == "win32":
+            decoders += ["CUDA", "DXVA2", "D3D11VA"]
+        if sys.platform == "linux":
+            decoders += ["CUDA", "VAAPI", "VDPAU"]
 
         self.dlgLog = None
 
@@ -238,6 +250,25 @@ class SettingsPanel(QWidget):
         self.spnLagTime.valueChanged.connect(self.spnLagTimeChanged)
         lblLagTime = QLabel("Post-Alarm Lag Time (in seconds)")
 
+        self.spnDisplayRefresh = QSpinBox()
+        self.spnDisplayRefresh.setMinimum(1)
+        self.spnDisplayRefresh.setMaximum(1000)
+        self.spnDisplayRefresh.setMaximumWidth(80)
+        refresh = 10
+        if sys.platform == "win32":
+            refresh = 20
+        self.spnDisplayRefresh.setValue(int(self.mw.settings.value(self.displayRefreshKey, refresh)))
+        self.spnDisplayRefresh.valueChanged.connect(self.spnDisplayRefreshChanged)
+        lblDisplayRefresh = QLabel("Display Refresh Interval (in milliseconds)")
+
+        self.spnCacheMax = QSpinBox()
+        self.spnCacheMax.setMaximum(200)
+        self.spnCacheMax.setValue(100)
+        self.spnCacheMax.setMaximumWidth(80)
+        self.spnCacheMax.setValue(int(self.mw.settings.value(self.cacheMaxSizeKey, 100)))
+        self.spnCacheMax.valueChanged.connect(self.spnCacheMaxChanged)
+        lblCacheMax = QLabel("Maximum Input Stream Cache Size")
+
         self.cmbSoundFiles = QComboBox()
         d = f'{self.mw.getLocation()}/gui/resources'
         sounds = [f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f)) and f.endswith(".mp3")]
@@ -258,11 +289,15 @@ class SettingsPanel(QWidget):
 
         pnlBuffer = QWidget()
         lytBuffer = QGridLayout(pnlBuffer)
-        lytBuffer.addWidget(lblBufferSize,        0, 0, 1, 3)
-        lytBuffer.addWidget(self.spnBufferSize,   0, 3, 1, 1)
-        lytBuffer.addWidget(lblLagTime,           1, 0, 1, 3)
-        lytBuffer.addWidget(self.spnLagTime,      1, 3, 1, 1)
-        lytBuffer.addWidget(pnlSoundFile,         2, 0, 1, 4)
+        lytBuffer.addWidget(lblBufferSize,          1, 0, 1, 3)
+        lytBuffer.addWidget(self.spnBufferSize,     1, 3, 1, 1)
+        lytBuffer.addWidget(lblLagTime,             2, 0, 1, 3)
+        lytBuffer.addWidget(self.spnLagTime,        2, 3, 1, 1)
+        lytBuffer.addWidget(pnlSoundFile,           3, 0, 1, 4)
+        lytBuffer.addWidget(lblDisplayRefresh,      4, 0, 1, 3)
+        lytBuffer.addWidget(self.spnDisplayRefresh, 4, 3, 1, 1)
+        lytBuffer.addWidget(lblCacheMax,            5, 0, 1, 3)
+        lytBuffer.addWidget(self.spnCacheMax,       5, 3, 1, 1)
         lytBuffer.setContentsMargins(0, 0, 0, 0)
 
         self.grpDiscoverType = QGroupBox("Set Camera Discovery Method")
@@ -395,6 +430,13 @@ class SettingsPanel(QWidget):
     def autoStartChecked(self, state):
         self.mw.settings.setValue(self.autoStartKey, state)
 
+    def spnDisplayRefreshChanged(self, i):
+        self.mw.settings.setValue(self.displayRefreshKey, i)
+        self.mw.glWidget.timer.setInterval(i)
+
+    def spnCacheMaxChanged(self, i):
+        self.mw.settings.setValue(self.cacheMaxSizeKey, i)
+
     def spnBufferSizeChanged(self, i):
         self.mw.settings.setValue(self.bufferSizeKey, i)
 
@@ -414,33 +456,40 @@ class SettingsPanel(QWidget):
 
 
     def btnCloseAllClicked(self):
-        if self.btnCloseAll.text() == "Close All Streams":
-            for player in self.mw.pm.players:
-                player.requestShutdown()
-            for timer in self.mw.timers.values():
-                timer.stop()
-            self.mw.pm.auto_start_mode = False
-            lstCamera = self.mw.cameraPanel.lstCamera
-            if lstCamera:
-                cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
-                for camera in cameras:
-                    camera.setIconIdle()
+        try:
+            if self.btnCloseAll.text() == "Close All Streams":
+                for player in self.mw.pm.players:
+                    player.requestShutdown()
+                for timer in self.mw.timers.values():
+                    timer.stop()
+                self.mw.pm.auto_start_mode = False
+                lstCamera = self.mw.cameraPanel.lstCamera
+                if lstCamera:
+                    cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
+                    for camera in cameras:
+                        camera.setIconIdle()
 
-            count = 0
-            while len(self.mw.pm.players):
-                sleep(0.01)
-                count += 1
-                if count > 200:
-                    logger.debug("not all players closed within the allotted time")
-                    break
-            self.mw.pm.ordinals.clear()
-            self.mw.cameraPanel.syncGUI()
-        else:
-            lstCamera = self.mw.cameraPanel.lstCamera
-            if lstCamera:
-                cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
-                for camera in cameras:
-                    self.mw.cameraPanel.onItemDoubleClicked(camera)
+                count = 0
+                while len(self.mw.pm.players):
+                    sleep(0.1)
+                    count += 1
+                    if count > 200:
+                        logger.debug("not all players closed within the allotted time, flushing player manager")
+                        self.mw.pm.players.clear()
+                        break
+
+                self.mw.pm.ordinals.clear()
+                self.mw.pm.sizes.clear()
+                self.mw.cameraPanel.syncGUI()
+            else:
+                lstCamera = self.mw.cameraPanel.lstCamera
+                if lstCamera:
+                    cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
+                    for camera in cameras:
+                        self.mw.cameraPanel.setCurrentCamera(camera.uri())
+                        self.mw.cameraPanel.onItemDoubleClicked(camera)
+        except Exception as ex:
+            logger.error(ex)
 
     def scanAllNetworksChecked(self, state):
         self.mw.settings.setValue(self.scanAllKey, state)

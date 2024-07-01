@@ -20,6 +20,7 @@
 from PyQt6.QtWidgets import QWidget, QSlider, QLabel, QGridLayout
 from PyQt6.QtCore import Qt
 from gui.onvif.datastructures import MediaSource
+from loguru import logger
 
 class ThresholdSlider(QWidget):
     def __init__(self, mw, title, module):
@@ -37,26 +38,18 @@ class ThresholdSlider(QWidget):
         lytThreshold.setContentsMargins(0, 0, 0, 0)
 
     def sldThresholdChanged(self, value):
-        self.lblValue.setText(str(value))
-        match self.mw.videoConfigure.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.videoModelSettings.setModelConfidence(value)
-                '''
-                profile = self.mw.cameraPanel.getCurrentProfile()
-                if profile:
-                    profile.setModelConfidence(value, self.module)
-                '''
-            case MediaSource.FILE:
-                #self.mw.filePanel.setModelConfidence(value, self.module)
-                self.mw.filePanel.videoModelSettings.setModelConfidence(value)
-
-        '''
-        player = self.mw.pm.getCurrentPlayer()
-        if player:
-            player.model_confidence = value / 100
-        '''
+        try:
+            self.lblValue.setText(str(value))
+            match self.mw.videoConfigure.source:
+                case MediaSource.CAMERA:
+                    if camera := self.mw.cameraPanel.getCurrentCamera():
+                        if camera.videoModelSettings:
+                            camera.videoModelSettings.setModelConfidence(value)
+                case MediaSource.FILE:
+                    if self.mw.filePanel.videoModelSettings:
+                        self.mw.filePanel.videoModelSettings.setModelConfidence(value)
+        except Exception as ex:
+            logger.error(ex)
 
     def value(self):
         # return a value between 0 and 1

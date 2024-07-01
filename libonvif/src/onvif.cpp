@@ -1,7 +1,7 @@
 /*******************************************************************************
 * onvif.cpp
 *
-* copyright 2023 Stephen Rhodes
+* copyright 2023, 2024 Stephen Rhodes
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Lesser General Public
@@ -63,10 +63,6 @@ PYBIND11_MODULE(libonvif, m)
         .def("last_error", &Data::last_error)
         .def("profile", &Data::profile)
         .def("setProfile", &Data::setProfile)
-        // for some reason, windows doesn't like these
-        //.def("setHost", &Data::setHost)
-        //.def("syncProfile", &Data::syncProfile)
-        //.def("clearLastError", &Data::clearLastError)
         .def("resolutions_buf", &Data::resolutions_buf)
         .def("width", &Data::width)
         .def("setWidth", &Data::setWidth)
@@ -164,8 +160,12 @@ PYBIND11_MODULE(libonvif, m)
         .def("setAnalyzeAudio", &Data::setAnalyzeAudio)
         .def("getDesiredAspect", &Data::getDesiredAspect)
         .def("setDesiredAspect", &Data::setDesiredAspect)
+        .def("getSyncAudio", &Data::getSyncAudio)
+        .def("setSyncAudio", &Data::setSyncAudio)
         .def("getHidden", &Data::getHidden)
         .def("setHidden", &Data::setHidden)
+        .def("getCacheMax", &Data::getCacheMax)
+        .def("setCacheMax", &Data::setCacheMax)
         .def(py::self == py::self)
         .def_readwrite("profiles", &Data::profiles)
         .def_readwrite("displayProfile", &Data::displayProfile)

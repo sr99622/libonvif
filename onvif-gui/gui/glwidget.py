@@ -33,11 +33,9 @@ class GLWidget(QOpenGLWidget):
     def __init__(self, mw):
         super().__init__()
         self.mw = mw
-        self.setMouseTracking(True)
         self.focused_uri = None
         self.image_loading = False
         self.model_loading = False
-        self.last_update_time = None
         self.spinner = QMovie("image:spinner.gif")
         self.spinner.start()
         self.plain_recording = QMovie("image:plain_recording.gif")
@@ -50,19 +48,21 @@ class GLWidget(QOpenGLWidget):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.timerCallback)
-        self.timer.start(10)
+        refreshInterval = self.mw.settingsPanel.spnDisplayRefresh.value()
+        self.timer.start(refreshInterval)
     
     def renderCallback(self, F, player):
         try :
-
-            if player.analyze_video:
+            if player.analyze_video and self.mw.videoConfigure.initialized:
                 F = self.mw.pyVideoCallback(F, player)
             else:
                 if player.uri == self.focused_uri:
                     if self.mw.videoWorker:
                         self.mw.videoWorker(None, None)
 
-            ary = np.array(F, copy = True)
+            ary = np.array(F, copy = False) 
+            if len(ary.shape) < 2:
+                return
             h = ary.shape[0]
             w = ary.shape[1]
             d = 1
@@ -170,7 +170,6 @@ class GLWidget(QOpenGLWidget):
     
     def paintGL(self):
         try:
-            self.last_update_time = datetime.now()
             painter = QPainter(self)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
@@ -251,7 +250,6 @@ class GLWidget(QOpenGLWidget):
                     pen.setWidth(3)
                     painter.setPen(pen)
                     painter.drawRect(rect.adjusted(3, 3, -5, -5))
-
 
                 show = False
                 if player.videoModelSettings:

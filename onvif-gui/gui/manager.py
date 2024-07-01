@@ -19,7 +19,7 @@
 
 from time import sleep
 from loguru import logger
-from PyQt6.QtCore import QRectF, QSize, Qt, QSizeF
+from PyQt6.QtCore import QRectF, QSize, Qt, QSizeF, QPointF
 
 class Manager():
     def __init__(self, mw):
@@ -161,8 +161,6 @@ class Manager():
                     sleep(0.001)
 
                 if not player.request_reconnect:
-                    while self.remove_lock:
-                        sleep(0.001)
                     self.removeKeys(uri)
 
                 self.players.remove(player)
@@ -237,17 +235,16 @@ class Manager():
         return valid_layouts[index].width(), valid_layouts[index].height()
 
     def displayRect(self, uri, canvas_size):
-        self.remove_lock = True
         ar = self.getMostCommonAspectRatio()
         num_rows, num_cols = self.computeRowsCols(canvas_size, ar / 1000)
         if num_cols == 0:
-            return QRectF(0, 0, 0, 0)
+            return QRectF(QPointF(0, 0), QSizeF(canvas_size))
 
         ordinal = -1
         if uri in self.ordinals.keys():
             ordinal = self.ordinals[uri]
         else:
-            return QRectF(0, 0, 0, 0)
+            return QRectF(QPointF(0, 0), QSizeF(canvas_size))
 
         if ordinal > num_rows * num_cols - 1:
             ordinal = self.getOrdinal()
@@ -281,5 +278,4 @@ class Manager():
         x = (col * cell_width) + x_offset
         y = (row * cell_height) + y_offset
 
-        self.remove_lock = False
         return QRectF(x, y, w, h)

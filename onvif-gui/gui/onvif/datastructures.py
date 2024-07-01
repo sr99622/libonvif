@@ -76,6 +76,7 @@ class Camera(QListWidgetItem):
         self.icnRecord = QIcon("image:recording_hi.png")
         self.defaultForeground = self.foreground()
         self.filled = False
+        self.last_msg = ""
 
         onvif_data.setSetting = self.setSetting
         onvif_data.getSetting = self.getSetting

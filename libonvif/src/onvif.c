@@ -1,7 +1,7 @@
 /*******************************************************************************
 * onvif.c
 *
-* copyright 2018, 2023 Stephen Rhodes
+* copyright 2018, 2023, 2024 Stephen Rhodes
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Lesser General Public
@@ -101,12 +101,12 @@ int getNetworkInterfaces(struct OnvifData *onvif_data) {
         xmlNodeSetPtr nodeset;
         xmlChar *enabled = NULL;
         xmlXPathObjectPtr xml_result = getNodeSet(reply, xpath);
+        xmlDocPtr temp_doc = xmlNewDoc(BAD_CAST "1.0");
         if (xml_result) {
             nodeset = xml_result->nodesetval;
             for (int i=0; i<nodeset->nodeNr; i++) {
                 xmlNodePtr cur = nodeset->nodeTab[i];
                 xmlChar *token = xmlGetProp(cur, BAD_CAST "token");
-                xmlDocPtr temp_doc = xmlNewDoc(BAD_CAST "1.0");
                 xmlDocSetRootElement(temp_doc, cur);
 
                 bool dhcp = false;
@@ -146,13 +146,15 @@ int getNetworkInterfaces(struct OnvifData *onvif_data) {
                         i = nodeset->nodeNr;
                     }
                 }
-                xmlFreeDoc(temp_doc);
+    
+                xmlFree(token);
             }
+            xmlXPathFreeObject(xml_result);
         }
+        xmlFreeDoc(temp_doc);
         if (enabled != NULL) {
             xmlFree(enabled);
         }
-        xmlXPathFreeObject(xml_result);
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
         if (result < 0)
@@ -163,6 +165,7 @@ int getNetworkInterfaces(struct OnvifData *onvif_data) {
         strcpy(onvif_data->last_error, "getNetworkInterfaces - No XML reply");
     }
     return result;
+    return 0;
 }
 
 int setNetworkInterfaces(struct OnvifData *onvif_data) {
@@ -918,8 +921,6 @@ int getAudioEncoderConfigurationOptions(struct OnvifData *onvif_data) {
             for (int i=0; i<nodeset->nodeNr; i++) {
                 xmlNodePtr cur = nodeset->nodeTab[i]->children;
                 while(cur != NULL) {
-                    //printf("iterating encoders %d : %s\n", i, cur->content);
-                    //printf("strlen: %d\n", strlen(cur->content) );
                     strcpy(onvif_data->audio_encoders[i], cur->content);
                     cur = cur->next;
                 }
@@ -940,7 +941,6 @@ int getAudioEncoderConfigurationOptions(struct OnvifData *onvif_data) {
                 while(cur != NULL) {
                     item = xmlNodeListGetString(reply, cur->xmlChildrenNode, 1);
                     if (item) {
-                        //printf("iterating bitrates: %d %d %s\n", i, j, item);
                         onvif_data->audio_bitrates[i][j] = atoi(item);
                         j++;
                     }
@@ -961,7 +961,6 @@ int getAudioEncoderConfigurationOptions(struct OnvifData *onvif_data) {
                 while(cur != NULL) {
                     item = xmlNodeListGetString(reply, cur->xmlChildrenNode, 1);
                     if (item) {
-                        //printf("iterating sample rates: %s %d %s\n", onvif_data->xaddrs, i, item);
                         onvif_data->audio_sample_rates[i][j] = atoi(item);
                         j++;
                     }
@@ -1058,7 +1057,6 @@ int getAudioEncoderConfiguration(struct OnvifData *onvif_data) {
 }
 
 int setAudioEncoderConfiguration(struct OnvifData *onvif_data) {
-    //printf("setAudioEncoderConfiguration: %s\n", onvif_data->audioEncoderConfigurationToken);
     memset(onvif_data->last_error, 0, sizeof(onvif_data->last_error));
     int result = 0;
 
@@ -1126,9 +1124,6 @@ int getProfile(struct OnvifData *onvif_data) {
     memset(onvif_data->audioEncoderConfigurationToken, 0, sizeof(onvif_data->audioEncoderConfigurationToken));
     memset(onvif_data->audioSourceConfigurationToken, 0, sizeof(onvif_data->audioSourceConfigurationToken));
     memset(onvif_data->last_error, 0, sizeof(onvif_data->last_error));
-    //memset(onvif_data->audio_encoding, 0, sizeof(onvif_data->audio_encoding));
-    //memset(onvif_data->audio_source_token, 0, sizeof(onvif_data->audio_source_token));
-    //memset(onvif_data->audio_name, 0, sizeof(onvif_data->audio_name));
 
     int result = 0;
     xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
@@ -1149,54 +1144,10 @@ int getProfile(struct OnvifData *onvif_data) {
 
         xmlChar *xpath;
 
-        /*
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration//tt:Resolution//tt:Width";
-        if (getXmlValue(reply, xpath, temp_buf, 128) == 0)
-            onvif_data->width = atoi(temp_buf);
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration//tt:Resolution//tt:Height";
-        if (getXmlValue(reply, xpath, temp_buf, 128) == 0)
-            onvif_data->height = atoi(temp_buf);
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration//tt:RateControl//tt:FrameRateLimit";
-        if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
-            onvif_data->frame_rate = atoi(temp_buf);
-        }
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration//tt:RateControl//tt:BitrateLimit";
-        if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
-            onvif_data->bitrate = atoi(temp_buf);
-        } else {
-            onvif_data->bitrate = 0;
-        }
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration//tt:H264//tt:GovLength";
-        if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
-            onvif_data->gov_length = atoi(temp_buf);
-        }
-        */
-
         xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:AudioEncoderConfiguration";
         getNodeAttribute(reply, xpath, BAD_CAST "token", onvif_data->audioEncoderConfigurationToken, 128);
         xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:AudioSourceConfiguration//tt:SourceToken";
         getXmlValue(reply, xpath, onvif_data->audioSourceConfigurationToken, 128);
-
-        /*
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:AudioEncoderConfiguration//tt:Encoding";
-        getXmlValue(reply, xpath, onvif_data->audio_encoding, 128);
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:AudioEncoderConfiguration//tt:Name";
-        getXmlValue(reply, xpath, onvif_data->audio_name, 128);
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:AudioEncoderConfiguration//tt:Bitrate";
-        if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
-            onvif_data->audio_bitrate = atoi(temp_buf);
-        }
-        else {
-            onvif_data->audio_bitrate = 0;
-        }
-        xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:AudioEncoderConfiguration//tt:SampleRate";
-        if (getXmlValue(reply, xpath, temp_buf, 128) == 0) {
-            onvif_data->audio_sample_rate = atoi(temp_buf);
-        }
-        else {
-            onvif_data->audio_sample_rate = 0;
-        }
-        */
 
         xpath = BAD_CAST "//s:Body//trt:GetProfileResponse//trt:Profile//tt:VideoEncoderConfiguration";
         getNodeAttribute(reply, xpath, BAD_CAST "token", onvif_data->videoEncoderConfigurationToken, 128);
@@ -3239,12 +3190,9 @@ void clearData(struct OnvifData *onvif_data) {
         onvif_data->host[i] = '\0';
         onvif_data->serial_number[i] = '\0';
         onvif_data->audio_encoding[i] = '\0';
-        //onvif_data->audio_source_token[i] = '\0';
         onvif_data->audio_name[i] = '\0';
         onvif_data->audioEncoderConfigurationToken[i] = '\0';
         onvif_data->audioSourceConfigurationToken[i] = '\0';
-        //onvif_data->conf_audio_name[i] = '\0';
-        //onvif_data->conf_audio_encoding[i] = '\0';
         onvif_data->audio_session_timeout[i] = '\0';
         onvif_data->audio_multicast_type[i] = '\0';
         onvif_data->audio_multicast_address[i] = '\0';
@@ -3256,7 +3204,6 @@ void clearData(struct OnvifData *onvif_data) {
         onvif_data->camera_name[i] = '\0';
         onvif_data->host_name[i] = '\0';
     }
-    //onvif_data->extended_data_filled = false;
     onvif_data->gov_length_min = 0;
     onvif_data->gov_length_max = 0;
     onvif_data->frame_rate_min = 0;
@@ -3290,19 +3237,13 @@ void clearData(struct OnvifData *onvif_data) {
     onvif_data->time_offset = 0;
     onvif_data->event_listen_port = 0;
     onvif_data->guaranteed_frame_rate = false;
-    //onvif_data->conf_width = 0;
-    //onvif_data->conf_height = 0;
-    //onvif_data->conf_frame_rate_limit = 0;
     onvif_data->encoding_interval = 0;
-    //onvif_data->conf_bitrate_limit = 0;
     onvif_data->datetimetype = '\0';
     onvif_data->dst = false;
     onvif_data->ntp_dhcp = false;
     onvif_data->audio_bitrate = 0;
     onvif_data->audio_sample_rate = 0;
     onvif_data->audio_use_count = 0;
-    //onvif_data->conf_audio_bitrate = 0;
-    //onvif_data->conf_audio_sample_rate = 0;
     onvif_data->audio_multicast_port = 0;
     onvif_data->audio_multicast_TTL = 0;
     onvif_data->audio_multicast_auto_start = false;
@@ -3312,6 +3253,8 @@ void clearData(struct OnvifData *onvif_data) {
     onvif_data->analyze_audio = false;
     onvif_data->desired_aspect = 0;
     onvif_data->hidden = false;
+    onvif_data->cache_max = 100;
+    onvif_data->sync_audio = false;
 }
 
 void copyData(struct OnvifData *dst, struct OnvifData *src) {
@@ -3356,12 +3299,9 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
         dst->host[i] = src->host[i];
         dst->serial_number[i] = src->serial_number[i];
         dst->audio_encoding[i] = src->audio_encoding[i];
-        //dst->audio_source_token[i] = src->audio_source_token[i];
         dst->audio_name[i] = src->audio_name[i];
         dst->audioEncoderConfigurationToken[i] = src->audioEncoderConfigurationToken[i];
         dst->audioSourceConfigurationToken[i] = src->audioSourceConfigurationToken[i];
-        //dst->conf_audio_name[i] = src->conf_audio_name[i];
-        //dst->conf_audio_encoding[i] = src->conf_audio_encoding[i];
         dst->audio_session_timeout[i] = src->audio_session_timeout[i];
         dst->audio_multicast_type[i] = src->audio_multicast_type[i];
         dst->audio_multicast_address[i] = src->audio_multicast_address[i];
@@ -3374,7 +3314,6 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
         dst->host_name[i] = src->host_name[i];
         dst->last_error[i] = src->last_error[i];
     }
-    //dst->extended_data_filled = src->extended_data_filled;
     dst->gov_length_min = src->gov_length_min;
     dst->gov_length_max = src->gov_length_max;
     dst->frame_rate_min = src->frame_rate_min;
@@ -3408,19 +3347,13 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
     dst->time_offset = src->time_offset;
     dst->event_listen_port = src->event_listen_port;
     dst->guaranteed_frame_rate = src->guaranteed_frame_rate;
-    //dst->conf_width = src->conf_width;
-    //dst->conf_height = src->conf_height;
-    //dst->conf_frame_rate_limit = src->conf_frame_rate_limit;
     dst->encoding_interval = src->encoding_interval;
-    //dst->conf_bitrate_limit = src->conf_bitrate_limit;
     dst->datetimetype = src->datetimetype;
     dst->dst = src->dst;
     dst->ntp_dhcp = src->ntp_dhcp;
     dst->audio_bitrate = src->audio_bitrate;
     dst->audio_sample_rate = src->audio_sample_rate;
     dst->audio_use_count = src->audio_use_count;
-    //dst->conf_audio_bitrate = src->conf_audio_bitrate;
-    //dst->conf_audio_sample_rate = src->conf_audio_sample_rate;
     dst->audio_multicast_port = src->audio_multicast_port;
     dst->audio_multicast_TTL = src->audio_multicast_TTL;
     dst->audio_multicast_auto_start = src->audio_multicast_auto_start;
@@ -3430,6 +3363,8 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
     dst->analyze_audio = src->analyze_audio;
     dst->desired_aspect = src->desired_aspect;
     dst->hidden = src->hidden;
+    dst->cache_max = src->cache_max;
+    dst->sync_audio = src->sync_audio;
 }
 
 void initializeSession(struct OnvifSession *onvif_session) {

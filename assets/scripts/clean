@@ -1,14 +1,34 @@
 #!/bin/bash
+find . -type f -name '._*' -delete
 cd libonvif
-rm -R build
-rm -R libonvif.egg-info
-rm -R dist
+
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=libonvif.egg-info
+if [ -d "$FILE" ]; then
+    rm -R libonvif.egg-info
+fi
+
 cd ../libavio
-rm -R build
-rm -R avio.egg-info
-rm -R dist
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=avio.egg-info
+if [ -d "$FILE" ]; then
+    rm -R avio.egg-info
+fi
+
 cd ../onvif-gui
-rm -R build
-rm -R onvif_gui.egg-info
-rm -R dist
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=onvif_gui.egg-info
+if [ -d "$FILE" ]; then
+    rm -R onvif_gui.egg-info
+fi
+
 cd ..

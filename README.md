@@ -23,7 +23,7 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 
 Onvif GUI is an integrated camera management and NVR system with an intuitive user interface that can easily manage a fleet of cameras and create high resolution recordings based on alarm conditions. A best of breed YOLO detector is included with the system to facilitate accurate alarm signals without false detections. 
 
-The system is designed to scale with available hardware and will run on simple configurations with minimal hardware requirements as well as high end multi core CPUs with NVIDIA GPU for maximum performance. The system can be configured with auto start settings and a user friendly icon so that non-technical users can feel comfortable working with the application without specialized training. 
+The system is designed to scale with available hardware and will run on simple configurations with minimal hardware requirements as well as high end multi core CPUs with NVIDIA GPU for maximum performance. Additionally, the system has integrated OpenVINO support for operation on CPU and iGPU on Intel hardware enabling high performance in low power environments. The system can be configured with auto start settings and a user friendly icon so that non-technical users can feel comfortable working with the application without specialized training. 
 
 File management is easy with an automated disk space manager and file playback controls.
 
@@ -139,15 +139,18 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 
 * ### Step 4. Install Dependencies
 
+
   ```
   brew update
   brew upgrade
   brew install libxml2
   brew install cmake
   brew install git
-  brew install ffmpeg@6
-  export FFMPEG_INSTALL_DIR=/opt/homebrew/opt/ffmpeg@6
+  brew tap homebrew-ffmpeg/ffmpeg
+  brew install homebrew-ffmpeg/ffmpeg/ffmpeg
   ```
+
+  <i>  Please note that the standard Homebrew core ffmpeg version 7 is incompatible with onvif-gui. For this reason, the install procedure calls for the 3rd party tap [homebrew-ffmpeg](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg). If you already have another version of ffmpeg installed, this will create a conflict. In order to install this version, it is necessary to run </i>```brew uninstall ffmpeg``` <i>before this tap can be installed.</i>
 
 * ### Step 5. Create Virtual Environment
 
@@ -167,10 +170,6 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   ```
   onvif-gui
   ```
-
-* ### Note:
-
-  <i>The ffmpeg@6 version installed under this sequence of commands is not the current version and is a keg only package. If there are issues during the pip install regarding avio, check the environment variable </i> FFMPEG_INSTALL_DIR <i> to insure that the lib and bin sub-directories exist. The message produced by brew when installing ffmeg@6 may help provide some info.</i>
 
 ---
 
@@ -255,12 +254,8 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 * ### Step 4. Install
 
   ```
-  cd libonvif/libonvif
-  pip install -v .
-  cd ../libavio
-  pip install -v .
-  cd ../onvif-gui
-  pip install .
+  cd libonvif
+  assets/scripts/compile
   ```
 
 * ### Step 5. Launch Program
@@ -298,12 +293,8 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 * ### Step 4. Install
 
   ```
-  cd libonvif/libonvif
-  pip install -v .
-  cd ../libavio
-  pip install -v .
-  cd ../onvif-gui
-  pip install .
+  cd libonvif
+  assets/scripts/compile
   ```
 
 * ### Step 5. Launch Program
@@ -340,9 +331,11 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   brew install libxml2
   brew install cmake
   brew install git
-  brew install ffmpeg@6
-  export FFMPEG_INSTALL_DIR=/opt/homebrew/opt/ffmpeg@6
+  brew tap homebrew-ffmpeg/ffmpeg
+  brew install homebrew-ffmpeg/ffmpeg/ffmpeg
   ```
+
+  <i>  Please note that the standard Homebrew core ffmpeg version 7 is incompatible with onvif-gui. For this reason, the install procedure calls for the 3rd party tap [homebrew-ffmpeg](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg). If you already have another version of ffmpeg installed, this will create a conflict. In order to install this version, it is necessary to run </i>```brew uninstall ffmpeg``` <i>before this tap can be installed.</i>
 
 * ### Step 5. Create Virtual Environment
 
@@ -360,12 +353,8 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 * ### Step 7. Install
 
   ```
-  cd libonvif/libonvif
-  pip install -v .
-  cd ../libavio
-  pip install -v .
-  cd ../onvif-gui
-  pip install .
+  cd libonvif
+  assets/scripts/compile
   ```
 
 * ### Step 8. Launch Program
@@ -373,11 +362,6 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   ```
   onvif-gui
   ```
-
-* ### Note:
-
-  <i>The ffmpeg@6 version installed under this sequence of commands is not the current version and is a keg only package. If there are issues during the pip install regarding avio, check the environment variable </i> FFMPEG_INSTALL_DIR <i> to insure that the lib and bin sub-directories exist. The message produced by brew when installing ffmeg@6 may help provide some info.</i>
-
 
 ---
 
@@ -404,12 +388,8 @@ In order to build from source on Windows, development tools and python are requi
 * ### Step 3. Install
 
   ```
-  cd libonvif\libonvif
-  pip install -v .
-  cd ..\libavio
-  pip install -v .
-  cd ..\onvif-gui
-  pip install onvif-gui
+  cd libonvif
+  assets\scripts\compile
   ```
 
 * ### Step 4. Launch Program
@@ -551,7 +531,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 * ### Aspect
 
-    Aspect ratio of the camera video stream. In some cases, particularly when using substreams, the aspect ratio may be distorted. Changing the aspect ratio by using the combo box can restore the correct appearance of the video. If the aspect ratio has been changed this way, the label of the box will have a * appended. This setting is not native to the camera, so it is not necessary to click the apply button for this change.
+    When using substreams, the aspect ratio may be distorted. Changing the aspect ratio by using the combo box can restore the correct appearance of the video. If the aspect ratio has been changed this way, the label of the box will have a * appended. This setting is not native to the camera, so it is not necessary to click the apply button for this change.
 
 * ### FPS
 
@@ -560,6 +540,8 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 * ### GOP
 
     Keyframe interval of the video stream. Keyframes are a full frame encoding, whereas intermediate frames are differential representations of the changes between frames.  Keyframes are larger and require more computing power to process. Higher GOP intervals mean fewer keyframes and as a  result, less accurate represention of the video.  Lower GOP rates increase the accuracy of the  video at the expense of higher bandwidth and compute load. It is necessary to click the Apply button to enact these changes on the camera.
+
+    Note that some cameras may have an option for Dynamic GOP or Adaptive Framerate, or some other name for a process that reduces the GOP automatically based on the lack of motion in the camera view. It is advised to turn this feature off when using onvif-gui.
 
 * ### Cache
 
@@ -579,21 +561,21 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
     Initially, the Main Profile is selected by default. By changing the selection to a secondary profile, a lower order Sub Stream can be displayed. The term lower order implies that the Sub Stream has lower resolution, lower frame rate and lower bitrate than the Main Stream. Note that the application may be processing both streams, but only the Display Profile selected on the Video Tab is displayed. The other stream, referred to as the Record Stream, is not decoded, but its packets are collected for writing to disk storage.
 
-    The Display Profile will change automatically when the Video Tab Profile combo box is changed, so it is not necessary to click the Apply button when changing this setting.
+    The display will update automatically when the Video Tab Profile combo box is changed, so it is not necessary to click the Apply button when changing this setting.
 
 * ### Audio
 
     The audio encoder used by the camera is set here.  If the camera does not have audio capability, the audio section will be disabled. Note that some cameras may have audio capability, but the stream is not available due to configuration issues or lack of hardware accessories.  Available audio encoders will be shown in the combo box and may be set by the user. Changes to the audio parameter require that the Apply button is clicked to enact the change on the camera.
     
-    AAC encoding is highly recommended, as G style encoders may have issues during playback. Note that some cameras have incorrect implementations for encoders and the audio may not be usable in the stream recording to disk. 
+    AAC encoding is highly recommended, as G style encoders may have issues during playback. Note that some cameras have incorrect implementations for encoders and the audio may not be usable in the stream recording to disk. Please be aware that currently onvif-gui is unable to process G726.
 
 * ### Samples
 
-    The sample rate of the audio stream. Available sample rates are shown in the combo box. Use the Apply button to enact the change on the camera.  Higher sample rates increase the quality of the audio at the expense of higher bandwidth and disk space when recording. The audio bitrate is implied by the sample rate based on encoder parameters.
+    Available sample rates are shown in the combo box. Use the Apply button to enact the change on the camera.  Higher sample rates increase the quality of the audio at the expense of higher bandwidth and disk space when recording. The audio bitrate is implied by the sample rate based on encoder parameters.
 
 * ### No Audio
 
-    Audio can be disabled by clicking this check box. This is different than mute in the sense that under mute, the audio stream is decoded, but not played on the computer speakers. If the No Audio check box is clicked, the audio stream is discarded, which can reduce compute load and may improve performance. If the No Audio checkbox is de-selected, the stream must restart in order to initialize the audio. The Apply button is not clicked when changing this parameter.
+    Audio can be disabled by clicking this check box. This is different than mute in the sense that under mute, the audio stream is decoded, but not played on the computer speakers. If the No Audio check box is clicked, the audio stream is discarded. If the No Audio checkbox is de-selected, the stream must restart in order to initialize the audio. The Apply button is not clicked when changing this parameter.
 
 * ### Video Alarm
 
@@ -602,6 +584,10 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 * ### Audio Alarm
  
     This check box enables audio analytic processing for alarm generation. See the section on Audio Panel for reference to audio alarm functions.  Note that the Audio Alarm check box must be selected in order to enable the Audio Panel for that camera. The Apply button is not used for this box. During Alarm condition, a solid red circle will show in the stream display if not recording, or a blinking red circle if the stream is being recorded.
+
+* ### Audio Sync
+
+    This check box will force synchronization of the audio and video feeds from the camera. This may cause the input cache to grow, resulting in latency in the video stream. It is usually only recommended to use this setting if it is important for the viewer of the real time display to view the synchronized streams, such as a condition where a speaking person is the subject of the video stream. Some cameras will perform well under this setting and not allow a significant delay between video and audio streams, but others may not.
 
 </details>
 
@@ -768,7 +754,7 @@ Right clicking over the file will bring up a context menu that can be used to pe
 
 ---
 
-<image src="assets/images/settings_panel.png">
+<image src="assets/images/settings_panel.png" style=" width: 480px;">
 
 ### Common Username and Password
 
@@ -805,6 +791,14 @@ In the case where a camera is configured to record during alarms, this length of
 ### Alarm Sounds
 
 A few default alarm sounds for selection.  A system wide volume setting for the alarm volume can be made with the slider.
+
+### Display Refresh Interval
+
+Performance on some lower powered systems may be improved by increasing the display refresh interval.
+
+### Maximum Input Stream Cache Size
+
+Adjust the maximum number of frames held in the cache before frames are dropped. This is the same cache referred to by the Video Tab of the Camera Panel.
 
 ### Discovery Options
 
@@ -860,7 +854,7 @@ Shows this file.
 
 ---
 
-The Video Panel has two modes of operation, motion and yolox. The default setting is for motion, which can be used without further configuration and will run easily on a CPU only computer. Yolox requires the installation of the pytorch module and will consume significant computing resources for which a GPU is recommended, but not required.
+The Video Panel has two modes of operation, motion, yolox. The default setting is for motion, which can be used without further configuration and will run easily on a CPU only computer. YoloX requires the installation of additional python packages, namely pytorch and openvino.  An optional yolov8 package is available for [download](https://github.com/sr99622/yolov8-onvif-gui).
 
 In order for the panel to be enabled, either a camera or a file must be selected. If a camera is selected, the Video Alarm check box must also be selected on the Media Tab of the Camera Panel. If a file is selected, the Enable File check box on the Video Panel must also be selected.
 
@@ -878,32 +872,38 @@ The motion detector measures the difference between two consecutive frames by ca
 
 * ### YOLOX
 
-YOLOX requires installation of [PyTorch](https://pytorch.org/get-started/locally/) and [OpenVINO](https://docs.openvino.ai/2024/get-started/install-openvino.html?VERSION=v_2024_1_0&OP_SYSTEM=LINUX&DISTRIBUTION=ARCHIVE)
-
-TLDR: From a python virtual environment on Ubunu Linux, use the commands below. Windows please see above.
-
-```
-pip install torch torchvision torchaudio
-pip install openvino
-```
-
 <image src="assets/images/yolox.png" style="width: 640px;">
 
 &nbsp;
 
-The upper portion of the yolox panel has a model managment box. Model parameters are system wide, as there will be one model running that is shared by all cameras. The Model Name selects the file containing the model, which is named according to the size of the number of parameters in the model. Larger models may produce more accurate results at the cost of increased compute load. The Model Size is the resolution to which the video is scaled for model input. Larger sizes may increase accuracy at the cost of increased compute load.
+YOLOX requires installation of [PyTorch](https://pytorch.org/get-started/locally/) and [OpenVINO](https://docs.openvino.ai/2024/get-started/install-openvino.html?VERSION=v_2024_1_0&OP_SYSTEM=LINUX&DISTRIBUTION=ARCHIVE)
 
-By default the application is configured to download a model automatically when a stream is started with the yolox alarm option for the first time. There may be a delay while the model is downloaded. Subsequent stream launches will run the model with less delay. A model may be specified manually by de-selecting the Automatically download model checkbox and populating the Model file name box. Note that if a model is manually specified, it is still necessary to assign the correct Model Name corresponding to the parameter size. It is recommended to stop all streams before changing a running model.
+Please note that if you intend to run yolox using OpenVINO on Intel hardware, you will need to install the hardware drivers. Unfortunately, the Intel installation procedure is scattershot and not entirely reliable. For best results installing hardware drivers for iGPU or ARC in Ubuntu, please refer to the intructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases), then use ```pip install openvino```.
+
+TLDR: From a python virtual environment on Ubunu Linux with the GPU drivers already installed, use the commands below. Otherwise please see above.
+
+```
+pip install torch torchvision
+pip install openvino
+```
+
+The upper portion of the yolox panel has a model managment box. Model parameters are system wide, as there will be one model running that is shared by all cameras. The Name combo box selects the model, which is named according to the size of the number of parameters in the model. Larger models may produce more accurate results at the cost of increased compute load. The Size combo box sets the resolution to which the video is scaled for model input. Larger sizes may increase accuracy at the cost of increased compute load. It is possible to change the backend API of the yolo detector by using the API combo box. The Device combo box will populate automatically with available hardware.
+
+The model is initialized automatically by starting a camera stream with the Camera tab Video Alarm checked. By default the application is configured to download a model automatically when a stream is started for the first time. There may be a delay while the model is downloaded, during which time a wait box is shown. Subsequent stream launches will run the model with less delay.
+
+A model may be specified manually by de-selecting the Automatically download model checkbox and populating the Model file name box. Note that if a model is manually specified, it is still necessary to assign the correct Name corresponding to the model parameter size.
 
 The lower portion of the panel has settings for detector configuration. Parameters on this section are assigned to each camera individually.
 
-The yolox detector counts the number of frames during a one second interval in which at least one detection was observed, then normalizes that value by dividing by the number of frames. The value output from the detector algorithm can be adjusted using the Gain slider.  Higher Gain slider values increase the sensitivity of the detector.
+Skip Frames spin box sets the number of frames to skip between model analysis runs. If the Skip Frames value is set to zero, every frame produced by stream is set through the detector. If the Skip Frames value is set to one, every other frame is sent through the detecter, and so on. This setting can be used to reduce computational burden on the system.
+
+The yolox detector samples a number of frames as set by the Samples setting. The number of frames with positive detections required to trigger an alarm is set by the Limit slider. For example, if the Sample Size is 4 and the Limit slider is set to 2, at least two of the last four frames observed must have positive detections in order to trigger the alarm.
 
 There is also a Confidence slider that applies to the yolox model output. Higher confidence settings require stricter conformance to model expectations to qualify a positive detection. Lower confidence settings will increase the number of detections at the risk of false detections.
 
 It is necessary to assign at least one target to the panel in order to observe detections. The + button will launch a dialog box with a list of the available targets. Targets may be removed by using the - button or the delete key while the target is highlghted in the list.
 
----
+
 &nbsp;
 </details>
 
@@ -973,7 +973,7 @@ The control tab on the right of the application window may be toggled using the 
 
 * ### Recommended Configuration
 
-The application is optimized for performance on Ubuntu Linux. Apple Mac should have good performance as well due to similarity between the systems. The application will run on Windows, but performance will be lower. The difference is due primarily to the use of OpenGL for video rendering, which performs better on *nix style platforms. When using GPU, Ubuntu Linux NVIDIA drivers generally outperform those on other operating systems.
+The application is optimized for performance on Ubuntu Linux, which will deliver the best overall performance, including yolo detection. The application will run on Windows or Mac, but the platforms are not offically supported, and lower performance should be expected.
 
 Linux offers additional advantages in network configuration as well. Linux can easily be configured to run a [DHCP server](https://ubuntu.com/server/docs/how-to-install-and-configure-isc-kea) to manage a separate network in which to isolate the cameras. A good way to configure the system is to use the wired network port of the host computer to manage the camera network, and use the wireless network connection of the host computer to connect with the wifi router and internet. The cameras will be isolated from the internet and will not increase network load on the wifi.
 
@@ -987,15 +987,15 @@ Many camera substreams will have a distorted aspect ratio, which can be correcte
 
 * ### Performance Tuning
 
-As the number of cameras and stream analytics added to the system increases, the host may become overwhelmed, causing cache buffer overflow resulting in dropped frames. If a camera stream is dropping frames, a yellow border will be displayed over the camera output. The Cache value for each camera is a good indicator of system performance, and reaches maximum capacity at 100. If a cache is overflowing, the load placed on the system by the camera can be reduced by lowering frame rate and to a lesser degree by lowering resolution.
+As the number of cameras and stream analytics added to the system increases, the host may become overwhelmed, causing cache buffer overflow resulting in dropped frames. If a camera stream is dropping frames, a yellow border will be displayed over the camera output. The Cache value for each camera is a good indicator of system performance, and reaches the maximum capacity on the Settings Panel (default 100). If a cache is overflowing, the load placed on the system by the camera can be reduced by lowering frame rate and to a lesser degree by lowering resolution. Using Skip Frames during yolox analysis can also greatly reduce compute load.
 
-Lower powered CPUs with a small number of cores may benefit from hardware decoding. More powerful CPUs with a large core count will decode as easily as a hardware decoder.
+Lower powered CPUs with a small number of cores or systems running a large number of streams may benefit from hardware decoding. More powerful CPUs with a large core count will work as well as a hardware decoder for smaller numbers of streams.
 
-Stream analysis can potentially place significant burden on system resources. Motion detection and Audio Amplitude analysis have very little load. Audio Frequency analysis does present a moderate load which may be an issue for lower powered systems. Yolox is by far the most intensive load and will limit the number of streams it can process. A GPU is recommended for Yolox, as a CPU only system will be able to process maybe one or two streams at the most.
+Stream analysis can potentially place significant burden on system resources. Motion detection and Audio Amplitude analysis have very little load. Audio Frequency analysis does present a moderate load which may be an issue for lower powered systems. Yolox is by far the most intensive load and will limit the number of streams it can process. A GPU or iGPU is recommended for Yolox, as a CPU only system will be able to process maybe one or two streams at the most. Intel Xe Graphics or later is recommended for iGPU.
 
-If a system is intended for GPU use with yolox, it is advised to connect the monitor of the host computer to the motherboard output of the CPU integrated graphics chip. This has the effect of reducing memory transfers between CPU and GPU, which are a source of latency. 
+If a system is intended for GPU use with yolox, it is advised to connect the monitor of the host computer to the motherboard output of the CPU integrated graphics chip if possible. This has the effect of reducing memory transfers between CPU and GPU, which are a source of latency, and may reduce throughput. 
 
-GPU cards with PCIe 4 compatability will outperform those designed for PCIe 3. Note that not all cards utilize the full 16 lanes of the bus. GPU cards with 16 lanes will outperform those with only 8 lanes. Memory transfer between CPU and GPU occurs on the PCIe bus and can be a bottleneck for the system. GPU memory requirements are minimal, the yolox small model (yolox_s) will consume less than 2 GB. Yolox will employ a large number of cuda cores, so more is better in this category. Ubutnu NVIDIA drivers will outperform those on other operating systems.
+GPU cards with PCIe 4 compatability will outperform those designed for PCIe 3. Note that not all cards utilize the full 16 lanes of the bus. GPU cards with 16 lanes will outperform those with only 8 lanes. Memory transfer between CPU and GPU occurs on the PCIe bus and can be a bottleneck for the system. Yolox will employ a large number of cuda cores, so more is better in this category. Ubutnu NVIDIA drivers will usually outperform those on other operating systems. For low powered systems with a small number of cameras, OpenVINO running on Intel iGPU is recommended.
 
 * ### Camera Compliance With Standards
 
@@ -1378,6 +1378,55 @@ Exit session
 </details>
 
 <details>
+<summary>YOLOX - <i>Apache</i></summary>
+&nbsp;
+
+---
+
+ YOLOX 
+ Copyright (c) 2021-2022 Megvii Inc. All rights reserved.
+
+ License: Apache
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+## Cite YOLOX
+If you use YOLOX in your research, please cite our work by using the following BibTeX entry:
+
+```latex
+ @article{yolox2021,
+  title={YOLOX: Exceeding YOLO Series in 2021},
+  author={Ge, Zheng and Liu, Songtao and Wang, Feng and Li, Zeming and Sun, Jian},
+  journal={arXiv preprint arXiv:2107.08430},
+  year={2021}
+}
+```
+## In memory of Dr. Jian Sun
+Without the guidance of [Dr. Sun Jian](http://www.jiansun.org/), YOLOX would not have been released and open sourced to the community.
+The passing away of Dr. Sun Jian is a great loss to the Computer Vision field. We have added this section here to express our remembrance and condolences to our captain Dr. Sun.
+It is hoped that every AI practitioner in the world will stick to the concept of "continuous innovation to expand cognitive boundaries, and extraordinary technology to achieve product value" and move forward all the way.
+
+<div align="center"><img src="assets/images/sunjian.png" width="200"></div>
+没有孙剑博士的指导，YOLOX也不会问世并开源给社区使用。
+孙剑博士的离去是CV领域的一大损失，我们在此特别添加了这个部分来表达对我们的“船长”孙老师的纪念和哀思。
+希望世界上的每个AI从业者秉持着“持续创新拓展认知边界，非凡科技成就产品价值”的观念，一路向前。
+
+---
+
+&nbsp;
+</details>
+
+<details>
 <summary>getopt-win.h - <i>BSD-2-Clause-NETBSD</i></summary>
 &nbsp;
 
@@ -1480,53 +1529,4 @@ Exit session
 &nbsp;
 </details>
 
-
-<details>
-<summary>YOLOX - <i>Apache</i></summary>
-&nbsp;
-
----
-
- YOLOX 
- Copyright (c) 2021-2022 Megvii Inc. All rights reserved.
-
- License: Apache
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
-## Cite YOLOX
-If you use YOLOX in your research, please cite our work by using the following BibTeX entry:
-
-```latex
- @article{yolox2021,
-  title={YOLOX: Exceeding YOLO Series in 2021},
-  author={Ge, Zheng and Liu, Songtao and Wang, Feng and Li, Zeming and Sun, Jian},
-  journal={arXiv preprint arXiv:2107.08430},
-  year={2021}
-}
-```
-## In memory of Dr. Jian Sun
-Without the guidance of [Dr. Sun Jian](http://www.jiansun.org/), YOLOX would not have been released and open sourced to the community.
-The passing away of Dr. Sun Jian is a great loss to the Computer Vision field. We have added this section here to express our remembrance and condolences to our captain Dr. Sun.
-It is hoped that every AI practitioner in the world will stick to the concept of "continuous innovation to expand cognitive boundaries, and extraordinary technology to achieve product value" and move forward all the way.
-
-<div align="center"><img src="assets/images/sunjian.png" width="200"></div>
-没有孙剑博士的指导，YOLOX也不会问世并开源给社区使用。
-孙剑博士的离去是CV领域的一大损失，我们在此特别添加了这个部分来表达对我们的“船长”孙老师的纪念和哀思。
-希望世界上的每个AI从业者秉持着“持续创新拓展认知边界，非凡科技成就产品价值”的观念，一路向前。
-
----
-
-&nbsp;
-</details>
 

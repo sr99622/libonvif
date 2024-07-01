@@ -477,6 +477,7 @@ public:
                         Data profile(*this);
                         getProfileToken(profile, index);
                         if (profile.profile().length() == 0)
+
                             break;
                         getStreamUri(profile.data);
                         profiles.push_back(profile);
@@ -677,6 +678,21 @@ public:
     bool audio_multicast_auto_start() { return data->audio_multicast_auto_start; }
 
     //GUI INTERFACE
+
+    /*
+    Please note that this class is intended to be self contained within the C++ domain. It will not 
+    behave as expected if the calling python program attempts to extend the functionality of the 
+    class by adding member variables in the python domain. This was done so that the profile could
+    be copied or filled with data by the C++ class exclusively, removing the need for additional 
+    synchronization code in the python domain. 
+    
+    The effect of this decision is that GUI persistence for profiles must be implemented in this 
+    C++ class directly. The member variables are added to the OnvifData structure in onvif.h and 
+    the copyData and clearData functions in onvif.c. GUI persistence is handled by passing setSetting 
+    and getSetting from the calling python program for writing variable states to disk.
+    */
+
+
     bool getDisableVideo() { 
         std::stringstream str;
         str << serial_number() << "/" << profile() << "/DisableVideo";
@@ -721,6 +737,17 @@ public:
         str << serial_number() << "/" << profile() << "/AnalyzeAudio";
         setSetting(str.str(), arg ? "1" : "0");
     }
+    bool getSyncAudio() {
+        std::stringstream str;
+        str << serial_number() << "/" << profile() << "/SyncAudio";
+        return getSetting(str.str(), "0") == "1";
+    }
+    void setSyncAudio(bool arg) {
+        data->sync_audio = arg;
+        std::stringstream str;
+        str << serial_number() << "/" << profile() << "/SyncAudio";
+        setSetting(str.str(), arg ? "1" : "0");
+    }
     bool getHidden() { 
         std::stringstream str;
         str << serial_number() << "/" << profile() << "/Hidden";
@@ -745,6 +772,21 @@ public:
         data->desired_aspect = arg;
         std::stringstream str_key, str_val;
         str_key << serial_number() << "/" << profile() << "/DesiredAspect";
+        str_val << arg;
+        setSetting(str_key.str(), str_val.str());
+    }
+    int getCacheMax() {
+        std::stringstream str_key, str_val;
+        str_key << serial_number() << "/" << profile() << "/CacheMax";
+        str_val << getSetting(str_key.str(), "100");
+        int result = 100;
+        str_val >> result;
+        return result;
+    }
+    void setCacheMax(int arg) {
+        data->cache_max = arg;
+        std::stringstream str_key, str_val;
+        str_key << serial_number() << "/" << profile() << "/CacheMax";
         str_val << arg;
         setSetting(str_key.str(), str_val.str());
     }

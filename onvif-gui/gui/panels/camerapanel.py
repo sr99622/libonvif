@@ -60,10 +60,8 @@ class CameraList(QListWidget):
         return super().keyPressEvent(event)
     
     def remove(self):
-        camera = self.currentItem()
-        if camera:
-            player = self.mw.pm.getPlayer(camera.uri())
-            if player:
+        if camera := self.currentItem():
+            if self.mw.pm.getPlayer(camera.uri()):
                 ret = QMessageBox.warning(self, camera.name(),
                                             "Camera is currently playing. Please stop before deleting.",
                                             QMessageBox.StandardButton.Ok)
@@ -153,6 +151,7 @@ class CameraPanel(QWidget):
         self.lstCamera = CameraList(mw)
         self.lstCamera.currentItemChanged.connect(self.onCurrentItemChanged)
         self.lstCamera.itemDoubleClicked.connect(self.onItemDoubleClicked)
+        self.lstCamera.itemClicked.connect(self.onItemClicked)
         self.lstCamera.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.lstCamera.customContextMenuRequested.connect(self.showContextMenu)
 
@@ -303,6 +302,9 @@ class CameraPanel(QWidget):
             self.btnDiscover.setEnabled(True)
         
     def getCredential(self, onvif_data):
+        if not onvif_data:
+            return
+        
         if self.lstCamera:
             cameras = [self.lstCamera.item(x) for x in range(self.lstCamera.count())]
             for camera in cameras:
@@ -321,11 +323,6 @@ class CameraPanel(QWidget):
 
             else:
                 while self.dlgLogin.active:
-                    #print("1", onvif_data.host())
-                    #print("2", self.dlgLogin.lblCameraIP.text())
-                    #if onvif_data.host() == self.dlgLogin.lblCameraIP.text():
-                    #    onvif_data.cancelled = True
-                    #    return onvif_data
                     sleep(0.01)
 
                 self.dlgLogin.active = True
@@ -339,6 +336,9 @@ class CameraPanel(QWidget):
         self.dlgLogin.exec(onvif_data)
 
     def getData(self, onvif_data):
+        if not onvif_data:
+            return
+        
         if onvif_data.last_error().startswith("Error initializing camera data during manual fill:"):
             logger.debug(onvif_data.last_error())
             return
@@ -376,8 +376,10 @@ class CameraPanel(QWidget):
                 onvif_data.startFill(synchronizeTime)
 
     def filled(self, onvif_data):
-        camera = self.getCamera(onvif_data.uri())
-        if camera:
+        if not onvif_data:
+            return
+        
+        if camera := self.getCamera(onvif_data.uri()):
             camera.restoreForeground()
             key = f'{camera.serial_number()}/XAddrs'
             self.mw.settings.setValue(key, camera.xaddrs())
@@ -404,6 +406,7 @@ class CameraPanel(QWidget):
                 if not camera.isRunning():
                     while not self.mw.isVisible():
                         sleep(0.1)
+                    self.lstCamera.itemClicked.emit(camera)
                     self.lstCamera.itemDoubleClicked.emit(camera)
 
         if len(onvif_data.last_error()):
@@ -418,13 +421,16 @@ class CameraPanel(QWidget):
 
     def onCurrentItemChanged(self, current, previous):
         if current:
-            player = self.mw.pm.getPlayer(current.uri())
-            if player:
+            if self.mw.pm.getPlayer(current.uri()):
                 self.mw.glWidget.focused_uri = current.uri()
             else:
                 self.mw.glWidget.focused_uri = None
             self.signals.fill.emit(current.onvif_data)
             self.syncGUI()
+
+    def onItemClicked(self, camera):
+        if self.mw.videoConfigure:
+            self.mw.videoConfigure.setCamera(camera)
 
     def onItemDoubleClicked(self, camera):
         if not camera:
@@ -450,7 +456,10 @@ class CameraPanel(QWidget):
         else:
             if len(players):
                 for player in players:
-                    player.requestShutdown()
+                    if not player.running:
+                        self.mw.pm.removePlayer(player.uri)
+                    else:
+                        player.requestShutdown()
             else:
                 for i, profile in enumerate(profiles):
                     if i == 0:
@@ -549,8 +558,7 @@ class CameraPanel(QWidget):
     def onMediaStarted(self, uri):
         if self.mw.tabVisible:
             if self.mw.glWidget.focused_uri is None:
-                camera = self.getCurrentCamera()
-                if camera:
+                if camera := self.getCurrentCamera():
                     self.mw.glWidget.focused_uri = camera.uri()
         self.syncGUI()
 
@@ -569,11 +577,9 @@ class CameraPanel(QWidget):
         self.syncGUI()
 
     def syncGUI(self):
-        camera = self.getCurrentCamera()
-        if camera:
+        if camera := self.getCurrentCamera():
             self.btnStop.setEnabled(True)
-            player = self.mw.pm.getPlayer(camera.uri())
-            if player:
+            if player := self.mw.pm.getPlayer(camera.uri()):
                 self.btnStop.setStyleSheet(self.getButtonStyle("stop"))
 
                 ps = player.systemTabSettings
@@ -595,7 +601,9 @@ class CameraPanel(QWidget):
                 if camera.isRecording():
                     self.btnRecord.setStyleSheet(self.getButtonStyle("recording"))
                     record_always = player.systemTabSettings.record_always if player.systemTabSettings else False
-                    if camera.isAlarming() or record_always:
+                    record_alarm = player.systemTabSettings.record_alarm if player.systemTabSettings else False
+                    record_enable = player.systemTabSettings.record_enable if player.systemTabSettings else False
+                    if record_enable and ((camera.isAlarming() and record_alarm) or record_always):
                         self.btnRecord.setEnabled(False)
                 else:
                     self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
@@ -612,8 +620,7 @@ class CameraPanel(QWidget):
                     self.btnStop.setStyleSheet(self.getButtonStyle("play"))
                     self.setTabsEnabled(True)
 
-                profile = camera.getProfile(camera.uri())
-                if profile:
+                if profile := camera.getProfile(camera.uri()):
                     if camera.mute:
                         self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
                     else:
@@ -704,19 +711,18 @@ class CameraPanel(QWidget):
         return result
     
     def setCurrentCamera(self, uri):
-        camera = self.getCamera(uri)
-        if camera:
+        if camera := self.getCamera(uri):
             self.lstCamera.setCurrentItem(camera)
             self.signals.fill.emit(camera.onvif_data)
             self.syncGUI()
 
-        if self.mw.videoConfigure.source != MediaSource.CAMERA:
-            if camera:
-                self.mw.videoConfigure.setCamera(camera)
+            if self.mw.videoConfigure:
+                if self.mw.videoConfigure.source != MediaSource.CAMERA:
+                    self.mw.videoConfigure.setCamera(camera)
 
-        if self.mw.audioConfigure.source != MediaSource.CAMERA:
-            if camera:
-                self.mw.audioConfigure.setCamera(camera)
+            if self.mw.audioConfigure:
+                if self.mw.audioConfigure.source != MediaSource.CAMERA:
+                    self.mw.audioConfigure.setCamera(camera)
 
     def enableAutoTimeSync(self, state):
         AUTO_TIME_SYNC_INTERVAL = 3600000

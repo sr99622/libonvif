@@ -34,7 +34,7 @@ class DirectorySelector(QWidget):
 
         self.txtDirectory = QLineEdit()
         self.txtDirectory.setText(self.mw.settings.value(self.directoryKey, location))
-        self.txtDirectory.textEdited.connect(self.txtDirectoryChanged)
+        self.txtDirectory.setEnabled(False)
         self.btnSelect = QPushButton("...")
         self.btnSelect.clicked.connect(self.btnSelectClicked)
         lblSelect = QLabel(label)

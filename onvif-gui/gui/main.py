@@ -22,6 +22,8 @@ import sys
 
 if sys.platform == "linux":
     os.environ["QT_QPA_PLATFORM"] = "xcb"
+if sys.platform == "darwin":
+    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
 
 from loguru import logger
 
@@ -47,7 +49,7 @@ from collections import deque
 import shutil
 import avio
 
-VERSION = "2.0.18"
+VERSION = "2.1.0"
 
 class PipeManager():
     def __init__(self, mw, uri):
@@ -73,6 +75,7 @@ class Player(avio.Player):
         self.audioModelSettings = None
         self.detection_count = deque()
         self.last_image = None
+        self.zombie_counter = 0
 
         self.boxes = []
         self.labels = []
@@ -81,7 +84,6 @@ class Player(avio.Player):
         self.save_image_filename = None
         self.pipe_output_start_time = None
         self.estimated_file_size = 0
-        self.bitrate_used_to_estimate = 0
         self.packet_drop_frame_counter = 0
 
         self.timer = QTimer()
@@ -155,9 +157,8 @@ class Player(avio.Player):
         profile = self.mw.cameraPanel.getProfile(self.uri)
         if profile:
             audio_bitrate = min(profile.audio_bitrate(), 128)
-            bitrate = profile.bitrate() + audio_bitrate
-            if bitrate != self.bitrate_used_to_estimate:
-                self.bitrate_used_to_estimate = bitrate
+            video_bitrate = min(profile.bitrate(), 16384)
+            bitrate = video_bitrate + audio_bitrate
         result = (bitrate * 1000 / 8) * self.mw.STD_FILE_DURATION
         self.estimated_file_size = result
         return result
@@ -218,7 +219,7 @@ class Player(avio.Player):
             oldest_file = self.getOldestFile(d)
             if oldest_file:
                 QFile.remove(oldest_file)
-                logger.debug(f'File has been deleted by auto process: {oldest_file}')
+                #logger.debug(f'File has been deleted by auto process: {oldest_file}')
             else:
                 logger.debug("Unable to find the oldest file for deletion during disk management")
                 break
@@ -250,49 +251,24 @@ class Player(avio.Player):
                 frame_rate = profile.frame_rate()
         return frame_rate
 
-    def processModelOutput(self, output):
+    def processModelOutput(self):
 
         while self.rendering:
             sleep(0.001)
 
-        self.boxes = []
-        self.labels = []
-        self.scores = []
-
-        if self.image and output is not None:
-            labels = output[:, 5].astype(int)
-
-            for i in range(len(labels)):
-                if labels[i] in self.videoModelSettings.targets:
-                    self.boxes.append(output[i, 0:4])
-                    self.scores.append(output[i, 4])
-                    self.labels.append(int(output[i, 5]))
-                    
-        # detection count is a deque of length equal to one second of video
-        frame_rate = self.getVideoFrameRate()
-        if frame_rate <= 0:
-            profile = self.mw.cameraPanel.getProfile(self.uri)
-            if profile:
-                frame_rate = profile.frame_rate()
-
         sum = 0
-        if frame_rate:
-            if len(self.detection_count) > (frame_rate - 1) and len(self.detection_count):
-                self.detection_count.popleft()
 
-            # if a desired label has been detected, mark the queue slot as true
-            if len(self.labels):
-                self.detection_count.append(1)
-            else:
-                self.detection_count.append(0)
+        if len(self.detection_count) > self.videoModelSettings.sampleSize - 1 and len(self.detection_count):
+            self.detection_count.popleft()
 
-            # add the number of detections in the deque
-            for count in self.detection_count:
-                sum += count
+        if len(self.boxes):
+            self.detection_count.append(1)
         else:
-            # fallback for cameras without correct frame rate parameter
-            if len(self.labels):
-                sum = 1
+            self.detection_count.append(0)
+
+        for count in self.detection_count:
+            sum += count
+
         return sum
 
 class TimerSignals(QObject):
@@ -372,7 +348,6 @@ class MainWindow(QMainWindow):
 
         self.pm = Manager(self)
         self.timers = {}
-        self.glWidget = GLWidget(self)
         self.audioPlayer = None
 
         self.signals = MainWindowSignals()
@@ -380,6 +355,7 @@ class MainWindow(QMainWindow):
         self.settingsPanel = SettingsPanel(self)
         self.signals.started.connect(self.settingsPanel.onMediaStarted)
         self.signals.stopped.connect(self.settingsPanel.onMediaStopped)
+        self.glWidget = GLWidget(self)
         self.cameraPanel = CameraPanel(self)
         self.signals.started.connect(self.cameraPanel.onMediaStarted)
         self.signals.stopped.connect(self.cameraPanel.onMediaStopped)
@@ -420,7 +396,6 @@ class MainWindow(QMainWindow):
                 self.setGeometry(rect)
 
         self.discoverTimer = None
-        #self.enableDiscoverTimer(self.settingsPanel.chkAutoDiscover.isChecked())
         if self.settingsPanel.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
 
@@ -520,9 +495,17 @@ class MainWindow(QMainWindow):
             logger.debug(f'Attempt to create player with null uri')
             return
 
-        if self.pm.getPlayer(uri):
-            logger.debug(f'Duplicate media uri from {self.getCameraName(uri)} " : " {uri}')
-            return
+        if existing := self.pm.getPlayer(uri):
+            logger.debug(f'Duplicate media uri from {self.getCameraName(uri)}')
+            existing_terminated = False
+            if not existing.running:
+                existing.zombie_counter += 1
+                if existing.zombie_counter > 60:
+                    logger.debug(f'Removing zombie player {self.getCameraName(uri)}')
+                    self.pm.removePlayer(uri)
+                    existing_terminated = True
+            if not existing_terminated:
+                return
 
         player = Player(uri, self)
 
@@ -536,13 +519,14 @@ class MainWindow(QMainWindow):
         player.infoCallback = lambda msg, uri : self.infoCallback(msg, uri)
         player.getAudioStatus = lambda : self.getAudioStatus()
         player.setAudioStatus = lambda status : self.setAudioStatus(status)
+        player.hw_device_type = self.settingsPanel.getDecoder()
 
         if player.isCameraStream():
-            player.vpq_size = 100
-            player.apq_size = 100
-
-            profile = self.cameraPanel.getProfile(uri)
-            if profile:
+            if profile := self.cameraPanel.getProfile(uri):
+                player.vpq_size = self.settingsPanel.spnCacheMax.value()
+                player.apq_size = self.settingsPanel.spnCacheMax.value()
+                if profile.audio_encoding() == "AAC" and profile.audio_sample_rate() and profile.frame_rate():
+                    player.apq_size = int(player.vpq_size * profile.audio_sample_rate() / profile.frame_rate())
                 player.buffer_size_in_seconds = self.settings.value(self.settingsPanel.bufferSizeKey, 10)
                 player.onvif_frame_rate.num = profile.frame_rate()
                 player.onvif_frame_rate.den = 1
@@ -552,6 +536,7 @@ class MainWindow(QMainWindow):
                 player.desired_aspect = profile.getDesiredAspect()
                 player.analyze_video = profile.getAnalyzeVideo()
                 player.analyze_audio = profile.getAnalyzeAudio()
+                player.sync_audio = profile.getSyncAudio()
                 camera = self.cameraPanel.getCamera(uri)
                 if camera:
                     player.systemTabSettings = camera.systemTabSettings
@@ -604,23 +589,29 @@ class MainWindow(QMainWindow):
         super().showEvent(event)
 
     def closeEvent(self, event):
-        self.cameraPanel.closeEvent()
-        for timer in self.timers.values():
-            if timer.isActive():
+        try:
+            self.cameraPanel.closeEvent()
+            for player in self.pm.players:
+                player.requestShutdown()
+            for timer in self.timers.values():
                 timer.stop()
 
-        for player in self.pm.players:
-            player.requestShutdown()
+            count = 0
+            while len(self.pm.players):
+                sleep(0.1)
+                count += 1
+                if count > 200:
+                    logger.debug("not all players closed within the allotted time, flushing player manager")
+                    self.pm.players.clear()
+                    break
 
-        count = 0
-        while len(self.pm.players) > 0:
-            sleep(0.1)
-            count += 1
-            if count > 10:
-                break
+            self.pm.ordinals.clear()
+            self.pm.sizes.clear()
 
-        self.settings.setValue(self.geometryKey, self.geometry())
-        super().closeEvent(event)
+            self.settings.setValue(self.geometryKey, self.geometry())
+            super().closeEvent(event)
+        except Exception as ex:
+            logger.error(f'window close error: {ex}')
 
     def mediaPlayingStarted(self, uri):
         if self.isCameraStreamURI(uri):
@@ -636,8 +627,7 @@ class MainWindow(QMainWindow):
                 if finished:
                     self.pm.auto_start_mode = False
 
-            player = self.pm.getPlayer(uri)
-            if player:
+            if player := self.pm.getPlayer(uri):
                 player.clearCache()
                 if player.systemTabSettings:
                     if player.systemTabSettings.record_enable and player.systemTabSettings.record_always:
@@ -662,24 +652,22 @@ class MainWindow(QMainWindow):
         self.signals.started.emit(uri)
 
     def stopReconnectTimer(self, uri):
-        timer = self.timers.get(uri, None)
-        if timer:
+        if timer := self.timers.get(uri, None):
             while timer.rendering:
                 sleep(0.001)
             timer.stop()
 
     def mediaPlayingStopped(self, uri):
-        player = self.pm.getPlayer(uri)
-        if player:
+        if player := self.pm.getPlayer(uri):
             if player.request_reconnect:
-                camera = self.cameraPanel.getCamera(uri)
-                if camera:
+                if camera := self.cameraPanel.getCamera(uri):
                     logger.debug(f'Camera stream closed with reconnect requested {self.getCameraName(uri)}')
                     self.signals.reconnect.emit(uri)
             else:
                 if self.isCameraStreamURI(uri):
                     logger.debug(f'Stream closed by user {self.getCameraName(uri)}')
 
+            player.rendering = False
             self.pm.removePlayer(uri)
             self.glWidget.update()
             if self.signals:
@@ -714,28 +702,37 @@ class MainWindow(QMainWindow):
         else:
             name = f'File: {uri}'
 
-        print(f'{name}, Message: {msg}')
+        if msg.startswith("Output file creation failure:") or msg.startswith("Record to file close error:"):
+            logger.error(f'{name}, Message: {msg}')
+
+        else: 
+            print(f'{name}, Message: {msg}')
 
     def errorCallback(self, msg, uri, reconnect):
         if reconnect:
-            camera = self.cameraPanel.getCamera(uri)
-            if camera:
-                logger.debug(f'Error from camera: {self.getCameraName(uri)} : {msg}, attempting to re-connect')
+            camera_name = ""
+            last_msg = ""
 
-                player = self.pm.getPlayer(uri)
-                if player:
+            if camera := self.cameraPanel.getCamera(uri):
+                camera_name = self.getCameraName(uri)
+                last_msg = camera.last_msg
+                camera.last_msg = msg
+
+                if player := self.pm.getPlayer(uri):
                     if not player.getVideoWidth():
                         self.pm.removePlayer(uri)
 
                 self.signals.reconnect.emit(uri)
+
+            if msg != last_msg:
+                logger.debug(f'Error from camera: {camera_name} : {msg}, attempting to re-connect')
         else:
             name = ""
             if self.isCameraStreamURI(uri):
 
                 player = self.pm.getPlayer(uri)
-                if not player.getVideoWidth():
-                    self.pm.removePlayer(uri)
-                    self.pm.removeKeys(uri)
+                self.pm.removePlayer(uri)
+                self.pm.removeKeys(uri)
 
                 camera = self.cameraPanel.getCamera(uri)
                 if camera:
@@ -743,6 +740,7 @@ class MainWindow(QMainWindow):
                     camera.setIconIdle()
                     self.cameraPanel.syncGUI()
                     self.cameraPanel.setTabsEnabled(True)
+                self.signals.error.emit(msg)
             else:
                 name = f'File: {uri}'
                 self.pm.removePlayer(uri)
@@ -751,7 +749,6 @@ class MainWindow(QMainWindow):
                 self.signals.error.emit(msg)
             logger.error(f'{name}, Error: {msg}')
                 
-
     def mediaProgress(self, pct, uri):
         self.signals.progress.emit(pct, uri)
 
@@ -760,7 +757,7 @@ class MainWindow(QMainWindow):
         if player:
             frames = 10
             if player.onvif_frame_rate.num and player.onvif_frame_rate.den:
-                frames = int((player.onvif_frame_rate.num / player.onvif_frame_rate.den) * 10)
+                frames = int((player.onvif_frame_rate.num / player.onvif_frame_rate.den) * 2)
             player.packet_drop_frame_counter = frames
 
     def getAudioStatus(self):
@@ -792,6 +789,11 @@ class MainWindow(QMainWindow):
         else:
             self.tabIndex = index
 
+        if index == 0:
+            if camera := self.cameraPanel.getCurrentCamera():
+                if self.videoConfigure:
+                    self.videoConfigure.setCamera(camera)
+
     def isSplitterCollapsed(self):
         return self.split.sizes()[1] == 0
 
@@ -820,7 +822,7 @@ class MainWindow(QMainWindow):
         result = ""
         camera = self.cameraPanel.getCamera(uri)
         if camera:
-            result = camera.text() + " ( " + camera.profileName(uri) + ")"
+            result = camera.text() + " (" + camera.profileName(uri) + ")"
         return result
     
     def getLocation(self):
@@ -849,23 +851,6 @@ class MainWindow(QMainWindow):
             log_dir = os.environ["HOME"]
         log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
         return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
-    
-    '''
-    def enableDiscoverTimer(self, state):
-        DISCOVER_TIME_INTERVAL = 60000
-        if int(state) == 0:
-            logger.debug("Auto Discover has been turned off")
-            if self.discoverTimer:
-                self.discoverTimer.stop()
-        else:
-            logger.debug("Auto Discover has been turned on")
-            self.cameraPanel.btnDiscoverClicked()
-            if self.settingsPanel.radDiscover.isChecked():
-                if not self.discoverTimer:
-                    self.discoverTimer = QTimer()
-                    self.discoverTimer.timeout.connect(self.cameraPanel.btnDiscoverClicked)
-                    self.discoverTimer.start(DISCOVER_TIME_INTERVAL)
-    #'''
     
     def style(self):
         blDefault = "#5B5B5B"

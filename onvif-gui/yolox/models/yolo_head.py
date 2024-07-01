@@ -278,8 +278,13 @@ class YOLOXHead(nn.Module):
             shape = grid.shape[:2]
             strides.append(torch.full((*shape, 1), stride))
 
-        grids = torch.cat(grids, dim=1).type(dtype)
-        strides = torch.cat(strides, dim=1).type(dtype)
+        if dtype.startswith("torch.mps"):
+            grids = torch.cat(grids, dim=1).to("cpu")
+            strides = torch.cat(strides, dim=1).to("cpu")
+            outputs = outputs.to("cpu")
+        else:
+            grids = torch.cat(grids, dim=1).type(dtype)
+            strides = torch.cat(strides, dim=1).type(dtype)
 
         outputs = torch.cat([
             (outputs[..., 0:2] + grids) * strides,

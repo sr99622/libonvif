@@ -92,16 +92,9 @@ class VideoPanel(QWidget):
                     self.mw.videoConfigure.setCamera(media)
                 case MediaSource.FILE:
                     self.mw.videoConfigure.setFile(media)
-            #self.mw.videoConfigure.enableControls(True)
 
-        existing = False
-        for player in self.mw.pm.players:
-            if player.analyze_video:
-                existing = True
-
-        if existing:
-            self.mw.videoWorkerHook = None
-            self.mw.videoWorker = None
+        self.mw.videoWorkerHook = None
+        self.mw.videoWorker = None
 
         player = self.mw.pm.getCurrentPlayer()
         if player:

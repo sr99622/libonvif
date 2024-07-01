@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import QDialog, QGridLayout, QListWidget, QListWidgetItem, 
 from PyQt6.QtCore import Qt, pyqtSignal, QObject
 from .warningbar import WarningBar, Indicator
 from gui.onvif.datastructures import MediaSource
+from loguru import logger
 
 class Target(QListWidgetItem):
     def __init__(self, name, id):
@@ -116,9 +117,11 @@ class TargetSelector(QWidget):
         self.barLevel = WarningBar()
         self.indAlarm = Indicator(self.mw)
         self.sldGain = QSlider(Qt.Orientation.Vertical)
-        self.sldGain.setMinimum(1)
+        self.sldGain.setMinimum(0)
         self.sldGain.setMaximum(100)
+        self.sldGain.setValue(0)
         self.sldGain.valueChanged.connect(self.sldGainValueChanged)
+        self.lblGain = QLabel("0")
 
         pnlTargets = QWidget()
         pnlTargets.setMaximumWidth(200)
@@ -134,8 +137,9 @@ class TargetSelector(QWidget):
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(pnlTargets,            1, 0, 2, 1)
+        lytMain.addWidget(self.lblGain,          1, 1, 1, 1, Qt.AlignmentFlag.AlignHCenter)
         lytMain.addWidget(self.sldGain,          2, 1, 1, 1, Qt.AlignmentFlag.AlignHCenter)
-        lytMain.addWidget(QLabel("Gain"),        3, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(QLabel("Limit"),       3, 1, 1, 1, Qt.AlignmentFlag.AlignHCenter)
         lytMain.addWidget(self.indAlarm,         1, 2, 1, 1)
         lytMain.addWidget(self.barLevel,         2, 2, 1, 1)
         lytMain.addWidget(QLabel(),              2, 3, 1, 1)
@@ -146,45 +150,51 @@ class TargetSelector(QWidget):
         self.dlgTarget.show()
 
     def btnDeleteTargetClicked(self):
-        item = self.lstTargets.currentItem()
-        if item:
-            print(item.text())
-            ret = QMessageBox.warning(self, "Delete Target: " + item.text(), "You are about to delete target\n"
-                                    "Are you sure you want to continue?",
-                                    QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
-            if ret != QMessageBox.StandardButton.Ok:
-                return
-            self.lstTargets.takeItem(self.lstTargets.row(item))
+        try:
+            if item := self.lstTargets.currentItem():
+                ret = QMessageBox.warning(self, "Delete Target: " + item.text(), "You are about to delete target\n"
+                                        "Are you sure you want to continue?",
+                                        QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+                if ret != QMessageBox.StandardButton.Ok:
+                    return
+                self.lstTargets.takeItem(self.lstTargets.row(item))
 
-            match self.mw.videoConfigure.source:
-                case MediaSource.CAMERA:
-                    camera = self.mw.cameraPanel.getCurrentCamera()
-                    if camera:
-                        camera.videoModelSettings.setTargets(self.lstTargets.toString())
-                case MediaSource.FILE:
-                    self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
+                match self.mw.videoConfigure.source:
+                    case MediaSource.CAMERA:
+                        if camera := self.mw.cameraPanel.getCurrentCamera():
+                            if camera.videoModelSettings:
+                                camera.videoModelSettings.setTargets(self.lstTargets.toString())
+                    case MediaSource.FILE:
+                        if self.mw.filePanel.videoModelSettings:
+                            self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
+        except Exception as ex:
+            logger.error(ex)
 
     def dlgListAccepted(self):
         item = self.dlgTarget.list.item(self.dlgTarget.list.currentRow())
         self.onAddItemDoubleClicked(item)
 
     def onAddItemDoubleClicked(self, item):
-        target = Target(item.text(), item.id)
-        found = False
-        for i in range(self.lstTargets.count()):
-            if target.text() == self.lstTargets.item(i).text():
-                found = True
-                break
-        if not found:
-            self.lstTargets.addItem(target)
+        try:
+            target = Target(item.text(), item.id)
+            found = False
+            for i in range(self.lstTargets.count()):
+                if target.text() == self.lstTargets.item(i).text():
+                    found = True
+                    break
+            if not found:
+                self.lstTargets.addItem(target)
 
-            match self.mw.videoConfigure.source:
-                case MediaSource.CAMERA:
-                    camera = self.mw.cameraPanel.getCurrentCamera()
-                    if camera:
-                        camera.videoModelSettings.setTargets(self.lstTargets.toString())
-                case MediaSource.FILE:
-                    self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
+                match self.mw.videoConfigure.source:
+                    case MediaSource.CAMERA:
+                        if camera := self.mw.cameraPanel.getCurrentCamera():
+                            if camera.videoModelSettings:
+                                camera.videoModelSettings.setTargets(self.lstTargets.toString())
+                    case MediaSource.FILE:
+                        if self.mw.filePanel.videoModelSettings:
+                            self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
+        except Exception as ex:
+            logger.error(ex)
 
     def setTargets(self, targets):
         while self.lstTargets.count() > 0:
@@ -201,19 +211,28 @@ class TargetSelector(QWidget):
         return output
 
     def sldGainValueChanged(self, value):
-        match self.mw.videoConfigure.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.videoModelSettings.setModelOutputGain(value)
-            case MediaSource.FILE:
-                self.mw.filePanel.videoModelSettings.setModelOutputGain(value)
+        try:
+            self.lblGain.setText(f'{value}')
+            match self.mw.videoConfigure.source:
+                case MediaSource.CAMERA:
+                    if camera := self.mw.cameraPanel.getCurrentCamera():
+                        if camera.videoModelSettings:
+                            camera.videoModelSettings.setModelOutputLimit(value)
+                case MediaSource.FILE:
+                    if self.mw.filePanel.videoModelSettings:
+                        self.mw.filePanel.videoModelSettings.setModelOutputLimit(value)
+        except Exception as ex:
+            logger.error(ex)
 
     def chkShowBoxesStateChanged(self, state):
-        match self.mw.videoConfigure.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.videoModelSettings.setModelShowBoxes(bool(state))
-            case MediaSource.FILE:
-                self.mw.filePanel.videoModelSettings.setModelShowBoxes(bool(state))
+        try:
+            match self.mw.videoConfigure.source:
+                case MediaSource.CAMERA:
+                    if camera := self.mw.cameraPanel.getCurrentCamera():
+                        if camera.videoModelSettings:
+                            camera.videoModelSettings.setModelShowBoxes(bool(state))
+                case MediaSource.FILE:
+                    if self.mw.filePanel.videoModelSettings:
+                        self.mw.filePanel.videoModelSettings.setModelShowBoxes(bool(state))
+        except Exception as ex:
+            logger.error(ex)

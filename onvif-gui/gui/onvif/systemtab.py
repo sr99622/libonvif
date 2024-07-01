@@ -178,16 +178,18 @@ class SystemTab(QWidget):
         self.btnBrowser = QPushButton("Browser")
         self.btnBrowser.clicked.connect(self.btnBrowserClicked)
         self.btnBrowser.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.btnJPEG = QPushButton("JPEG")
-        self.btnJPEG.clicked.connect(self.writeJPEG)
-        self.btnJPEG.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+        self.btnSnapshot = QPushButton("JPEG")
+        self.btnSnapshot.clicked.connect(self.btnSnapshotClicked)
+        self.btnSnapshot.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         pnlButton = QWidget()
         lytButton = QGridLayout(pnlButton)
         lytButton.addWidget(self.btnReboot,     0, 0, 1, 1)
         lytButton.addWidget(self.btnSyncTime,   1, 0, 1, 1)
         lytButton.addWidget(self.btnBrowser,    2, 0, 1, 1)
-        lytButton.addWidget(self.btnJPEG,       3, 0, 1, 1)
+        lytButton.addWidget(self.btnSnapshot,   3, 0, 1, 1)
+        lytButton.setContentsMargins(6, 0, 6, 0)
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.grpRecord,         0, 0, 1, 1)
@@ -295,9 +297,8 @@ class SystemTab(QWidget):
             host = "http://" + camera.onvif_data.host()
             webbrowser.get().open(host)
 
-    def writeJPEG(self):
-        player = self.cp.getCurrentPlayer()
-        if player:
+    def btnSnapshotClicked(self):
+        if player := self.cp.getCurrentPlayer():
             root = self.cp.mw.settingsPanel.dirPictures.txtDirectory.text() + "/" + self.cp.getCamera(player.uri).text()
             pathlib.Path(root).mkdir(parents=True, exist_ok=True)
             filename = '{0:%Y%m%d%H%M%S.jpg}'.format(datetime.datetime.now())

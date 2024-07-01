@@ -1,13 +1,22 @@
 cd libonvif
-rmdir /q /s build
-rmdir /q /s libonvif.egg-info
-rmdir /q /s dist
+if exist build\ (
+    rmdir /s /q build
+)
+if exist libonvif.egg-info\ (
+    rmdir /s /q libonvif.egg-info
+)
 cd ../libavio
-rmdir /q /s build
-rmdir /q /s avio.egg-info
-rmdir /q /s dist
+if exist build\ (
+    rmdir /s /q build
+)
+if exist avio.egg-info\ (
+    rmdir /s /q avio.egg-info
+)
 cd ../onvif-gui
-rmdir /q /s build
-rmdir /q /s onvif_gui.egg-info
-rmdir /q /s dist
+if exist build\ (
+    rmdir /s /q build
+)
+if exist onvif_gui.egg-info\ (
+    rmdir /s /q onvif_gui.egg-info
+)
 cd ..

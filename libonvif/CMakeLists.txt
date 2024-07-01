@@ -87,12 +87,27 @@ IF (NOT WITHOUT_PYTHON)
         ${LIBXML2_LIBRARIES}
     )
 
-    message("-- LIBXML2_INCLUDE_DIRS: "${LIBXML2_INCLUDE_DIRS})
-    message("-- LIBXML2_LIBRARIES: "${LIBXML2_LIBRARIES})
+    message("-- LIBXML2_INCLUDE_DIRS: " ${LIBXML2_INCLUDE_DIRS})
+    message("-- LIBXML2_LIBRARIES: " ${LIBXML2_LIBRARIES})
 
     target_include_directories(pyonvif PUBLIC
         include
         ${LIBXML2_INCLUDE_DIRS}
+    )
+
+endif()
+
+IF (BUILD_TEST)
+    add_executable(onvif-test
+        test/onvif-test.cpp
+    )
+
+    target_link_libraries(onvif-test PRIVATE
+        libonvif
+    )
+
+    target_include_directories(onvif-test PUBLIC
+        include
     )
 
 endif()

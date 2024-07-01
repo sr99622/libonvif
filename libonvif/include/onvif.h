@@ -151,6 +151,8 @@ struct OnvifData {
     bool analyze_audio;
     int desired_aspect;
     bool hidden;
+    int cache_max;
+    bool sync_audio;
 };
 
 struct OnvifSession {

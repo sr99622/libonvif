@@ -360,6 +360,7 @@ class FilePanel(QWidget):
         self.model.fileRenamed.connect(self.onFileRenamed)
         self.tree = TreeView(mw)
         self.tree.setModel(self.model)
+        self.tree.clicked.connect(self.treeClicked)
         self.tree.doubleClicked.connect(self.treeDoubleClicked)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.showContextMenu)
@@ -397,6 +398,11 @@ class FilePanel(QWidget):
             self.model.setRootPath(path)
             self.tree.setRootIndex(self.model.index(path))
             self.setDirectory(path)
+
+    def treeClicked(self, index):
+        if index.isValid():
+            fileInfo = self.model.fileInfo(index)
+            self.mw.videoConfigure.setFile(fileInfo.canonicalFilePath())
 
     def treeDoubleClicked(self, index):
         if index.isValid():
@@ -554,7 +560,7 @@ class FilePanel(QWidget):
             strInfo = "Invalid Index"
 
         msgBox = QMessageBox(self)
-        msgBox.setWindowTitle("File Info")
+        msgBox.setWindowTitle("")
         msgBox.setText(strInfo)
         msgBox.exec()
 

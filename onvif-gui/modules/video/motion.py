@@ -34,11 +34,11 @@ class MotionSettings():
         self.camera = camera
         self.mw = mw
         self.id = "File"
-        self.show = False
         if camera:
             self.id = camera.serial_number()
-
+        self.show = False
         self.gain = self.getModelOutputGain()
+        self.limit = 0
 
     def getModelOutputGain(self):
         key = f'{self.id}/{MODULE_NAME}/ModelAlarmLimit'
@@ -57,6 +57,7 @@ class VideoConfigure(QWidget):
             self.name = MODULE_NAME
             self.source = None
             self.media = None
+            self.initialized = False
             
             self.chkShow = QCheckBox("Show Diff Image")
             self.barLevel = WarningBar()
@@ -81,6 +82,12 @@ class VideoConfigure(QWidget):
             lytMain.addWidget(QLabel(),      1, 0, 1, 2)
 
             self.enableControls(False)
+            if camera := self.mw.cameraPanel.getCurrentCamera():
+                self.setCamera(camera)
+            else:
+                if file := self.mw.filePanel.getCurrentFileURI():
+                    self.setFile(file)
+            self.initialized = True
 
         except:
             logger.exception("sample configuration failed to load")
@@ -101,7 +108,7 @@ class VideoConfigure(QWidget):
             if not self.isModelSettings(camera.videoModelSettings):
                 camera.videoModelSettings = MotionSettings(self.mw, camera)
             self.mw.videoPanel.lblCamera.setText(f'Camera - {camera.name()}')
-            self.sldGain.setValue(camera.videoModelSettings.gain)
+            self.sldGain.setValue(camera.videoModelSettings.limit)
             self.barLevel.setLevel(0)
             self.indAlarm.setState(0)
             profile = self.mw.cameraPanel.getProfile(camera.uri())
@@ -115,7 +122,7 @@ class VideoConfigure(QWidget):
             if not self.isModelSettings(self.mw.filePanel.videoModelSettings):
                 self.mw.filePanel.videoModelSettings = MotionSettings(self.mw)
             self.mw.videoPanel.lblCamera.setText(f'File - {os.path.split(file)[1]}')
-            self.sldGain.setValue(self.mw.filePanel.videoModelSettings.gain)
+            self.sldGain.setValue(self.mw.filePanel.videoModelSettings.limit)
             self.barLevel.setLevel(0)
             self.indAlarm.setState(0)
             self.enableControls(self.mw.videoPanel.chkEnableFile.isChecked())
@@ -176,7 +183,7 @@ class VideoWorker:
                 diff = cv2.morphologyEx(diff, cv2.MORPH_CLOSE, self.kernel, iterations=1)
 
                 motion = diff.sum() / (diff.shape[0] * diff.shape[1])
-                level = math.exp(0.2 * (player.videoModelSettings.gain - 50)) * motion
+                level = math.exp(0.2 * (player.videoModelSettings.limit - 50)) * motion
 
             player.last_image = img
 

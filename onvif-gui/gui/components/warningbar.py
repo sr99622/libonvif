@@ -56,7 +56,7 @@ class Indicator(QLabel):
         self.setMaximumHeight(10)
         self.setStyleSheet("QLabel { border : 1px solid #808D9E; }")
         self.timer = QTimer()
-        self.timer.setInterval(self.mw.settingsPanel.spnLagTime.value() * 1000)
+        self.timer.setInterval(self.mw.settingsPanel.alarm.spnLagTime.value() * 1000)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.timeout)
         self.signals = IndicatorSignals()

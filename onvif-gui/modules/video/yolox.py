@@ -27,7 +27,7 @@ try:
     import numpy as np
     from pathlib import Path
     from gui.components import ComboSelector, FileSelector, ThresholdSlider, TargetSelector
-    from gui.onvif.datastructures import MediaSource
+    from gui.enums import MediaSource
     from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QCheckBox, QMessageBox, \
         QGroupBox, QDialog, QSpinBox
     from PyQt6.QtCore import Qt, QSize, QObject, pyqtSignal
@@ -499,20 +499,25 @@ class VideoWorker:
         alarmState = result >= player.videoModelSettings.limit if result else False
         player.handleAlarm(alarmState)
 
+        show_alarm = False
         if camera := self.mw.cameraPanel.getCamera(player.uri):
             if camera.isFocus():
+                show_alarm = True
+        if not player.isCameraStream():
+                show_alarm = True
 
-                level = 0
-                if player.videoModelSettings.limit:
-                    level = result / player.videoModelSettings.limit
-                else:
-                    if result:
-                        level = 1.0
+        if show_alarm:
+            level = 0
+            if player.videoModelSettings.limit:
+                level = result / player.videoModelSettings.limit
+            else:
+                if result:
+                    level = 1.0
 
-                self.mw.videoConfigure.selTargets.barLevel.setLevel(level)
+            self.mw.videoConfigure.selTargets.barLevel.setLevel(level)
 
-                if alarmState:
-                    self.mw.videoConfigure.selTargets.indAlarm.setState(1)
+            if alarmState:
+                self.mw.videoConfigure.selTargets.indAlarm.setState(1)
 
     def callback(self, infer_request, player):
         try:

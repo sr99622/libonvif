@@ -822,7 +822,13 @@ int setVideoEncoderConfiguration(struct OnvifData *onvif_data) {
     sprintf(use_count_buf, "%d", onvif_data->use_count);
     sprintf(width_buf, "%d", onvif_data->width);
     sprintf(height_buf, "%d", onvif_data->height);
+
     sprintf(quality_buf, "%f", onvif_data->quality);
+    for (int i = 0; i < strlen(quality_buf); i++) {
+        if (quality_buf[i] == ',')
+            quality_buf[i] = '.';
+    }
+
     sprintf(multicast_port_buf, "%d", onvif_data->multicast_port);
     sprintf(multicast_ttl_buf, "%d", onvif_data->multicast_ttl);
     if (onvif_data->autostart)
@@ -2713,7 +2719,7 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
                 continue;
             }
 
-            if (strcmp(ifa->ifa_name, "lo")) {
+            if (strcmp(host, "127.0.0.1")) {
                 strcpy(onvif_session->active_network_interfaces[count], host);
                 strcat(onvif_session->active_network_interfaces[count], " - ");
                 strcat(onvif_session->active_network_interfaces[count], ifa->ifa_name);

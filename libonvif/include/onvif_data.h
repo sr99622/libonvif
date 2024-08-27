@@ -44,6 +44,7 @@ public:
     std::function<Data(Data&)> getCredential = nullptr;
     std::function<void(const std::string&, const std::string&)> setSetting = nullptr;
     std::function<const std::string(const std::string& key, const std::string& default_value)> getSetting = nullptr;
+    std::function<const std::string(const std::string&)> getProxyURI;
 
     OnvifData* data;
     bool cancelled = false;
@@ -494,11 +495,30 @@ public:
         }
     }
 
+    std::string toString() {
+        std::stringstream str;
+        str << "camera_name=" << data->camera_name << "\n"
+            << "stream_uri=" << data->stream_uri << "\n";
+        return str.str();
+    }
+
     std::string uri() {
         std::stringstream str;
-        std::string arg(data->stream_uri);
-        if (arg.length() > 7)
-            str << arg.substr(0, 7) << data->username << ":" << data->password << "@" << arg.substr(7);
+        try {
+            std::string arg(data->stream_uri);
+
+            if (getProxyURI) {
+                str << getProxyURI(arg);
+            }
+            else {
+                if (arg.length() > 7)
+                    str << arg.substr(0, 7) << data->username << ":" << data->password << "@" << arg.substr(7);
+            }
+        }
+        catch (const std::exception& ex) {
+            std::cout << "onvif data uri() exception: " << ex.what() << std::endl;
+        }
+
         return str.str();
     }
 

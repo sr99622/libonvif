@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QLabel, QWidget, QChe
 from PyQt6.QtGui import QPainter, QColorConstants, QColor
 from PyQt6.QtCore import QPointF, Qt, QRectF
 from gui.components import WarningBar, Indicator
-from gui.onvif.datastructures import MediaSource
+from gui.enums import MediaSource
 
 MODULE_NAME = "sample"
 

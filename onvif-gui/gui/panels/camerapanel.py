@@ -141,10 +141,11 @@ class CameraPanel(QWidget):
         self.dlgLogin = LoginDialog(self)
         self.fillers = []
         self.fill_first_pass = True
+        self.sync_lock = False
         self.cameras_awaiting_authentication = []
 
         self.autoTimeSyncer = None
-        self.enableAutoTimeSync(self.mw.settingsPanel.chkAutoTimeSync.isChecked())
+        self.enableAutoTimeSync(self.mw.settingsPanel.general.chkAutoTimeSync.isChecked())
 
         self.cached_serial_numbers = []
        
@@ -162,23 +163,33 @@ class CameraPanel(QWidget):
         self.sldVolume.setEnabled(False)
 
         self.btnStop = QPushButton()
+        self.btnStop.setMinimumWidth(40)
+        self.btnStop.setMaximumHeight(20)
         self.btnStop.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnStop.clicked.connect(self.btnStopClicked)
 
         self.btnRecord = QPushButton()
+        self.btnRecord.setMinimumWidth(40)
+        self.btnRecord.setMaximumHeight(20)
         self.btnRecord.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRecord.clicked.connect(self.btnRecordClicked)
 
         self.btnMute = QPushButton()
+        self.btnMute.setMinimumWidth(40)
+        self.btnMute.setMaximumHeight(20)
         self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnMute.clicked.connect(self.btnMuteClicked)
 
         self.btnDiscover = QPushButton()
+        self.btnDiscover.setMinimumWidth(40)
+        self.btnDiscover.setMaximumHeight(20)
         self.btnDiscover.setStyleSheet(self.getButtonStyle("discover"))
         self.btnDiscover.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnDiscover.clicked.connect(self.btnDiscoverClicked)
 
         self.btnApply = QPushButton()
+        self.btnApply.setMinimumWidth(40)
+        self.btnApply.setMaximumHeight(20)
         self.btnApply.setStyleSheet(self.getButtonStyle("apply"))
         self.btnApply.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnApply.clicked.connect(self.btnApplyClicked)
@@ -250,16 +261,16 @@ class CameraPanel(QWidget):
         self.lstCamera.info()
 
     def btnDiscoverClicked(self):
-        if self.mw.settingsPanel.radDiscover.isChecked():
+        if self.mw.settingsPanel.discover.radDiscover.isChecked():
             logger.debug("Using broadcast discovery")
             interfaces = []
             self.sessions.clear()
 
-            if self.mw.settingsPanel.chkScanAllNetworks.isChecked():
-                for i in range(self.mw.settingsPanel.cmbInterfaces.count()):
-                    interfaces.append(self.mw.settingsPanel.cmbInterfaces.itemText(i).split(" - ")[0])
+            if self.mw.settingsPanel.discover.chkScanAllNetworks.isChecked():
+                for i in range(self.mw.settingsPanel.discover.cmbInterfaces.count()):
+                    interfaces.append(self.mw.settingsPanel.discover.cmbInterfaces.itemText(i).split(" - ")[0])
             else:
-                interfaces.append(self.mw.settingsPanel.cmbInterfaces.currentText().split(" - ")[0])
+                interfaces.append(self.mw.settingsPanel.discover.cmbInterfaces.currentText().split(" - ")[0])
 
             for interface in interfaces:
                 session = Session(self, interface)
@@ -271,7 +282,7 @@ class CameraPanel(QWidget):
         else:
             logger.debug("Using cached camera addresses for discovery")
             self.fillers.clear()
-            tmp = self.mw.settings.value(self.mw.settingsPanel.cameraListKey)
+            tmp = self.mw.settings.value(self.mw.settingsPanel.discover.cameraListKey)
             if tmp:
                 numbers = tmp.strip().split("\n")
                 for serial_number in numbers:
@@ -312,9 +323,9 @@ class CameraPanel(QWidget):
                     onvif_data.cancelled = True
                     return onvif_data
         
-        if len(self.mw.settingsPanel.txtPassword.text()) > 0 and len(onvif_data.last_error()) == 0:
-            onvif_data.setUsername(self.mw.settingsPanel.txtUsername.text())
-            onvif_data.setPassword(self.mw.settingsPanel.txtPassword.text())
+        if len(self.mw.settingsPanel.general.txtPassword.text()) > 0 and len(onvif_data.last_error()) == 0:
+            onvif_data.setUsername(self.mw.settingsPanel.general.txtUsername.text())
+            onvif_data.setPassword(self.mw.settingsPanel.general.txtPassword.text())
         else:
             if onvif_data.last_error().startswith("Network error, unable to connect"):
                 logger.debug(f'Unable to connect with {onvif_data.xaddrs()}')
@@ -365,13 +376,15 @@ class CameraPanel(QWidget):
             camera = Camera(onvif_data, self.mw)
             camera.setIconIdle()
             camera.dimForeground()
+            self.mw.addCameraProxy(camera)
+            
             self.lstCamera.addItem(camera)
             self.lstCamera.sortItems()
             camera.setDisplayProfile(camera.getDisplayProfileSetting())
             self.saveCameraList()
             logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Serial Number: {onvif_data.serial_number()}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}')
 
-            synchronizeTime = self.mw.settingsPanel.chkAutoTimeSync.isChecked()
+            synchronizeTime = self.mw.settingsPanel.general.chkAutoTimeSync.isChecked()
             if not self.closing:
                 onvif_data.startFill(synchronizeTime)
 
@@ -395,12 +408,12 @@ class CameraPanel(QWidget):
             camera.filled = True
 
             # auto start after fill, recording needs onvif frame rate
-            if self.mw.settingsPanel.chkAutoStart.isChecked():
+            if self.mw.settingsPanel.discover.chkAutoStart.isChecked():
                 if self.fill_first_pass:
                     self.fill_first_pass = False
                     if bool(int(self.mw.settings.value(self.mw.collapsedKey, 0))):
                         self.signals.collapseSplitter.emit()
-                    if self.mw.settingsPanel.radCached.isChecked():
+                    if self.mw.settingsPanel.discover.radCached.isChecked():
                         self.mw.pm.auto_start_mode = True
 
                 if not camera.isRunning():
@@ -417,7 +430,7 @@ class CameraPanel(QWidget):
         cameras = [self.mw.cameraPanel.lstCamera.item(x) for x in range(self.mw.cameraPanel.lstCamera.count())]
         for camera in cameras:
             serial_numbers += camera.serial_number() + "\n"
-        self.mw.settings.setValue(self.mw.settingsPanel.cameraListKey, serial_numbers)
+        self.mw.settings.setValue(self.mw.settingsPanel.discover.cameraListKey, serial_numbers)
 
     def onCurrentItemChanged(self, current, previous):
         if current:
@@ -450,8 +463,8 @@ class CameraPanel(QWidget):
                 self.mw.signals.stopReconnect.emit(timer.uri)
             for player in players:
                 player.requestShutdown()
-            for profile in profiles:
-                self.mw.pm.removeKeys(profile.uri())
+            #for profile in profiles:
+            #    self.mw.pm.removeKeys(profile.uri())
             camera.setIconIdle()
         else:
             if len(players):
@@ -534,14 +547,14 @@ class CameraPanel(QWidget):
                 if camera:
                     camera.manual_recording = False
             else:
-                d = self.mw.settingsPanel.dirArchive.txtDirectory.text()
+                d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                 root = d + "/" + self.getCamera(player.uri).text()
                 pathlib.Path(root).mkdir(parents=True, exist_ok=True)
                 player.pipe_output_start_time = datetime.now()
                 filename = '{0:%Y%m%d%H%M%S}'.format(player.pipe_output_start_time)
                 filename = root + "/" + filename + ".mp4"
                 player.setMetaData("title", self.getCamera(player.uri).text())
-                if self.mw.settingsPanel.chkManageDiskUsage.isChecked():
+                if self.mw.settingsPanel.storage.chkManageDiskUsage.isChecked():
                     player.manageDirectory(d)
                 player.toggleRecording(filename)
                 if camera:
@@ -577,13 +590,18 @@ class CameraPanel(QWidget):
         self.syncGUI()
 
     def syncGUI(self):
+
+        while (self.sync_lock):
+            sleep(0.001)
+
+        self.sync_lock = True
         if camera := self.getCurrentCamera():
             self.btnStop.setEnabled(True)
             if player := self.mw.pm.getPlayer(camera.uri()):
                 self.btnStop.setStyleSheet(self.getButtonStyle("stop"))
 
-                ps = player.systemTabSettings
-                self.btnRecord.setEnabled(not (ps.record_enable and ps.record_always))
+                if ps := player.systemTabSettings:
+                    self.btnRecord.setEnabled(not (ps.record_enable and ps.record_always))
 
                 if player.hasAudio() and not player.disable_audio:
                     self.btnMute.setEnabled(True)
@@ -643,6 +661,11 @@ class CameraPanel(QWidget):
             self.btnRecord.setEnabled(False)
             self.btnStop.setStyleSheet(self.getButtonStyle("play"))
             self.btnStop.setEnabled(False)
+
+        #print("btn width", self.btnStop.width())
+        #print("btn height", self.btnStop.height())
+        self.sync_lock = False
+
 
     def getButtonStyle(self, name):
         strStyle = "QPushButton { image : url(image:%1.png); } \

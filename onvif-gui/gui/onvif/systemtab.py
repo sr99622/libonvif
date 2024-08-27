@@ -48,7 +48,7 @@ class SystemTabSettings():
                 player = self.mw.pm.getPlayer(profile.uri())
                 if player:
                     if not player.isRecording():
-                        d = self.mw.settingsPanel.dirArchive.txtDirectory.text()
+                        d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                         filename = player.getPipeOutFilename(d)
                         if filename:
                             player.toggleRecording(filename)
@@ -299,7 +299,7 @@ class SystemTab(QWidget):
 
     def btnSnapshotClicked(self):
         if player := self.cp.getCurrentPlayer():
-            root = self.cp.mw.settingsPanel.dirPictures.txtDirectory.text() + "/" + self.cp.getCamera(player.uri).text()
+            root = self.cp.mw.settingsPanel.storage.dirPictures.txtDirectory.text() + "/" + self.cp.getCamera(player.uri).text()
             pathlib.Path(root).mkdir(parents=True, exist_ok=True)
             filename = '{0:%Y%m%d%H%M%S.jpg}'.format(datetime.datetime.now())
             filename = root + "/" + filename

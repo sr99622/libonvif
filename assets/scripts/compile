@@ -23,6 +23,17 @@ if [ -d "$FILE" ]; then
 fi
 pip install -v .
 
+cd ../liblivemedia
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=liblivemedia.egg-info
+if [ -d "$FILE" ]; then
+    rm -R liblivemedia.egg-info
+fi
+pip install -v .
+
 cd ../onvif-gui
 FILE=build
 if [ -d "$FILE" ]; then

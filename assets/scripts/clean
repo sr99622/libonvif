@@ -2,32 +2,58 @@
 find . -type f -name '._*' -delete
 cd libonvif
 
-FILE=build
-if [ -d "$FILE" ]; then
+DIR=build
+if [ -d "$DIR" ]; then
     rm -R build
 fi
-FILE=libonvif.egg-info
-if [ -d "$FILE" ]; then
+DIR=dist
+if [ -d "$DIR" ]; then
+    rm -R dist
+fi
+DIR=libonvif.egg-info
+if [ -d "$DIR" ]; then
     rm -R libonvif.egg-info
 fi
 
 cd ../libavio
-FILE=build
-if [ -d "$FILE" ]; then
+DIR=build
+if [ -d "$DIR" ]; then
     rm -R build
 fi
-FILE=avio.egg-info
-if [ -d "$FILE" ]; then
+DIR=dist
+if [ -d "$DIR" ]; then
+    rm -R dist
+fi
+DIR=avio.egg-info
+if [ -d "$DIR" ]; then
     rm -R avio.egg-info
 fi
 
-cd ../onvif-gui
-FILE=build
-if [ -d "$FILE" ]; then
+cd ../liblivemedia
+DIR=build
+if [ -d "$DIR" ]; then
     rm -R build
 fi
-FILE=onvif_gui.egg-info
-if [ -d "$FILE" ]; then
+DIR=dist
+if [ -d "$DIR" ]; then
+    rm -R dist
+fi
+DIR=liblivemedia.egg-info
+if [ -d "$DIR" ]; then
+    rm -R liblivemedia.egg-info
+fi
+
+cd ../onvif-gui
+DIR=build
+if [ -d "$DIR" ]; then
+    rm -R build
+fi
+DIR=dist
+if [ -d "$DIR" ]; then
+    rm -R dist
+fi
+DIR=onvif_gui.egg-info
+if [ -d "$DIR" ]; then
     rm -R onvif_gui.egg-info
 fi
 

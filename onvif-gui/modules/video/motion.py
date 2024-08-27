@@ -25,7 +25,7 @@ from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QCheckBox, QGroupBox,
 from PyQt6.QtCore import Qt
 from loguru import logger
 from gui.components import WarningBar, Indicator
-from gui.onvif.datastructures import MediaSource
+from gui.enums import MediaSource
 
 MODULE_NAME = "motion"
 

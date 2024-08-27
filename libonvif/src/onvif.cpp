@@ -166,6 +166,7 @@ PYBIND11_MODULE(libonvif, m)
         .def("setHidden", &Data::setHidden)
         .def("getCacheMax", &Data::getCacheMax)
         .def("setCacheMax", &Data::setCacheMax)
+        .def("toString", &Data::toString)
         .def(py::self == py::self)
         .def_readwrite("profiles", &Data::profiles)
         .def_readwrite("displayProfile", &Data::displayProfile)
@@ -175,6 +176,7 @@ PYBIND11_MODULE(libonvif, m)
         .def_readwrite("discovered", &Data::discovered)
         .def_readwrite("getSetting", &Data::getSetting)
         .def_readwrite("setSetting", &Data::setSetting)
+        .def_readwrite("getProxyURI", &Data::getProxyURI)
         .def_readwrite("preset", &Data::preset)
         .def_readwrite("x", &Data::x)
         .def_readwrite("y", &Data::y)
@@ -183,7 +185,7 @@ PYBIND11_MODULE(libonvif, m)
         .def_readwrite("alias", &Data::alias)
         .def_readwrite("cancelled", &Data::cancelled);
 
-    m.attr("__version__") = "2.0.10";
+    m.attr("__version__") = "3.2.1";
 }
 
 

@@ -4,3 +4,6 @@
 [submodule "libavio"]
 	path = libavio
 	url = https://github.com/sr99622/libavio
+[submodule "liblivemedia"]
+	path = liblivemedia
+	url = https://github.com/sr99622/liblivemedia

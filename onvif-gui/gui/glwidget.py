@@ -22,8 +22,8 @@ from PyQt6.QtGui import QPainter, QImage, QColorConstants, QPen, QMovie, QIcon
 from PyQt6.QtCore import QSize, QPointF, QRectF, QTimer, QObject, pyqtSignal
 import numpy as np
 from datetime import datetime
-from time import sleep
-from gui.onvif.datastructures import StreamState
+import time
+from gui.enums import StreamState
 from loguru import logger
 
 class GLWidgetSignals(QObject):
@@ -48,11 +48,12 @@ class GLWidget(QOpenGLWidget):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.timerCallback)
-        refreshInterval = self.mw.settingsPanel.spnDisplayRefresh.value()
+        refreshInterval = self.mw.settingsPanel.general.spnDisplayRefresh.value()
         self.timer.start(refreshInterval)
     
     def renderCallback(self, F, player):
         try :
+            player.last_render = datetime.now()
             if player.analyze_video and self.mw.videoConfigure.initialized:
                 F = self.mw.pyVideoCallback(F, player)
             else:
@@ -83,7 +84,7 @@ class GLWidget(QOpenGLWidget):
             self.mw.pm.sizes[player.uri] = QSize(w_s, h_s)
 
             while player.rendering:
-                sleep(0.001)
+                time.sleep(0.001)
 
             self.image_loading = True
 
@@ -112,6 +113,7 @@ class GLWidget(QOpenGLWidget):
             logger.error(f'GLWidget render callback exception: {str(ex)}')
 
     def timerCallback(self):
+        #self.repaint()
         self.update()
 
     def sizeHint(self):
@@ -172,7 +174,8 @@ class GLWidget(QOpenGLWidget):
         try:
             painter = QPainter(self)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
+            painter.fillRect(self.rect(), QColorConstants.Black)
+ 
             if self.model_loading:
                 rectSpinner = QRectF(0, 0, 40, 40)
                 rectSpinner.moveCenter(QPointF(self.rect().center()))
@@ -181,13 +184,18 @@ class GLWidget(QOpenGLWidget):
 
             for player in self.mw.pm.players:
 
-                camera = self.mw.cameraPanel.getCamera(player.uri)
+                if player.isCameraStream() and player.running and player.last_render:
+                    interval = datetime.now() - player.last_render
+                    if interval.total_seconds() > 5:
+                        logger.debug(f'Lost signal for {self.mw.getCameraName(player.uri)}')
+                        player.requestShutdown()
+                        self.mw.playMedia(player.uri)
 
                 if player.pipe_output_start_time:
                     interval = datetime.now() - player.pipe_output_start_time
                     if interval.total_seconds() > self.mw.STD_FILE_DURATION:
-                        d = self.mw.settingsPanel.dirArchive.txtDirectory.text()
-                        if self.mw.settingsPanel.chkManageDiskUsage.isChecked():
+                        d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
+                        if self.mw.settingsPanel.storage.chkManageDiskUsage.isChecked():
                             player.manageDirectory(d)
 
                         filename = player.getPipeOutFilename(d)
@@ -196,6 +204,8 @@ class GLWidget(QOpenGLWidget):
 
                 if player.disable_video or player.hidden:
                     continue
+
+                camera = self.mw.cameraPanel.getCamera(player.uri)
 
                 if player.image is None:
                     rect = self.mw.pm.displayRect(player.uri, self.size())
@@ -215,7 +225,7 @@ class GLWidget(QOpenGLWidget):
                     continue
 
                 while self.image_loading:
-                    sleep(0.001)
+                    time.sleep(0.001)
 
                 player.rendering = True
 
@@ -240,6 +250,9 @@ class GLWidget(QOpenGLWidget):
                     else:
                         if camera.isAlarming():
                             painter.drawImage(rectBlinker, QImage("image:alarm_plain.png"))
+
+                if not player.isCameraStream() and player.alarm_state:
+                    painter.drawImage(rectBlinker, QImage("image:alarm_plain.png"))
 
                 if self.isFocusedURI(player.uri):
                     painter.setPen(QColorConstants.White)

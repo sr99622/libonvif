@@ -18,23 +18,13 @@
 #*********************************************************************/
 
 from time import sleep
-from enum import auto, Enum
 from PyQt6.QtWidgets import QListWidgetItem
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QTimer
 from PyQt6.QtGui import QIcon, QColor
 import libonvif as onvif
 from gui.onvif.systemtab import SystemTabSettings
+from gui.enums import ProxyType, MediaSource, StreamState
 
-class StreamState(Enum):
-    IDLE = auto()
-    CONNECTING = auto()
-    CONNECTED = auto()
-    INVALID = auto()
-
-class MediaSource(Enum):
-    CAMERA = auto()
-    FILE = auto()
-    
 class SessionSignals(QObject):
     finished = pyqtSignal()
 
@@ -80,9 +70,15 @@ class Camera(QListWidgetItem):
 
         onvif_data.setSetting = self.setSetting
         onvif_data.getSetting = self.getSetting
+        if mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
+            onvif_data.getProxyURI = self.mw.getProxyURI
+
         for profile in onvif_data.profiles:
             profile.setSetting = self.setSetting
             profile.getSetting = self.getSetting
+            if mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
+                profile.getProxyURI = self.mw.getProxyURI
+        
         self.profiles = onvif_data.profiles
 
         self.videoModelSettings = None
@@ -95,6 +91,15 @@ class Camera(QListWidgetItem):
         self.volume = self.getVolume()
         self.muteKey = f'{self.serial_number()}/Mute'
         self.mute = self.getMute()
+
+    '''
+    def getProxyURI(self, arg):
+        match self.mw.settingsPanel.proxy.proxyType:
+            case ProxyType.CLIENT:
+                return self.mw.proxies[arg]
+            case ProxyType.SERVER:
+                return self.mw.proxy.getProxyURI(arg)
+    '''
 
     def getSetting(self, key, default_value):
         return str(self.mw.settings.value(key, default_value))

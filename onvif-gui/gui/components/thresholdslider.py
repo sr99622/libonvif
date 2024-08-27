@@ -19,7 +19,7 @@
 
 from PyQt6.QtWidgets import QWidget, QSlider, QLabel, QGridLayout
 from PyQt6.QtCore import Qt
-from gui.onvif.datastructures import MediaSource
+from gui.enums import MediaSource
 from loguru import logger
 
 class ThresholdSlider(QWidget):

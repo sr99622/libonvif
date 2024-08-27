@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import QDialog, QGridLayout, QListWidget, QListWidgetItem, 
     QDialogButtonBox, QWidget, QLabel, QPushButton, QMessageBox, QSlider, QCheckBox
 from PyQt6.QtCore import Qt, pyqtSignal, QObject
 from .warningbar import WarningBar, Indicator
-from gui.onvif.datastructures import MediaSource
+from gui.enums import MediaSource
 from loguru import logger
 
 class Target(QListWidgetItem):

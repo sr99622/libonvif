@@ -754,7 +754,9 @@ Right clicking over the file will bring up a context menu that can be used to pe
 
 ---
 
-<image src="assets/images/settings_panel.png" style=" width: 480px;">
+## General Settings
+
+<image src="assets/images/general.png" style=" width: 480px;">
 
 ### Common Username and Password
 
@@ -768,29 +770,9 @@ A hardware decoder may be selected for the application. Mulitcore CPUs with more
 
 Selecting this check box will cause the application to start in full screen mode. The full screen mode can be cancelled with the Escape key. The F12 key will also toggle full screen mode.
 
-### Auto Discovery
-
-When selected, this option will cause the application to discover cameras automatically when it starts. This holds true whether the application is using Broadcast Discovery or Cached Addresses.  Note that if this option is selected and the Broadcast Discovery Option is also selected, the application will poll the network once per minute to find missing or new cameras.
-
-### Auto Start
-
-When selected in combination with the Auto Discovery check box, cameras shown in the list will start automatically when the application starts. This feature will work with either Discovery Broadcast or Cached Adresses.
-
 ### Auto TIme Sync
 
 This selection will send a time sync message to each of the cameras once an hour. The camera time is set to the host computer time without regard for time zone.
-
-### Pre-Alarm Buffer Size
-
-When a camera is recording, this length of media is prepended to the file so that the moments prior to the alarm are preserved. If always recording, or the file length is limited by the system to 15 minutes, this feature will insure that there is a small overlap between adjacent files.
-
-### Post-Alarm Lag Time
-
-In the case where a camera is configured to record during alarms, this length of time must pass after the cessation of the alarm before the file recording is turned off.  This helps to prevent excessive file creation.
-
-### Alarm Sounds
-
-A few default alarm sounds for selection.  A system wide volume setting for the alarm volume can be made with the slider.
 
 ### Display Refresh Interval
 
@@ -799,6 +781,23 @@ Performance on some lower powered systems may be improved by increasing the disp
 ### Maximum Input Stream Cache Size
 
 Adjust the maximum number of frames held in the cache before frames are dropped. This is the same cache referred to by the Video Tab of the Camera Panel.
+
+### Start All Cameras / Close All Streams
+
+This button will change appearance depending on whether there are streams playing or not. It can be used to batch control cameras to start or stop as a group. It will start all cameras on the Camera List. It will stop all streams, including files if playing.
+
+### Show Logs
+
+This button will show the logs of the application. Many events and errors encountered will be documented here. The log rolls over at 1 MB. The older logs can be managed using the Archive button on the logs display dialog. Note that on Linux, the archive file selection dialog may be slow to open or may require some mouse movement to visualize.
+
+### Help
+
+Shows this file.
+
+
+## Discover Settings
+
+<image src="assets/images/discover.png" style=" width: 480px;">
 
 ### Discovery Options
 
@@ -813,6 +812,18 @@ Adjust the maximum number of frames held in the cache before frames are dropped.
 * Add Camera
 
   It is possible to add a camera manually to the address cache by using the Add Camera button. The IP address and ONVIF port are required to connect.  The ONVIF port by default is 80. If successful, the camera will be added silently to the camera list.
+
+### Auto Discovery
+
+When selected, this option will cause the application to discover cameras automatically when it starts. This holds true whether the application is using Broadcast Discovery or Cached Addresses.  Note that if this option is selected and the Broadcast Discovery Option is also selected, the application will poll the network once per minute to find missing or new cameras.
+
+### Auto Start
+
+When selected in combination with the Auto Discovery check box, cameras shown in the list will start automatically when the application starts. This feature will work with either Discovery Broadcast or Cached Adresses.
+
+## Storage Settings
+
+<image src="assets/images/storage.png" style=" width: 480px;">
 
 ### Disk Usage
 
@@ -830,17 +841,39 @@ The application has the ability to manage the disk space used by the recorded me
 
   The spin box can be used to limit the application disk usage in GB. Note that the application is conservative in it's estimate of required file size and the actual space occupied by the media files will be a few GB less than the allocated space.
 
-### Start All Cameras / Close All Streams
+## Proxy Settings
 
-This button will change appearance depending on whether there are streams playing or not. It can be used to batch control cameras to start or stop as a group. It will start all cameras on the Camera List. It will stop all streams, including files if playing.
+<image src="assets/images/proxy.png" style=" width: 480px;">
 
-### Show Logs
+## Proxy Type
 
-This button will show the logs of the application. Many events and errors encountered will be documented here. The log rolls over at 1 MB. The older logs can be managed using the Archive button on the logs display dialog. Note that on Linux, the archive file selection dialog may be slow to open or may require some mouse movement to visualize.
+* Stand Alone
 
-### Help
+  Default setting, implements a single instance of the progran that connects to the cameras directly.
 
-Shows this file.
+* Server
+  
+  The application will host a proxy server and allow other instances of the application configured as clients to connect over the local network to the cameras proxied by the server. The connection string required for the clients will be displayed.
+
+* Client
+
+  The application will act as a client to the proxy server. Use the connection string displayed by the server in the url box.
+
+## Alarm Settings
+
+<image src="assets/images/alarm.png" style=" width: 480px;">
+
+### Pre-Alarm Buffer Size
+
+When a camera is recording, this length of media is prepended to the file so that the moments prior to the alarm are preserved. If always recording, or the file length is limited by the system to 15 minutes, this feature will insure that there is a small overlap between adjacent files.
+
+### Post-Alarm Lag Time
+
+In the case where a camera is configured to record during alarms, this length of time must pass after the cessation of the alarm before the file recording is turned off.  This helps to prevent excessive file creation.
+
+### Alarm Sounds
+
+A few default alarm sounds for selection.  A system wide volume setting for the alarm volume can be made with the slider.
 
 ---
 &nbsp;

@@ -51,7 +51,7 @@ from gui.onvif import StreamState
 import avio
 import liblivemedia
 
-VERSION = "2.2.7"
+VERSION = "2.2.8"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)

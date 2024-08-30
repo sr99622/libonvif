@@ -83,15 +83,18 @@ class ProxyOptions(QWidget):
         lytMain.setRowStretch(1, 10)
 
     def setProxyType(self, type):
+        self.proxyType = type
+        self.mw.settings.setValue(self.proxyTypeKey, type)
+
+        if type == ProxyType.SERVER:
+            self.mw.startProxyServer()
+
         if not hasattr(self.mw, "cameraPanel"):
             return
 
         if len(self.mw.pm.players):
             QMessageBox.information(self.mw, "Closing Streams", "All current streams will be closed")
             self.mw.closeAllStreams()
-
-        self.proxyType = type
-        self.mw.settings.setValue(self.proxyTypeKey, type)
 
         getProxyURI = None
         if type != ProxyType.STAND_ALONE:
@@ -112,7 +115,6 @@ class ProxyOptions(QWidget):
     def radServerToggled(self, checked):
         self.lblConnect.setEnabled(checked)
         if checked:
-            self.mw.startProxyServer()
             self.setProxyType(ProxyType.SERVER)
             self.lblServer.setText(self.mw.proxy.getRootURI())
         else:

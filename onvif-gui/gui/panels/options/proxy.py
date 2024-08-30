@@ -117,9 +117,6 @@ class ProxyOptions(QWidget):
             self.lblServer.setText(self.mw.proxy.getRootURI())
         else:
             self.mw.stopProxyServer()
-            #print("stop server")
-            #sleep(1)
-            #self.mw.proxy = None
             self.lblServer.setText("")
 
     def radClientToggled(self, checked):

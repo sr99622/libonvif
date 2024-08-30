@@ -51,7 +51,7 @@ from gui.onvif import StreamState
 import avio
 import liblivemedia
 
-VERSION = "2.2.4"
+VERSION = "2.2.5"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -678,8 +678,9 @@ class MainWindow(QMainWindow):
     
     def startProxyServer(self):
         try:
-            self.proxy = liblivemedia.ProxyServer()
-            self.proxy.init(554)
+            if not self.proxy:
+                self.proxy = liblivemedia.ProxyServer()
+                self.proxy.init(554)
             self.proxy.startLoop()
 
         except Exception as ex:

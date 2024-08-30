@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import QMessageBox, QLineEdit, \
     QGridLayout, QWidget, QLabel, QMessageBox, QRadioButton, \
     QGroupBox
 from PyQt6.QtCore import Qt
-
+from time import sleep
 from gui.enums import ProxyType
 
 class ProxyOptions(QWidget):
@@ -112,11 +112,14 @@ class ProxyOptions(QWidget):
     def radServerToggled(self, checked):
         self.lblConnect.setEnabled(checked)
         if checked:
-            self.setProxyType(ProxyType.SERVER)
             self.mw.startProxyServer()
+            self.setProxyType(ProxyType.SERVER)
             self.lblServer.setText(self.mw.proxy.getRootURI())
         else:
             self.mw.stopProxyServer()
+            #print("stop server")
+            #sleep(1)
+            #self.mw.proxy = None
             self.lblServer.setText("")
 
     def radClientToggled(self, checked):

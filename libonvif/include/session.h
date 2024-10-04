@@ -76,7 +76,6 @@ public:
                         data = getCredential(data);
                         if (!data.cancelled) {
 
-                            getCapabilities(data);
                             if (!getTimeOffset(data)) {
                                 time_t rawtime;
                                 struct tm timeinfo;
@@ -89,6 +88,7 @@ public:
                                 if (timeinfo.tm_isdst && !data.dst())
                                     data.setTimeOffset(data.time_offset() - 3600);
                             }
+                            getCapabilities(data);
 
                             if (getDeviceInformation(data) == 0) {
                                 int index = 0;

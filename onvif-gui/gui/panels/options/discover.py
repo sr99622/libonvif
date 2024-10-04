@@ -160,7 +160,7 @@ class DiscoverOptions(QWidget):
             data.getData = self.mw.cameraPanel.getData
             data.getCredential = self.mw.cameraPanel.getCredential
             data.setXAddrs(xaddrs)
-            data.setDeviceService(xaddrs)
+            data.setDeviceService("POST /onvif/device_service HTTP/1.1\n")
             data.manual_fill()
 
     def autoDiscoverChecked(self, state):

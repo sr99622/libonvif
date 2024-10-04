@@ -45,6 +45,7 @@ public:
     std::function<void(const std::string&, const std::string&)> setSetting = nullptr;
     std::function<const std::string(const std::string& key, const std::string& default_value)> getSetting = nullptr;
     std::function<const std::string(const std::string&)> getProxyURI;
+    std::function<void(const std::string&)> errorCallback = nullptr;
 
     OnvifData* data;
     bool cancelled = false;
@@ -450,7 +451,7 @@ public:
         thread.detach();
     }
 
-    void manual_fill()
+void manual_fill()
     {
         bool first_pass = true;
         int count = 0;
@@ -458,7 +459,6 @@ public:
             *this = getCredential(*this);
             if (!cancelled) {
 
-                getCapabilities(data);
                 if (!getTimeOffset(data)) {
                     time_t rawtime;
                     struct tm timeinfo;
@@ -468,8 +468,15 @@ public:
                 #else
                     localtime_r(&rawtime, &timeinfo);
                 #endif
-                    if (timeinfo.tm_isdst)
+                    if (timeinfo.tm_isdst && !dst())
                         setTimeOffset(time_offset() - 3600);
+                }
+
+                if (getCapabilities(data) < 0) {
+                    std::stringstream str;
+                    str << "Camera get capabilities error " << alias << " : " << xaddrs() << " : " << last_error();
+                    if (errorCallback) errorCallback(str.str());
+                    break;
                 }
 
                 if (getDeviceInformation(data) == 0) {

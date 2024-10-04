@@ -19,7 +19,7 @@
 
 [project]
 name = "onvif-gui" 
-version = "2.2.8"
+version = "2.2.9"
 dynamic = ["gui-scripts"]
 description = "A client gui for Onvif"
 readme = "README.md"
@@ -38,7 +38,7 @@ classifiers = [
 ]
 
 dependencies = [
-  'libonvif==3.2.1', 'avio==3.2.1', 'liblivemedia==1.0.3', 'numpy', 'loguru', 
+  'libonvif==3.2.2', 'avio==3.2.1', 'liblivemedia==1.0.3', 'numpy', 'loguru', 
   'opencv-python', 'PyQt6-Qt6', 'pyqt6'
 ]
 

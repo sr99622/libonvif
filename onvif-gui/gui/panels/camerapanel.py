@@ -290,11 +290,13 @@ class CameraPanel(QWidget):
                         self.cached_serial_numbers.append(serial_number)
                     key = f'{serial_number}/XAddrs'
                     xaddrs = self.mw.settings.value(key)
+                    alias = self.mw.settings.value(f'{serial_number}/Alias')
                     data = onvif.Data()
                     data.getData = self.getData
                     data.getCredential = self.getCredential
                     data.setXAddrs(xaddrs)
-                    data.setDeviceService(xaddrs)
+                    data.setDeviceService("POST /onvif/device_service HTTP/1.1\n")
+                    data.alias = alias
                     self.fillers.append(data)
                     data.startManualFill()
 

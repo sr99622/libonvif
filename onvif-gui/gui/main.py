@@ -51,7 +51,7 @@ from gui.onvif import StreamState
 import avio
 import liblivemedia
 
-VERSION = "2.2.8"
+VERSION = "2.2.9"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -423,7 +423,8 @@ class MainWindow(QMainWindow):
 
     def mediaPlayingStarted(self, uri):
         if self.isCameraStreamURI(uri):
-            logger.debug(f'camera stream opened {self.getCameraName(uri)} : {uri}')
+            #logger.debug(f'camera stream opened {self.getCameraName(uri)} : {uri}')
+            logger.debug(f'camera stream opened {self.getCameraName(uri)}')
 
             if self.pm.auto_start_mode:
                 finished = True

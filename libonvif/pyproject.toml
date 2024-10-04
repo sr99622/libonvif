@@ -25,7 +25,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "libonvif"
-version = "3.2.1"
+version = "3.2.2"
 authors = [
     { name="Stephen Rhodes", email="sr99622@gmail.com" },
 ]

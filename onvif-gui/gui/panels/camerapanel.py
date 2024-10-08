@@ -295,7 +295,7 @@ class CameraPanel(QWidget):
                     data.getData = self.getData
                     data.getCredential = self.getCredential
                     data.setXAddrs(xaddrs)
-                    data.setDeviceService("POST /onvif/device_service HTTP/1.1\n")
+                    data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
                     data.alias = alias
                     self.fillers.append(data)
                     data.startManualFill()

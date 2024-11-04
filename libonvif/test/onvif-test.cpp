@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 			}
 		}
 		else {
-			std::cout << "found invalid xaddrs in device repsonse" << std::endl;
+			std::cout << "found invalid xaddrs in device response" << std::endl;
 		}
 	}
 

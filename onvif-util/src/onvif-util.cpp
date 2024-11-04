@@ -84,7 +84,7 @@ static void showAll()
 						onvif_data->camera_name);
 				}
 				else {
-					std::cout << "found invalid xaddrs in device repsonse" << std::endl;
+					std::cout << "found invalid xaddrs in device response" << std::endl;
 				}
 			}
 
@@ -149,7 +149,7 @@ static void showHelp()
 			  << "      safe - set safe mode on.  Viewer and browser are disabled\n"
 			  << "      unsafe - set safe mode off.  Viewer and browser are enabled\n"
 			  << "      browser - Use browser to access camera configurations\n"
-			  << "      view (n) - View the camera output using ffplay (this assmumes you have ffplay installed in the path\n"
+			  << "      view (n) - View the camera output using ffplay (this assumes you have ffplay installed in the path\n"
 			  << "      view player (n) - View the camera output with user specified player e.g. view vlc\n"
 			  << "      dump - Full set of raw data from camera configuration\n"
 			  << "      sync_time 'zone'(optional) - Sync the camera time to the computer.  Optionally adjusts based on camera time zone\n"

@@ -271,7 +271,11 @@ int main(int argc, char **argv)
 
 			int n = broadcast(onvif_session);
 			for (int i = 0; i < n; i++) {
-				prepareOnvifData(i, onvif_session, onvif_data);
+				bool success = prepareOnvifData(i, onvif_session, onvif_data);
+				if (!success) {
+					std::cout << "found invalid xaddrs in device response for device " << i << std::endl;
+					continue;
+				}
 				char host[128];
 				extractHost(onvif_data->xaddrs, host);
 				getHostname(onvif_data);

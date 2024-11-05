@@ -59,7 +59,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 <details>
 <summary>Ubuntu</summary>
 
-* ## Step 1. Install Dependecies
+* ## Step 1. Install Dependencies
 
   ```
   sudo apt install cmake g++ git python3-pip virtualenv libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
@@ -89,7 +89,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
 <details>
 <summary>Fedora</summary>
 
-* ## Step 1. Install Dependecies
+* ## Step 1. Install Dependencies
 
   ```
   sudo dnf install cmake g++ libxml2-devel python3-devel python3-pip SDL2-devel virtualenv git
@@ -238,7 +238,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   sudo apt install git cmake g++ python3-pip virtualenv libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
   ```
 
-* ### Step 2. Create Virutal Environment
+* ### Step 2. Create Virtual Environment
 
   ```
   virtualenv myenv
@@ -277,7 +277,7 @@ Here is the application running 14 cameras through the yolox detector on an RTX 
   sudo dnf -y install ffmpeg-devel --allowerasing
   ```
 
-* ### Step 2. Create Virutal Environment
+* ### Step 2. Create Virtual Environment
 
   ```
   virtualenv myenv
@@ -514,7 +514,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 <summary>Camera Parameters</summary>
 &nbsp;
 
-<i>Changes are commited to the camera by using the Apply button, if necessary.</i>
+<i>Changes are committed to the camera by using the Apply button, if necessary.</i>
 
 ---
 
@@ -539,7 +539,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 * ### GOP
 
-    Keyframe interval of the video stream. Keyframes are a full frame encoding, whereas intermediate frames are differential representations of the changes between frames.  Keyframes are larger and require more computing power to process. Higher GOP intervals mean fewer keyframes and as a  result, less accurate represention of the video.  Lower GOP rates increase the accuracy of the  video at the expense of higher bandwidth and compute load. It is necessary to click the Apply button to enact these changes on the camera.
+    Keyframe interval of the video stream. Keyframes are a full frame encoding, whereas intermediate frames are differential representations of the changes between frames.  Keyframes are larger and require more computing power to process. Higher GOP intervals mean fewer keyframes and as a  result, less accurate representation of the video.  Lower GOP rates increase the accuracy of the  video at the expense of higher bandwidth and compute load. It is necessary to click the Apply button to enact these changes on the camera.
 
     Note that some cameras may have an option for Dynamic GOP or Adaptive Framerate, or some other name for a process that reduces the GOP automatically based on the lack of motion in the camera view. It is advised to turn this feature off when using onvif-gui.
 
@@ -613,7 +613,7 @@ The sliders control various parameters of the video quality.  The Apply button m
 
 &nbsp;
 
-If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other network settings may be completed manually. Note that IP setting changes may cause the camera to be inaccesible if using cached addresses. Use the Discover button to find the camera, or enter the new address manually from the settings panel.
+If the DHCP is enabled, all fields are set by the server, if DHCP is disabled, other network settings may be completed manually. Note that IP setting changes may cause the camera to be inaccessible if using cached addresses. Use the Discover button to find the camera, or enter the new address manually from the settings panel.
 
 Take care when changing these settings, the program does not check for errors and it maybe possible to set the camera into an unreachable configuration. 
 
@@ -665,11 +665,11 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
 * ### Sync Time
 
-    Click to syncronize the camera time to the computer time.
+    Click to synchronize the camera time to the computer time.
 
 * ### Browser
 
-    This will lauch the web browser and connect to the camera.  Cameras will have a web interface that can be used to set parameters that are not available to the application.
+    This will launch the web browser and connect to the camera.  Cameras will have a web interface that can be used to set parameters that are not available to the application.
 
 * ### JPEG
 
@@ -819,7 +819,7 @@ When selected, this option will cause the application to discover cameras automa
 
 ### Auto Start
 
-When selected in combination with the Auto Discovery check box, cameras shown in the list will start automatically when the application starts. This feature will work with either Discovery Broadcast or Cached Adresses.
+When selected in combination with the Auto Discovery check box, cameras shown in the list will start automatically when the application starts. This feature will work with either Discovery Broadcast or Cached Addresses.
 
 ## Storage Settings
 
@@ -901,7 +901,7 @@ If the analysis produces an alarm, record and alarm sound actions are taken base
 
 &nbsp;
 
-The motion detector measures the difference between two consecutive frames by calculating the percentage of pixels that have changed. If that result is over a threshold value, an alarm is triggered. The Diff check box will show a visualization of the differential pixel map that is used by the calcuation. The status bar will light green to red as the value of the algorithm result increases. The Gain slider can amplify or attenuate the result to adjust the sensitivity of the detector. Higher Gain slider values increase the sensitivity of the detector.
+The motion detector measures the difference between two consecutive frames by calculating the percentage of pixels that have changed. If that result is over a threshold value, an alarm is triggered. The Diff check box will show a visualization of the differential pixel map that is used by the calculation. The status bar will light green to red as the value of the algorithm result increases. The Gain slider can amplify or attenuate the result to adjust the sensitivity of the detector. Higher Gain slider values increase the sensitivity of the detector.
 
 * ### YOLOX
 
@@ -911,7 +911,7 @@ The motion detector measures the difference between two consecutive frames by ca
 
 YOLOX requires installation of [PyTorch](https://pytorch.org/get-started/locally/) and [OpenVINO](https://docs.openvino.ai/2024/get-started/install-openvino.html?VERSION=v_2024_1_0&OP_SYSTEM=LINUX&DISTRIBUTION=ARCHIVE)
 
-Please note that if you intend to run yolox using OpenVINO on Intel hardware, you will need to install the hardware drivers. Unfortunately, the Intel installation procedure is scattershot and not entirely reliable. For best results installing hardware drivers for iGPU or ARC in Ubuntu, please refer to the intructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases), then use ```pip install openvino```.
+Please note that if you intend to run yolox using OpenVINO on Intel hardware, you will need to install the hardware drivers. Unfortunately, the Intel installation procedure is scattershot and not entirely reliable. For best results installing hardware drivers for iGPU or ARC in Ubuntu, please refer to the instructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases), then use ```pip install openvino```.
 
 TLDR: From a python virtual environment on Ubunu Linux with the GPU drivers already installed, use the commands below. Otherwise please see above.
 
@@ -920,7 +920,7 @@ pip install torch torchvision
 pip install openvino
 ```
 
-The upper portion of the yolox panel has a model managment box. Model parameters are system wide, as there will be one model running that is shared by all cameras. The Name combo box selects the model, which is named according to the size of the number of parameters in the model. Larger models may produce more accurate results at the cost of increased compute load. The Size combo box sets the resolution to which the video is scaled for model input. Larger sizes may increase accuracy at the cost of increased compute load. It is possible to change the backend API of the yolo detector by using the API combo box. The Device combo box will populate automatically with available hardware.
+The upper portion of the yolox panel has a model management box. Model parameters are system wide, as there will be one model running that is shared by all cameras. The Name combo box selects the model, which is named according to the size of the number of parameters in the model. Larger models may produce more accurate results at the cost of increased compute load. The Size combo box sets the resolution to which the video is scaled for model input. Larger sizes may increase accuracy at the cost of increased compute load. It is possible to change the backend API of the yolo detector by using the API combo box. The Device combo box will populate automatically with available hardware.
 
 The model is initialized automatically by starting a camera stream with the Camera tab Video Alarm checked. By default the application is configured to download a model automatically when a stream is started for the first time. There may be a delay while the model is downloaded, during which time a wait box is shown. Subsequent stream launches will run the model with less delay.
 
@@ -928,7 +928,7 @@ A model may be specified manually by de-selecting the Automatically download mod
 
 The lower portion of the panel has settings for detector configuration. Parameters on this section are assigned to each camera individually.
 
-Skip Frames spin box sets the number of frames to skip between model analysis runs. If the Skip Frames value is set to zero, every frame produced by stream is set through the detector. If the Skip Frames value is set to one, every other frame is sent through the detecter, and so on. This setting can be used to reduce computational burden on the system.
+Skip Frames spin box sets the number of frames to skip between model analysis runs. If the Skip Frames value is set to zero, every frame produced by stream is set through the detector. If the Skip Frames value is set to one, every other frame is sent through the detector, and so on. This setting can be used to reduce computational burden on the system.
 
 The yolox detector samples a number of frames as set by the Samples setting. The number of frames with positive detections required to trigger an alarm is set by the Limit slider. For example, if the Sample Size is 4 and the Limit slider is set to 2, at least two of the last four frames observed must have positive detections in order to trigger the alarm.
 
@@ -1006,7 +1006,7 @@ The control tab on the right of the application window may be toggled using the 
 
 * ### Recommended Configuration
 
-The application is optimized for performance on Ubuntu Linux, which will deliver the best overall performance, including yolo detection. The application will run on Windows or Mac, but the platforms are not offically supported, and lower performance should be expected.
+The application is optimized for performance on Ubuntu Linux, which will deliver the best overall performance, including yolo detection. The application will run on Windows or Mac, but the platforms are not officially supported, and lower performance should be expected.
 
 Linux offers additional advantages in network configuration as well. Linux can easily be configured to run a [DHCP server](https://ubuntu.com/server/docs/how-to-install-and-configure-isc-kea) to manage a separate network in which to isolate the cameras. A good way to configure the system is to use the wired network port of the host computer to manage the camera network, and use the wireless network connection of the host computer to connect with the wifi router and internet. The cameras will be isolated from the internet and will not increase network load on the wifi.
 

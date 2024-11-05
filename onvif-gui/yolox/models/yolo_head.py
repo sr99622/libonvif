@@ -63,8 +63,8 @@ class YOLOXHead(nn.Module):
     ):
         """
         Args:
-            act (str): activation type of conv. Defalut value: "silu".
-            depthwise (bool): whether apply depthwise conv in conv branch. Defalut value: False.
+            act (str): activation type of conv. Default value: "silu".
+            depthwise (bool): whether apply depthwise conv in conv branch. Default value: False.
         """
         super().__init__()
 

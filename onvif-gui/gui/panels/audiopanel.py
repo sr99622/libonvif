@@ -73,7 +73,7 @@ class AudioPanel(QWidget):
         if self.panel is not None:
             self.layout.removeWidget(self.panel)
         self.panel = panel
-        self.panel.setMaximumWidth(self.mw.tab.width())
+        #self.panel.setMaximumWidth(self.mw.tab.width())
         self.layout.addWidget(panel)
         self.layout.setStretch(1, 10)
 

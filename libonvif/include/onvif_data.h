@@ -27,10 +27,14 @@
 #include <functional>
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
 #include <sstream>
 #include <string.h>
 #include <chrono>
 #include "onvif.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/reader.h"
+#include "rapidjson/stringbuffer.h"
 
 namespace libonvif
 {
@@ -44,10 +48,11 @@ public:
     std::function<Data(Data&)> getCredential = nullptr;
     std::function<void(const std::string&, const std::string&)> setSetting = nullptr;
     std::function<const std::string(const std::string& key, const std::string& default_value)> getSetting = nullptr;
-    std::function<const std::string(const std::string&)> getProxyURI;
+    std::function<const std::string(const std::string&)> getProxyURI = nullptr;
     std::function<void(const std::string&)> errorCallback = nullptr;
+    std::function<void(const std::string&)> infoCallback = nullptr;
 
-    OnvifData* data;
+    OnvifData* data = nullptr;
     bool cancelled = false;
     std::string alias;
     int preset;
@@ -55,6 +60,7 @@ public:
     float x, y, z;
     bool synchronizeTime = false;
     int displayProfile = 0;
+    bool failedLogin = false;
 
     std::vector<Data> profiles;
 
@@ -66,6 +72,14 @@ public:
     Data(OnvifData* onvif_data)
     {
         data = onvif_data;
+    }
+
+    Data(const std::string& arg)
+    {
+        data = (OnvifData*)calloc(sizeof(OnvifData), 1);
+        rapidjson::Reader reader;
+        rapidjson::StringStream ss(arg.c_str());
+        reader.Parse(ss, *this);
     }
 
     Data(const Data& other)
@@ -173,7 +187,7 @@ public:
 
     ~Data() 
     {
-        free(data);
+        if (data) free(data);
     }
 
     operator OnvifData* ()
@@ -186,6 +200,50 @@ public:
         return data;
     }
 
+    void addProfile(Data& profile)
+    {
+        profiles.push_back(profile);
+    }
+
+    void UTCasLocal()
+    {
+        bool isUTC0 = false;
+        std::string tz = timezone();
+        if (tz == "UTC0") {
+            isUTC0 = true;
+        }
+        else {
+            try {
+                std::size_t found;
+                found = tz.find("UTC");
+                if (found == 0) {
+                    found = tz.find("DST");
+                    if (found != std::string::npos) 
+                        tz = tz.substr(3, found-3);
+                    char *token = strtok((char*)tz.c_str(), ":");
+                    int result = 0;
+                    while (token)
+                    {
+                        if (token)  {
+                            result += std::stoi(token);
+                        }
+                        token = strtok(nullptr, ":");
+                    }
+                    if (!result)
+                        isUTC0 = true;
+                }
+            }
+            catch (const std::exception& ex) {
+                // fail safely 
+                //std::cout << "OnvifData::UTCasLocal: " << ex.what() << std::endl;
+            }
+        }
+
+        if (isUTC0 && datetimetype() == 'M')
+            setDateTimeType('U');
+
+    }
+
     void startUpdateTime()
     {
         std::thread thread([&]() { updateTime(); });
@@ -195,12 +253,18 @@ public:
     void updateTime()
     {
         std::stringstream str;
+
+        if (data->datetimetype == 'N') {
+            if (setNTP(data))                str << data->last_error << " - ";
+        }
         if (setSystemDateAndTime(data))  str << data->last_error << " - ";
         if (getTimeOffset(data))         str << data->last_error << " - ";
 
         memset(data->last_error, 0, 1024);
         int length = std::min(std::max((int)(str.str().length() - 2), 0), 1024);
         strncpy(data->last_error, str.str().c_str(), length);
+
+        UTCasLocal();
 
         for (int i = 0; i < profiles.size(); i++) {
             profiles[i].data->dst = data->dst;
@@ -210,6 +274,18 @@ public:
             strcpy(profiles[i].data->timezone, data->timezone);
             strcpy(profiles[i].data->ntp_type, data->ntp_type);
             strcpy(profiles[i].data->ntp_addr, data->ntp_addr);
+        }
+
+        if (last_error().length()) {
+            std::stringstream str;
+            str << alias << ": Set System Date and Time Error: " << last_error();
+            if (infoCallback) infoCallback(str.str());
+        }
+        else {
+            std::stringstream str;
+            str << alias << " time updated succesfully";
+            if (infoCallback) infoCallback(str.str());
+            else std::cout << str.str() << std::endl;
         }
     }
 
@@ -422,18 +498,25 @@ public:
             std::stringstream str;
             if (synchronizeTime) {
                 if (setSystemDateAndTime(profiles[i]))             str << profiles[i]->last_error << " - ";
-                if (getTimeOffset(profiles[i]))                    str << profiles[i]->last_error << " - ";
             }
+            if (getTimeOffset(profiles[i]))                        str << profiles[i]->last_error << " - ";
             if (getProfile(profiles[i]))                           str << profiles[i]->last_error << " - ";
             if (getNetworkInterfaces(profiles[i]))                 str << profiles[i]->last_error << " - ";
             if (getNetworkDefaultGateway(profiles[i]))             str << profiles[i]->last_error << " - ";
             if (getDNS(profiles[i]))                               str << profiles[i]->last_error << " - ";
+            if (getNTP(profiles[i]))                               str << profiles[i]->last_error << " - ";
             if (getVideoEncoderConfiguration(profiles[i]))         str << profiles[i]->last_error << " - ";
             if (getVideoEncoderConfigurationOptions(profiles[i]))  str << profiles[i]->last_error << " - ";
             if (getAudioEncoderConfiguration(profiles[i]))         str << profiles[i]->last_error << " - ";
             if (getAudioEncoderConfigurationOptions(profiles[i]))  str << profiles[i]->last_error << " - ";
             if (getOptions(profiles[i]))                           str << profiles[i]->last_error << " - ";
             if (getImagingSettings(profiles[i]))                   str << profiles[i]->last_error << " - ";
+
+            strcpy(profiles[i]->camera_name, camera_name().c_str());
+            strcpy(profiles[i]->device_service, device_service().c_str());
+            strcpy(profiles[i]->xaddrs, xaddrs().c_str());
+            strcpy(profiles[i]->host, host().c_str());
+            profiles[i].UTCasLocal();
 
             memset(profiles[i]->last_error, 0, 1024);
             int length = std::min(std::max((int)(str.str().length() - 2), 0), 1024);
@@ -451,32 +534,41 @@ public:
         thread.detach();
     }
 
-void manual_fill()
+    void manual_fill()
     {
-        bool first_pass = true;
-        int count = 0;
+        extractHost(data->xaddrs, data->host);
+        if (getTimeOffset(data)) {
+            std::stringstream str;
+            str << "Camera get time offset error " << camera_name() << " : " << xaddrs() << " : " << last_error();
+            if (errorCallback) errorCallback(str.str());
+            return;
+        }
+
+        time_t initial_offset = data->time_offset;
+        int count = 1;
+        int direction = 1;
+
         while (true) {
             *this = getCredential(*this);
             if (!cancelled) {
 
-                if (!getTimeOffset(data)) {
-                    time_t rawtime;
-                    struct tm timeinfo;
-                    time(&rawtime);
-                #ifdef _WIN32
-                    localtime_s(&timeinfo, &rawtime);
-                #else
-                    localtime_r(&rawtime, &timeinfo);
-                #endif
-                    if (timeinfo.tm_isdst && !dst())
-                        setTimeOffset(time_offset() - 3600);
-                }
-
-                if (getCapabilities(data) < 0) {
+                if (getCapabilities(data)) {
+                    // Daylight Savings Time mismatch can cause authentication failure
                     std::stringstream str;
-                    str << "Camera get capabilities error " << alias << " : " << xaddrs() << " : " << last_error();
-                    if (errorCallback) errorCallback(str.str());
-                    break;
+                    str << "onvif data error " << camera_name() << " : " << xaddrs() << " : " << last_error() << " attempting time offset correction";
+                    if (infoCallback) infoCallback(str.str());
+                    data->time_offset = initial_offset + 3600 * direction * count;
+                    if (direction < 0) count++;
+                    direction = ~direction + 1;
+                    if (count > 2) {
+                        std::stringstream str;
+                        str << "onvif data error: " << camera_name() << " : " << xaddrs() << " : " << last_error() << " camera interrogation failed";
+                        if (infoCallback) infoCallback(str.str());
+                        break;
+                    }
+                    else {
+                        continue;
+                    }
                 }
 
                 if (getDeviceInformation(data) == 0) {
@@ -485,15 +577,28 @@ void manual_fill()
                         Data profile(*this);
                         getProfileToken(profile, index);
                         if (profile.profile().length() == 0)
-
                             break;
                         getStreamUri(profile.data);
                         profiles.push_back(profile);
                         index++;
                     }
-                    setProfile(displayProfile);
+
+                    if (setSetting) {
+                        std::stringstream key1;
+                        key1 << serial_number() << "/XAddrs";
+                        setSetting(key1.str(), xaddrs());
+                        std::stringstream key2;
+                        key2 << serial_number() << "/Alias";
+                        setSetting(key2.str(), alias);
+                    }
+
                     getData(*this);
                     break;
+                }
+                else {
+                    std::stringstream str;
+                    str << "get device information error: " << data->camera_name << " : " << data->last_error;
+                    if (infoCallback) infoCallback(str.str());
                 }
             }
             else {
@@ -529,6 +634,10 @@ void manual_fill()
         return str.str();
     }
 
+    void nullifyGetProxyURI() {
+        getProxyURI = nullptr;
+    }
+
     std::string username() { return data->username; } const
     void setUsername(const std::string& arg) { 
         memset(data->username, 0, 128);
@@ -548,6 +657,7 @@ void manual_fill()
     void setDeviceService(const std::string& arg) { strcpy(data->device_service, arg.c_str()); }
     std::string event_service() { return data->event_service; } const
     std::string stream_uri() { return data->stream_uri; } const
+    std::string snapshot_uri() { return data->snapshot_uri; } const
     std::string serial_number() { return data->serial_number; } const
     std::string camera_name() { return data->camera_name; } const
     void setCameraName(const std::string& arg) { strcpy(data->camera_name, arg.c_str()); }
@@ -559,7 +669,12 @@ void manual_fill()
     time_t time_offset() { return data->time_offset; } const
     void setTimeOffset(time_t arg) { data->time_offset = arg; }
     std::string timezone() { return data->timezone; } const
-    bool dst() { return data->dst; }
+    void setTimezone(const std::string& arg) { strcpy(data->timezone, arg.c_str()); }
+    bool dst() { return data->dst; } const
+    void noOp() { }  // believe it or not, this line is needed to compile on windows
+    void setDST(bool arg) { data->dst = arg; }
+    //time_t user_time_diff() { return data->user_time_diff; } const
+    //void setUserTimeDiff(time_t arg) { data->user_time_diff = arg; }
     
     std::string host() { 
         extractHost(data->xaddrs, data->host);
@@ -569,6 +684,10 @@ void manual_fill()
     void syncProfile(int index) { 
         if (index < profiles.size())
             copyData(profiles[index].data, data); 
+    }
+
+    void syncData(const Data& other) {
+        copyData(data, other.data);
     }
 
     void setProfile(int index) {
@@ -660,6 +779,20 @@ void manual_fill()
     void setMaskBuf(const std::string& arg) {
         data->prefix_length = mask2prefix((char*)arg.c_str());
     }
+    std::string ntp_addr() { return data->ntp_addr; } const
+    void setNTPAddr(const std::string& arg) {
+        memset(data->ntp_addr, 0, 128);
+        strncpy(data->ntp_addr, arg.c_str(), arg.length());
+    }
+    std::string ntp_type() { return data->ntp_type; } const
+    void setNTPType(const std::string& arg) {
+        memset(data->ntp_type, 0, 128);
+        strncpy(data->ntp_type, arg.c_str(), arg.length());
+    }
+    char datetimetype() { return data->datetimetype; }
+    void setDateTimeType(char arg) { data->datetimetype = arg; }
+    bool ntp_dhcp() { return data->ntp_dhcp; }
+    void setNTPDHCP(bool arg) { data->ntp_dhcp = arg; }
 
     //AUDIO
     std::vector<std::string> audio_encoders() { 
@@ -704,6 +837,400 @@ void manual_fill()
     int audio_multicast_TTL() { return data->audio_multicast_TTL; }
     bool audio_multicast_auto_start() { return data->audio_multicast_auto_start; }
 
+    // SERIALIZATION INTERFACE
+
+    std::string toJSON() {
+        rapidjson::StringBuffer s;
+        rapidjson::Writer<rapidjson::StringBuffer> w(s);
+
+        w.StartObject();
+        w.Key("videoEncoderConfigurationToken");
+        w.String(data->videoEncoderConfigurationToken);
+
+        w.Key("resolutions_buf");
+        w.StartArray();
+        for (int i = 0; i < 16; i++) {
+            if (strlen(data->resolutions_buf[i]) > 0)
+                w.String(data->resolutions_buf[i]);
+        }
+        w.EndArray();
+
+        w.Key("gov_length_min");
+        w.Int(data->gov_length_min);
+        w.Key("gov_length_max");
+        w.Int(data->gov_length_max);
+        w.Key("frame_rate_min");
+        w.Int(data->frame_rate_min);
+        w.Key("frame_rate_max");
+        w.Int(data->frame_rate_max);
+        w.Key("bitrate_min");
+        w.Int(data->bitrate_min);
+        w.Key("bitrate_max");
+        w.Int(data->bitrate_max);
+        w.Key("width");
+        w.Int(data->width);
+        w.Key("height");
+        w.Int(data->height);
+        w.Key("gov_length");
+        w.Int(data->gov_length);
+        w.Key("frame_rate");
+        w.Int(data->frame_rate);
+        w.Key("bitrate");
+        w.Int(data->bitrate);
+        w.Key("video_encoder_name");
+        w.String(data->video_encoder_name);
+        w.Key("use_count");
+        w.Int(data->use_count);
+        w.Key("quality");
+        w.Double(data->quality);
+        w.Key("h264_profile");
+        w.String(data->h264_profile);
+        w.Key("multicast_address_type");
+        w.String(data->multicast_address_type);
+        w.Key("multicast_address");
+        w.String(data->multicast_address);
+        w.Key("multicast_port");
+        w.Int(data->multicast_port);
+        w.Key("multicast_ttl");
+        w.Int(data->multicast_ttl);
+        w.Key("autostart");
+        w.Bool(data->autostart);
+        w.Key("session_time_out");
+        w.String(data->session_time_out);
+        w.Key("guaranteed_frame_rate");
+        w.Bool(data->guaranteed_frame_rate);
+        w.Key("encoding");
+        w.String(data->encoding);
+        w.Key("encoding_interval");
+        w.Int(data->encoding_interval);
+        w.Key("networkInterfaceToken");
+        w.String(data->networkInterfaceToken);
+        w.Key("networkInterfaceName");
+        w.String(data->networkInterfaceName);
+        w.Key("dhcp_enabled");
+        w.Bool(data->dhcp_enabled);
+        w.Key("ip_address_buf");
+        w.String(data->ip_address_buf);
+        w.Key("default_gateway_buf");
+        w.String(data->default_gateway_buf);
+        w.Key("dns_buf");
+        w.String(data->dns_buf);
+        w.Key("prefix_length");
+        w.Int(data->prefix_length);
+        w.Key("mask_buf");
+        w.String(data->mask_buf);
+        w.Key("videoSourceConfigurationToken");
+        w.String(data->videoSourceConfigurationToken);
+        w.Key("brightness_min");
+        w.Int(data->brightness_min);
+        w.Key("brightness_max");
+        w.Int(data->brightness_max);
+        w.Key("saturation_min");
+        w.Int(data->saturation_min);
+        w.Key("saturation_max");
+        w.Int(data->saturation_max);
+        w.Key("contrast_min");
+        w.Int(data->contrast_min);
+        w.Key("contrast_max");
+        w.Int(data->contrast_max);
+        w.Key("sharpness_min");
+        w.Int(data->sharpness_min);
+        w.Key("sharpness_max");
+        w.Int(data->sharpness_max);
+        w.Key("brightness");
+        w.Int(data->brightness);
+        w.Key("saturation");
+        w.Int(data->saturation);
+        w.Key("contrast");
+        w.Int(data->contrast);
+        w.Key("sharpness");
+        w.Int(data->sharpness);
+        w.Key("device_service");
+        w.String(data->device_service);
+        w.Key("media_service");
+        w.String(data->media_service);
+        w.Key("imaging_service");
+        w.String(data->imaging_service);
+        w.Key("ptz_service");
+        w.String(data->ptz_service);
+        w.Key("event_service");
+        w.String(data->event_service);
+        w.Key("subscription_reference");
+        w.String(data->subscription_reference);
+        w.Key("event_listen_port");
+        w.Int(data->event_listen_port);
+        w.Key("xaddrs");
+        w.String(data->xaddrs);
+        w.Key("profileToken");
+        w.String(data->profileToken);
+        w.Key("username");
+        w.String(data->username);
+        w.Key("password");
+        w.String(data->password);
+        w.Key("stream_uri");
+        w.String(data->stream_uri);
+        w.Key("camera_name");
+        w.String(data->camera_name);
+        w.Key("serial_number");
+        w.String(data->serial_number);
+        w.Key("host_name");
+        w.String(data->host_name);
+        w.Key("host");
+        w.String(data->host);
+        w.Key("last_error");
+        w.String(data->last_error);
+        w.Key("time_offset");
+        w.Int(data->time_offset);
+        w.Key("datetimetype");
+        w.Uint(data->datetimetype);
+        w.Key("dst");
+        w.Bool(data->dst);
+        w.Key("timezone");
+        w.String(data->timezone);
+        w.Key("ntp_dhcp");
+        w.Bool(data->ntp_dhcp);
+        w.Key("ntp_type");
+        w.String(data->ntp_type);
+        w.Key("ntp_addr");
+        w.String(data->ntp_addr);
+
+        int audio_count = 0;
+        w.Key("audio_encoders");
+        w.StartArray();
+        for (int i = 0; i < 3; i++) {
+            if (strlen(data->audio_encoders[i]) > 0) {
+                w.String(data->audio_encoders[i]);
+                audio_count++;
+            }
+        }
+        w.EndArray();
+        
+        w.Key("audio_sample_rates");
+        w.StartArray();
+        for (int i = 0; i < audio_count; i++) {
+            w.StartArray();
+            for (int j = 0; j < 8; j++) {
+                if (data->audio_sample_rates[i][j] > 0)
+                    w.Int(data->audio_sample_rates[i][j]);
+            }
+            w.EndArray();
+        }
+        w.EndArray();
+
+        w.Key("audio_bitrates");
+        w.StartArray();
+        for (int i = 0; i < audio_count; i++) {
+            w.StartArray();
+            for (int j = 0; j < 8; j++) {
+                if (data->audio_bitrates[i][j] > 0)
+                    w.Int(data->audio_bitrates[i][j]);
+            }
+            w.EndArray();
+        }
+        w.EndArray();
+
+        w.Key("audio_encoding");
+        w.String(data->audio_encoding);
+        w.Key("audio_name");
+        w.String(data->audio_name);
+        w.Key("audioEncoderConfigurationToken");
+        w.String(data->audioEncoderConfigurationToken);
+        w.Key("audioSourceConfigurationToken");
+        w.String(data->audioSourceConfigurationToken);
+        w.Key("audio_bitrate");
+        w.Int(data->audio_bitrate);
+        w.Key("audio_sample_rate");
+        w.Int(data->audio_sample_rate);
+        w.Key("audio_use_count");
+        w.Int(data->audio_use_count);
+        w.Key("audio_session_timeout");
+        w.String(data->audio_session_timeout);
+        w.Key("audio_multicast_type");
+        w.String(data->audio_multicast_type);
+        w.Key("audio_multicast_address");
+        w.String(data->audio_multicast_address);
+        w.Key("audio_multicast_port");
+        w.Int(data->audio_multicast_port);
+        w.Key("audio_multicast_TTL");
+        w.Int(data->audio_multicast_TTL);
+        w.Key("audio_multicast_auto_start");
+        w.Bool(data->audio_multicast_auto_start);
+
+        w.Key("x");
+        w.Double(x);
+        w.Key("y");
+        w.Double(y);
+        w.Key("z");
+        w.Double(z);
+        w.Key("preset");
+        w.Int(preset);
+        w.Key("stop_type");
+        w.Int(stop_type);
+
+        w.EndObject();
+
+        return s.GetString();
+    }
+
+    std::string key;
+    std::vector<int> counters;
+
+    bool Null() { std::cout << "Null()" << std::endl; return true; }
+    bool Bool(bool b) { 
+        if (key == "autostart") data->autostart = b;
+        if (key == "guaranteed_frame_rate") data->guaranteed_frame_rate = b;
+        if (key == "dhcp_enabled") data->dhcp_enabled = b;
+        if (key == "dst") data->dst = b;
+        if (key == "ntp_dhcp") data->ntp_dhcp = b;
+        if (key == "audio_multicast_auto_start") data->audio_multicast_auto_start = b;
+        return true; 
+    }
+    bool Int(int i) { 
+        if (key == "time_offset") data->time_offset = i; 
+        return true; 
+    }
+    bool Uint(unsigned i) { 
+        if (key == "gov_length_min") data->gov_length_min = i;
+        if (key == "gov_length_max") data->gov_length_max = i;
+        if (key == "frame_rate_min") data->frame_rate_min = i;
+        if (key == "frame_rate_max") data->frame_rate_max = i;
+        if (key == "bitrate_min") data->bitrate_min = i;
+        if (key == "bitrate_max") data->bitrate_max = i;
+        if (key == "width") data->width = i;
+        if (key == "height") data->height = i;
+        if (key == "gov_length") data->gov_length = i;
+        if (key == "frame_rate") data->frame_rate = i;
+        if (key == "bitrate") data->bitrate = i;
+        if (key == "use_count") data->use_count = i;
+        if (key == "multicast_port") data->multicast_port = i;
+        if (key == "multicast_ttl") data->multicast_ttl = i;
+        if (key == "encoding_interval") data->encoding_interval = i;
+        if (key == "prefix_length") data->prefix_length = i;
+        if (key == "brightness_min") data->brightness_min = i;
+        if (key == "brightness_max") data->brightness_max = i;
+        if (key == "saturation_min") data->saturation_min = i;
+        if (key == "saturation_max") data->saturation_max = i;
+        if (key == "contrast_min") data->contrast_min = i;
+        if (key == "contrast_max") data->contrast_max = i;
+        if (key == "sharpness_min") data->sharpness_min = i;
+        if (key == "sharpness_max") data->sharpness_max = i;
+        if (key == "brightness") data->brightness = i;
+        if (key == "saturation") data->saturation = i;
+        if (key == "contrast") data->contrast = i;
+        if (key == "sharpness") data->sharpness = i;
+        if (key == "event_listen_port") data->event_listen_port = i;
+        if (key == "datetimetype") data->datetimetype = i;
+        if (key == "audio_bitrate") data->audio_bitrate = i;
+        if (key == "audio_sample_rate") data->audio_sample_rate = i;
+        if (key == "audio_use_count") data->audio_use_count = i;
+        if (key == "audio_multicast_port") data->audio_multicast_port = i;
+        if (key == "audio_multicast_TTL") data->audio_multicast_TTL = i;
+        if (key == "preset") preset = i;
+        if (key == "stop_type") stop_type = i;
+
+        if (key == "audio_sample_rates") {
+            int d = counters.size() - 1;
+            data->audio_sample_rates[counters[d-1]][counters[d]] = i;
+            counters[d]++;
+        }
+
+        if (key == "audio_bitrates") {
+            int d = counters.size() - 1;
+            data->audio_bitrates[counters[d-1]][counters[d]] = i;
+            counters[d]++;
+        }
+
+        return true;
+    }
+    bool Int64(int64_t i) { std::cout << "Int64(" << i << ")" << std::endl; return true; }
+    bool Uint64(uint64_t u) { std::cout << "Uint64(" << u << ")" << std::endl; return true; }
+    bool Double(double d) { 
+        if (key == "quality") data->quality = d;
+        if (key == "x") x = d;
+        if (key == "y") y = d;
+        if (key == "z") z = d;
+        return true; 
+    }
+    bool RawNumber(const char* str, rapidjson::SizeType length, bool copy) { 
+        std::cout << "Number(" << str << ", " << length << ", " << std::boolalpha << copy << ")" << std::endl;
+        return true;
+    }
+    bool String(const char* str, rapidjson::SizeType length, bool copy) { 
+        if (key == "videoEncoderConfigurationToken") strncpy(data->videoEncoderConfigurationToken, str, length);
+        if (key == "video_encoder_name") strncpy(data->video_encoder_name, str, length);
+        if (key == "h264_profile") strncpy(data->h264_profile, str, length);
+        if (key == "multicast_address_type") strncpy(data->multicast_address_type, str, length);
+        if (key == "multicast_address") strncpy(data->multicast_address, str, length);
+        if (key == "session_time_out") strncpy(data->session_time_out, str, length);
+        if (key == "encoding") strncpy(data->encoding, str, length);
+        if (key == "networkInterfaceToken") strncpy(data->networkInterfaceToken, str, length);
+        if (key == "networkInterfaceName") strncpy(data->networkInterfaceName, str, length);
+        if (key == "ip_address_buf") strncpy(data->ip_address_buf, str, length);
+        if (key == "default_gateway_buf") strncpy(data->default_gateway_buf, str, length);
+        if (key == "dns_buf") strncpy(data->dns_buf, str, length);
+        if (key == "mask_buf") strncpy(data->mask_buf, str, length);
+        if (key == "videoSourceConfigurationToken") strncpy(data->videoSourceConfigurationToken, str, length);
+        if (key == "device_service") strncpy(data->device_service, str, length);
+        if (key == "media_service") strncpy(data->media_service, str, length);
+        if (key == "imaging_service") strncpy(data->imaging_service, str, length);
+        if (key == "ptz_service") strncpy(data->ptz_service, str, length);
+        if (key == "event_service") strncpy(data->event_service, str, length);
+        if (key == "subscription_reference") strncpy(data->subscription_reference, str, length);
+        if (key == "xaddrs") strncpy(data->xaddrs, str, length);
+        if (key == "profileToken") strncpy(data->profileToken, str, length);
+        if (key == "username") strncpy(data->username, str, length);
+        if (key == "password") strncpy(data->password, str, length);
+        if (key == "stream_uri") strncpy(data->stream_uri, str, length);
+        if (key == "camera_name") strncpy(data->camera_name, str, length);
+        if (key == "serial_number") strncpy(data->serial_number, str, length);
+        if (key == "host_name") strncpy(data->host_name, str, length);
+        if (key == "host") strncpy(data->host, str, length);
+        if (key == "last_error") strncpy(data->last_error, str, length);
+        if (key == "timezone") strncpy(data->timezone, str, length);
+        if (key == "ntp_type") strncpy(data->ntp_type, str, length);
+        if (key == "ntp_addr") strncpy(data->ntp_addr, str, length);
+        if (key == "audio_encoding") strncpy(data->audio_encoding, str, length);
+        if (key == "audio_name") strncpy(data->audio_name, str, length);
+        if (key == "audioEncoderConfigurationToken") strncpy(data->audioEncoderConfigurationToken, str, length);
+        if (key == "audioSourceConfigurationToken") strncpy(data->audioSourceConfigurationToken, str, length);
+        if (key == "audio_session_timeout") strncpy(data->audio_session_timeout, str, length);
+        if (key == "audio_multicast_type") strncpy(data->audio_multicast_type, str, length);
+        if (key == "audio_multicast_address") strncpy(data->audio_multicast_address, str, length);
+
+        if (key == "resolutions_buf") {
+            strncpy(data->resolutions_buf[counters.back()], str, length);
+            counters.back()++;
+        }
+
+        if (key == "audio_encoders") {
+            strncpy(data->audio_encoders[counters.back()], str, length);
+            counters.back()++;
+        }
+
+        return true;
+    }
+    bool StartObject() { 
+        return true; 
+    }
+    bool Key(const char* str, rapidjson::SizeType length, bool copy) {
+        key = str;
+        return true;
+    }
+    bool EndObject(rapidjson::SizeType memberCount) { 
+        return true; 
+    }
+    bool StartArray() { 
+        counters.push_back(0);
+        return true; 
+    }
+    bool EndArray(rapidjson::SizeType elementCount) { 
+        counters.pop_back();
+        if (counters.size())
+            counters[counters.size()-1]++;
+        return true; 
+    }
+
+ 
     //GUI INTERFACE
 
     /*
@@ -745,7 +1272,10 @@ void manual_fill()
     bool getDisableAudio() { 
         std::stringstream str;
         str << serial_number() << "/" << profile() << "/DisableAudio";
-        return getSetting(str.str(), "0") == "1"; 
+        bool result = getSetting(str.str(), "1") == "1";
+        if (audio_bitrate() == 0)
+            result = false;
+        return result;
     }
     void setDisableAudio(bool arg) { 
         data->disable_audio = arg;

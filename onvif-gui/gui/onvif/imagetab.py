@@ -19,6 +19,7 @@
 
 from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QLabel
 from PyQt6.QtCore import Qt
+from gui.enums import ProxyType
 
 class ImageTab(QWidget):
     def __init__(self, cp):
@@ -89,5 +90,9 @@ class ImageTab(QWidget):
             onvif_data.setSaturation(self.sldSaturation.value())
             onvif_data.setContrast(self.sldContrast.value())
             onvif_data.setSharpness(self.sldSharpness.value())
-            onvif_data.startUpdateImage()
+            if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                arg = "UPDATE IMAGE\n\n" + onvif_data.toJSON() + "\r\n"
+                self.cp.mw.client.transmit(arg)
+            else:
+                onvif_data.startUpdateImage()
 

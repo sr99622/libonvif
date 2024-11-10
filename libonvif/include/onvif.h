@@ -113,6 +113,7 @@ struct OnvifData {
     char username[128];
     char password[128];
     char stream_uri[1024];
+    char snapshot_uri[1024];
     char camera_name[1024];
     char serial_number[128];
     char host_name[1024];
@@ -127,6 +128,7 @@ struct OnvifData {
 	bool ntp_dhcp;
 	char ntp_type[128];
 	char ntp_addr[128];
+    //time_t user_time_diff;
     /*audio*/
     char audio_encoders[3][128];
     int audio_sample_rates[3][8];
@@ -209,6 +211,7 @@ LIBRARY_API int getTimeOffset(struct OnvifData *onvif_data);
 LIBRARY_API int getProfileToken(struct OnvifData *onvif_data, int profileIndex);
 #define getFirstProfileToken(a) getProfileToken(a,0)
 LIBRARY_API int getStreamUri(struct OnvifData *onvif_data);
+LIBRARY_API int getSnapshotUri(struct OnvifData *onvif_data);
 LIBRARY_API int getDeviceInformation(struct OnvifData *onvif_data);
 LIBRARY_API int rebootCamera(struct OnvifData *onvif_data);
 LIBRARY_API int hardReset(struct OnvifData *onvif_data);

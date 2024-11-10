@@ -3,7 +3,10 @@
 	url = https://github.com/pybind/pybind11
 [submodule "libavio"]
 	path = libavio
-	url = https://github.com/sr99622/libavio
+	url = http://10.1.1.14:3000/stephen/libavio
 [submodule "liblivemedia"]
 	path = liblivemedia
-	url = https://github.com/sr99622/liblivemedia
+	url = http://10.1.1.14:3000/stephen/liblivemedia
+[submodule "kankakee"]
+	path = kankakee
+	url = http://10.1.1.14:3000/stephen/kankakee

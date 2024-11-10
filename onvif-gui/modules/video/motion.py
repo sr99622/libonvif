@@ -199,5 +199,5 @@ class VideoWorker:
 
         except Exception as ex:
             if self.last_ex != str(ex) and self.mw.videoConfigure.name == MODULE_NAME:
-                logger.exception("sample worker call error")
+                logger.exception(f'Video worker motion detector call error {ex}')
             self.last_ex = str(ex)

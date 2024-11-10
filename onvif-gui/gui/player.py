@@ -4,9 +4,12 @@ from datetime import datetime
 from pathlib import Path
 from PyQt6.QtCore import pyqtSignal, QObject, QTimer, QFile
 from collections import deque
+from gui.enums import ProxyType
 import shutil
 import avio
 from loguru import logger
+import numpy as np
+import json
 
 class PlayerSignals(QObject):
     start = pyqtSignal()
@@ -29,10 +32,15 @@ class Player(avio.Player):
         self.last_image = None
         self.last_render = None
         self.timer = None
+        self.remote_width = 0
+        self.remote_height = 0
+        self.lock = False
 
         self.boxes = []
         self.labels = []
         self.scores = []
+        self.detection_timestamp = ""
+        self.last_detection = None
 
         self.save_image_filename = None
         self.pipe_output_start_time = None
@@ -52,14 +60,15 @@ class Player(avio.Player):
             self.signals.start.connect(self.timer.start)
             self.signals.stop.connect(self.timer.stop)
 
-    def requestShutdown(self):
+    def requestShutdown(self, reconnect=False):
         self.setAlarmState(0)
         self.analyze_video = False
         self.analyze_audio = False
-        self.request_reconnect = False
+        self.request_reconnect = reconnect
         self.running = False
 
     def setAlarmState(self, state):
+         
         self.alarm_state = int(state)
 
         record_enable = self.systemTabSettings.record_enable if self.systemTabSettings else False
@@ -110,7 +119,7 @@ class Player(avio.Player):
         return filename
 
     def estimateFileSize(self):
-        # duration is in seconds, cameras report bitrate in kbps, result in bytes
+        # duration is in seconds, cameras report bitrate in kbps (usually), result in bytes
         result = 0
         bitrate = 0
         profile = self.mw.cameraPanel.getProfile(self.uri)
@@ -215,6 +224,14 @@ class Player(avio.Player):
         while self.rendering:
             sleep(0.001)
 
+        if self.mw.settingsPanel.proxy.proxyType == ProxyType.SERVER:
+            if profile := self.mw.cameraPanel.getProfile(self.uri): 
+                result = str(datetime.now()) + "\n\nDETECTIONS\n\n" + profile.serial_number() +"\n\n" + str(profile.width()) \
+                        + "\n\n" + str(profile.height()) + "\n\n" + str(self.alarm_state) \
+                        + "\n\n" + json.dumps(np.asarray(self.boxes).tolist())
+                #print("result", result)
+                self.mw.broadcaster.send(result)
+
         sum = 0
 
         if len(self.detection_count) > self.videoModelSettings.sampleSize - 1 and len(self.detection_count):
@@ -229,3 +246,21 @@ class Player(avio.Player):
             sum += count
 
         return sum
+
+    def loadRemoteDetections(self):
+        if detection := self.mw.listenProtocols.getDetection(self.uri):
+            if detection.timestamp != self.detection_timestamp:
+                self.boxes = detection.boxes
+                self.setAlarmState(detection.alarm)
+                self.remote_width = detection.width
+                self.remote_height = detection.height
+                self.last_detection = datetime.now()
+            else:
+                if self.last_detection:
+                    interval = datetime.now() - self.last_detection
+                    if interval.total_seconds() > 10:
+                        self.boxes.clear()
+                        self.setAlarmState(0)
+                        self.remote_width = 0
+                        self.remote_height = 0
+            self.detection_timestamp = detection.timestamp

@@ -6,10 +6,13 @@ cd ../libavio
 python -m build
 cd ../liblivemedia
 python -m build
+cd ../kankakee
+python -m build
 cd ../onvif-gui
 python -m build
 cd ..
-for FILE in libonvif/dist/*.whl; do pip install $FILE; done
-for FILE in libavio/dist/*.whl; do pip install $FILE; done
-for FILE in liblivemedia/dist/*.whl; do pip install $FILE; done
-for FILE in onvif-gui/dist/*.whl; do pip install $FILE; done
+#for FILE in libonvif/dist/*.whl; do pip install $FILE; done
+#for FILE in libavio/dist/*.whl; do pip install $FILE; done
+#for FILE in liblivemedia/dist/*.whl; do pip install $FILE; done
+#for FILE in kankakee/dist/*.whl; do pip install $FILE; done
+#for FILE in onvif-gui/dist/*.whl; do pip install $FILE; done

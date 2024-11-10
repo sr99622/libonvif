@@ -12,3 +12,4 @@ share/
 *.onnx
 runs/
 models/
+.DS_Store

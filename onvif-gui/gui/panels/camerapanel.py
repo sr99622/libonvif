@@ -28,6 +28,7 @@ from gui.onvif import NetworkTab, ImageTab, VideoTab, PTZTab, SystemTab, LoginDi
 from loguru import logger
 import libonvif as onvif
 import pathlib
+from gui.enums import ProxyType
 
 class CameraList(QListWidget):
     def __init__(self, mw):
@@ -121,6 +122,12 @@ class CameraList(QListWidget):
             if index.isValid():
                 self.edit(index)
 
+    def password(self):
+        if camera := self.currentItem():
+            self.mw.settings.setValue(f'{camera.xaddrs()}/alternateUsername', camera.onvif_data.username())
+            self.mw.settings.setValue(f'{camera.xaddrs()}/alternatePassword', camera.onvif_data.password())
+            logger.debug(f'Alternate password set for camera {camera.name()}')
+
     def closeEditor(self, editor, hint):
         camera = self.currentItem()
         if camera:
@@ -140,14 +147,10 @@ class CameraPanel(QWidget):
         self.mw = mw
         self.dlgLogin = LoginDialog(self)
         self.fillers = []
-        self.fill_first_pass = True
         self.sync_lock = False
-        self.cameras_awaiting_authentication = []
 
         self.autoTimeSyncer = None
         self.enableAutoTimeSync(self.mw.settingsPanel.general.chkAutoTimeSync.isChecked())
-
-        self.cached_serial_numbers = []
        
         self.lstCamera = CameraList(mw)
         self.lstCamera.currentItemChanged.connect(self.onCurrentItemChanged)
@@ -234,12 +237,15 @@ class CameraPanel(QWidget):
         self.remove = QAction("Delete", self)
         self.rename = QAction("Rename", self)
         self.info = QAction("Info", self)
+        self.password = QAction("Password", self)
         self.remove.triggered.connect(self.onMenuRemove)
         self.rename.triggered.connect(self.onMenuRename)
         self.info.triggered.connect(self.onMenuInfo)
+        self.password.triggered.connect(self.onMenuPassword)
         self.menu.addAction(self.remove)
         self.menu.addAction(self.rename)
         self.menu.addAction(self.info)
+        self.menu.addAction(self.password)
 
         self.syncGUI()
         self.setTabsEnabled(False)
@@ -260,7 +266,15 @@ class CameraPanel(QWidget):
     def onMenuInfo(self):
         self.lstCamera.info()
 
+    def onMenuPassword(self):
+        self.lstCamera.password()
+
     def btnDiscoverClicked(self):
+        if self.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+            if self.mw.client:
+                self.mw.client.transmit("GET CAMERAS\r\n")
+            return
+        
         if self.mw.settingsPanel.discover.radDiscover.isChecked():
             logger.debug("Using broadcast discovery")
             interfaces = []
@@ -286,19 +300,28 @@ class CameraPanel(QWidget):
             if tmp:
                 numbers = tmp.strip().split("\n")
                 for serial_number in numbers:
-                    if serial_number not in self.cached_serial_numbers:
-                        self.cached_serial_numbers.append(serial_number)
                     key = f'{serial_number}/XAddrs'
                     xaddrs = self.mw.settings.value(key)
                     alias = self.mw.settings.value(f'{serial_number}/Alias')
                     data = onvif.Data()
+                    data.errorCallback = self.errorCallback
+                    data.infoCallback = self.infoCallback
                     data.getData = self.getData
                     data.getCredential = self.getCredential
                     data.setXAddrs(xaddrs)
-                    data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
                     data.alias = alias
+                    data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
                     self.fillers.append(data)
                     data.startManualFill()
+
+    def errorCallback(self, msg):
+        self.mw.signals.error.emit(msg)
+
+    def infoCallback(self, msg):
+        if msg.startswith("Set System Date and Time Error"):
+            logger.error(msg)
+        else:
+            logger.debug(msg)
 
     def discoveryTimeout(self):
         self.setEnabled(True)
@@ -318,22 +341,27 @@ class CameraPanel(QWidget):
         if not onvif_data:
             return
         
-        if self.lstCamera:
-            cameras = [self.lstCamera.item(x) for x in range(self.lstCamera.count())]
-            for camera in cameras:
-                if camera.onvif_data == onvif_data:
-                    onvif_data.cancelled = True
-                    return onvif_data
-        
-        if len(self.mw.settingsPanel.general.txtPassword.text()) > 0 and len(onvif_data.last_error()) == 0:
-            onvif_data.setUsername(self.mw.settingsPanel.general.txtUsername.text())
-            onvif_data.setPassword(self.mw.settingsPanel.general.txtPassword.text())
+        if self.getCameraByXAddrs(onvif_data.xaddrs()) and not len(self.fillers):
+            onvif_data.cancelled = True
+            return onvif_data
+                
+        alternateUsername = self.mw.settings.value(f'{onvif_data.xaddrs()}/alternateUsername', None)
+        alternatePassword = self.mw.settings.value(f'{onvif_data.xaddrs()}/alternatePassword', None)
+
+        if (len(self.mw.settingsPanel.general.txtPassword.text()) or alternatePassword) and len(onvif_data.last_error()) == 0:
+            if alternateUsername:
+                onvif_data.setUsername(alternateUsername)
+            else:
+                onvif_data.setUsername(self.mw.settingsPanel.general.txtUsername.text())
+            if alternatePassword:
+                onvif_data.setPassword(alternatePassword)
+            else:
+                onvif_data.setPassword(self.mw.settingsPanel.general.txtPassword.text())
         else:
             if onvif_data.last_error().startswith("Network error, unable to connect"):
                 logger.debug(f'Unable to connect with {onvif_data.xaddrs()}')
                 onvif_data.cancelled = True
                 self.mw.signals.error.emit(f'Unable to connect with {onvif_data.xaddrs()}')
-
             else:
                 while self.dlgLogin.active:
                     sleep(0.01)
@@ -348,15 +376,11 @@ class CameraPanel(QWidget):
     def onShowLogin(self, onvif_data):
         self.dlgLogin.exec(onvif_data)
 
-    def getData(self, onvif_data):
+    def getProxyData(self, onvif_data):
         if not onvif_data:
             return
         
-        if onvif_data.last_error().startswith("Error initializing camera data during manual fill:"):
-            logger.debug(onvif_data.last_error())
-            return
-
-        onvif_data.filled = self.filled
+        onvif_data.getProxyURI = self.mw.getProxyURI
 
         alias = self.mw.settings.value(f'{onvif_data.serial_number()}/Alias')
         if not alias:
@@ -368,13 +392,64 @@ class CameraPanel(QWidget):
                 alias = onvif_data.host()
         onvif_data.alias = alias
 
-        new_camera = True
-        cameras = [self.lstCamera.item(x) for x in range(self.lstCamera.count())]
-        for camera in cameras:
-            if camera.serial_number() == onvif_data.serial_number():
-                new_camera = False
+        if existing := self.getCameraBySerialNumber(onvif_data.serial_number()):
+            displayProfile = existing.onvif_data.displayProfile
+            onvif_data.setSetting = existing.setSetting
+            onvif_data.getSetting = existing.getSetting
+            if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
+                onvif_data.getProxyURI = self.mw.getProxyURI
 
-        if new_camera:
+            for profile in onvif_data.profiles:
+                profile.setSetting = existing.setSetting
+                profile.getSetting = existing.getSetting
+                if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
+                    profile.getProxyURI = self.mw.getProxyURI
+            existing.onvif_data = onvif_data
+            existing.profiles = onvif_data.profiles
+            existing.setDisplayProfile(displayProfile)
+        else:
+            camera = Camera(onvif_data, self.mw)
+            camera.setIconIdle()
+            camera.dimForeground()
+            self.mw.addCameraProxy(camera)
+
+            self.lstCamera.addItem(camera)
+            self.lstCamera.sortItems()
+            camera.setDisplayProfile(camera.getDisplayProfileSetting())
+            logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Serial Number: {onvif_data.serial_number()}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}')
+
+        self.filled(onvif_data)
+
+    def getData(self, onvif_data):
+        if not onvif_data:
+            return
+        
+        if onvif_data.last_error().startswith("Error initializing camera data during manual fill:"):
+            logger.debug(onvif_data.last_error())
+            return
+
+        onvif_data.filled = self.filled
+        onvif_data.infoCallback = self.infoCallback
+        onvif_data.errorCallback = self.errorCallback
+
+        alias = self.mw.settings.value(f'{onvif_data.serial_number()}/Alias')
+        if not alias:
+            name = onvif_data.camera_name()
+            if len(name):
+                alias = name
+                self.mw.settings.setValue(f'{onvif_data.serial_number()}/Alias', name)
+            else:
+                alias = onvif_data.host()
+        onvif_data.alias = alias
+
+        if existing := self.getCameraBySerialNumber(onvif_data.serial_number()):
+            synchronizeTime = self.mw.settingsPanel.general.chkAutoTimeSync.isChecked()
+            if not self.closing:
+                existing.onvif_data.setXAddrs(onvif_data.xaddrs())
+                for profile in existing.profiles:
+                    profile.setXAddrs(onvif_data.xaddrs())
+                existing.onvif_data.startFill(synchronizeTime)
+        else:
             camera = Camera(onvif_data, self.mw)
             camera.setIconIdle()
             camera.dimForeground()
@@ -391,6 +466,7 @@ class CameraPanel(QWidget):
                 onvif_data.startFill(synchronizeTime)
 
     def filled(self, onvif_data):
+
         if not onvif_data:
             return
         
@@ -398,6 +474,11 @@ class CameraPanel(QWidget):
             camera.restoreForeground()
             key = f'{camera.serial_number()}/XAddrs'
             self.mw.settings.setValue(key, camera.xaddrs())
+
+            if camera.manual_fill:
+                camera.assignData(onvif_data)
+                self.mw.addCameraProxy(camera)
+                camera.setDisplayProfile(camera.getDisplayProfileSetting())
 
             if self.lstCamera is not None:
                 current_camera = self.getCurrentCamera()
@@ -411,18 +492,12 @@ class CameraPanel(QWidget):
 
             # auto start after fill, recording needs onvif frame rate
             if self.mw.settingsPanel.discover.chkAutoStart.isChecked():
-                if self.fill_first_pass:
-                    self.fill_first_pass = False
-                    if bool(int(self.mw.settings.value(self.mw.collapsedKey, 0))):
-                        self.signals.collapseSplitter.emit()
-                    if self.mw.settingsPanel.discover.radCached.isChecked():
-                        self.mw.pm.auto_start_mode = True
-
                 if not camera.isRunning():
                     while not self.mw.isVisible():
                         sleep(0.1)
                     self.lstCamera.itemClicked.emit(camera)
                     self.lstCamera.itemDoubleClicked.emit(camera)
+                    sleep(0.1)
 
         if len(onvif_data.last_error()):
             logger.debug(f'Error from {onvif_data.alias} : {onvif_data.last_error()}')
@@ -450,7 +525,6 @@ class CameraPanel(QWidget):
     def onItemDoubleClicked(self, camera):
         if not camera:
             return
-        
         profiles = self.mw.pm.getStreamPairProfiles(camera.uri())
         players = self.mw.pm.getStreamPairPlayers(camera.uri())
         timers = self.mw.pm.getStreamPairTimers(camera.uri())
@@ -465,16 +539,11 @@ class CameraPanel(QWidget):
                 self.mw.signals.stopReconnect.emit(timer.uri)
             for player in players:
                 player.requestShutdown()
-            #for profile in profiles:
-            #    self.mw.pm.removeKeys(profile.uri())
             camera.setIconIdle()
         else:
             if len(players):
                 for player in players:
-                    if not player.running:
-                        self.mw.pm.removePlayer(player.uri)
-                    else:
-                        player.requestShutdown()
+                    player.requestShutdown()
             else:
                 for i, profile in enumerate(profiles):
                     if i == 0:
@@ -575,6 +644,9 @@ class CameraPanel(QWidget):
             if self.mw.glWidget.focused_uri is None:
                 if camera := self.getCurrentCamera():
                     self.mw.glWidget.focused_uri = camera.uri()
+
+        self.tabVideo.btnSnapshot.setEnabled(True)
+        
         self.syncGUI()
 
     def onMediaStopped(self, uri):
@@ -589,18 +661,21 @@ class CameraPanel(QWidget):
                 if profile.getAnalyzeAudio():
                     if self.mw.audioWorker:
                         self.mw.audioWorker(None, None)
+        self.tabVideo.btnSnapshot.setEnabled(False)
         self.syncGUI()
 
     def syncGUI(self):
 
         while (self.sync_lock):
             sleep(0.001)
-
         self.sync_lock = True
+        
         if camera := self.getCurrentCamera():
             self.btnStop.setEnabled(True)
             if player := self.mw.pm.getPlayer(camera.uri()):
                 self.btnStop.setStyleSheet(self.getButtonStyle("stop"))
+                if player.running:
+                    self.tabVideo.btnSnapshot.setEnabled(True)
 
                 if ps := player.systemTabSettings:
                     self.btnRecord.setEnabled(not (ps.record_enable and ps.record_always))
@@ -629,6 +704,7 @@ class CameraPanel(QWidget):
                     self.btnRecord.setStyleSheet(self.getButtonStyle("record"))
             else:
                 reconnecting = False
+                self.tabVideo.btnSnapshot.setEnabled(False)
                 timers = self.mw.pm.getStreamPairTimers(camera.uri())
                 for timer in timers:
                     if timer.isActive():
@@ -664,8 +740,6 @@ class CameraPanel(QWidget):
             self.btnStop.setStyleSheet(self.getButtonStyle("play"))
             self.btnStop.setEnabled(False)
 
-        #print("btn width", self.btnStop.width())
-        #print("btn height", self.btnStop.height())
         self.sync_lock = False
 
 
@@ -711,6 +785,16 @@ class CameraPanel(QWidget):
             cameras = [self.lstCamera.item(x) for x in range(self.lstCamera.count())]
             for camera in cameras:
                 if camera.serial_number() == serial_number:
+                    result = camera
+                    break
+        return result
+    
+    def getCameraByXAddrs(self, xaddrs):
+        result = None
+        if self.lstCamera:
+            cameras = [self.lstCamera.item(x) for x in range(self.lstCamera.count())]
+            for camera in cameras:
+                if camera.xaddrs() == xaddrs:
                     result = camera
                     break
         return result

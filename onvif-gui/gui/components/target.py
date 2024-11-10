@@ -159,6 +159,8 @@ class TargetSelector(QWidget):
                     return
                 self.lstTargets.takeItem(self.lstTargets.row(item))
 
+                if not self.mw.videoConfigure:
+                    return
                 match self.mw.videoConfigure.source:
                     case MediaSource.CAMERA:
                         if camera := self.mw.cameraPanel.getCurrentCamera():
@@ -168,7 +170,7 @@ class TargetSelector(QWidget):
                         if self.mw.filePanel.videoModelSettings:
                             self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
         except Exception as ex:
-            logger.error(ex)
+            logger.error(f'Error deleting target : {ex}')
 
     def dlgListAccepted(self):
         item = self.dlgTarget.list.item(self.dlgTarget.list.currentRow())
@@ -184,7 +186,8 @@ class TargetSelector(QWidget):
                     break
             if not found:
                 self.lstTargets.addItem(target)
-
+                if not self.mw.videoConfigure:
+                    return
                 match self.mw.videoConfigure.source:
                     case MediaSource.CAMERA:
                         if camera := self.mw.cameraPanel.getCurrentCamera():
@@ -194,7 +197,7 @@ class TargetSelector(QWidget):
                         if self.mw.filePanel.videoModelSettings:
                             self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
         except Exception as ex:
-            logger.error(ex)
+            logger.error(f'Target add itme error : {ex}')
 
     def setTargets(self, targets):
         while self.lstTargets.count() > 0:
@@ -213,6 +216,8 @@ class TargetSelector(QWidget):
     def sldGainValueChanged(self, value):
         try:
             self.lblGain.setText(f'{value}')
+            if not self.mw.videoConfigure:
+                return
             match self.mw.videoConfigure.source:
                 case MediaSource.CAMERA:
                     if camera := self.mw.cameraPanel.getCurrentCamera():
@@ -222,10 +227,12 @@ class TargetSelector(QWidget):
                     if self.mw.filePanel.videoModelSettings:
                         self.mw.filePanel.videoModelSettings.setModelOutputLimit(value)
         except Exception as ex:
-            logger.error(ex)
+            logger.error(f'Error changing gain slider value : {ex}')
 
     def chkShowBoxesStateChanged(self, state):
         try:
+            if not self.mw.videoConfigure:
+                return
             match self.mw.videoConfigure.source:
                 case MediaSource.CAMERA:
                     if camera := self.mw.cameraPanel.getCurrentCamera():
@@ -235,4 +242,4 @@ class TargetSelector(QWidget):
                     if self.mw.filePanel.videoModelSettings:
                         self.mw.filePanel.videoModelSettings.setModelShowBoxes(bool(state))
         except Exception as ex:
-            logger.error(ex)
+            logger.error(f'Error changing show boxes state : {ex}')

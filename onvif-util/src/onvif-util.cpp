@@ -121,6 +121,7 @@ static void showHelp()
 			  << "  The (n) indicates an optional profile index to apply the setting, otherwise the current profile is used.\n\n"
 			  << "    Data Retrieval Commands (start with get)\n\n"
 			  << "      get rtsp 'pass'(optional) (n) - Get rtsp uri for camera, with optional password credential\n"
+			  << "      get snapshot 'pass'(optional) (n) - Get snapshot uri for camera, with optional password credential\n"
 			  << "      get capabilities\n"
 			  << "      get time\n"
 			  << "      get profiles\n"
@@ -169,6 +170,14 @@ const std::string cat(const char* arg1, const char* arg2)
 std::string uri_with_pass(OnvifData* onvif_data)
 {
 	std::string uri(onvif_data->stream_uri);
+	std::stringstream ss;
+	ss << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
+	return ss.str();
+}
+
+std::string snapshot_with_pass(OnvifData* onvif_data)
+{
+	std::string uri(onvif_data->snapshot_uri);
 	std::stringstream ss;
 	ss << uri.substr(0, 7) << onvif_data->username << ":" << onvif_data->password << "@" << uri.substr(7);
 	return ss.str();
@@ -362,11 +371,23 @@ int main(int argc, char **argv)
 	}
 
 
+	/*
+	char kybd_buf[128] = {0};
+	while (strcmp(kybd_buf, "quit")) {
+		memset(kybd_buf, 0, 128);
+		fgets(kybd_buf, 128, stdin);
+		kybd_buf[strcspn(kybd_buf, "\r\n")] = 0;
+
+		std::string cmd(kybd_buf);
+	*/
+	/////////////////////////
 	std::string cmd;
 	while (cmd != "quit") {
 		std::cout << onvif_data->camera_name << "> ";
 		if (!std::getline(std::cin, cmd))
-			break;
+			break;	
+	/////////////////////////
+	
 		if (cmd.length() == 0)
 			continue;
 		std::string arg;
@@ -393,6 +414,22 @@ int main(int argc, char **argv)
 					std::string uri(onvif_data->stream_uri);
 					if (add_pass) {
 						uri = uri_with_pass(onvif_data);
+					}
+					std::cout << "  " << uri << "\n" << std::endl;
+				}
+				else if (args[0] == "snapshot") {
+					bool add_pass = false;
+					if (args.size() > 1) {
+						if (args[1] == "pass") {
+							args.erase(args.begin());
+							add_pass = true;
+						}
+					}
+					profileCheck(onvif_data, args);
+					if (getSnapshotUri(onvif_data)) throw std::runtime_error(cat("get snapshot - ", onvif_data->last_error));
+					std::string uri(onvif_data->stream_uri);
+					if (add_pass) {
+						uri = snapshot_with_pass(onvif_data);
 					}
 					std::cout << "  " << uri << "\n" << std::endl;
 				}
@@ -526,6 +563,7 @@ int main(int argc, char **argv)
 					std::cout << "  DHCP:       " << (onvif_data->dhcp_enabled ? "YES" : "NO") << "\n" << std::endl;
 				}
 				else { 
+					//std::cout << "  Unrecognized command, use onvif-util -h to see help\n" << std::endl;
 					std::cout << "  Unrecognized command \"" << args[0] << "\", type \"help\" to see help\n" << std::endl;
 				}
 			}
@@ -759,8 +797,16 @@ int main(int argc, char **argv)
 			}
 			else if (args[0] == "reboot") {
 				std::cout << "  Are you sure you want to reboot?  Type yes to confirm\n" << std::endl;
+				/*
+				memset(kybd_buf, 0, 128);
+				fgets(kybd_buf, 128, stdin);
+				kybd_buf[strcspn(kybd_buf, "\r\n")] = 0;
+				std::string reply(kybd_buf);
+				*/
+				/////////////////////////////
 				std::string reply;
 				std::getline(std::cin, reply);
+				/////////////////////////////
 				if (reply == "yes") {
 					if (rebootCamera(onvif_data)) throw std::runtime_error(cat("reboot camera - ", onvif_data->last_error));
 					std::cout << "  Camera is rebooting...\n" 
@@ -840,6 +886,8 @@ int main(int argc, char **argv)
 				showHelp();
 			}
 			else { 
+				//if (strcmp(kybd_buf, "quit"))
+				//	std::cout << " Unrecognized command, type help to see help\n" << std::endl;
 				if (cmd != "quit")
 					std::cout << " Unrecognized command \"" << args[0] << "\", type \"help\" to see help\n" << std::endl;
 			}

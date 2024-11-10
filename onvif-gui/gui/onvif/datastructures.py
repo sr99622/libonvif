@@ -24,6 +24,7 @@ from PyQt6.QtGui import QIcon, QColor
 import libonvif as onvif
 from gui.onvif.systemtab import SystemTabSettings
 from gui.enums import ProxyType, MediaSource, StreamState
+from loguru import logger
 
 class SessionSignals(QObject):
     finished = pyqtSignal()
@@ -37,6 +38,7 @@ class Session(onvif.Session):
         self.discovered = lambda : self.finish()
         self.getCredential = lambda D : self.cp.getCredential(D)
         self.getData = lambda D : self.cp.getData(D)
+        self.infoCallback = lambda msg : self.info(msg)
         self.timer = QTimer()
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.timeout)
@@ -56,30 +58,22 @@ class Session(onvif.Session):
     def timeout(self):
         self.cp.discoveryTimeout()
 
+    def info(self, msg):
+        logger.debug(msg)
+
 class Camera(QListWidgetItem):
     def __init__(self, onvif_data, mw):
         super().__init__(onvif_data.alias)
-        self.onvif_data = onvif_data
         self.mw = mw
         self.icnIdle = QIcon("image:idle_lo.png")
         self.icnOn = QIcon("image:record.png")
         self.icnRecord = QIcon("image:recording_hi.png")
         self.defaultForeground = self.foreground()
         self.filled = False
+        self.manual_fill = False
         self.last_msg = ""
 
-        onvif_data.setSetting = self.setSetting
-        onvif_data.getSetting = self.getSetting
-        if mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
-            onvif_data.getProxyURI = self.mw.getProxyURI
-
-        for profile in onvif_data.profiles:
-            profile.setSetting = self.setSetting
-            profile.getSetting = self.getSetting
-            if mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
-                profile.getProxyURI = self.mw.getProxyURI
-        
-        self.profiles = onvif_data.profiles
+        self.assignData(onvif_data)
 
         self.videoModelSettings = None
         self.audioModelSettings = None
@@ -92,14 +86,20 @@ class Camera(QListWidgetItem):
         self.muteKey = f'{self.serial_number()}/Mute'
         self.mute = self.getMute()
 
-    '''
-    def getProxyURI(self, arg):
-        match self.mw.settingsPanel.proxy.proxyType:
-            case ProxyType.CLIENT:
-                return self.mw.proxies[arg]
-            case ProxyType.SERVER:
-                return self.mw.proxy.getProxyURI(arg)
-    '''
+    def assignData(self, data):
+        self.onvif_data = data
+        data.setSetting = self.setSetting
+        data.getSetting = self.getSetting
+        if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
+            data.getProxyURI = self.mw.getProxyURI
+
+        for profile in data.profiles:
+            profile.setSetting = self.setSetting
+            profile.getSetting = self.getSetting
+            if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
+                profile.getProxyURI = self.mw.getProxyURI
+        
+        self.profiles = data.profiles
 
     def getSetting(self, key, default_value):
         return str(self.mw.settings.value(key, default_value))
@@ -204,6 +204,8 @@ class Camera(QListWidgetItem):
     
     def getStreamState(self, index):
         result = StreamState.INVALID
+        if len(self.profiles) <= index:
+            return result
         profile = self.profiles[index]
         if profile:
             player = self.mw.pm.getPlayer(profile.uri())
@@ -284,3 +286,13 @@ class Camera(QListWidgetItem):
             if uri == displayProfile.uri():
                 result = recordProfile.uri()
         return result
+
+    def syncData(self, data):
+        for profile in self.profiles:
+            if profile.profile() == data.profile():
+                profile.syncData(data)
+        data.profiles = self.profiles
+        if self.onvif_data.profile() == data.profile():
+            self.onvif_data.syncData(data)
+            if self.isCurrent():
+                self.mw.cameraPanel.signals.fill.emit(data)

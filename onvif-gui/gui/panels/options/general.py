@@ -29,6 +29,7 @@ import avio
 import webbrowser
 import platform
 from gui.player import Player
+from gui.enums import Style
 
 class LogText(QTextEdit):
     def __init__(self, parent):
@@ -142,6 +143,7 @@ class GeneralOptions(QWidget):
         self.displayRefreshKey = "settings/displayRefresh"
         self.cacheMaxSizeKey = "settings/cacheMaxSize"
         self.audioDriverIndexKey = "settings/audioDriverIndex"
+        self.appearanceKey = "settings/appearance"
 
         decoders = ["NONE"]
         if sys.platform == "win32":
@@ -176,6 +178,12 @@ class GeneralOptions(QWidget):
         self.cmbAudioDriver.currentIndexChanged.connect(self.cmbAudioDriverChanged)
         lblAudioDrivers = QLabel("Audio Driver")
 
+        self.cmbAppearance = QComboBox()
+        self.cmbAppearance.addItems(["Dark", "Light"])
+        self.cmbAppearance.setCurrentText(mw.settings.value(self.appearanceKey, "Dark"))
+        self.cmbAppearance.currentTextChanged.connect(self.cmbAppearanceChanged)
+        lblAppearance = QLabel("Appearance")
+
         self.chkStartFullScreen = QCheckBox("Start Full Screen")
         self.chkStartFullScreen.setChecked(bool(int(mw.settings.value(self.startFullScreenKey, 0))))
         self.chkStartFullScreen.stateChanged.connect(self.startFullScreenChecked)
@@ -198,7 +206,7 @@ class GeneralOptions(QWidget):
             refresh = 20
         self.spnDisplayRefresh.setValue(int(self.mw.settings.value(self.displayRefreshKey, refresh)))
         self.spnDisplayRefresh.valueChanged.connect(self.spnDisplayRefreshChanged)
-        lblDisplayRefresh = QLabel("Display Refresh Interval (in milliseconds)")
+        lblDisplayRefresh = QLabel("Display Refresh Interval (ms)")
 
         self.spnCacheMax = QSpinBox()
         self.spnCacheMax.setMaximum(200)
@@ -208,7 +216,7 @@ class GeneralOptions(QWidget):
         self.spnCacheMax.valueChanged.connect(self.spnCacheMaxChanged)
         lblCacheMax = QLabel("Maximum Input Stream Cache Size")
 
-        self.btnCloseAll = QPushButton("Start All Cameras")
+        self.btnCloseAll = QPushButton("Start All")
         self.btnCloseAll.clicked.connect(self.btnCloseAllClicked)
 
         self.btnShowLogs = QPushButton("Show Logs")
@@ -216,6 +224,9 @@ class GeneralOptions(QWidget):
 
         self.btnHelp = QPushButton("Help")
         self.btnHelp.clicked.connect(self.btnHelpClicked)
+
+        self.btnTest = QPushButton("Test")
+        self.btnTest.clicked.connect(self.btnTestClicked)
 
         pnlBuffer = QWidget()
         lytBuffer = QGridLayout(pnlBuffer)
@@ -230,6 +241,9 @@ class GeneralOptions(QWidget):
         lytButtons.addWidget(self.btnCloseAll,   0, 0, 1, 1)
         lytButtons.addWidget(self.btnShowLogs,   0, 1, 1, 1)
         lytButtons.addWidget(self.btnHelp,       0, 2, 1, 1)
+        #lytButtons.addWidget(self.btnTest,       1, 0, 1, 1)
+
+        self.lblMemory = QLabel()
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(lblUsername,         1, 0, 1, 1)
@@ -240,11 +254,13 @@ class GeneralOptions(QWidget):
         lytMain.addWidget(self.cmbDecoder,     3, 1, 1, 1)
         lytMain.addWidget(lblAudioDrivers,     4, 0, 1, 1)
         lytMain.addWidget(self.cmbAudioDriver, 4, 1, 1, 1)
-        lytMain.addWidget(pnlChecks,           5, 0, 1, 3)
-        lytMain.addWidget(pnlBuffer,           6, 0, 1, 3)
-        lytMain.addWidget(pnlButtons,          7, 0, 1, 3)
-        lytMain.addWidget(QLabel(),            8, 0, 1, 3)
-        lytMain.setRowStretch(8, 10)
+        lytMain.addWidget(lblAppearance,       5, 0, 1, 1)
+        lytMain.addWidget(self.cmbAppearance,  5, 1, 1, 1)
+        lytMain.addWidget(pnlChecks,           6, 0, 1, 3)
+        lytMain.addWidget(pnlBuffer,           7, 0, 1, 3)
+        lytMain.addWidget(pnlButtons,          8, 0, 1, 3)
+        lytMain.addWidget(self.lblMemory,      9, 0, 1, 3)
+        lytMain.setRowStretch(9, 10)
 
     def usernameChanged(self, username):
         self.mw.settings.setValue(self.usernameKey, username)
@@ -259,6 +275,14 @@ class GeneralOptions(QWidget):
         self.mw.settings.setValue(self.audioDriverIndexKey, index)
         if self.mw.audioStatus != avio.AudioStatus.UNINITIALIZED:
             QMessageBox.warning(self.mw, "Application Restart Required", "It is necessary to re-start Onvif GUI in order to enable this change")
+
+    def cmbAppearanceChanged(self, text):
+        self.mw.settings.setValue(self.appearanceKey, text)
+        if text == "Dark":
+            self.mw.style(Style.DARK)
+        if text == "Light":
+            self.mw.style(Style.LIGHT)
+
 
     def autoDiscoverChecked(self, state):
         self.mw.settings.setValue(self.autoDiscoverKey, state)
@@ -295,7 +319,7 @@ class GeneralOptions(QWidget):
         return result
      
     def btnCloseAllClicked(self):
-        if self.btnCloseAll.text() == "Close All Streams":
+        if self.btnCloseAll.text() == "Close All":
             self.mw.closeAllStreams()
         else:
             self.mw.startAllCameras()
@@ -319,3 +343,6 @@ class GeneralOptions(QWidget):
         result = webbrowser.get().open("https://github.com/sr99622/libonvif#readme-ov-file")
         if not result:
             webbrowser.get().open("https://github.com/sr99622/libonvif")
+
+    def btnTestClicked(self):
+        print("TEST")

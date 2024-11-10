@@ -18,6 +18,7 @@
 #*********************************************************************/
 
 from PyQt6.QtWidgets import QPushButton, QGridLayout, QWidget, QCheckBox
+from gui.enums import ProxyType
 
 class PTZTab(QWidget):
     def __init__(self, cp):
@@ -89,10 +90,18 @@ class PTZTab(QWidget):
         if camera:
             if self.chkSet.isChecked():
                 camera.onvif_data.preset = n
-                camera.onvif_data.startSetGotoPreset()
+                if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                    arg = "SET PRESET\n\n" + camera.onvif_data.toJSON() + "\r\n"
+                    self.cp.mw.client.transmit(arg)
+                else:
+                    camera.onvif_data.startSetGotoPreset()
             else:
                 camera.onvif_data.preset = n
-                camera.onvif_data.startSet()
+                if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                    arg = "GOTO PRESET\n\n" + camera.onvif_data.toJSON() + "\r\n"
+                    self.cp.mw.client.transmit(arg)
+                else:
+                    camera.onvif_data.startSet()
 
     def move(self, x, y, z):
         camera = self.cp.getCurrentCamera()
@@ -100,19 +109,31 @@ class PTZTab(QWidget):
             camera.onvif_data.x = x
             camera.onvif_data.y = y
             camera.onvif_data.z = z
-            camera.onvif_data.startMove()
+            if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                arg = "MOVE\n\n" + camera.onvif_data.toJSON() + "\r\n"
+                self.cp.mw.client.transmit(arg)
+            else:
+                camera.onvif_data.startMove()
 
     def stopPanTilt(self):
         camera = self.cp.getCurrentCamera()
         if camera:
             camera.onvif_data.stop_type = 0
-            camera.onvif_data.startStop()
+            if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                arg = "STOP\n\n" + camera.onvif_data.toJSON() + "\r\n"
+                self.cp.mw.client.transmit(arg)
+            else:
+                camera.onvif_data.startStop()
 
     def stopZoom(self):
         camera = self.cp.getCurrentCamera()
         if camera:
             camera.onvif_data.stop_type = 1
-            camera.onvif_data.startStop()
+            if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                arg = "STOP\n\n" + camera.onvif_data.toJSON() + "\r\n"
+                self.cp.mw.client.transmit(arg)
+            else:
+                camera.onvif_data.startStop()
 
     def fill(self, onvif_data):
         self.setEnabled(True)

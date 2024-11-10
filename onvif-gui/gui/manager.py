@@ -20,22 +20,27 @@
 from time import sleep
 from loguru import logger
 from PyQt6.QtCore import QRectF, QSize, Qt, QSizeF, QPointF
+import sys
 
 class Manager():
     def __init__(self, mw):
         self.players = []
         self.ordinals = {}
         self.sizes = {}
-        self.start_lock = False
-        self.remove_lock = False
+        self.thread_lock = False
         self.mw = mw
         self.auto_start_mode = False
 
-    def startPlayer(self, player):
-        while self.start_lock:
+    def lock(self):
+        while self.thread_lock:
             sleep(0.001)
-        self.start_lock = True
+        self.thread_lock = True
 
+    def unlock(self):
+        self.thread_lock = False
+
+    def startPlayer(self, player):
+        self.lock()
         if not player.disable_video:
             if not player.uri in self.ordinals.keys():
                 ordinal = self.getOrdinal()
@@ -64,7 +69,7 @@ class Manager():
 
         self.players.append(player)
         player.start()
-        self.start_lock = False
+        self.unlock()
 
     def getUniqueOrdinals(self):
         result = []
@@ -155,15 +160,19 @@ class Manager():
             del self.sizes[uri]
     
     def removePlayer(self, uri):
-        for player in self.players:
+        self.lock()
+
+        remove_idx = -1
+        for idx, player in enumerate(self.players):
             if player.uri == uri:
-                while player.rendering:
-                    sleep(0.001)
+                remove_idx = idx
+                break
+        if remove_idx > -1:
+            if not self.players[remove_idx].request_reconnect:
+                self.removeKeys(uri)
+            self.players.pop(idx)
 
-                if not player.request_reconnect:
-                    self.removeKeys(uri)
-
-                self.players.remove(player)
+        self.unlock()
 
     def playerShutdownWait(self, uri):
         player = self.getPlayer(uri)
@@ -202,9 +211,6 @@ class Manager():
     def computeRowsCols(self, size_canvas, aspect_ratio):
 
         num_cells = len(self.getUniqueOrdinals())
-
-        if self.auto_start_mode:
-            num_cells = len(self.mw.cameraPanel.cached_serial_numbers)
 
         valid_layouts = []
         for i in range(1, num_cells+1):

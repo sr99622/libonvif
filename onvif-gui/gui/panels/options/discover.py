@@ -157,10 +157,14 @@ class DiscoverOptions(QWidget):
             xaddrs = f'http://{ip_address}:{onvif_port}/onvif/device_service'
             logger.debug(f'Attempting to add camera manually using xaddrs: {xaddrs}')
             data = onvif.Data()
+            data.errorCallback = self.mw.cameraPanel.errorCallback
+            data.setSetting = self.mw.settings.setValue
             data.getData = self.mw.cameraPanel.getData
             data.getCredential = self.mw.cameraPanel.getCredential
             data.setXAddrs(xaddrs)
+            data.alias = ip_address
             data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
+            #data.setDeviceService(xaddrs)
             data.manual_fill()
 
     def autoDiscoverChecked(self, state):

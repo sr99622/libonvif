@@ -15,3 +15,6 @@ class MediaSource(Enum):
     CAMERA = 0
     FILE = 1
     
+class Style(Enum):
+    DARK = 0
+    LIGHT = 1

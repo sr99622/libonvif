@@ -21,8 +21,9 @@ from PyQt6.QtWidgets import QComboBox, QLineEdit, QSpinBox, \
     QGridLayout, QWidget, QLabel, QCheckBox, QPushButton
 from PyQt6.QtCore import Qt
 from loguru import logger
-import datetime
+from gui.enums import ProxyType
 import pathlib
+from datetime import datetime
 
 class SpinBox(QSpinBox):
     def __init__(self, qle):
@@ -100,6 +101,11 @@ class VideoTab(QWidget):
         self.chkSyncAudio.clicked.connect(self.chkSyncAudioChecked)
         self.chkSyncAudio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
+        self.btnSnapshot = QPushButton("Snapshot")
+        self.btnSnapshot.clicked.connect(self.btnSnapshotClicked)
+        self.btnSnapshot.setEnabled(False)
+        self.btnSnapshot.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
         pnlRow1 = QWidget()
         lytRow1 = QGridLayout(pnlRow1)
         lytRow1.addWidget(self.lblResolutions,  0, 0, 1, 1)
@@ -143,12 +149,10 @@ class VideoTab(QWidget):
 
         pnlRow5 = QWidget()
         lytRow5 = QGridLayout(pnlRow5)
-        #lytRow5.addWidget(self.btnSnapshot,      0, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytRow5.addWidget(self.chkAnalyzeVideo,  0, 0, 1, 1)
-        #lytRow5.addWidget(QLabel(),              0, 1, 1, 1)
-        lytRow5.addWidget(self.chkAnalyzeAudio,  0, 1, 1, 1)
-        lytRow5.addWidget(QLabel(),              0, 2, 1, 1)
-        lytRow5.addWidget(self.chkSyncAudio,     0, 3, 1, 1)
+        lytRow5.addWidget(self.btnSnapshot,      0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytRow5.addWidget(QLabel("       "),     0, 2, 1, 1)
+        lytRow5.addWidget(self.chkAnalyzeAudio,  0, 3, 1, 1)
         lytRow5.setColumnStretch(0, 10)
         lytRow5.setContentsMargins(0, 0, 0, 0)
 
@@ -178,17 +182,23 @@ class VideoTab(QWidget):
         self.cmbProfiles.setCurrentText(onvif_data.profile())
         self.cmbProfiles.currentIndexChanged.connect(self.cmbProfilesChanged)
 
+        self.spnFrameRate.disconnect()
         self.spnFrameRate.setMaximum(onvif_data.frame_rate_max())
         self.spnFrameRate.setMinimum(onvif_data.frame_rate_min())
         self.spnFrameRate.setValue(onvif_data.frame_rate())
+        self.spnFrameRate.textChanged.connect(self.cp.onEdit)
 
+        self.spnGovLength.disconnect()
         self.spnGovLength.setMaximum(min(onvif_data.gov_length_max(), 250))
         self.spnGovLength.setMinimum(onvif_data.gov_length_min())
         self.spnGovLength.setValue(onvif_data.gov_length())
+        self.spnGovLength.textChanged.connect(self.cp.onEdit)
 
+        self.spnBitrate.disconnect()
         self.spnBitrate.setMaximum(min(onvif_data.bitrate_max(), 16384))
         self.spnBitrate.setMinimum(onvif_data.bitrate_min())
         self.spnBitrate.setValue(onvif_data.bitrate())
+        self.spnBitrate.textChanged.connect(self.cp.onEdit)
 
         self.cmbAudio.disconnect()
         encoders = onvif_data.audio_encoders()
@@ -252,11 +262,19 @@ class VideoTab(QWidget):
                 onvif_data.setFrameRate(self.spnFrameRate.value())
                 onvif_data.setGovLength(self.spnGovLength.value())
                 onvif_data.setBitrate(self.spnBitrate.value())
-                onvif_data.startUpdateVideo()
+                if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                    arg = "UPDATE VIDEO\n\n" + onvif_data.toJSON() + "\r\n"
+                    self.cp.mw.client.transmit(arg)
+                else:
+                    onvif_data.startUpdateVideo()
             if self.audioChanged:
                 onvif_data.setAudioEncoding(self.cmbAudio.currentText())
                 onvif_data.setAudioSampleRate(int(self.cmbSampleRates.currentText()))
-                onvif_data.startUpdateAudio()
+                if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                    arg = "UPDATE AUDIO\n\n" + onvif_data.toJSON() + "\r\n"
+                    self.cp.mw.client.transmit(arg)
+                else:
+                    onvif_data.startUpdateAudio()
 
     def syncGUI(self):
         ratio = self.getCurrentAspect()
@@ -333,7 +351,7 @@ class VideoTab(QWidget):
 
         self.cmbAspect.currentTextChanged.connect(self.cmbAspectChanged)
 
-        if camera:
+        if camera and self.cp.mw.settingsPanel.proxy.generateAlarmsLocally():
             self.cp.mw.audioConfigure.setCamera(camera)
 
     def getCurrentAspect(self):
@@ -382,12 +400,10 @@ class VideoTab(QWidget):
         profile = self.cp.getCurrentProfile()
         if profile:
             profile.setDisableAudio(state)
-        player = self.cp.getCurrentPlayer()
-        if player:
+        if player := self.cp.getCurrentPlayer():
             player.disable_audio = bool(state)
-            if not player.disable_audio:
-                player.request_reconnect = True
-                player.running = False
+            self.cp.mw.pm.playerShutdownWait(player.uri)
+            self.cp.mw.playMedia(player.uri)
         self.cp.syncGUI()
         self.syncGUI()
 
@@ -412,7 +428,7 @@ class VideoTab(QWidget):
             player.scores = []
 
         camera = self.cp.getCurrentCamera()
-        if camera:
+        if camera and self.cp.mw.settingsPanel.proxy.generateAlarmsLocally():
             self.cp.mw.videoConfigure.setCamera(camera)
         
     def chkAnalyzeAudioChecked(self, state):
@@ -424,7 +440,7 @@ class VideoTab(QWidget):
             player.setAlarmState(0)
             player.analyze_audio = bool(state)
         camera = self.cp.getCurrentCamera()
-        if camera:
+        if camera and self.cp.mw.settingsPanel.proxy.generateAlarmsLocally():
             self.cp.mw.audioConfigure.setCamera(camera)
 
     def chkRecordMainChanged(self, state):
@@ -448,6 +464,15 @@ class VideoTab(QWidget):
     def btnClearCacheClicked(self):
         if player := self.cp.getCurrentPlayer():
             player.clearCache()
+
+    def btnSnapshotClicked(self):
+        if player := self.cp.getCurrentPlayer():
+            root = self.cp.mw.settingsPanel.storage.dirPictures.txtDirectory.text() + "/" + self.cp.getCamera(player.uri).text()
+            pathlib.Path(root).mkdir(parents=True, exist_ok=True)
+            filename = '{0:%Y%m%d%H%M%S.jpg}'.format(datetime.now())
+            filename = root + "/" + filename
+            player.save_image_filename = filename
+            logger.debug(f'Snapshot saved as {filename}')
 
     def cmbAudioChanged(self):
         profile = self.cp.getCurrentProfile()

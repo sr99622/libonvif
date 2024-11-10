@@ -1,5 +1,6 @@
 #!/bin/bash
 find . -type f -name '._*' -delete
+find . -type f -name '.DS_Store' -delete
 cd libonvif
 
 DIR=build
@@ -41,6 +42,20 @@ fi
 DIR=liblivemedia.egg-info
 if [ -d "$DIR" ]; then
     rm -R liblivemedia.egg-info
+fi
+
+cd ../kankakee
+DIR=build
+if [ -d "$DIR" ]; then
+    rm -R build
+fi
+DIR=dist
+if [ -d "$DIR" ]; then
+    rm -R dist
+fi
+DIR=kankakee.egg-info
+if [ -d "$DIR" ]; then
+    rm -R kankakee.egg-info
 fi
 
 cd ../onvif-gui

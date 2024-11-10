@@ -28,6 +28,16 @@ if exist dist\ (
 if exist liblivemedia.egg-info\ (
     rmdir /s /q liblivemedia.egg-info
 )
+cd ../kankakee
+if exist build\ (
+    rmdir /s /q build
+)
+if exist dist\ (
+    rmdir /s /q dist
+)
+if exist kankakee.egg-info\ (
+    rmdir /s /q kankakee.egg-info
+)
 cd ../onvif-gui
 if exist build\ (
     rmdir /s /q build

@@ -40,6 +40,8 @@ class ThresholdSlider(QWidget):
     def sldThresholdChanged(self, value):
         try:
             self.lblValue.setText(str(value))
+            if not self.mw.videoConfigure:
+                return
             match self.mw.videoConfigure.source:
                 case MediaSource.CAMERA:
                     if camera := self.mw.cameraPanel.getCurrentCamera():
@@ -49,7 +51,7 @@ class ThresholdSlider(QWidget):
                     if self.mw.filePanel.videoModelSettings:
                         self.mw.filePanel.videoModelSettings.setModelConfidence(value)
         except Exception as ex:
-            logger.error(ex)
+            logger.error(f'Error setting threshold : {ex}')
 
     def value(self):
         # return a value between 0 and 1

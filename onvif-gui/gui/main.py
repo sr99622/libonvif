@@ -43,15 +43,17 @@ from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QTimer, Qt
 from PyQt6.QtGui import QIcon
 from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, \
     AudioPanel
-from gui.enums import ProxyType
+from gui.enums import ProxyType, Style
 from gui.glwidget import GLWidget
 from gui.manager import Manager
 from gui.player import Player
 from gui.onvif import StreamState
+from gui.protocols import ServerProtocols, ClientProtocols, ListenProtocols
 import avio
 import liblivemedia
+import kankakee
 
-VERSION = "2.2.9"
+VERSION = "2.3.2"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -112,7 +114,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
-        self.style()
+        self.style(Style.LIGHT)
         self.STD_FILE_DURATION = 900 # duration in seconds (15 * 60)
 
         self.audioStatus = avio.AudioStatus.UNINITIALIZED
@@ -127,7 +129,7 @@ class MainWindow(QMainWindow):
         self.geometryKey = "MainWindow/geometry"
         self.splitKey = "MainWindow/split"
         self.collapsedKey = "MainWindow/collapsed"
-
+        self.closing = False
         self.signals = MainWindowSignals()
 
         self.pm = Manager(self)
@@ -136,6 +138,14 @@ class MainWindow(QMainWindow):
 
         self.proxies = {}
         self.proxy = None
+        self.server = None
+        self.serverProtocols = ServerProtocols(self)
+        self.client = None
+        self.clientProtocols = ClientProtocols(self)
+
+        self.broadcaster = None
+        self.listener = None
+        self.listenProtocols = ListenProtocols(self)
 
         self.settingsPanel = SettingsPanel(self)
         self.signals.started.connect(self.settingsPanel.onMediaStarted)
@@ -160,10 +170,9 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
-        self.tab.addTab(self.videoPanel, "Video")
-        self.tab.addTab(self.audioPanel, "Audio")
-        self.signals.setTabIndex.connect(self.tab.setCurrentIndex)
-        self.tab.currentChanged.connect(self.tabIndexChanged)
+        if self.settingsPanel.proxy.generateAlarmsLocally():
+            self.tab.addTab(self.videoPanel, "Video")
+            self.tab.addTab(self.audioPanel, "Audio")
         self.tabVisible = True
         self.tabIndex = 0
         self.tabBugFix = False
@@ -180,6 +189,14 @@ class MainWindow(QMainWindow):
             if rect.width() > 0 and rect.height() > 0 and rect.x() >= 0 and rect.y() >= 0:
                 self.setGeometry(rect)
 
+        if remote := self.settingsPanel.proxy.proxyRemote:
+            comps = remote[:len(remote)-1][7:].split(":")
+            ip_addr = comps[0]
+            try:
+                self.initializeClient(ip_addr)
+            except Exception as ex:
+                logger.error(f'Unable to configure client {ex}')
+
         self.discoverTimer = None
         if self.settingsPanel.discover.chkAutoDiscover.isChecked():
             self.cameraPanel.btnDiscoverClicked()
@@ -188,17 +205,39 @@ class MainWindow(QMainWindow):
         self.videoWorker = None
         self.videoConfigureHook = None
         self.videoConfigure = None
-        videoWorkerName = self.videoPanel.cmbWorker.currentText()
-        if len(videoWorkerName) > 0:
-            self.loadVideoConfigure(videoWorkerName)
+        if self.settingsPanel.proxy.generateAlarmsLocally():
+            videoWorkerName = self.videoPanel.cmbWorker.currentText()
+            if len(videoWorkerName) > 0:
+                self.loadVideoConfigure(videoWorkerName)
 
         self.audioWorkerHook = None
         self.audioWorker = None
         self.audioConfigureHook = None
         self.audioConfigure = None
-        audioWorkerName = self.audioPanel.cmbWorker.currentText()
-        if len(audioWorkerName) > 0:
-            self.loadAudioConfigure(audioWorkerName)
+        if self.settingsPanel.proxy.generateAlarmsLocally():
+            audioWorkerName = self.audioPanel.cmbWorker.currentText()
+            if len(audioWorkerName) > 0:
+                self.loadAudioConfigure(audioWorkerName)
+
+        try:
+            if_addrs = self.settingsPanel.proxy.getInterfaces()
+            if self.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                if self.settingsPanel.proxy.chkListen.isChecked():
+                    self.startListener(if_addrs)
+        except Exception as ex:
+            logger.error(f'Unable to initialize multicast {ex}')
+
+        appearance = self.settingsPanel.general.cmbAppearance.currentText()
+        if appearance == "Dark":
+            self.style(Style.DARK)
+        if appearance == "LIGHT":
+            self.style(Style.LIGHT)
+
+        collapsed = int(self.settings.value(self.collapsedKey, 0))
+        if collapsed:
+            self.collapseSplitter()
+        else:
+            self.restoreSplitter()
 
         logger.debug(f'FFMPEG VERSION: {Player("", self).getFFMPEGVersions()}')
 
@@ -276,18 +315,19 @@ class MainWindow(QMainWindow):
         return frame
     
     def playMedia(self, uri, alarm_sound=False):
+
         if not uri:
             logger.debug(f'Attempt to create player with null uri')
             return
 
         count = 0
-        while self.pm.getPlayer(uri) is not None:
+        while player := self.pm.getPlayer(uri):
             sleep(0.01)
             count += 1
-            if count > 300:
+            if count > 200:
                 logger.debug(f'Duplicate media uri from {self.getCameraName(uri)} is blocking launch of new player')
                 return
-
+        
         player = Player(uri, self)
 
         player.pyAudioCallback = lambda frame, player: self.pyAudioCallback(frame, player)
@@ -315,6 +355,8 @@ class MainWindow(QMainWindow):
                 player.disable_audio = profile.getDisableAudio()
                 player.disable_video = profile.getDisableVideo()
                 player.hidden = profile.getHidden()
+                if not player.hidden:
+                    player.last_render = datetime.now()
                 player.desired_aspect = profile.getDesiredAspect()
                 player.analyze_video = profile.getAnalyzeVideo()
                 player.analyze_audio = profile.getAnalyzeAudio()
@@ -379,14 +421,16 @@ class MainWindow(QMainWindow):
                     self.cameraPanel.setCurrentCamera(camera.uri())
                     self.cameraPanel.onItemDoubleClicked(camera)
         except Exception as ex:
-            logger.error(f'start all cameras error {ex}')
+            logger.error(f'Start all cameras error : {ex}')
 
     def closeAllStreams(self):
         try:
+            for timer in self.timers.values():
+                self.signals.stopReconnect.emit(timer.uri)
+                timer.stop()
             for player in self.pm.players:
                 player.requestShutdown()
-            for timer in self.timers.values():
-                timer.stop()
+
             self.pm.auto_start_mode = False
             lstCamera = self.cameraPanel.lstCamera
             if lstCamera:
@@ -398,33 +442,38 @@ class MainWindow(QMainWindow):
             while len(self.pm.players):
                 sleep(0.1)
                 count += 1
-                if count > 20:
-                    logger.debug("not all players closed within the allotted time, flushing player manager")
-                    self.pm.players.clear()
+                if count > 50:
+                    logger.error("not all players closed within the allotted time, flushing player manager")
+                    for player in self.pm.players:
+                        logger.debug(f'{player.uri} failed orderly shutdown')
+                        # may cause crashing ????
+                        self.pm.removePlayer(player.uri)
+
                     break
 
-            self.pm.ordinals.clear()
-            self.pm.sizes.clear()
-            self.cameraPanel.syncGUI()
-            if self.settingsPanel:
-                if self.settingsPanel.general:
-                    self.settingsPanel.general.btnCloseAll.setText("Start All Cameras")
+            if not self.closing:
+                self.cameraPanel.syncGUI()
+                if self.settingsPanel:
+                    if self.settingsPanel.general:
+                        self.settingsPanel.general.btnCloseAll.setText("Start All")
         except Exception as ex:
-            logger.error(f'close all streams error {ex}')
+            logger.error(f'Close all streams error : {ex}')
 
     def closeEvent(self, event):
         try:
+            self.closing = True
             self.closeAllStreams()
+            self.stopProxyServer()
+            self.stopOnvifServer()
 
             self.settings.setValue(self.geometryKey, self.geometry())
             super().closeEvent(event)
         except Exception as ex:
-            logger.error(f'window close error: {ex}')
+            logger.error(f'Window close error : {ex}')
 
     def mediaPlayingStarted(self, uri):
         if self.isCameraStreamURI(uri):
-            #logger.debug(f'camera stream opened {self.getCameraName(uri)} : {uri}')
-            logger.debug(f'camera stream opened {self.getCameraName(uri)}')
+            logger.debug(f'Camera stream opened {self.getCameraName(uri)} : {uri}')
 
             if self.pm.auto_start_mode:
                 finished = True
@@ -468,17 +517,16 @@ class MainWindow(QMainWindow):
 
     def mediaPlayingStopped(self, uri):
         if player := self.pm.getPlayer(uri):
+            self.pm.removePlayer(uri)
+
             if player.request_reconnect:
                 if camera := self.cameraPanel.getCamera(uri):
                     logger.debug(f'Camera stream closed with reconnect requested {self.getCameraName(uri)}')
                     self.signals.reconnect.emit(uri)
             else:
                 if self.isCameraStreamURI(uri):
-                    logger.debug(f'Stream closed by user {self.getCameraName(uri)}')
+                    logger.debug(f'Stream closed {self.getCameraName(uri)}')
 
-            player.rendering = False
-            self.pm.removePlayer(uri)
-            self.glWidget.update()
             if self.signals:
                 self.signals.stopped.emit(uri)
 
@@ -532,14 +580,10 @@ class MainWindow(QMainWindow):
                 last_msg = camera.last_msg
                 camera.last_msg = msg
 
-                if player := self.pm.getPlayer(uri):
-                    if not player.getVideoWidth():
-                        self.pm.removePlayer(uri)
-
                 self.signals.reconnect.emit(uri)
 
             if msg != last_msg:
-                logger.debug(f'Error from camera: {camera_name} : {msg}, attempting to re-connect')
+                logger.error(f'Error from camera: {camera_name} : {msg}, attempting to re-connect')
         else:
             name = ""
             last_msg = ""
@@ -565,12 +609,6 @@ class MainWindow(QMainWindow):
 
             else:
                 self.closeAllStreams()
-                #sleep(0.5)
-                #self.filePanel.control.btnPlay.setStyleSheet(self.filePanel.control.getButtonStyle("play"))
-                #sleep(0.5)
-                #self.signals.error.emit(msg)
-                #sleep(0.5)
-                #self.pm.removePlayer(uri)
 
             logger.error(f'{name}, Error: {msg}')
                 
@@ -592,32 +630,14 @@ class MainWindow(QMainWindow):
         self.audioStatus = status
 
     def onError(self, msg):
-        msgBox = QMessageBox(self)
-        msgBox.setText(msg)
-        msgBox.setWindowTitle(self.program_name)
-        msgBox.setIcon(QMessageBox.Icon.Warning)
-        msgBox.exec()
-        self.cameraPanel.syncGUI()
-        self.cameraPanel.setEnabled(True)
-
-    def fixTabIndex(self):
-        self.tabBugFix = True
-        self.signals.setTabIndex.emit(0)
-        shown = self.cameraPanel.tabOnvif.currentIndex()
-        self.cameraPanel.tabOnvif.setCurrentIndex(0)
-        self.cameraPanel.tabOnvif.setCurrentIndex(shown)
-
-    def tabIndexChanged(self, index):
-        if self.tabBugFix and self.tabIndex:
-            self.tabBugFix = False
-            self.signals.setTabIndex.emit(self.tabIndex)
-        else:
-            self.tabIndex = index
-
-        if index == 0:
-            if camera := self.cameraPanel.getCurrentCamera():
-                if self.videoConfigure:
-                    self.videoConfigure.setCamera(camera)
+        if not self.closing:
+            msgBox = QMessageBox(self)
+            msgBox.setText(msg)
+            msgBox.setWindowTitle(self.program_name)
+            msgBox.setIcon(QMessageBox.Icon.Warning)
+            msgBox.exec()
+            self.cameraPanel.syncGUI()
+            self.cameraPanel.setEnabled(True)
 
     def isSplitterCollapsed(self):
         return self.split.sizes()[1] == 0
@@ -629,8 +649,6 @@ class MainWindow(QMainWindow):
     
     def splitterMoved(self, pos, index):
         if self.split.sizes()[1]:
-            if not self.tabVisible:
-                self.fixTabIndex()
             self.settings.setValue(self.splitKey, self.split.saveState())
             self.tabVisible = True
         else:
@@ -641,7 +659,6 @@ class MainWindow(QMainWindow):
         splitterState = self.settings.value(self.splitKey)
         if splitterState is not None:
             self.split.restoreState(splitterState)
-        self.fixTabIndex()
 
     def getCameraName(self, uri):
         result = ""
@@ -677,26 +694,111 @@ class MainWindow(QMainWindow):
         log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
         return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
     
-    def startProxyServer(self):
+    def initializeBroadcaster(self, if_addrs):
+        if self.broadcaster:
+            del self.broadcaster
+        try:
+            self.broadcaster = kankakee.Broadcaster(if_addrs)
+            self.broadcaster.errorCallback = self.listenProtocols.error
+            self.broadcaster.enableLoopback(False)
+        except Exception as ex:
+            logger.error(f'Error initializing broadcaster : {ex}')
+    
+    def startListener(self, if_addrs):
+        print("start listener", if_addrs)
+
+        ip_addr = None
+        if len(if_addrs):
+            ip_addr = if_addrs[0]
+
+        if remote := self.settingsPanel.proxy.proxyRemote:
+            comps = remote[:len(remote)-1][7:].split(":")
+            rmt_addr = comps[0]
+            rmt = rmt_addr.split(".")
+            if ip_addr:
+                found = False
+                lcl = ip_addr.split(".")
+                if len(rmt) == len(lcl):
+                    for addr in if_addrs:
+                        print("rmt_addr", rmt_addr, "addr", addr)
+                        lcl = addr.split(".")
+                        if rmt[0] == lcl[0] and rmt[1] == lcl[1] and rmt[2] == lcl[2]:
+                            found = True
+                            ip_addr = addr
+                            break
+                if not found:
+                    QMessageBox.warning(self, "Listener Error", "Unable to Start Event Listener\nPlease check proxy configuration")
+                    return
+
+        try:
+            if self.listener:
+                print("found existing listener")
+                self.stopListener()
+                sleep(0.5)
+                print("test 2")
+            self.listener = kankakee.Listener([ip_addr])
+            self.listener.listenCallback = self.listenProtocols.callback
+            self.listener.errorCallback = self.listenProtocols.error
+            if not self.listener.running:
+                self.listener.start()
+        except Exception as ex:
+            logger.error(f'Error starting listener : {ex}')
+
+    def stopListener(self):
+        if self.listener:
+            self.listener.stop()
+    
+    def initializeClient(self, ip_addr):
+        try:
+            self.client = kankakee.Client(f'{ip_addr}:8550')
+            self.client.clientCallback = self.clientProtocols.callback
+            self.client.errorCallback = self.clientProtocols.error
+        except Exception as ex:
+            logger.error(f'Error initializing client : {ex}')
+
+    def startOnvifServer(self, ip):
+        # if ip is an empty string, bind server to IPADDR_ANY, otherwise bind to ip address
+        try:
+            if not self.server:
+                self.server = kankakee.Server(ip, 8550)
+                self.server.serverCallback = self.serverProtocols.callback
+                self.server.errorCallback = self.serverProtocols.error
+            if not self.server.running:
+                self.server.start()
+        except Exception as ex:
+            logger.error(f'Error starting onvif server : {ex}')
+
+    def stopOnvifServer(self):
+        if self.server:
+            self.server.stop()
+            sleep(0.5)
+    
+    def startProxyServer(self, ip):
+        # if ip is an empty string, bind server to IPADDR_ANY, otherwise bind to ip address
         try:
             if not self.proxy:
-                self.proxy = liblivemedia.ProxyServer()
-                self.proxy.init(554)
-            self.proxy.startLoop()
+                self.proxy = liblivemedia.ProxyServer(ip, 8554)
+            if not self.proxy.running:
+                self.proxy.start()
 
         except Exception as ex:
-            logger.error(f'Error starting proxy server {str(ex)}')
+            logger.error(f'Error starting proxy server : {ex}')
 
     def stopProxyServer(self):
         if self.proxy:
-            self.proxy.stopLoop()
+            self.proxy.stop()
+            sleep(0.5)
 
     def getProxyURI(self, arg):
         match self.settingsPanel.proxy.proxyType:
             case ProxyType.CLIENT:
-                return self.proxies[arg]
+                return self.proxies.get(arg, arg)
             case ProxyType.SERVER:
-                return self.proxy.getProxyURI(arg)
+                try:
+                    result = self.proxy.getProxyURI(arg)
+                except Exception as ex:
+                    result = ""
+                return result
     
     def addCameraProxy(self, camera):
         match self.settingsPanel.proxy.proxyType:
@@ -711,26 +813,53 @@ class MainWindow(QMainWindow):
                     server = self.settingsPanel.proxy.txtRemote.text()
                     self.proxies[profile.stream_uri()] = f'{server}{camera.serial_number()}/{profile.profile()}'
 
-    def style(self):
-        blDefault = "#5B5B5B"
-        bmDefault = "#4B4B4B"
-        bdDefault = "#3B3B3B"
-        flDefault = "#C6D9F2"
-        fmDefault = "#9DADC2"
-        fdDefault = "#808D9E"
-        slDefault = "#FFFFFF"
-        smDefault = "#DDEEFF"
-        sdDefault = "#306294"
-        strStyle = open(self.getLocation() + "/gui/resources/darkstyle.qss", "r").read()
-        strStyle = strStyle.replace("background_light",  blDefault)
-        strStyle = strStyle.replace("background_medium", bmDefault)
-        strStyle = strStyle.replace("background_dark",   bdDefault)
-        strStyle = strStyle.replace("foreground_light",  flDefault)
-        strStyle = strStyle.replace("foreground_medium", fmDefault)
-        strStyle = strStyle.replace("foreground_dark",   fdDefault)
-        strStyle = strStyle.replace("selection_light",   slDefault)
-        strStyle = strStyle.replace("selection_medium",  smDefault)
-        strStyle = strStyle.replace("selection_dark",    sdDefault)
+    def style(self, appearance):
+        match appearance:
+            case Style.DARK:
+                blDefault = "#5B5B5B"
+                bmDefault = "#4B4B4B"
+                bdDefault = "#3B3B3B"
+                flDefault = "#C6D9F2"
+                fmDefault = "#9DADC2"
+                fdDefault = "#808D9E"
+                slDefault = "#FFFFFF"
+                smDefault = "#DDEEFF"
+                sdDefault = "#306294"
+                isDefault = "#323232"
+                strStyle = open(self.getLocation() + "/gui/resources/darkstyle.qss", "r").read()
+                strStyle = strStyle.replace("background_light",  blDefault)
+                strStyle = strStyle.replace("background_medium", bmDefault)
+                strStyle = strStyle.replace("background_dark",   bdDefault)
+                strStyle = strStyle.replace("foreground_light",  flDefault)
+                strStyle = strStyle.replace("foreground_medium", fmDefault)
+                strStyle = strStyle.replace("foreground_dark",   fdDefault)
+                strStyle = strStyle.replace("selection_light",   slDefault)
+                strStyle = strStyle.replace("selection_medium",  smDefault)
+                strStyle = strStyle.replace("selection_dark",    sdDefault)
+                strStyle = strStyle.replace("selection_item",    isDefault)
+            case Style.LIGHT:
+                blDefault = "#AAAAAA"
+                bmDefault = "#CCCCCC"
+                bdDefault = "#FFFFFF"
+                flDefault = "#111111"
+                fmDefault = "#222222"
+                fdDefault = "#999999"
+                slDefault = "#111111"
+                smDefault = "#222222"
+                sdDefault = "#999999"
+                isDefault = "#888888"
+                strStyle = open(self.getLocation() + "/gui/resources/darkstyle.qss", "r").read()
+                strStyle = strStyle.replace("background_light",  blDefault)
+                strStyle = strStyle.replace("background_medium", bmDefault)
+                strStyle = strStyle.replace("background_dark",   bdDefault)
+                strStyle = strStyle.replace("foreground_light",  flDefault)
+                strStyle = strStyle.replace("foreground_medium", fmDefault)
+                strStyle = strStyle.replace("foreground_dark",   fdDefault)
+                strStyle = strStyle.replace("selection_light",   slDefault)
+                strStyle = strStyle.replace("selection_medium",  smDefault)
+                strStyle = strStyle.replace("selection_dark",    sdDefault)
+                strStyle = strStyle.replace("selection_item",    isDefault)
+
         self.setStyleSheet(strStyle)
 
 def run():
@@ -757,7 +886,7 @@ def run():
 
                     logger.debug(f'Desktop icon created for executable {executable}')
                 except Exception as ex:
-                    logger.debug(f'Error attempting to create desktop icon {str(ex)}')
+                    logger.debug(f'Error attempting to create desktop icon : {ex}')
             else:
                 icon = f'{os.path.split(__file__)[0]}/resources/onvif-gui.png'
                 executable = f'{os.path.split(sys.executable)[0]}/onvif-gui %U'
@@ -778,14 +907,14 @@ def run():
                         f.write(contents)
                     print("Desktop icon created successfully")
                 except Exception as ex:
-                    print("Error attempting to create desktop icon " + str(ex))
+                    logger.error(f'Error attempting to create desktop icon : {ex}')
 
             sys.exit()
 
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     window = MainWindow(clear_settings)
-    window.style()
+    #window.style()
     window.show()
     app.exec()
 

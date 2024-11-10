@@ -46,8 +46,8 @@ class SettingsPanel(QWidget):
 
     def onMediaStarted(self):
         if len(self.mw.pm.players):
-            self.general.btnCloseAll.setText("Close All Streams")
+            self.general.btnCloseAll.setText("Close All")
 
     def onMediaStopped(self):
         if not len(self.mw.pm.players):
-            self.general.btnCloseAll.setText("Start All Cameras")
+            self.general.btnCloseAll.setText("Start All")

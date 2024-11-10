@@ -18,11 +18,237 @@
 #*********************************************************************/
 
 from PyQt6.QtWidgets import QGridLayout, QWidget, QPushButton, QGroupBox, \
-    QMessageBox, QRadioButton, QComboBox, QLabel
-from PyQt6.QtCore import Qt
-import datetime
-import pathlib
+    QMessageBox, QRadioButton, QComboBox, QLabel, QDialog, QDialogButtonBox, \
+    QCheckBox, QLineEdit
+from PyQt6.QtCore import Qt, QTimer
+from datetime import datetime, timedelta
 import webbrowser
+import time
+from gui.enums import ProxyType
+
+class TimeDialog(QDialog):
+    def __init__(self, mw):
+        super().__init__(mw)
+        self.mw = mw
+        self.onvif_data = None
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.timeout)
+
+        self.setWindowTitle("Time Settings")
+        self.setMinimumWidth(640)
+
+        self.lblComputerDate = QLabel()
+        self.lblComputerTime = QLabel()
+        self.lblComputerDST = QLabel()
+        self.lblComputerTZ = QLabel()
+        self.lblComputerUTCDiff = QLabel()
+        self.updateComputerTime()        
+        grpComputer = QGroupBox("Computer Time")
+        lytComputer = QGridLayout(grpComputer)
+        lytComputer.addWidget(QLabel("Date"),          0, 0, 1, 1)
+        lytComputer.addWidget(self.lblComputerDate,    0, 1, 1, 1)
+        lytComputer.addWidget(QLabel("Time"),          1, 0, 1, 1)
+        lytComputer.addWidget(self.lblComputerTime,    1, 1, 1, 1)
+        lytComputer.addWidget(QLabel("DST"),           2, 0, 1, 1)
+        lytComputer.addWidget(self.lblComputerDST,     2, 1, 1, 1)
+        lytComputer.addWidget(QLabel("Time Zone"),     3, 0, 1, 1)
+        lytComputer.addWidget(self.lblComputerTZ,      3, 1, 1, 1)
+        lytComputer.addWidget(QLabel("UTC Offset"),    4, 0, 1, 1)
+        lytComputer.addWidget(self.lblComputerUTCDiff, 4, 1, 1, 1)
+
+        self.lblCameraDate = QLabel()
+        self.lblCameraTime = QLabel()
+        self.lblCameraDST = QLabel()
+        self.lblCameraTZ = QLabel()
+        self.lblCameraUTCDiff = QLabel()
+        self.lblCameraDiffLbl = QLabel("Diff (sec)")
+        self.updateCameraTime()        
+        grpCamera = QGroupBox("Camera Time")
+        lytCamera = QGridLayout(grpCamera)
+        lytCamera.addWidget(QLabel("Date"),        0, 0, 1, 1)
+        lytCamera.addWidget(self.lblCameraDate,    0, 1, 1, 1)
+        lytCamera.addWidget(QLabel("Time"),        1, 0, 1, 1)
+        lytCamera.addWidget(self.lblCameraTime,    1, 1, 1, 1)
+        lytCamera.addWidget(QLabel("DST"),         2, 0, 1, 1)
+        lytCamera.addWidget(self.lblCameraDST,     2, 1, 1, 1)
+        lytCamera.addWidget(QLabel("Time Zone"),   3, 0, 1, 1)
+        lytCamera.addWidget(self.lblCameraTZ,      3, 1, 1, 1)
+        lytCamera.addWidget(self.lblCameraDiffLbl, 4, 0, 1, 1)
+        lytCamera.addWidget(self.lblCameraUTCDiff, 4, 1, 1, 1)
+
+        self.txtTimezone = QLineEdit()
+        self.lblTimezone = QLabel("Time Zone")
+        self.txtNTP = QLineEdit()
+        self.lblNTP = QLabel("NTP Server")
+        self.chkDST = QCheckBox("Daylight Savings Time")
+        self.cmbDateTimeType = QComboBox()
+        self.cmbDateTimeType.addItem("Manual")
+        self.cmbDateTimeType.addItem("NTP")
+
+        self.radNTP = QRadioButton("NTP")
+        self.radNTP.toggled.connect(self.radNTPToggled)
+        self.radManual = QRadioButton("Manual")
+        self.radManual.toggled.connect(self.radManualToggled)
+        self.radUTCasLocal = QRadioButton("UTC as Local")
+        self.radUTCasLocal.toggled.connect(self.radUTCasLocalToggled)
+
+        grpSettings = QGroupBox("Time Sync Method")
+        lytSettings = QGridLayout(grpSettings)
+        lytSettings.addWidget(self.radNTP,             0, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytSettings.addWidget(self.radManual,          0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytSettings.addWidget(self.radUTCasLocal,      0, 2, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        
+        self.radFromDHCP = QRadioButton("From DHCP")
+        self.radFromDHCP.toggled.connect(self.radFromDHCPToggled)
+        self.radIPv4 = QRadioButton("IPv4 Address")
+        self.radDNS = QRadioButton("Domain Name")
+        
+        self.grpNTPServer = QGroupBox("NTP Server")
+        lytNTPServer = QGridLayout(self.grpNTPServer)
+        lytNTPServer.addWidget(QLabel("NTP Server Address Type:"),   0, 1, 1, 1)
+        lytNTPServer.addWidget(self.radFromDHCP,                     0, 2, 1, 1)
+        lytNTPServer.addWidget(self.radIPv4,                         1, 2, 1, 1)
+        lytNTPServer.addWidget(self.radDNS,                          2, 2, 1, 1)
+        lytNTPServer.addWidget(self.lblNTP,                          4, 0, 1, 1, Qt.AlignmentFlag.AlignRight)
+        lytNTPServer.addWidget(self.txtNTP,                          4, 1, 1, 3)
+
+        buttonBox = QDialogButtonBox( \
+            QDialogButtonBox.StandardButton.Ok | \
+            QDialogButtonBox.StandardButton.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        lytMain = QGridLayout(self)
+        lytMain.addWidget(grpComputer,             0, 0, 1, 2)
+        lytMain.addWidget(grpCamera,               0, 2, 1, 2)
+        lytMain.addWidget(QLabel(),                1, 0, 1, 4)
+        lytMain.addWidget(self.lblTimezone,        2, 0, 1, 1)
+        lytMain.addWidget(self.txtTimezone,        2, 1, 1, 3)
+        lytMain.addWidget(self.chkDST,             3, 0, 1, 4)
+        lytMain.addWidget(grpSettings,             4, 1, 1, 2)
+        lytMain.addWidget(self.grpNTPServer,       6, 0, 1, 4)
+        lytMain.addWidget(buttonBox,               7, 0, 1, 4)
+
+    def radFromDHCPToggled(self, arg):
+        self.txtNTP.setEnabled(not arg)
+        self.lblNTP.setEnabled(not arg)
+
+    def radNTPToggled(self, arg):
+        self.grpNTPServer.setEnabled(arg)
+        if arg and self.onvif_data:
+            self.onvif_data.setDateTimeType('N')
+
+    def radManualToggled(self, arg):
+        if arg and self.onvif_data:
+            self.onvif_data.setDateTimeType('M')
+
+    def radUTCasLocalToggled(self, arg):
+        if arg and self.onvif_data:
+            self.onvif_data.setDateTimeType('U')
+        self.txtTimezone.setEnabled(not arg)
+        self.lblTimezone.setEnabled(not arg)
+        self.chkDST.setEnabled(not arg)
+
+    def exec(self, onvif_data):
+        self.onvif_data = onvif_data
+
+        if onvif_data.datetimetype() == 'U':
+            self.radUTCasLocal.setChecked(True)
+            self.radNTPToggled(False)
+            self.radManualToggled(False)
+        if onvif_data.datetimetype() == 'M':
+            self.radManual.setChecked(True)
+            self.radNTPToggled(False)
+        if onvif_data.datetimetype() == 'N':
+            self.radNTP.setChecked(True)
+            self.radManualToggled(False)
+
+        if onvif_data.ntp_dhcp():
+            self.radFromDHCP.setChecked(True)
+        else:
+            if onvif_data.ntp_type() == "IPv4":
+                self.radIPv4.setChecked(True)
+            if onvif_data.ntp_type() == "DNS":
+                self.radDNS.setChecked(True)
+        self.txtNTP.setText(onvif_data.ntp_addr())
+
+        tz = onvif_data.timezone()
+        self.lblCameraTZ.setText(tz)
+        self.txtTimezone.setText(tz)
+        self.lblCameraDST.setText(str(bool(onvif_data.dst())))
+        self.txtNTP.setText(onvif_data.ntp_addr())
+        self.chkDST.setChecked(onvif_data.dst())
+        self.lblCameraUTCDiff.setText(str(onvif_data.time_offset()))
+
+        self.updateComputerTime()
+        self.updateCameraTime()
+
+        self.timer.start()
+        super().exec()
+
+    def accept(self):
+        self.onvif_data.setNTPDHCP(self.radFromDHCP.isChecked())
+        if self.radIPv4.isChecked():
+            self.onvif_data.setNTPType("IPv4")
+        if self.radDNS.isChecked():
+            self.onvif_data.setNTPType("DNS")
+        self.onvif_data.setNTPAddr(self.txtNTP.text())
+        self.onvif_data.setDST(self.chkDST.isChecked())
+        self.onvif_data.setTimezone(self.txtTimezone.text())
+        self.onvif_data.startUpdateTime()
+        self.close()
+
+    def reject(self):
+        self.close()
+
+    def closeEvent(self, e):
+        self.timer.stop()
+
+    def timeout(self):
+        self.updateComputerTime()
+        self.updateCameraTime()
+
+    def updateComputerTime(self):
+        now = datetime.now()
+        self.lblComputerDate.setText(now.strftime("%b-%d-%Y"))
+        self.lblComputerTime.setText(now.strftime('%H:%M:%S'))
+        dst = bool(time.localtime().tm_isdst)
+        self.lblComputerDST.setText(str(dst))
+        local_now = now.astimezone()
+        local_tz = local_now.tzinfo
+        self.lblComputerTZ.setText(local_tz.tzname(local_now))
+        '''
+        local_tzname = local_tz.tzname(local_now)
+        dst = bool(time.localtime().tm_isdst)
+        utc_diff = local_now.utcoffset()
+        seconds_diff = utc_diff.days * 24 * 60 * 60 + utc_diff.seconds
+        hours, remainder = divmod(seconds_diff, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        '''
+        self.lblComputerUTCDiff.setText(str(local_now)[-6:])
+
+    def updateCameraTime(self):
+        now = datetime.now()
+        if self.onvif_data:
+            offset = self.onvif_data.time_offset()
+            if self.radUTCasLocal.isChecked():
+                local_now = now.astimezone()
+                utc_diff = local_now.utcoffset()
+                seconds_diff = utc_diff.days * 24 * 60 * 60 + utc_diff.seconds
+                offset -= seconds_diff
+                self.lblCameraDiffLbl.setText("Diff (sec) *adj")
+                self.lblCameraUTCDiff.setText(str(offset))
+            else:
+                self.lblCameraDiffLbl.setText("Diff (sec)")
+                self.lblCameraUTCDiff.setText(str(self.onvif_data.time_offset()))
+
+            #delta = timedelta(seconds = self.onvif_data.time_offset())
+            delta = timedelta(seconds=offset)
+            now += delta
+
+        self.lblCameraDate.setText(now.strftime("%b-%d-%Y"))
+        self.lblCameraTime.setText(now.strftime('%H:%M:%S'))
 
 class SystemTabSettings():
     def __init__(self, mw, camera):
@@ -130,6 +356,8 @@ class SystemTab(QWidget):
         super().__init__()
         self.cp = cp
 
+        self.dlgTimeDialog = TimeDialog(self.cp.mw)
+
         self.radRecordAlways = QRadioButton("Always")
         self.radRecordAlways.clicked.connect(self.radRecordAlwaysClicked)
         self.radRecordAlways.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -161,11 +389,12 @@ class SystemTab(QWidget):
         self.cmbRecordProfile = QComboBox()
         self.cmbRecordProfile.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.cmbRecordProfile.currentIndexChanged.connect(self.cmbRecordProfileChanged)
-        self.lblRecordProfile = QLabel("    Record    ")
+        self.lblRecordProfile = QLabel("  Record Profile   ")
         pnlRecordProfile = QWidget()
         lytRecordProfile = QGridLayout(pnlRecordProfile)
         lytRecordProfile.addWidget(self.lblRecordProfile, 0, 0, 1, 1)
         lytRecordProfile.addWidget(self.cmbRecordProfile, 0, 1, 1, 1)
+        lytRecordProfile.addWidget(QLabel("               "), 0, 2, 1, 1)
         lytRecordProfile.setColumnStretch(1, 5)
         lytRecordProfile.setContentsMargins(0, 0, 0, 0)
 
@@ -179,23 +408,18 @@ class SystemTab(QWidget):
         self.btnBrowser.clicked.connect(self.btnBrowserClicked)
         self.btnBrowser.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
-        self.btnSnapshot = QPushButton("JPEG")
-        self.btnSnapshot.clicked.connect(self.btnSnapshotClicked)
-        self.btnSnapshot.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
         pnlButton = QWidget()
         lytButton = QGridLayout(pnlButton)
         lytButton.addWidget(self.btnReboot,     0, 0, 1, 1)
         lytButton.addWidget(self.btnSyncTime,   1, 0, 1, 1)
         lytButton.addWidget(self.btnBrowser,    2, 0, 1, 1)
-        lytButton.addWidget(self.btnSnapshot,   3, 0, 1, 1)
-        lytButton.setContentsMargins(6, 0, 6, 0)
+        lytButton.setContentsMargins(6, 2, 6, 2)
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.grpRecord,         0, 0, 1, 1)
         lytMain.addWidget(self.grpSounds,         0, 1, 1, 1)
-        lytMain.addWidget(pnlRecordProfile,       1, 0, 1, 2)
-        lytMain.addWidget(pnlButton,              0, 2, 2, 1)
+        lytMain.addWidget(pnlRecordProfile,       1, 0, 1, 3)
+        lytMain.addWidget(pnlButton,              0, 2, 1, 1)
 
     def grpRecordClicked(self, state):
         camera = self.cp.getCurrentCamera()
@@ -280,27 +504,20 @@ class SystemTab(QWidget):
                 self.cp.btnRecord.setStyleSheet(self.cp.getButtonStyle("record"))
 
     def btnRebootClicked(self):
-        camera = self.cp.getCurrentCamera()
-        if camera:
+        if camera := self.cp.getCurrentCamera():
             result = QMessageBox.question(self, "Warning", f'{camera.name()}: Please confirm reboot')
             if result == QMessageBox.StandardButton.Yes:
-                camera.onvif_data.startReboot()
+                if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                    arg = "REBOOT\n\n" + camera.onvif_data.toJSON() + "\r\n"
+                    self.cp.mw.client.transmit(arg)
+                else:
+                    camera.onvif_data.startReboot()
 
     def btnSyncTimeClicked(self):
-        camera = self.cp.getCurrentCamera()
-        if camera:
-            camera.onvif_data.startUpdateTime()
+        if camera := self.cp.getCurrentCamera():
+            self.dlgTimeDialog.exec(camera.onvif_data)
 
     def btnBrowserClicked(self):
-        camera = self.cp.lstCamera.currentItem()
-        if camera:
+        if camera := self.cp.lstCamera.currentItem():
             host = "http://" + camera.onvif_data.host()
             webbrowser.get().open(host)
-
-    def btnSnapshotClicked(self):
-        if player := self.cp.getCurrentPlayer():
-            root = self.cp.mw.settingsPanel.storage.dirPictures.txtDirectory.text() + "/" + self.cp.getCamera(player.uri).text()
-            pathlib.Path(root).mkdir(parents=True, exist_ok=True)
-            filename = '{0:%Y%m%d%H%M%S.jpg}'.format(datetime.datetime.now())
-            filename = root + "/" + filename
-            player.save_image_filename = filename

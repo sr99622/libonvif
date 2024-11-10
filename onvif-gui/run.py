@@ -29,6 +29,6 @@ if len(sys.argv) > 1:
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
 window = MainWindow(clear_settings)
-window.style()
+#window.style()
 window.show()
 app.exec()

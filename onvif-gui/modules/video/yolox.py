@@ -535,7 +535,7 @@ class VideoWorker:
 
     def __call__(self, F, player):
         try:
-            if len(IMPORT_ERROR) or self.mw.glWidget.model_loading:
+            if len(IMPORT_ERROR) or self.mw.glWidget.model_loading or not self.mw.videoConfigure:
                 return
             if not F or not player or self.mw.videoConfigure.name != MODULE_NAME:
                 self.mw.videoConfigure.selTargets.barLevel.setLevel(0)

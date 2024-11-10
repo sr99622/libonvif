@@ -38,6 +38,7 @@ public:
     { 
         session = (OnvifSession*)calloc(sizeof(OnvifSession), 1);
         initializeSession(session);
+        //srand(time(NULL));
     }
 
     ~Session() 
@@ -64,7 +65,6 @@ public:
             strcpy(session->preferred_network_address, interface.c_str());
         }
         int number_of_devices = broadcast(session);
-
         std::vector<Data> devices;
         for (int i = 0; i < number_of_devices; i++) {
             if (abort) break;
@@ -72,43 +72,72 @@ public:
             if (prepareOnvifData(i, session, data)) {
                 if (std::find(devices.begin(), devices.end(), data) == devices.end()) {
                     devices.push_back(data);
-                    while (true) {
-                        data = getCredential(data);
-                        if (!data.cancelled) {
+                }
+            }
+            else {
+                std::stringstream str;
+                str << "session was unable to parse device onvif data: " << session->buf[i];
+                infoCallback(str.str());
+            }
+        }
 
-                            if (!getTimeOffset(data)) {
-                                time_t rawtime;
-                                struct tm timeinfo;
-                                time(&rawtime);
-                            #ifdef _WIN32
-                                localtime_s(&timeinfo, &rawtime);
-                            #else
-                                localtime_r(&rawtime, &timeinfo);
-                            #endif
-                                if (timeinfo.tm_isdst && !data.dst())
-                                    data.setTimeOffset(data.time_offset() - 3600);
-                            }
-                            getCapabilities(data);
+        std::stringstream str;
+        str << " ONVIF Dscovery found " << devices.size() << " unique devices on network";
+        if (infoCallback) infoCallback(str.str());
 
-                            if (getDeviceInformation(data) == 0) {
-                                int index = 0;
-                                while (true) {
-                                    Data profile(data);
-                                    getProfileToken(profile, index);
-                                    if (strlen(profile->profileToken) == 0)
-                                        break;
-                                    getStreamUri(profile);
-                                    data.profiles.push_back(profile);
-                                    index++;
-                                }
-                                getData(data);
-                                break;
-                            }
-                        } 
-                        else {
+        for (int i = 0; i < devices.size(); i++) {
+            Data data = devices[i];
+            getTimeOffset(data);
+            time_t initial_offset = data->time_offset;
+            int count = 1;
+            int direction = 1;
+
+            while (true) {
+                data = getCredential(data);
+                if (!data.cancelled) {
+
+                    if (getCapabilities(data)) {
+                        // Daylight Savings Time mismatch can cause authentication failure
+                        std::stringstream str;
+                        str << "session error: " << data->camera_name << " : " << data->last_error << " attempting time offset correction";
+                        infoCallback(str.str());
+                        data->time_offset = initial_offset + 3600 * direction * count;
+                        if (direction < 0) count++;
+                        direction = ~direction + 1;
+                        if (count > 2) {
+                            std::stringstream str;
+                            str << "session error: " << data->camera_name << " : " << data->last_error << " camera interrogation failed";
+                            infoCallback(str.str());
                             break;
                         }
+                        else {
+                            continue;
+                        }
                     }
+
+                    if (getDeviceInformation(data) == 0) {
+                        int index = 0;
+                        while (true) {
+                            Data profile(data);
+                            getProfileToken(profile, index);
+                            if (strlen(profile->profileToken) == 0)
+                                break;
+                            getStreamUri(profile);
+                            data.profiles.push_back(profile);
+                            index++;
+                        }
+                        getData(data);
+                        break;
+                    }
+                    else {
+                        std::stringstream str;
+                        str << "get device information failed: " << data->camera_name << " : " << data->last_error;
+                        infoCallback(str.str());
+                        //break;
+                    }
+                } 
+                else {
+                    break;
                 }
             }
         }
@@ -125,6 +154,7 @@ public:
     std::function<void()> discovered = nullptr;
     std::function<Data(Data&)> getCredential = nullptr;
     std::function<void(Data&)> getData = nullptr;
+    std::function<void(const std::string&)> infoCallback = nullptr;
 
     std::string interface;
     OnvifSession* session;

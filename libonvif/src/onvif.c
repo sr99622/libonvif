@@ -417,6 +417,7 @@ int setNTP(struct OnvifData *onvif_data) {
     int result = 0;
 
     char fromDHCP_buf[128];
+    memset(fromDHCP_buf, 0, sizeof(fromDHCP_buf));
     if (onvif_data->ntp_dhcp) {
         strcpy(fromDHCP_buf, "true");
     } else {
@@ -436,14 +437,26 @@ int setNTP(struct OnvifData *onvif_data) {
     xmlNewTextChild(setNTP, ns_tds, BAD_CAST "FromDHCP", BAD_CAST fromDHCP_buf);
     if (!onvif_data->ntp_dhcp) {
         xmlNodePtr ntpManual = xmlNewTextChild(setNTP, ns_tds, BAD_CAST "NTPManual", NULL);
+        //xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "Type", BAD_CAST "IPv4");
+        //xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "IPv4Address", BAD_CAST "10.1.1.16");
+
+        //xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "Type", BAD_CAST "DNS");
+        //xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "DNSname", BAD_CAST "time.windows.com");
+
+
+
+
+        /**/
         xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "Type", BAD_CAST onvif_data->ntp_type);
 		if (strcmp(onvif_data->ntp_type,"IPv4") == 0)
 			xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "IPv4Address", BAD_CAST onvif_data->ntp_addr);
-		else if (strcmp(onvif_data->ntp_type,"IPv6") == 0)
-			xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "IPv6Address", BAD_CAST onvif_data->ntp_addr);
+		//else if (strcmp(onvif_data->ntp_type,"IPv6") == 0)
+		//	xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "IPv6Address", BAD_CAST onvif_data->ntp_addr);
 		else
-			xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "DNSName", BAD_CAST onvif_data->ntp_addr);
+			xmlNewTextChild(ntpManual, ns_tt, BAD_CAST "DNSname", BAD_CAST onvif_data->ntp_addr);
+        /**/
     }
+    //dumpReply(doc);
 
     char cmd[4096] = {0};
     addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->device_service, cmd, 4096);
@@ -1489,12 +1502,53 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
     int result = 0;
     time_t rawtime;
     time(&rawtime);
-    struct tm *UTCTime = localtime(&rawtime);
+
+    /*
+    int random = rand();
+    printf("random %d\n", random);
+    printf("RAND_MAX %d\n", RAND_MAX);
+    float changer = (float)random / RAND_MAX;
+    printf("changer %f\n", changer);
+    rawtime += changer * 3600;
+    */
+    struct tm *UTCTime = gmtime(&rawtime);
+    
+    /*
+    if (strlen(onvif_data->timezone))
+        UTCTime = gmtime(&rawtime);
+    else
+        UTCTime = localtime(&rawtime);
+    */
+
+    char datetimetype[16];
+    memset(datetimetype, 0, sizeof(datetimetype));
+    if (onvif_data->datetimetype == 'M') {
+        strcpy(datetimetype, "Manual");
+    }
+    if (onvif_data->datetimetype == 'N') {
+        strcpy(datetimetype, "NTP");
+    }
+    if (onvif_data->datetimetype == 'U') {
+        strcpy(datetimetype, "Manual");
+        //UTCTime = localtime(&rawtime);
+        memset(onvif_data->timezone, 0, sizeof(onvif_data->timezone));
+        strcpy(onvif_data->timezone, "UTC0");
+    }
+
+    if (!strcmp(datetimetype, "Manual") && !strcmp(onvif_data->timezone, "UTC0"))
+        UTCTime = localtime(&rawtime);
+
     char dst_flag_buf[128];
+    if (onvif_data->dst)
+        strcpy(dst_flag_buf, "true");
+    else
+        strcpy(dst_flag_buf, "false");
+    /*
     if (UTCTime->tm_isdst == 1)
         strcpy(dst_flag_buf, "true");
     else
         strcpy(dst_flag_buf, "false");
+    */
     char hour_buf[128];
     char minute_buf[128];
     char second_buf[128];
@@ -1518,10 +1572,10 @@ int setSystemDateAndTime(struct OnvifData *onvif_data) {
     addUsernameDigestHeader(root, ns_env, onvif_data->username, onvif_data->password, onvif_data->time_offset);
     xmlNodePtr body = xmlNewTextChild(root, ns_env, BAD_CAST "Body", NULL);
     xmlNodePtr setSystemDateAndTime = xmlNewTextChild(body, ns_tds, BAD_CAST "SetSystemDateAndTime", NULL);
-    xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "DateTimeType", BAD_CAST "Manual");
+    xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "DateTimeType", BAD_CAST datetimetype);
     xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "DaylightSavings", BAD_CAST dst_flag_buf);
     xmlNodePtr timeZone = xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "TimeZone", NULL);
-    xmlNewTextChild(timeZone, ns_tt, BAD_CAST "TZ", BAD_CAST "UTC0");
+    xmlNewTextChild(timeZone, ns_tt, BAD_CAST "TZ", BAD_CAST onvif_data->timezone);
     xmlNodePtr utcDateTime = xmlNewTextChild(setSystemDateAndTime, ns_tds, BAD_CAST "UTCDateTime", NULL);
     xmlNodePtr cameraTime = xmlNewTextChild(utcDateTime, ns_tt, BAD_CAST "Time", NULL);
     xmlNewTextChild(cameraTime, ns_tt, BAD_CAST "Hour", BAD_CAST hour_buf);
@@ -1763,14 +1817,17 @@ int getTimeOffset(struct OnvifData *onvif_data) {
 
         time_t now = time(NULL);
         time_t utc_time_here = now;
+
+        /*
 	    bool special = false;
 	    if (strcmp(onvif_data->timezone,"UTC0") == 0) {
-	        /* special case - camera is running on local time believing it is UTC */
+	        // special case - camera is running on local time believing it is UTC 
 	        special = true;
             struct tm *utc_here = gmtime(&now);
             utc_here->tm_isdst = -1;
             utc_time_here = mktime(utc_here);
 	    }
+        */
 
         struct tm *utc_there = localtime(&now);
         utc_there->tm_year = atoi(year_buf) - 1900;
@@ -1781,9 +1838,9 @@ int getTimeOffset(struct OnvifData *onvif_data) {
         utc_there->tm_sec = atoi(sec_buf);
         utc_there->tm_isdst = is_dst;
 	    time_t utc_time_there;
-	    if (special)
-	        utc_time_there = mktime(utc_there);
-	    else
+	    //if (special)
+	    //    utc_time_there = mktime(utc_there);
+	    //else
 #ifndef _WIN32
 	        utc_time_there = timegm(utc_there);
 #else
@@ -1833,6 +1890,41 @@ int getStreamUri(struct OnvifData *onvif_data) {
     } else {
         result = -1;
         strcpy(onvif_data->last_error, "getStreamUri - No XML reply");
+    }
+    return result;
+}
+
+int getSnapshotUri(struct OnvifData *onvif_data) {
+    memset(onvif_data->snapshot_uri, 0, sizeof(onvif_data->snapshot_uri));
+    memset(onvif_data->last_error, 0, sizeof(onvif_data->last_error));
+    int result = 0;
+    xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
+    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);
+    xmlDocSetRootElement(doc, root);
+    xmlNsPtr ns_env = xmlNewNs(root, BAD_CAST "http://www.w3.org/2003/05/soap-envelope", BAD_CAST "SOAP-ENV");
+    xmlNsPtr ns_trt = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/media/wsdl", BAD_CAST "trt");
+    xmlNsPtr ns_tt = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/schema", BAD_CAST "tt");
+    xmlSetNs(root, ns_env);
+    addUsernameDigestHeader(root, ns_env, onvif_data->username, onvif_data->password, onvif_data->time_offset);
+    xmlNodePtr body = xmlNewTextChild(root, ns_env, BAD_CAST "Body", NULL);
+    xmlNodePtr getSnapshotUri = xmlNewTextChild(body, ns_trt, BAD_CAST "GetSnapshotUri", NULL);
+    xmlNodePtr streamSetup = xmlNewTextChild(getSnapshotUri, ns_trt, BAD_CAST "StreamSetup", NULL);
+    xmlNewTextChild(streamSetup, ns_tt, BAD_CAST "Stream", BAD_CAST "RTP-Unicast");
+    xmlNodePtr transport = xmlNewTextChild(streamSetup, ns_tt, BAD_CAST "Transport", NULL);
+    xmlNewTextChild(transport, ns_tt, BAD_CAST "Protocol", BAD_CAST "RTSP");
+    xmlNewTextChild(getSnapshotUri, ns_trt, BAD_CAST "ProfileToken", BAD_CAST onvif_data->profileToken);
+    char cmd[4096] = {0};
+    addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->media_service, cmd, 4096);
+    xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
+    if (reply != NULL) {
+        getXmlValue(reply, BAD_CAST "//s:Body//trt:GetSnapshotUriResponse//trt:MediaUri//tt:Uri", onvif_data->snapshot_uri, 1024);
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getSnapshotUri");
+        xmlFreeDoc(reply);
+    } else {
+        result = -1;
+        strcpy(onvif_data->last_error, "getSnapshotUri - No XML reply");
     }
     return result;
 }
@@ -2630,6 +2722,7 @@ int broadcast(struct OnvifSession *onvif_session) {
         onvif_session->len[i] = recvfrom(broadcast_socket, onvif_session->buf[i], sizeof(onvif_session->buf[i]), 0, (struct sockaddr*) &broadcast_address, &address_size);
         if (onvif_session->len[i] > 0) {
             onvif_session->buf[i][onvif_session->len[i]] = '\0';
+            //printf("session buf: %s\n", onvif_session->buf[i]);
             i++;
         } else {
             looping = 0;
@@ -2678,7 +2771,7 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
             if (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0")) {
                 char interface_info[1024];
                 sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
-                printf("Network interface info %s\n", interface_info);
+                //printf("Network interface info %s\n", interface_info);
                 //args.push_back(interface_info);
                 strncpy(onvif_session->active_network_interfaces[count], interface_info, 40);
                 count += 1;
@@ -3207,6 +3300,7 @@ void clearData(struct OnvifData *onvif_data) {
         onvif_data->xaddrs[i] = '\0';
         onvif_data->device_service[i] = '\0';
         onvif_data->stream_uri[i] = '\0';
+        onvif_data->snapshot_uri[i] = '\0';
         onvif_data->camera_name[i] = '\0';
         onvif_data->host_name[i] = '\0';
     }
@@ -3241,6 +3335,7 @@ void clearData(struct OnvifData *onvif_data) {
     onvif_data->contrast = 0;
     onvif_data->sharpness = 0;
     onvif_data->time_offset = 0;
+    //onvif_data->user_time_diff = 0;
     onvif_data->event_listen_port = 0;
     onvif_data->guaranteed_frame_rate = false;
     onvif_data->encoding_interval = 0;
@@ -3316,6 +3411,7 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
         dst->xaddrs[i] = src->xaddrs[i];
         dst->device_service[i] = src->device_service[i];
         dst->stream_uri[i] = src->stream_uri[i];
+        dst->snapshot_uri[i] = src->snapshot_uri[i];
         dst->camera_name[i] = src->camera_name[i];
         dst->host_name[i] = src->host_name[i];
         dst->last_error[i] = src->last_error[i];
@@ -3351,6 +3447,7 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
     dst->contrast = src->contrast;
     dst->sharpness = src->sharpness;
     dst->time_offset = src->time_offset;
+    //dst->user_time_diff = src->user_time_diff;
     dst->event_listen_port = src->event_listen_port;
     dst->guaranteed_frame_rate = src->guaranteed_frame_rate;
     dst->encoding_interval = src->encoding_interval;
@@ -3403,7 +3500,7 @@ bool prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct On
         return false;
     extractOnvifService(onvif_data->device_service, true);
     extractHost(onvif_data->xaddrs, onvif_data->host);
-    getTimeOffset(onvif_data);
+    //getTimeOffset(onvif_data);
     return true;
 }
 

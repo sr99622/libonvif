@@ -25,6 +25,7 @@ from datetime import datetime
 import time
 from gui.enums import StreamState
 from loguru import logger
+#import psutil
 
 class GLWidgetSignals(QObject):
     mouseClick = pyqtSignal(QPointF)
@@ -32,6 +33,9 @@ class GLWidgetSignals(QObject):
 class GLWidget(QOpenGLWidget):
     def __init__(self, mw):
         super().__init__()
+
+        #self.process = psutil.Process(os.getpid())
+
         self.mw = mw
         self.focused_uri = None
         self.image_loading = False
@@ -53,13 +57,19 @@ class GLWidget(QOpenGLWidget):
     
     def renderCallback(self, F, player):
         try :
-            player.last_render = datetime.now()
-            if player.analyze_video and self.mw.videoConfigure.initialized:
-                F = self.mw.pyVideoCallback(F, player)
+            self.mw.pm.lock()
+
+            if self.mw.settingsPanel.proxy.generateAlarmsLocally():
+                if self.mw.videoConfigure:
+                    if player.analyze_video and self.mw.videoConfigure.initialized:
+                        F = self.mw.pyVideoCallback(F, player)
+                    else:
+                        # clear the video panel alarm display
+                        if player.uri == self.focused_uri:
+                            if self.mw.videoWorker:
+                                self.mw.videoWorker(None, None)
             else:
-                if player.uri == self.focused_uri:
-                    if self.mw.videoWorker:
-                        self.mw.videoWorker(None, None)
+                player.loadRemoteDetections()
 
             ary = np.array(F, copy = False) 
             if len(ary.shape) < 2:
@@ -104,16 +114,16 @@ class GLWidget(QOpenGLWidget):
 
             self.image_loading = False
 
-            current = self.mw.cameraPanel.getCurrentPlayer()
-            if current:
+            if current := self.mw.cameraPanel.getCurrentPlayer():
                 if player.uri == current.uri:
                     self.mw.cameraPanel.tabVideo.updateCacheSize(player.getCacheSize())
+
+            self.mw.pm.unlock()
 
         except BaseException as ex:
             logger.error(f'GLWidget render callback exception: {str(ex)}')
 
     def timerCallback(self):
-        #self.repaint()
         self.update()
 
     def sizeHint(self):
@@ -175,6 +185,8 @@ class GLWidget(QOpenGLWidget):
             painter = QPainter(self)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.fillRect(self.rect(), QColorConstants.Black)
+
+            #self.mw.settingsPanel.general.lblMemory.setText(f'{self.process.memory_info().rss:_}')
  
             if self.model_loading:
                 rectSpinner = QRectF(0, 0, 40, 40)
@@ -182,14 +194,23 @@ class GLWidget(QOpenGLWidget):
                 painter.drawImage(rectSpinner, self.spinner.currentImage())
                 return
 
+            self.mw.pm.lock()
             for player in self.mw.pm.players:
+                '''
+                #
+                # RECONNECT CYCLING stress testing for streams
+                #
 
+                if not player.last_render:
+                    player.last_render = datetime.now()
+                uri = player.uri
                 if player.isCameraStream() and player.running and player.last_render:
                     interval = datetime.now() - player.last_render
-                    if interval.total_seconds() > 5:
-                        logger.debug(f'Lost signal for {self.mw.getCameraName(player.uri)}')
-                        player.requestShutdown()
-                        self.mw.playMedia(player.uri)
+                    if interval.total_seconds() > 30:
+                        player.last_render = datetime.now()
+                        player.requestShutdown(reconnect=True)
+                        continue
+                #'''
 
                 if player.pipe_output_start_time:
                     interval = datetime.now() - player.pipe_output_start_time
@@ -236,6 +257,8 @@ class GLWidget(QOpenGLWidget):
                 h = rect.height()
 
                 painter.drawImage(rect, player.image)
+                if not player.analyze_video and player.alarm_state:
+                    player.setAlarmState(0)
 
                 b = 26
                 rectBlinker = QRectF(0, 0, b, b)
@@ -265,12 +288,22 @@ class GLWidget(QOpenGLWidget):
                     painter.drawRect(rect.adjusted(3, 3, -5, -5))
 
                 show = False
-                if player.videoModelSettings:
-                    show = player.videoModelSettings.show
+                if self.mw.settingsPanel.proxy.generateAlarmsLocally():
+                    if player.videoModelSettings:
+                        show = player.videoModelSettings.show
+                else:
+                    show = self.mw.settingsPanel.proxy.chkShowBoxes.isChecked()
 
-                if show and player.boxes is not None and player.analyze_video:
-                    scalex = w / player.image.rect().width()
-                    scaley = h / player.image.rect().height()
+                if show and player.boxes and player.analyze_video:
+                    if player.remote_width:
+                        scalex = w / player.remote_width
+                    else:
+                        scalex = w / player.image.rect().width()
+
+                    if player.remote_height:
+                        scaley = h / player.remote_height
+                    else:
+                        scaley = h / player.image.rect().height()
 
                     painter.setPen(QColorConstants.Red)
                     for box in player.boxes:
@@ -288,6 +321,7 @@ class GLWidget(QOpenGLWidget):
 
                     if player.image:
                         camera.setIconOn()
+            self.mw.pm.unlock()
 
             for timer in self.mw.timers.values():
 
@@ -338,6 +372,7 @@ class GLWidget(QOpenGLWidget):
                         painter.drawRect(rect.adjusted(1, 1, -2, -2))
 
                     timer.rendering = False
+
         except BaseException as ex:
             logger.error(f'GLWidget onPaint exception: {str(ex)}')
 

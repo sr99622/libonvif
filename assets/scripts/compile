@@ -34,6 +34,17 @@ if [ -d "$FILE" ]; then
 fi
 pip install -v .
 
+cd ../kankakee
+FILE=build
+if [ -d "$FILE" ]; then
+    rm -R build
+fi
+FILE=kankakee.egg-info
+if [ -d "$FILE" ]; then
+    rm -R kankakee.egg-info
+fi
+pip install -v .
+
 cd ../onvif-gui
 FILE=build
 if [ -d "$FILE" ]; then

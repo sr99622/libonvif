@@ -402,7 +402,8 @@ class FilePanel(QWidget):
     def treeClicked(self, index):
         if index.isValid():
             fileInfo = self.model.fileInfo(index)
-            self.mw.videoConfigure.setFile(fileInfo.canonicalFilePath())
+            if self.mw.videoConfigure:
+                self.mw.videoConfigure.setFile(fileInfo.canonicalFilePath())
 
     def treeDoubleClicked(self, index):
         if index.isValid():
@@ -585,12 +586,14 @@ class FilePanel(QWidget):
         self.control.setBtnPlay()
         self.control.setBtnMute()
         self.control.setSldVolume()
-        if self.mw.videoConfigure.source != MediaSource.FILE:
-            if uri:
-                self.mw.videoConfigure.setFile(uri)
-        if self.mw.audioConfigure.source != MediaSource.FILE:
-            if uri:
-                self.mw.audioConfigure.setFile(uri)
+        if self.mw.videoConfigure:
+            if self.mw.videoConfigure.source != MediaSource.FILE:
+                if uri:
+                    self.mw.videoConfigure.setFile(uri)
+        if self.mw.audioConfigure:
+            if self.mw.audioConfigure.source != MediaSource.FILE:
+                if uri:
+                    self.mw.audioConfigure.setFile(uri)
         player = self.mw.pm.getPlayer(uri)
         if player:
             self.onMediaProgress(player.file_progress, uri)

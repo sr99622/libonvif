@@ -301,7 +301,8 @@ QListWidget::item:hover {
 
 QListWidget::item:selected {
     border : 1px solid foreground_dark;
-    background-color : #323232;
+    /*background-color : #323232;*/
+    background-color : selection_item;
     color : foreground_light;
 }
 

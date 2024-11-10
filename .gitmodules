@@ -9,4 +9,4 @@
 	url = http://10.1.1.14:3000/stephen/liblivemedia
 [submodule "kankakee"]
 	path = kankakee
-	url = http://10.1.1.14:3000/stephen/kankakee
+	url = https://github.com/sr99622/kankakee

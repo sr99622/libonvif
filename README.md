@@ -80,7 +80,7 @@ Mac computers on recent M4 chips provide excellent performance. If driving multi
 
 Linux computers with a high end discrete GPU offer very good performance. GPU cards with PCIe 4 compatibility will outperform those designed for PCIe 3. GPU cards with 16 PCIe lanes will outperform those with only 8 lanes. A Linux computer with an integrated GPU, such as a NUC can also provide good performance, but do have limitations. These Linux configurations are capable of driving multiple monitors but may require some patience when setting up.
 
-Windows computers will work, but require more computing power to achieve similar results to Linux systems with less capable hardware. If Windows is the intended OS for either host or client, a higher powered computer will be necessary for satisfactory results. Lower powered computers will run the software but will be limited to running a few streams in low resolution. Please note that if you are using a Windows machine as an Onvif GUI server, that the start up will take a little longer than you might expect. You may experience white title bars with some spinning wheels for the cursor. Please have patience, it will come around before too long.
+Windows computers will work, but require more computing power to achieve similar results to Linux systems with less capable hardware. If Windows is the intended OS for either host or client, a higher powered computer will be necessary for satisfactory results. Lower powered computers will run the software but will be limited to running a few streams in low resolution.
 
 &nbsp;
 

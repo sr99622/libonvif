@@ -21,10 +21,13 @@ from PyQt6.QtWidgets import QMessageBox, QLineEdit, QPushButton, \
     QGridLayout, QWidget, QLabel, QMessageBox, QRadioButton, \
     QGroupBox, QCheckBox, QComboBox, QDialog, QDialogButtonBox
 from PyQt6.QtCore import Qt
-
+from gui.components import DirectorySelector
 from gui.enums import ProxyType
+from loguru import logger
 import libonvif as onvif
 import ipaddress
+import os
+import sys
 
 class ServerManageDialog(QDialog):
     def __init__(self, mw):
@@ -89,17 +92,18 @@ class ProxyOptions(QWidget):
 
         self.proxyTypeKey = "settings/proxyType"
         self.proxyRemoteKey = "settings/proxyRemote"
-        self.allInterfacesKey = "settings/allInterfaces"
+        self.autoDownloadKey = "settings/autoDownloadMTX"
         self.listenKey = "settings/alarmsFromServer"
-        self.showBoxesKey = "settings/showBoxesFromServer"
         self.broadcastInterfaceKey = "settings/proxyBroadcastInterface"
+        self.broadcastEnableKey = "setings/enableBroadcasting"
+        self.broadcastAllInterfacesKey = "settings/broadcastAllInterfaces"
 
         self.if_addrs = []
         session = onvif.Session()
         session.getActiveInterfaces()
         i = 0
         while len(session.active_interface(i)) > 0 and i < 16:
-            self.if_addrs.append(session.active_interface(i).split(" - ")[0])
+            self.if_addrs.append(session.active_interface(i))
             i += 1
 
         self.grpProxyType = QGroupBox("Select Proxy Type")
@@ -117,18 +121,49 @@ class ProxyOptions(QWidget):
         self.btnServerManage.clicked.connect(self.btnServerManageClicked)
         self.btnServerManage.setEnabled(False)
 
-        self.chkAllInterfaces = QCheckBox("Use All Available Interfaces")
-        self.chkAllInterfaces.setEnabled(False)
-        self.chkAllInterfaces.setChecked(int(mw.settings.value(self.allInterfacesKey, 1)))
-        self.chkAllInterfaces.stateChanged.connect(self.chkAllInterfacesChecked)
+        self.chkAutoDownload = QCheckBox("Auto Download Media MTX")
+        self.chkAutoDownload.setEnabled(False)
+        self.chkAutoDownload.setChecked(int(mw.settings.value(self.autoDownloadKey, 1)))
+        self.chkAutoDownload.stateChanged.connect(self.chkAutoDownloadChecked)
+
+        self.txtDirectoryMTX = DirectorySelector(mw, "MTXDir", "Dir", os.path.dirname(sys.executable))
+        self.txtDirectoryMTX.setEnabled(not self.chkAutoDownload.isChecked())
+
+        #self.btnTest = QPushButton("TEST")
+        #self.btnTest.clicked.connect(self.btnTestClicked)
+
+        self.grpMediaMTX = QGroupBox("Media MTX Settings")
+        lytMediaMTX = QGridLayout(self.grpMediaMTX)
+        lytMediaMTX.addWidget(self.chkAutoDownload,       0, 0, 1, 1)
+        lytMediaMTX.addWidget(self.txtDirectoryMTX,       1, 0, 1, 1)
+        #lytMediaMTX.addWidget(self.btnTest,               2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+
         self.cmbInterfaces = QComboBox()
-        self.cmbInterfaces.setEnabled(False)
-        self.lblInterfaces = QLabel("Network Interface")
-        self.lblInterfaces.setEnabled(False)
-        for if_addr in self.if_addrs:
-            self.cmbInterfaces.addItem(if_addr)
-        self.cmbInterfaces.setCurrentText(self.mw.settings.value(self.broadcastInterfaceKey, ""))
+        self.lblInterfaces = QLabel("Network")
+
+        # Windows can only broadcast on the network interface with highest priority
+        if sys.platform == "win32":
+            self.cmbInterfaces.addItem(session.primary_network_interface())
+        else:
+            for if_addr in self.if_addrs:
+                self.cmbInterfaces.addItem(if_addr)
+        
+        self.cmbInterfaces.setCurrentText(self.mw.settings.value(self.broadcastInterfaceKey, self.if_addrs[0]))
         self.cmbInterfaces.currentTextChanged.connect(self.cmbInterfacesChanged)
+        
+        #self.chkBroadcastAllInterfaces = QCheckBox("Broadcast on all interfaces")
+        #self.chkBroadcastAllInterfaces.setChecked(int(self.mw.settings.value(self.broadcastAllInterfacesKey, 0)))
+        #self.chkBroadcastAllInterfaces.clicked.connect(self.chkBroadcastAllInterfacesChecked)
+        #self.cmbInterfaces.setEnabled(not self.chkBroadcastAllInterfaces.isChecked())
+        #self.lblInterfaces.setEnabled(not self.chkBroadcastAllInterfaces.isChecked())
+
+        self.grpAlarmBroadcast = QGroupBox("Alarm Broadcasting")
+        self.grpAlarmBroadcast.setCheckable(True)
+        self.grpAlarmBroadcast.setChecked(int(self.mw.settings.value(self.broadcastEnableKey, 1)))
+        lytAlarmBroadcast = QGridLayout(self.grpAlarmBroadcast)
+        #lytAlarmBroadcast.addWidget(self.chkBroadcastAllInterfaces,  0, 0, 1, 2)
+        lytAlarmBroadcast.addWidget(self.lblInterfaces,              1, 0, 1, 1)
+        lytAlarmBroadcast.addWidget(self.cmbInterfaces,              1, 1, 1, 1)
 
         self.proxyRemote = self.mw.settings.value(self.proxyRemoteKey)
 
@@ -136,7 +171,7 @@ class ProxyOptions(QWidget):
         self.txtRemote.setText(self.proxyRemote)
         self.txtRemote.textEdited.connect(self.txtRemoteEdited)
         self.txtRemote.setEnabled(False)
-        self.lblRemote = QLabel("Enter connect url from server")
+        self.lblRemote = QLabel("Connect url from server")
         self.lblRemote.setEnabled(False)
 
         self.btnUpdate = QPushButton("Update")
@@ -147,11 +182,6 @@ class ProxyOptions(QWidget):
         self.chkListen.setChecked(int(mw.settings.value(self.listenKey, 1)))
         self.chkListen.stateChanged.connect(self.chkListenChecked)
         self.chkListen.setEnabled(False)
-
-        self.chkShowBoxes = QCheckBox("Show detection boxes from server")
-        self.chkShowBoxes.setChecked(int(mw.settings.value(self.showBoxesKey, 1)))
-        self.chkShowBoxes.stateChanged.connect(self.chkShowBoxesChecked)
-        self.chkShowBoxes.setEnabled(False)
 
         self.proxyType = (self.mw.settings.value(self.proxyTypeKey, ProxyType.STAND_ALONE))
         
@@ -170,24 +200,24 @@ class ProxyOptions(QWidget):
         self.radServer.toggled.connect(self.radServerToggled)
         self.radClient.toggled.connect(self.radClientToggled)
 
+        if self.mw.settings_profile != "gui":
+            self.radServer.setEnabled(False)
+
         lytProxyType = QGridLayout(self.grpProxyType)
-        lytProxyType.addWidget(self.radStandAlone,    0, 0, 1, 1)
-        lytProxyType.addWidget(QLabel(),              1, 0, 1, 2)
-        lytProxyType.addWidget(self.radClient,        2, 0, 1, 1)
-        lytProxyType.addWidget(self.lblRemote,        2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytProxyType.addWidget(self.btnUpdate,        3, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytProxyType.addWidget(self.txtRemote,        3, 1, 1, 1)
-        lytProxyType.addWidget(self.chkListen,        4, 0, 1, 2)
-        lytProxyType.addWidget(self.chkShowBoxes,     5, 0, 1, 2)
-        lytProxyType.addWidget(QLabel(),              6, 0, 1, 1)
-        lytProxyType.addWidget(self.radServer,        7, 0, 1, 1)
-        lytProxyType.addWidget(self.chkAllInterfaces, 7, 1, 1, 1)
-        lytProxyType.addWidget(self.lblInterfaces,    8, 0, 1, 1)
-        lytProxyType.addWidget(self.cmbInterfaces,    8, 1, 1, 1)
-        lytProxyType.addWidget(QLabel(),              9, 0, 1, 1)
-        lytProxyType.addWidget(self.lblConnect,      10, 0, 1, 2)
-        #lytProxyType.addWidget(self.btnServerManage, 11, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        lytProxyType.addWidget(self.lblServer,       11, 1, 1, 1)
+        lytProxyType.addWidget(self.radStandAlone,      0, 0, 1, 1)
+        lytProxyType.addWidget(QLabel(),                1, 0, 1, 2)
+        lytProxyType.addWidget(self.radClient,          2, 0, 1, 1)
+        lytProxyType.addWidget(self.lblRemote,          2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytProxyType.addWidget(self.btnUpdate,          3, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytProxyType.addWidget(self.txtRemote,          3, 1, 1, 1)
+        lytProxyType.addWidget(self.chkListen,          4, 0, 1, 2)
+        lytProxyType.addWidget(QLabel(),                6, 0, 1, 1)
+        lytProxyType.addWidget(self.radServer,          7, 0, 1, 1)
+        lytProxyType.addWidget(self.lblConnect,         7, 1, 1, 1)
+        lytProxyType.addWidget(self.lblServer,          8, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
+        lytProxyType.addWidget(self.grpMediaMTX,        9, 0, 1, 2)
+        lytProxyType.addWidget(self.grpAlarmBroadcast,  10, 0, 1, 2)
+        lytProxyType.addWidget(QLabel(),                11, 0, 1, 1)
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.grpProxyType,  0, 0, 1, 2)
@@ -208,18 +238,19 @@ class ProxyOptions(QWidget):
             QMessageBox.information(self.mw, "Closing Streams", "All current streams will be closed")
             self.mw.closeAllStreams()
 
-        if type == ProxyType.SERVER:
-            self.mw.initializeBroadcaster(self.getInterfaces())
-            if self.chkAllInterfaces.isChecked():
-                self.mw.startProxyServer("")
-                self.mw.startOnvifServer("")
-            else:
-                self.mw.startProxyServer(self.cmbInterfaces.currentText())
-                self.mw.startOnvifServer(self.cmbInterfaces.currentText())
+        if type == ProxyType.SERVER and self.mw.settings_profile == "gui":
             self.setServersLabel()
+
+        self.grpAlarmBroadcast.setEnabled(type == ProxyType.SERVER)
+        self.grpMediaMTX.setEnabled(type == ProxyType.SERVER)
 
         if not hasattr(self.mw, "cameraPanel"):
             return
+
+        if type == ProxyType.SERVER and self.mw.settings_profile == "gui":
+            self.mw.manageBroadcaster(self.getInterfaces())
+            self.mw.startProxyServer(self.chkAutoDownload.isChecked())
+            self.mw.startOnvifServer("")
 
         if lstCamera := self.mw.cameraPanel.lstCamera:
             cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
@@ -237,6 +268,14 @@ class ProxyOptions(QWidget):
 
         if type == ProxyType.CLIENT:
             self.manageAnalyzers(self.chkListen.isChecked())
+            if len(self.mw.alarm_ordinals) != self.mw.cameraPanel.lstCamera.count():
+                if not self.mw.cameraPanel.allCamerasFilled():
+                    QMessageBox.warning(self.mw, "Application Restart Required", "It is necessary to re-start Onvif GUI in order to enable this change", QMessageBox.StandardButton.Close)
+                    self.mw.close()
+                    return
+                self.mw.closeAllStreams()
+                self.mw.cameraPanel.lstCamera.clear()
+                self.mw.cameraPanel.btnDiscoverClicked()
         else:
             self.manageAnalyzers(False)
 
@@ -244,10 +283,6 @@ class ProxyOptions(QWidget):
         self.lblRemote.setEnabled(checked)
         self.txtRemote.setEnabled(checked)
         self.chkListen.setEnabled(checked)
-        if self.chkListen.isChecked():
-            self.chkShowBoxes.setEnabled(checked)
-        else:
-            self.chkShowBoxes.setEnabled(False)
         if checked:
            self.setProxyType(ProxyType.CLIENT)
 
@@ -257,46 +292,18 @@ class ProxyOptions(QWidget):
 
     def radServerToggled(self, checked):
         self.lblConnect.setEnabled(checked)
-        self.chkAllInterfaces.setEnabled(checked)
-        interface_enabled = checked and not self.chkAllInterfaces.isChecked()
-        self.cmbInterfaces.setEnabled(interface_enabled)
-        self.lblInterfaces.setEnabled(interface_enabled)
+        self.chkAutoDownload.setEnabled(checked)
         if checked:
             self.setProxyType(ProxyType.SERVER)
-            self.setServersLabel()
             self.btnServerManage.setEnabled(True)
         else:
             self.lblServer.setText("\n\n")
             self.btnServerManage.setEnabled(False)
 
     def setServersLabel(self):
-        port = None
-        root_uri = self.mw.proxy.getRootURI()
-        tokens = root_uri[:len(root_uri)-1][7:].split(":")
-        if len(tokens) > 1:
-            port = tokens[1]
-
         lbl = ""
-        if self.chkAllInterfaces.isChecked():
-            uris = []
-            for if_addr in self.if_addrs:
-                if port:
-                    uris.append(f'rtsp://{if_addr}:{port}/')
-                else:
-                    uris.append(f'rtsp://{if_addr}/')
-
-            for uri in uris:
-                lbl += uri
-                lbl += "\n"
-        else:
-            if port:
-                lbl = f'rtsp://{self.cmbInterfaces.currentText()}:{port}/\n'
-            else:
-                lbl = f'rtsp://{self.cmbInterfaces.currentText()}/\n'
-
-        for _ in range(3 - len(lbl.split("\n"))):
-            lbl += "\n"
-
+        for if_addr in self.if_addrs:
+            lbl += f'rtsp://{if_addr}:8554/\n'
         self.lblServer.setText(lbl)
 
     def txtRemoteEdited(self, arg):
@@ -313,6 +320,10 @@ class ProxyOptions(QWidget):
 
     def btnUpdateClicked(self):
         try:
+            if len(self.mw.pm.players):
+                QMessageBox.information(self.mw, "Closing Streams", "All current streams will be closed")
+                self.mw.closeAllStreams()
+
             arg = self.txtRemote.text()
             comps = arg[:len(arg)-1][7:].split(":")
             ip_addr = comps[0]
@@ -330,27 +341,26 @@ class ProxyOptions(QWidget):
                     self.mw.addCameraProxy(camera)
 
             self.mw.startListener(self.getInterfaces())
+
             self.btnUpdate.setEnabled(False)
         except Exception as ex:
             QMessageBox.critical(self.mw, "Proxy Client Error", str(ex))
 
-    def chkAllInterfacesChecked(self, state):
-        self.mw.settings.setValue(self.allInterfacesKey, state)
-        self.setProxyType(self.proxyType)
-        self.cmbInterfaces.setEnabled(not self.chkAllInterfaces.isChecked())
-        self.lblInterfaces.setEnabled(not self.chkAllInterfaces.isChecked())
-        #self.mw.initializeBroadcaster(self.getInterfaces())
+    def chkAutoDownloadChecked(self, state):
+        self.mw.settings.setValue(self.autoDownloadKey, state)
+        self.txtDirectoryMTX.setEnabled(not self.chkAutoDownload.isChecked())
 
     def chkListenChecked(self, state):
         self.mw.settings.setValue(self.listenKey, state)
         self.manageAnalyzers(state)
-        if (state):
-            self.chkShowBoxes.setEnabled(True)
-        else:
-            self.chkShowBoxes.setEnabled(False)
 
-    def chkShowBoxesChecked(self, state):
-        self.mw.settings.setValue(self.showBoxesKey, state)
+    def grpAlarmBroadcastChecked(self, state):
+        self.mw.settings.setValue(self.broadcastEnableKey, state)
+        self.mw.manageBroadcaster(self.getInterfaces())
+
+    def chkBroadcastAllInterfacesChecked(self, state):
+        self.mw.settings.setValue(self.broadcastAllInterfacesKey, state)
+        self.mw.manageBroadcaster(self.getInterfaces())
 
     def generateAlarmsLocally(self):
         if self.proxyType == ProxyType.CLIENT and self.chkListen.isChecked():
@@ -379,13 +389,114 @@ class ProxyOptions(QWidget):
                     self.mw.loadAudioConfigure(audioWorkerName)
 
     def getInterfaces(self):
-        if self.chkAllInterfaces.isChecked():
-            return self.if_addrs
-        else:
-            return [self.cmbInterfaces.currentText()]
+        if_addrs = []
+        match self.proxyType:
+            case ProxyType.SERVER:
+                if self.grpAlarmBroadcast.isChecked():
+                    # only able to get this to work on one interface at a time needs research
+                    '''
+                    if self.chkBroadcastAllInterfaces.isChecked():
+                        if_addrs = self.if_addrs
+                    else:
+                        if_addrs.append(self.cmbInterfaces.currentText())
+                    '''
+                    if_addrs.append(self.cmbInterfaces.currentText())
+            case ProxyType.CLIENT:
+                if_addrs = self.if_addrs
+        return if_addrs
         
     def cmbInterfacesChanged(self, interface):
         print(interface)
         self.mw.settings.setValue(self.broadcastInterfaceKey, interface)
-        #self.mw.initializeBroadcaster(self.getInterfaces())
         self.setProxyType(self.proxyType)
+
+    def setMediaMTXProxies(self):
+        try:
+            dir = None
+            if self.chkAutoDownload.isChecked():
+                dir = os.path.dirname(sys.executable)
+            else:
+                dir = self.txtDirectoryMTX.text()
+
+            config_filename = f'{dir}/mediamtx.yml'
+            if not os.path.isfile(config_filename):
+                self.mw.signals.error.emit(f'Invalid path for MediaMTX configuration file: {config_filename}')
+                return
+
+            uri_map = {}
+            for proxy_key in self.mw.proxies:
+                username = None
+                password = None
+                if camera := self.mw.cameraPanel.getCamera(self.mw.proxies[proxy_key]):
+                    if profile := camera.getDisplayProfile():
+                        username = profile.username()
+                        password = profile.password()
+                mtx_key = self.mw.proxies[proxy_key][len("rtsp://"):]
+                mtx_key = mtx_key[mtx_key.find('/')+1:]
+
+                uri = None
+                if username and password:
+                    uri = f'rtsp://{username}:{password}@{proxy_key[len("rtsp://"):]}'
+                else:
+                    uri = proxy_key
+
+                uri_map[mtx_key] = uri                
+
+            mtx_uris = {}
+            relevant = False
+            key = None
+            value = None
+            with open(config_filename, 'r') as config:
+                for readline in config:
+                    line = readline.strip()
+
+                    if relevant:
+                        if not line.startswith("#"):
+                            if not key:
+                                key = line[:-1]
+                            else:
+                                value = line[len("source: "):]
+                                mtx_uris[key] = value
+                                key = None
+                                value = None
+
+                    if line.startswith("paths:"):
+                        relevant = True
+
+                    if line.startswith("all_others"):
+                        relevant = False
+
+            if mtx_uris == uri_map:
+                return
+
+            relevant = False
+            lines = []
+            with open(config_filename, 'r') as config:
+                for readline in config:
+                    line = readline.strip()
+
+                    if not relevant or line.startswith("#"):
+                        lines.append(readline)
+
+                    if line.startswith("paths:"):
+                        relevant = True
+
+                        for key in uri_map:
+                            lines.append(f'  {key}:\n')
+                            lines.append(f'    source: {uri_map[key]}\n')
+
+                    if line.startswith("all_others"):
+                        lines.append(readline)
+                        relevant = False
+
+            config = open(config_filename, 'w')
+            for line in lines:
+                config.write(line)
+            config.close()
+
+        except Exception as ex:
+            logger.error(f'Error setting Media MTX proxies: {ex}')
+            self.mw.signals.error.emit(f'Error setting Media MTX proxies: {ex}')
+
+    def btnTestClicked(self):
+        print("test button clicked")

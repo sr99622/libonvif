@@ -212,6 +212,23 @@ class TargetSelector(QWidget):
             target = self.lstTargets.item(i)
             output.append(target.id)
         return output
+    
+    def setModelParameters(self, videoModelSettings):
+        self.setTargets(videoModelSettings.targets)
+        self.disconnectSlider()
+        self.sldGain.setMaximum(videoModelSettings.sampleSize)
+        self.sldGain.setValue(videoModelSettings.limit)
+        self.lblGain.setText(str(videoModelSettings.limit))
+        self.connectSlider()
+        self.chkShowBoxes.setChecked(videoModelSettings.show)
+        self.barLevel.setLevel(0)
+        self.indAlarm.setState(0)
+
+    def disconnectSlider(self):
+        self.sldGain.valueChanged.disconnect()
+
+    def connectSlider(self):
+        self.sldGain.valueChanged.connect(self.sldGainValueChanged)
 
     def sldGainValueChanged(self, value):
         try:

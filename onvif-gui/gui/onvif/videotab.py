@@ -61,11 +61,13 @@ class VideoTab(QWidget):
 
         txtFrameRate = QLineEdit()
         self.spnFrameRate = SpinBox(txtFrameRate)
+        self.spnFrameRate.setMinimumWidth(self.spnFrameRate.fontMetrics().maxWidth() * 2 + 30)
         self.spnFrameRate.textChanged.connect(self.cp.onEdit)
         self.lblFrameRate = QLabel("FPS")
 
         txtGovLength = QLineEdit()
         self.spnGovLength = SpinBox(txtGovLength)
+        self.spnGovLength.setMinimumWidth(self.spnGovLength.fontMetrics().maxWidth() * 2 + 30)
         self.spnGovLength.textChanged.connect(self.cp.onEdit)
         self.lblGovLength = QLabel("GOP")
 
@@ -75,9 +77,9 @@ class VideoTab(QWidget):
         self.lblBitrate = QLabel("Bitrate")
 
         self.lblCacheSize = QLabel("Cache:")
-        self.btnClearCache = QPushButton("Clear")
-        self.btnClearCache.clicked.connect(self.btnClearCacheClicked)
-        self.btnClearCache.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        #self.btnClearCache = QPushButton("Clear")
+        #self.btnClearCache.clicked.connect(self.btnClearCacheClicked)
+        #self.btnClearCache.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self.cmbAspect = QComboBox()
         self.cmbAspect.addItems(["16 : 9", "4 : 3", "11 : 9", "3 : 2", "5 : 4", "22 : 15", "UNKN"])
@@ -122,9 +124,11 @@ class VideoTab(QWidget):
         lytRow2.addWidget(self.spnFrameRate,  0, 1, 1, 1, Qt.AlignmentFlag.AlignLeft)
         lytRow2.addWidget(self.lblGovLength,  0, 2, 1, 1)
         lytRow2.addWidget(self.spnGovLength,  0, 3, 1, 1, Qt.AlignmentFlag.AlignLeft)
-        lytRow2.addWidget(self.lblCacheSize,  0, 4, 1, 1)
-        lytRow2.addWidget(self.btnClearCache, 0, 5, 1, 1)
+        lytRow2.addWidget(self.lblCacheSize,  0, 4, 1, 1, Qt.AlignmentFlag.AlignLeft)
+        #lytRow2.addWidget(self.btnClearCache, 0, 5, 1, 1)
         lytRow2.setColumnStretch(4, 5)
+        #lytRow2.setColumnStretch(3, 6)
+        #lytRow2.setColumnStretch(1, 4)
         lytRow2.setContentsMargins(0, 0, 0, 0)
 
         pnlRow3 = QWidget()

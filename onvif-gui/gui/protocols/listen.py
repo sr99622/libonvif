@@ -1,6 +1,6 @@
 from loguru import logger
 from time import sleep
-import json
+from datetime import datetime
 
 class Detection():
     def __init__(self, boxes, alarm, width, height, timestamp):
@@ -46,34 +46,13 @@ class ListenProtocols():
         arguments = msg.split("\n\n")
         timestamp = arguments.pop(0)
         if timestamp == self.last_timestamp:
+            #print("DUPLICATE PACKET FOUND")
             return
         
         self.last_timestamp = timestamp
         cmd = arguments.pop(0)
 
-        if cmd == "DETECTIONS":
-            boxes = []
-            camera = None
-            width = 0
-            height = 0
-            alarm = 0
-            for idx, arg in enumerate(arguments):
-                match idx:
-                    case 0:
-                        if not self.cameras.get(arg):
-                            camera = self.mw.cameraPanel.getCameraBySerialNumber(arg)
-                            if camera:
-                                self.cameras[arg] = camera
-                        else:
-                            camera = self.cameras[arg]
-                    case 1:
-                        width = int(arg)
-                    case 2:
-                        height = int(arg)
-                    case 3:
-                        alarm = int(arg)
-                    case 4:
-                        boxes = json.loads(arg)
-
-            if camera:
-                self.setDetection(camera.uri(), Detection(boxes, alarm, width, height, timestamp))
+        if cmd == "ALARMS":
+            #print("ALARMS", arguments)
+            self.mw.alarm_states = arguments
+            self.mw.last_alarm = datetime.now()

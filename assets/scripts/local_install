@@ -1,0 +1,5 @@
+#!/bin/bash
+for FILE in libonvif/dist/*.whl; do pip install $FILE; done
+for FILE in libavio/dist/*.whl; do pip install $FILE; done
+for FILE in kankakee/dist/*.whl; do pip install $FILE; done
+for FILE in onvif-gui/dist/*.whl; do pip install $FILE; done

@@ -32,6 +32,7 @@ class Manager():
         self.auto_start_mode = False
 
     def lock(self):
+        # the lock protects the player list
         while self.thread_lock:
             sleep(0.001)
         self.thread_lock = True
@@ -170,6 +171,8 @@ class Manager():
         if remove_idx > -1:
             if not self.players[remove_idx].request_reconnect:
                 self.removeKeys(uri)
+            while self.players[remove_idx].thread_lock:
+                sleep(0.001)
             self.players.pop(idx)
 
         self.unlock()

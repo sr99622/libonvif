@@ -21,8 +21,9 @@ import os
 import sys
 from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
     QGridLayout, QWidget, QCheckBox, QLabel, QComboBox, QPushButton, \
-    QDialog, QTextEdit, QMessageBox, QFileDialog
-from PyQt6.QtCore import QFile, QRect
+    QDialog, QTextEdit, QMessageBox, QFileDialog, QGroupBox, \
+    QListWidget, QDialogButtonBox, QListWidgetItem
+from PyQt6.QtCore import QFile, QRect, Qt, QSettings
 from PyQt6.QtGui import QTextCursor, QTextOption
 from loguru import logger
 import avio
@@ -126,10 +127,134 @@ class LogDialog(QDialog):
                 self.readLogFile(self.mw.settingsPanel.getLogFilename())
                 QMessageBox.information(self, "Current Log Displayed", "The current log has been loaded into the display", QMessageBox.StandardButton.Ok)
 
+
+class ProfileItem(QListWidgetItem):
+    def __init__(self, name):
+        super().__init__(name)
+        self.original = name
+        if name != "Focus":
+            self.setFlags(self.flags() | Qt.ItemFlag.ItemIsEditable)
+
+class ProfileDialog(QDialog):
+    def __init__(self, mw):
+        super().__init__(mw)
+        self.mw = mw
+        self.editingItem = None
+        self.deleted = []
+
+        self.setModal(True)
+        self.setWindowTitle("Manage Profiles")
+        self.list = QListWidget()
+
+        self.list.itemDoubleClicked.connect(self.onItemDoubleClicked)
+        self.list.itemSelectionChanged.connect(self.onItemSelectionChanged)
+
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        self.buttonBox.button(QDialogButtonBox.StandardButton.Cancel).setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.buttonBox.rejected.connect(self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+
+        self.btnAdd = QPushButton("+")
+        self.btnAdd.clicked.connect(self.btnAddClicked)
+        self.btnDelete = QPushButton(" - ")
+        self.btnDelete.clicked.connect(self.btnDeleteClicked)
+        self.btnUp = QPushButton("^")
+        self.btnUp.clicked.connect(self.btnUpClicked)
+        self.btnDown = QPushButton("v")
+        self.btnDown.clicked.connect(self.btnDownClicked)
+
+        lytMain = QGridLayout(self)
+        lytMain.addWidget(QLabel(),         0, 0, 1, 1)
+        lytMain.addWidget(self.btnUp,      1, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.btnDown,    2, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(QLabel(),        3, 0, 1, 1)
+        lytMain.addWidget(self.list,       0, 1, 4, 5)
+        lytMain.addWidget(self.btnAdd,     4, 1, 1, 1, Qt.AlignmentFlag.AlignRight)
+        lytMain.addWidget(self.btnDelete,  4, 2, 1, 1, Qt.AlignmentFlag.AlignLeft)
+        lytMain.addWidget(self.buttonBox,  4, 3, 1, 3)
+        lytMain.setRowStretch(0, 10)
+        lytMain.setRowStretch(3, 10)
+
+    def reject(self):
+        self.hide()
+
+    def accept(self):
+        self.clearProfileNames()
+        self.mw.settingsPanel.general.cmbViewerProfile.clear()
+        for i in range(self.list.count()):
+            name = self.list.item(i).text() 
+            key = f'SettingsProfile_{i}'
+            self.mw.settings.setValue(key, name)
+            self.mw.settingsPanel.general.cmbViewerProfile.addItem(name)
+        for name in self.deleted:
+            settings = QSettings("onvif", name.text())
+            settings.clear()
+        self.hide()
+
+    def onItemDoubleClicked(self, item):
+        self.editingItem = item
+        self.list.editItem(item)
+        
+    def onItemSelectionChanged(self):
+        self.syncGui()
+
+    def btnAddClicked(self):
+        row = self.list.currentRow()+1
+        item = ProfileItem("New Profile")
+        self.list.insertItem(row, item)
+        self.list.setCurrentRow(row)
+        self.list.itemDoubleClicked.emit(item)
+        self.syncGui()
+
+    def btnDeleteClicked(self):
+        self.deleted.append(self.list.takeItem(self.list.currentRow()))
+        self.syncGui()
+
+    def btnUpClicked(self):
+        row = self.list.currentRow()
+        item = self.list.takeItem(row)
+        self.list.insertItem(row-1, item)
+        self.list.setCurrentRow(row-1)
+        self.syncGui()
+
+    def btnDownClicked(self):
+        row = self.list.currentRow()
+        item = self.list.takeItem(row)
+        self.list.insertItem(row+1, item)
+        self.list.setCurrentRow(row+1)
+        self.syncGui()
+
+    def syncGui(self):
+        self.btnDelete.setEnabled(self.list.count() > 1)
+        if self.list.count():
+            self.btnUp.setEnabled(self.list.currentRow() > 0)
+            self.btnDown.setEnabled(self.list.currentRow() < self.list.count()-1)
+        if item := self.list.currentItem():
+            if item.text() == "Focus":
+                self.btnDelete.setEnabled(False)
+
+    def exec(self):
+        self.list.clear()
+        self.deleted.clear()
+        cmb = self.mw.settingsPanel.general.cmbViewerProfile
+        for i in range(cmb.count()):
+            self.list.addItem(ProfileItem(cmb.itemText(i)))
+        self.list.setCurrentRow(0)
+        self.list.setFocus()
+        self.syncGui()
+        super().exec()
+
+    def clearProfileNames(self):
+        i = 0
+        while self.mw.settings.contains(f'SettingsProfile_{i}'):
+            self.mw.settings.remove(f'SettingsProfile_{i}')
+            i += 1
+
 class GeneralOptions(QWidget):
     def __init__(self, mw):
         super().__init__()
         self.mw = mw
+        self.process = None
 
         self.usernameKey = "settings/username"
         self.passwordKey = "settings/password"
@@ -154,7 +279,10 @@ class GeneralOptions(QWidget):
         p = Player("", self)
         audioDrivers = p.getAudioDrivers()
 
+        self.mediamtx_process = None
+
         self.dlgLog = None
+        self.dlgProfiles = None
 
         self.txtUsername = QLineEdit()
         self.txtUsername.setText(mw.settings.value(self.usernameKey, ""))
@@ -228,6 +356,27 @@ class GeneralOptions(QWidget):
         self.btnTest = QPushButton("Test")
         self.btnTest.clicked.connect(self.btnTestClicked)
 
+        grpNewView = QGroupBox("Open New Window")
+        self.btnNewView = QPushButton("Open")
+        self.btnNewView.clicked.connect(self.btnNewViewClicked)
+        self.cmbViewerProfile = QComboBox()
+
+        if self.mw.settings_profile == "gui":
+            names = self.getProfileNames()
+            for name in names:
+                self.cmbViewerProfile.addItem(name)
+        else:
+            grpNewView.setEnabled(False)
+        
+        self.btnManageProfiles = QPushButton("...")
+        self.btnManageProfiles.clicked.connect(self.btnManageProfilesClicked)
+        lytNewView = QGridLayout(grpNewView)
+        lytNewView.addWidget(self.btnNewView,        0, 0, 1, 1, Qt.AlignmentFlag.AlignLeft)
+        lytNewView.addWidget(QLabel("Profile"),      0, 1, 1, 1)
+        lytNewView.addWidget(self.cmbViewerProfile,  0, 2, 1, 1)
+        lytNewView.addWidget(self.btnManageProfiles, 0, 3, 1, 1, Qt.AlignmentFlag.AlignRight)
+        lytNewView.setColumnStretch(2, 10)
+
         pnlBuffer = QWidget()
         lytBuffer = QGridLayout(pnlBuffer)
         lytBuffer.addWidget(lblDisplayRefresh,      4, 0, 1, 3)
@@ -241,7 +390,7 @@ class GeneralOptions(QWidget):
         lytButtons.addWidget(self.btnCloseAll,   0, 0, 1, 1)
         lytButtons.addWidget(self.btnShowLogs,   0, 1, 1, 1)
         lytButtons.addWidget(self.btnHelp,       0, 2, 1, 1)
-        #lytButtons.addWidget(self.btnTest,       1, 0, 1, 1)
+        #lytButtons.addWidget(self.btnTest,   1, 1, 1, 1)
 
         self.lblMemory = QLabel()
 
@@ -258,9 +407,10 @@ class GeneralOptions(QWidget):
         lytMain.addWidget(self.cmbAppearance,  5, 1, 1, 1)
         lytMain.addWidget(pnlChecks,           6, 0, 1, 3)
         lytMain.addWidget(pnlBuffer,           7, 0, 1, 3)
-        lytMain.addWidget(pnlButtons,          8, 0, 1, 3)
-        lytMain.addWidget(self.lblMemory,      9, 0, 1, 3)
-        lytMain.setRowStretch(9, 10)
+        lytMain.addWidget(grpNewView,          8, 0, 1, 3)
+        lytMain.addWidget(pnlButtons,          9, 0, 1, 3)
+        lytMain.addWidget(self.lblMemory,     10, 0, 1, 3)
+        lytMain.setRowStretch(10, 10)
 
     def usernameChanged(self, username):
         self.mw.settings.setValue(self.usernameKey, username)
@@ -283,6 +433,15 @@ class GeneralOptions(QWidget):
         if text == "Light":
             self.mw.style(Style.LIGHT)
 
+    def getProfileNames(self):
+        result = []
+        i = 0
+        while self.mw.settings.contains(f'SettingsProfile_{i}'):
+            result.append(self.mw.settings.value(f'SettingsProfile_{i}'))
+            i += 1
+        if not len(result):
+            result.append("Focus")
+        return result
 
     def autoDiscoverChecked(self, state):
         self.mw.settings.setValue(self.autoDiscoverKey, state)
@@ -344,5 +503,24 @@ class GeneralOptions(QWidget):
         if not result:
             webbrowser.get().open("https://github.com/sr99622/libonvif")
 
+    def btnNewViewClicked(self):
+        from gui.main import MainWindow
+        print(self.cmbViewerProfile.currentText())
+        if self.cmbViewerProfile.currentText() == "Focus":
+            if not self.mw.focus_window:
+                self.mw.focus_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
+                self.mw.initializeFocusWindowSettings()
+            else:
+                self.mw.focus_window.show()
+        else:
+            window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
+            self.mw.external_windows.append(window)
+            window.show()
+
+    def btnManageProfilesClicked(self):
+        if not self.dlgProfiles:
+            self.dlgProfiles = ProfileDialog(self.mw)
+        self.dlgProfiles.exec()
+
     def btnTestClicked(self):
-        print("TEST")
+        print("test button clicked")

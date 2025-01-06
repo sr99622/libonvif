@@ -537,13 +537,13 @@ public:
     void manual_fill()
     {
         extractHost(data->xaddrs, data->host);
+        
         if (getTimeOffset(data)) {
             std::stringstream str;
             str << "Camera get time offset error " << camera_name() << " : " << xaddrs() << " : " << last_error();
-            if (errorCallback) errorCallback(str.str());
-            return;
+            if (infoCallback) infoCallback(str.str());
         }
-
+        
         time_t initial_offset = data->time_offset;
         int count = 1;
         int direction = 1;
@@ -581,6 +581,12 @@ public:
                         getStreamUri(profile.data);
                         profiles.push_back(profile);
                         index++;
+                    }
+
+                    if (getSetting) {
+                        std::stringstream key2;
+                        key2 << serial_number() << "/Alias";
+                        alias = getSetting(key2.str(), host());
                     }
 
                     if (setSetting) {
@@ -673,8 +679,6 @@ public:
     bool dst() { return data->dst; } const
     void noOp() { }  // believe it or not, this line is needed to compile on windows
     void setDST(bool arg) { data->dst = arg; }
-    //time_t user_time_diff() { return data->user_time_diff; } const
-    //void setUserTimeDiff(time_t arg) { data->user_time_diff = arg; }
     
     std::string host() { 
         extractHost(data->xaddrs, data->host);

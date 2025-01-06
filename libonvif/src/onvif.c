@@ -2741,6 +2741,26 @@ int broadcast(struct OnvifSession *onvif_session) {
     return i;
 }
 
+#ifdef _WIN32
+DWORD GetNetworkPriority(DWORD interfaceIndex) {
+    DWORD result = -1;
+    MIB_IPINTERFACE_ROW row;
+    InitializeIpInterfaceEntry(&row);
+    row.Family = AF_INET;
+    row.InterfaceIndex = interfaceIndex;
+
+    DWORD dwRetVal = GetIpInterfaceEntry(&row);
+    if (dwRetVal == NO_ERROR) {
+        //printf("Interface Index: %d\n", row.InterfaceIndex);
+        //printf("Metric: %d\n", row.Metric);
+        result = row.Metric;
+    } else {
+        printf("GetIpInterfaceEntry failed with error: %d\n", dwRetVal);
+    }
+    return result;
+}
+#endif
+
 void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
 {
 #ifdef _WIN32
@@ -2765,15 +2785,25 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
         }
     }
 
+    DWORD highest_priority = 0xFFFFFFFF;
     if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
         pAdapter = pAdapterInfo;
         while (pAdapter) {
             if (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0")) {
-                char interface_info[1024];
-                sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
+                char interface_info[1024] = {0};
+                //sprintf(interface_info, "%s - %s", pAdapter->IpAddressList.IpAddress.String, pAdapter->Description);
+                sprintf(interface_info, "%s", pAdapter->IpAddressList.IpAddress.String);
                 //printf("Network interface info %s\n", interface_info);
-                //args.push_back(interface_info);
-                strncpy(onvif_session->active_network_interfaces[count], interface_info, 40);
+                //printf("Combo Index: %d\n", pAdapter->ComboIndex);
+                DWORD priority = GetNetworkPriority(pAdapter->ComboIndex);
+                //printf("Priority: %d\n", priority);
+
+                if (priority < highest_priority) {
+                    highest_priority = priority;
+                    strncpy(onvif_session->primary_network_interface, interface_info, min(strlen(interface_info), sizeof(onvif_session->primary_network_interface)));
+                }
+
+                strncpy(onvif_session->active_network_interfaces[count], interface_info, min(strlen(interface_info), 1024));
                 count += 1;
             }
             pAdapter = pAdapter->Next;
@@ -2784,6 +2814,9 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
     }
     if (pAdapterInfo)
         free(pAdapterInfo);
+
+    //printf("Primary Interface: %s\n", onvif_session->primary_network_interface);
+
 #else
     struct ifaddrs *ifaddr;
     int family, s;
@@ -2814,8 +2847,8 @@ void getActiveNetworkInterfaces(struct OnvifSession* onvif_session)
 
             if (strcmp(host, "127.0.0.1")) {
                 strcpy(onvif_session->active_network_interfaces[count], host);
-                strcat(onvif_session->active_network_interfaces[count], " - ");
-                strcat(onvif_session->active_network_interfaces[count], ifa->ifa_name);
+                //strcat(onvif_session->active_network_interfaces[count], " - ");
+                //strcat(onvif_session->active_network_interfaces[count], ifa->ifa_name);
                 count += 1;
             }
         } 
@@ -3118,34 +3151,31 @@ void extractOnvifService(char service[1024], bool post) {
 
 void extractHost(char *xaddrs, char host[128]) {
     char tmp[128] = {0};
-    char *mark = strstr(xaddrs, "//");
-    int start = mark-xaddrs+2;
-    int tmp_len = strlen(xaddrs);
-    int j;
-    for (j=0; j<tmp_len-start; j++) {
-        if (j < 128)
-            tmp[j] = xaddrs[j+start];
-    }
-    tmp[j] = '\0';
-
-    mark = strstr(tmp, "/");
-    int end = mark-tmp;
-    char tmp2[128] = {0};
-    for (j=0; j<end; j++) {
-        tmp2[j] = tmp[j];
-    }
-    tmp2[j] = '\0';
-
-    mark = strstr(tmp2, ":");
-    if (mark == NULL) {
-        strcpy(host, tmp2);
-    } else {
-        start = mark-tmp2;
-        for (j=0; j<start; j++) {
-            host[j] = tmp2[j];
+    char *mark = NULL;
+    
+    if (mark = strstr(xaddrs, "//")) {
+        int start = mark-xaddrs+2;
+        for (int j=0; j < strlen(xaddrs)-start; j++) {
+            if (j < 128)
+                tmp[j] = xaddrs[j+start];
         }
-        host[j] = '\0';
     }
+
+    if (mark = strstr(tmp, "/")) {
+        int end = mark-tmp;
+        for (int j = end; j < strlen(tmp); j++)
+            tmp[j] = '\0';
+    }
+
+    if (mark = strstr(tmp, ":")) {
+        int start = mark-tmp;
+        for (int j=mark-tmp; j<strlen(tmp); j++) {
+            tmp[j] = '\0';
+        }
+    }
+
+    memset(host, 0, sizeof(host));
+    strcpy(host, tmp);
 }
 
 void getScopeField(char *scope, char *field_name, char cleaned[1024]) {
@@ -3478,6 +3508,9 @@ void initializeSession(struct OnvifSession *onvif_session) {
         for (int j=0; j<1024; j++) {
             onvif_session->active_network_interfaces[i][j] = '\0';
         }
+    }
+    for (int i=0; i<1024; i++) {
+        onvif_session->primary_network_interface[i] = '\0';
     }
 #ifdef _WIN32
     WSADATA wsaData;

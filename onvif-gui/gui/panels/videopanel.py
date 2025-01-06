@@ -94,6 +94,15 @@ class VideoPanel(QWidget):
 
         self.mw.videoWorkerHook = None
         self.mw.videoWorker = None
+        #for player in self.mw.pm.players:
+        #    player.videoModelSettings = None
+
+        if lstCamera := self.mw.cameraPanel.lstCamera:
+            cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
+            for camera in cameras:
+                #camera.videoModelSettings = None
+                self.mw.videoConfigure.setCamera(camera)
+        
 
         player = self.mw.pm.getCurrentPlayer()
         if player:
@@ -105,7 +114,7 @@ class VideoPanel(QWidget):
                 self.mw.videoConfigure.setFile(player.uri)
 
         self.mw.settings.setValue(self.workerKey, worker)
-        
+
     def chkEnableFileChanged(self, state):
         self.mw.filePanel.setAnalyzeVideo(state)
         for player in self.mw.pm.players:

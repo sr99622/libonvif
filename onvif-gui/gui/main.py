@@ -38,9 +38,9 @@ from datetime import datetime
 import importlib.util
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QSplitter, \
-    QTabWidget, QMessageBox
+    QTabWidget, QMessageBox, QDialog, QGridLayout
 from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QTimer, Qt
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QGuiApplication, QMovie
 from gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, \
     AudioPanel
 from gui.enums import ProxyType, Style
@@ -50,10 +50,19 @@ from gui.player import Player
 from gui.onvif import StreamState
 from gui.protocols import ServerProtocols, ClientProtocols, ListenProtocols
 import avio
-import liblivemedia
 import kankakee
+import platform
+import subprocess
+import requests
+import gui
+import threading
 
-VERSION = "2.3.2"
+if sys.platform == "win32":
+    from zipfile import ZipFile
+else:
+    import tarfile
+
+VERSION = "2.4.1"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -67,7 +76,7 @@ class Timer(QTimer):
         self.size = None
         self.attempting_reconnect = False
         self.disconnected_time = None
-        self.rendering = False
+        self.thread_lock = False
         self.timeout.connect(self.createPlayer)
         self.signals.timeoutPlayer.connect(mw.playMedia)
         self.start(10000)
@@ -78,6 +87,15 @@ class Timer(QTimer):
         s += "\ndisconnected_time: " + str(self.disconnected_time)
         s += "\nisActive: " + str(self.isActive())
         return s
+    
+    def lock(self):
+        # lock protects timer spinner render
+        while self.thread_lock:
+            sleep(0.001)
+        self.thread_lock = True
+
+    def unlock(self):
+        self.thread_lock = False
         
     def createPlayer(self):
         self.signals.timeoutPlayer.emit(self.uri)
@@ -93,13 +111,26 @@ class Timer(QTimer):
         self.disconnected_time = None
         super().stop()
 
-class ViewLabel(QLabel):
-    def __init__(self):
-        super().__init__()
+class WaitDialog(QDialog):
+    def __init__(self, p):
+        super().__init__(p)
+        self.lblMessage = QLabel("Please wait for proxy server to download")
+        self.lblProgress = QLabel()
+        self.movie = QMovie("image:spinner.gif")
+        self.movie.setScaledSize(QSize(50, 50))
+        self.lblProgress.setMovie(self.movie)
+        self.setWindowTitle("Media MTX")
+
+        lytMain = QGridLayout(self)
+        lytMain.addWidget(self.lblMessage,  0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        lytMain.addWidget(self.lblProgress, 1, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+
+        self.movie.start()
+        self.setModal(True)
 
     def sizeHint(self):
-        return QSize(640, 480)
-    
+        return QSize(300, 100)
+
 class MainWindowSignals(QObject):
     started = pyqtSignal(str)
     stopped = pyqtSignal(str)
@@ -108,33 +139,45 @@ class MainWindowSignals(QObject):
     reconnect = pyqtSignal(str)
     stopReconnect = pyqtSignal(str)
     setTabIndex = pyqtSignal(int)
+    showWaitDialog = pyqtSignal()
+    hideWaitDialog = pyqtSignal()
 
 class MainWindow(QMainWindow):
-    def __init__(self, clear_settings=False):
+    def __init__(self, clear_settings=False, settings_profile="gui", parent_role="None"):
         super().__init__()
+        self.settings_profile = settings_profile
+        self.parent_role = parent_role
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
         QDir.addSearchPath("image", self.getLocation() + "/gui/resources/")
-        self.style(Style.LIGHT)
         self.STD_FILE_DURATION = 900 # duration in seconds (15 * 60)
-
+        self.focus_window = None
+        self.external_windows = []
         self.audioStatus = avio.AudioStatus.UNINITIALIZED
         self.audioLock = False
+        self.mediamtx_process = None
+        self.viewer_cameras_filled = False
+        self.alarm_ordinals = {}
+        self.alarm_states = []
+        self.last_alarm = None
 
-        self.program_name = f'onvif gui version {VERSION}'
+        self.program_name = f'Onvif GUI version {VERSION}'
         self.setWindowTitle(self.program_name)
         self.setWindowIcon(QIcon('image:onvif-gui.png'))
-        self.settings = QSettings("onvif", "gui")
+        QGuiApplication.setWindowIcon(QIcon('image:onvif-gui.png'))
+
+        self.settings = QSettings("onvif", settings_profile)
+        logger.debug(f'Settings loaded from file {self.settings.fileName()} using format {self.settings.format()}')
         if clear_settings:
             self.settings.clear()
         self.geometryKey = "MainWindow/geometry"
         self.splitKey = "MainWindow/split"
         self.collapsedKey = "MainWindow/collapsed"
         self.closing = False
+        self.dlgWait = WaitDialog(self)
         self.signals = MainWindowSignals()
 
         self.pm = Manager(self)
         self.timers = {}
-        self.audioPlayer = None
 
         self.proxies = {}
         self.proxy = None
@@ -165,6 +208,8 @@ class MainWindow(QMainWindow):
         self.signals.error.connect(self.onError)
         self.signals.reconnect.connect(self.startReconnectTimer)
         self.signals.stopReconnect.connect(self.stopReconnectTimer)
+        self.signals.showWaitDialog.connect(self.showWaitDialog)
+        self.signals.hideWaitDialog.connect(self.hideWaitDialog)
 
         self.tab = QTabWidget()
         self.tab.addTab(self.cameraPanel, "Cameras")
@@ -186,7 +231,8 @@ class MainWindow(QMainWindow):
 
         rect = self.settings.value(self.geometryKey)
         if rect is not None:
-            if rect.width() > 0 and rect.height() > 0 and rect.x() >= 0 and rect.y() >= 0:
+            screen = QGuiApplication.screenAt(rect.topLeft())
+            if screen:
                 self.setGeometry(rect)
 
         if remote := self.settingsPanel.proxy.proxyRemote:
@@ -196,10 +242,6 @@ class MainWindow(QMainWindow):
                 self.initializeClient(ip_addr)
             except Exception as ex:
                 logger.error(f'Unable to configure client {ex}')
-
-        self.discoverTimer = None
-        if self.settingsPanel.discover.chkAutoDiscover.isChecked():
-            self.cameraPanel.btnDiscoverClicked()
 
         self.videoWorkerHook = None
         self.videoWorker = None
@@ -230,7 +272,7 @@ class MainWindow(QMainWindow):
         appearance = self.settingsPanel.general.cmbAppearance.currentText()
         if appearance == "Dark":
             self.style(Style.DARK)
-        if appearance == "LIGHT":
+        if appearance == "Light":
             self.style(Style.LIGHT)
 
         collapsed = int(self.settings.value(self.collapsedKey, 0))
@@ -321,25 +363,30 @@ class MainWindow(QMainWindow):
             return
 
         count = 0
+
+        if self.settings_profile == "Focus":
+            self.closeAllStreams()
+
         while player := self.pm.getPlayer(uri):
             sleep(0.01)
             count += 1
-            if count > 200:
-                logger.debug(f'Duplicate media uri from {self.getCameraName(uri)} is blocking launch of new player')
+            if count > 20:
+                logger.debug(f'Duplicate media uri from {self.getCameraName(uri)} is blocking launch of new player, requesting shutdown')
+                player.requestShutdown()
                 return
         
         player = Player(uri, self)
 
-        player.pyAudioCallback = lambda frame, player: self.pyAudioCallback(frame, player)
+        player.pyAudioCallback = self.pyAudioCallback
         player.video_filter = "format=rgb24"
-        player.packetDrop = lambda uri : self.packetDrop(uri)
-        player.renderCallback = lambda frame, player : self.glWidget.renderCallback(frame, player)
-        player.mediaPlayingStarted = lambda uri : self.mediaPlayingStarted(uri)
-        player.mediaPlayingStopped = lambda uri : self.mediaPlayingStopped(uri)
-        player.errorCallback = lambda msg, uri, reconnect : self.errorCallback(msg, uri, reconnect)
-        player.infoCallback = lambda msg, uri : self.infoCallback(msg, uri)
-        player.getAudioStatus = lambda : self.getAudioStatus()
-        player.setAudioStatus = lambda status : self.setAudioStatus(status)
+        player.packetDrop = self.packetDrop
+        player.renderCallback = self.glWidget.renderCallback
+        player.mediaPlayingStarted = self.mediaPlayingStarted
+        player.mediaPlayingStopped = self.mediaPlayingStopped
+        player.errorCallback = self.errorCallback
+        player.infoCallback = self.infoCallback
+        player.getAudioStatus = self.getAudioStatus
+        player.setAudioStatus = self.setAudioStatus
         player.hw_device_type = self.settingsPanel.general.getDecoder()
         player.audio_driver_index = self.settingsPanel.general.cmbAudioDriver.currentIndex()
 
@@ -378,7 +425,7 @@ class MainWindow(QMainWindow):
                 player.setVolume(self.filePanel.getVolume())
                 player.setMute(self.filePanel.getMute())
                 player.analyze_audio = self.filePanel.getAnalyzeAudio()
-                player.progressCallback = lambda pct, uri : self.mediaProgress(pct, uri)
+                player.progressCallback = self.mediaProgress
 
         self.pm.startPlayer(player)
 
@@ -411,6 +458,15 @@ class MainWindow(QMainWindow):
             self.showFullScreen()
 
         super().showEvent(event)
+
+        if self.settingsPanel.discover.chkAutoDiscover.isChecked():
+            self.cameraPanel.btnDiscoverClicked()
+
+        if self.settingsPanel.proxy.proxyType == ProxyType.SERVER:
+            self.startProxyServer(self.settingsPanel.proxy.chkAutoDownload.isChecked())
+            self.startOnvifServer("")
+            if self.settingsPanel.proxy.grpAlarmBroadcast.isChecked():
+                self.manageBroadcaster(self.settingsPanel.proxy.getInterfaces())
 
     def startAllCameras(self):
         try:
@@ -446,13 +502,16 @@ class MainWindow(QMainWindow):
                     logger.error("not all players closed within the allotted time, flushing player manager")
                     for player in self.pm.players:
                         logger.debug(f'{player.uri} failed orderly shutdown')
-                        # may cause crashing ????
                         self.pm.removePlayer(player.uri)
-
+                        logger.debug(f'{player.uri} was removed from the list after failing orderly shutdown')
                     break
+
+            self.pm.ordinals.clear()
+            self.pm.sizes.clear()
 
             if not self.closing:
                 self.cameraPanel.syncGUI()
+                
                 if self.settingsPanel:
                     if self.settingsPanel.general:
                         self.settingsPanel.general.btnCloseAll.setText("Start All")
@@ -468,8 +527,22 @@ class MainWindow(QMainWindow):
 
             self.settings.setValue(self.geometryKey, self.geometry())
             super().closeEvent(event)
+
+            if self.focus_window:
+                self.focus_window.close()
+
+            for window in self.external_windows:
+                window.close()
+
         except Exception as ex:
             logger.error(f'Window close error : {ex}')
+
+    def showWaitDialog(self):
+        self.dlgWait.exec()
+
+    def hideWaitDialog(self):
+        self.dlgWait.hide()
+
 
     def mediaPlayingStarted(self, uri):
         if self.isCameraStreamURI(uri):
@@ -511,9 +584,9 @@ class MainWindow(QMainWindow):
 
     def stopReconnectTimer(self, uri):
         if timer := self.timers.get(uri, None):
-            while timer.rendering:
-                sleep(0.001)
+            timer.lock()
             timer.stop()
+            timer.unlock()
 
     def mediaPlayingStopped(self, uri):
         if player := self.pm.getPlayer(uri):
@@ -649,9 +722,11 @@ class MainWindow(QMainWindow):
     
     def splitterMoved(self, pos, index):
         if self.split.sizes()[1]:
+            self.settings.setValue(self.collapsedKey, 0)
             self.settings.setValue(self.splitKey, self.split.saveState())
             self.tabVisible = True
         else:
+            self.settings.setValue(self.collapsedKey, 1)
             self.tabVisible = False
 
     def restoreSplitter(self):
@@ -670,6 +745,23 @@ class MainWindow(QMainWindow):
     def getLocation(self):
         path = Path(os.path.dirname(__file__))
         return str(path.parent.absolute())
+    
+    def initializeFocusWindowSettings(self):
+        proxy = None
+        match self.settingsPanel.proxy.proxyType:
+            case ProxyType.CLIENT:
+                proxy = self.settingsPanel.proxy.txtRemote.text()
+            case ProxyType.SERVER:
+                proxy = self.settingsPanel.proxy.lblServer.text().split()[0]
+        focus_settings = QSettings("onvif", "Focus")
+        focus_settings.setValue("settings/proxyType", ProxyType.CLIENT)
+        focus_settings.setValue("settings/proxyRemote", proxy)
+        focus_settings.setValue("settings/autoDiscover", 1)
+        self.focus_window = gui.main.MainWindow(settings_profile="Focus")
+        self.focus_window.show()
+        while not self.focus_window.viewer_cameras_filled:
+            sleep(0.001)
+
 
     def isCameraStreamURI(self, uri):
         result = False
@@ -694,19 +786,23 @@ class MainWindow(QMainWindow):
         log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
         return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
     
-    def initializeBroadcaster(self, if_addrs):
+    def manageBroadcaster(self, if_addrs):
+        # an empty list for if_addrs will disable broadcaster
         if self.broadcaster:
             del self.broadcaster
+            self.broadcaster = None
         try:
-            self.broadcaster = kankakee.Broadcaster(if_addrs)
-            self.broadcaster.errorCallback = self.listenProtocols.error
-            self.broadcaster.enableLoopback(False)
+            if len(if_addrs):
+                self.broadcaster = kankakee.Broadcaster(if_addrs)
+                self.broadcaster.errorCallback = self.listenProtocols.error
+                self.broadcaster.enableLoopback(False)
         except Exception as ex:
             logger.error(f'Error initializing broadcaster : {ex}')
-    
-    def startListener(self, if_addrs):
-        print("start listener", if_addrs)
 
+    def startListener(self, if_addrs):
+        if not self.settings_profile == "gui":
+            return
+                        
         ip_addr = None
         if len(if_addrs):
             ip_addr = if_addrs[0]
@@ -720,7 +816,6 @@ class MainWindow(QMainWindow):
                 lcl = ip_addr.split(".")
                 if len(rmt) == len(lcl):
                     for addr in if_addrs:
-                        print("rmt_addr", rmt_addr, "addr", addr)
                         lcl = addr.split(".")
                         if rmt[0] == lcl[0] and rmt[1] == lcl[1] and rmt[2] == lcl[2]:
                             found = True
@@ -732,21 +827,26 @@ class MainWindow(QMainWindow):
 
         try:
             if self.listener:
-                print("found existing listener")
+                logger.debug("Found existing Alarm Listener, terminating")
                 self.stopListener()
-                sleep(0.5)
-                print("test 2")
+                #self.listener = None
+                #sleep(5)
             self.listener = kankakee.Listener([ip_addr])
             self.listener.listenCallback = self.listenProtocols.callback
             self.listener.errorCallback = self.listenProtocols.error
             if not self.listener.running:
                 self.listener.start()
+                logger.debug("Alarm Listener was started successfully")
         except Exception as ex:
-            logger.error(f'Error starting listener : {ex}')
+            logger.error(f'Error starting Alarm Listener : {ex}')
 
     def stopListener(self):
         if self.listener:
-            self.listener.stop()
+            try:
+                self.listener.stop()
+            except Exception as ex:
+                logger.error(f'Error stopping Alarm Listener : {ex}')
+            
     
     def initializeClient(self, ip_addr):
         try:
@@ -754,7 +854,7 @@ class MainWindow(QMainWindow):
             self.client.clientCallback = self.clientProtocols.callback
             self.client.errorCallback = self.clientProtocols.error
         except Exception as ex:
-            logger.error(f'Error initializing client : {ex}')
+            logger.error(f'Error initializing Onvif Client : {ex}')
 
     def startOnvifServer(self, ip):
         # if ip is an empty string, bind server to IPADDR_ANY, otherwise bind to ip address
@@ -766,48 +866,132 @@ class MainWindow(QMainWindow):
             if not self.server.running:
                 self.server.start()
         except Exception as ex:
-            logger.error(f'Error starting onvif server : {ex}')
+            logger.error(f'Error starting Onvif Server : {ex}')
 
     def stopOnvifServer(self):
-        if self.server:
-            self.server.stop()
-            sleep(0.5)
-    
-    def startProxyServer(self, ip):
-        # if ip is an empty string, bind server to IPADDR_ANY, otherwise bind to ip address
         try:
-            if not self.proxy:
-                self.proxy = liblivemedia.ProxyServer(ip, 8554)
-            if not self.proxy.running:
-                self.proxy.start()
+            if self.server:
+                self.server.stop()
+                #sleep(0.5)
+        except Exception as ex:
+            logger.error(f'Error stopping Onvif Server : {ex}')
+    
+    def downloadProxyServer(self):
+        try:
+            dir = os.path.dirname(sys.executable)
+            logger.debug('Attempting to download MediaMTX server to directory {dir}')
+            
+            architecture = None
+            match platform.machine():
+                case "AMD64":
+                    architecture = "amd64"
+                case "x86_64":
+                    architecture = "amd64"
+                case "arm64":
+                    architecture = "arm64"
+
+            operating_system = None
+            match sys.platform:
+                case "linux":
+                    operating_system = "linux"
+                case "darwin":
+                    operating_system = "darwin"
+                case "win32":
+                    operating_system = "windows"
+
+            version = "v1.10.0"
+            home = "https://github.com/bluenviron/mediamtx/releases/download"
+            suffix = "tar.gz"
+            if operating_system == "windows":
+                suffix = "zip"
+
+            url = None
+            if architecture and operating_system:
+                url = f'{home}/{version}/mediamtx_{version}_{operating_system}_{architecture}.{suffix}'
+            else:
+                raise AttributeError(f'Unable to determine MediaMTX server for operating system for {sys.platform} and architecture {platform.machine()}')
+
+            if url:
+                download_filename = os.path.join(dir, url.rsplit('/', 1)[1])
+                logger.debug(f'Downloading MediaMTX from {url} to {download_filename}')
+            
+                response = requests.get(url, allow_redirects=True, timeout=(10, 120))
+                if not response:
+                    raise RuntimeError(f'Error downloading {url}: {response.status_code}')
+                
+                with open(download_filename, 'wb') as content:
+                    content.write(response.content)
+
+                if os.path.isfile(download_filename):
+                    logger.debug(f'MediaMTX {url} compressed file was downloaded successfully')
+
+                    archive = None
+                    if sys.platform == "win32":
+                        archive = ZipFile(download_filename, 'r')
+                    else:
+                        archive = tarfile.open(download_filename)
+                    if archive:
+                        archive.extractall(dir)
+                        archive.close()
+                    else:
+                        raise RuntimeError("Unable to open decompression utility for MediaMTX")
 
         except Exception as ex:
-            logger.error(f'Error starting proxy server : {ex}')
+            self.signals.hideWaitDialog.emit()
+            raise RuntimeError(f'Unable download MediaMTX {ex}')
+        
+        self.signals.hideWaitDialog.emit()
+
+    def startProxyServer(self, autoDownload):
+        try:
+            dir = None
+            if autoDownload:
+                dir = os.path.dirname(sys.executable)
+            else:
+                dir = self.settingsPanel.proxy.txtDirextoryMTX.text()
+
+            executable_filename = f'{dir}/mediamtx'
+            if sys.platform == "win32":
+                executable_filename += ".exe"
+            config_filename = f'{dir}/mediamtx.yml'
+
+            if not os.path.isfile(executable_filename) or not os.path.isfile(config_filename):
+                if not autoDownload:
+                    self.signals.error.emit(f'Error: cannot find MediaMTX in {dir}, please use auto download selection in Settings -> Proxy')
+                    return
+
+                thread = threading.Thread(target=self.downloadProxyServer)
+                thread.start()
+                self.signals.showWaitDialog.emit()
+
+            if os.path.isfile(executable_filename) and os.path.isfile(config_filename):
+                if not self.mediamtx_process:
+                    self.mediamtx_process = subprocess.Popen([executable_filename, config_filename], start_new_session=True)
+                    sleep(1)
+            else:
+                raise RuntimeError("Unknown error has occurred in starting MediaMTX proxy server")
+
+        except Exception as ex:
+            logger.error(f'Error starting proxy server: {ex}')
+            self.signals.error.emit(f'Error starting proxy server: {ex}')
 
     def stopProxyServer(self):
-        if self.proxy:
-            self.proxy.stop()
-            sleep(0.5)
+        if self.mediamtx_process:
+            self.mediamtx_process.terminate()
+            self.mediamtx_process = None
+            logger.debug("Proxy server stopped")
 
     def getProxyURI(self, arg):
-        match self.settingsPanel.proxy.proxyType:
-            case ProxyType.CLIENT:
-                return self.proxies.get(arg, arg)
-            case ProxyType.SERVER:
-                try:
-                    result = self.proxy.getProxyURI(arg)
-                except Exception as ex:
-                    result = ""
-                return result
+        return self.proxies.get(arg, arg)
     
     def addCameraProxy(self, camera):
         match self.settingsPanel.proxy.proxyType:
             case ProxyType.SERVER:
                 for profile in camera.profiles:
-                    key = f'{camera.serial_number()}/{profile.profile()}'
-                    existing_uri = self.proxy.getProxyURI(profile.stream_uri())
-                    if not len(existing_uri):
-                        self.proxy.addURI(profile.stream_uri(), key, camera.onvif_data.username(), camera.onvif_data.password())
+                    if_addr = None
+                    if len(self.settingsPanel.proxy.if_addrs):
+                        if_addr = self.settingsPanel.proxy.if_addrs[0]
+                    self.proxies[profile.stream_uri()] = f'rtsp://{if_addr}:8554/{camera.serial_number()}/{profile.profile()}'
             case ProxyType.CLIENT:
                 for profile in camera.profiles:
                     server = self.settingsPanel.proxy.txtRemote.text()
@@ -912,9 +1096,9 @@ def run():
             sys.exit()
 
     app = QApplication(sys.argv)
+
     app.setStyle('Fusion')
     window = MainWindow(clear_settings)
-    #window.style()
     window.show()
     app.exec()
 

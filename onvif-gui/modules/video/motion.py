@@ -147,6 +147,8 @@ class VideoWorker:
 
     def __call__(self, F, player):
         try:
+            if not self.mw.videoConfigure:
+                return
 
             if not F or not player or self.mw.videoConfigure.name != MODULE_NAME:
                 self.mw.videoConfigure.barLevel.setLevel(0)

@@ -70,7 +70,7 @@ class CameraList(QListWidget):
                 return
             else:
                 ret = QMessageBox.warning(self, camera.name(),
-                                            "You are about to remove this camera from the list.\n"
+                                            "Removing this camera from the list.\n"
                                             "Are you sure you want to continue?",
                                             QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
@@ -81,6 +81,12 @@ class CameraList(QListWidget):
             if row > -1:
                 if camera.filled:
                     camera = self.takeItem(row)
+                    for profile in camera.profiles:
+                        self.mw.proxies.pop(profile.stream_uri(), None)
+
+                    if self.mw.settingsPanel.proxy.proxyType == ProxyType.SERVER:
+                        self.mw.settingsPanel.proxy.setMediaMTXProxies()
+
                 else:
                     ret = QMessageBox.warning(self, camera.name(),
                                                 "The program is currently communicating with the camera. Please wait before deleting.",
@@ -282,9 +288,9 @@ class CameraPanel(QWidget):
 
             if self.mw.settingsPanel.discover.chkScanAllNetworks.isChecked():
                 for i in range(self.mw.settingsPanel.discover.cmbInterfaces.count()):
-                    interfaces.append(self.mw.settingsPanel.discover.cmbInterfaces.itemText(i).split(" - ")[0])
+                    interfaces.append(self.mw.settingsPanel.discover.cmbInterfaces.itemText(i))
             else:
-                interfaces.append(self.mw.settingsPanel.discover.cmbInterfaces.currentText().split(" - ")[0])
+                interfaces.append(self.mw.settingsPanel.discover.cmbInterfaces.currentText())
 
             for interface in interfaces:
                 session = Session(self, interface)
@@ -306,10 +312,13 @@ class CameraPanel(QWidget):
                     data = onvif.Data()
                     data.errorCallback = self.errorCallback
                     data.infoCallback = self.infoCallback
+                    data.setSetting = self.mw.settings.setValue
+                    data.getSetting = self.mw.settings.value
                     data.getData = self.getData
                     data.getCredential = self.getCredential
                     data.setXAddrs(xaddrs)
                     data.alias = alias
+                    data.setCameraName(alias)
                     data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
                     self.fillers.append(data)
                     data.startManualFill()
@@ -335,7 +344,10 @@ class CameraPanel(QWidget):
                 break
 
         if finished:
+            self.sessions.clear()
             self.btnDiscover.setEnabled(True)
+            if self.mw.settingsPanel.proxy.proxyType == ProxyType.SERVER:
+                self.mw.settingsPanel.proxy.setMediaMTXProxies()
         
     def getCredential(self, onvif_data):
         if not onvif_data:
@@ -392,33 +404,29 @@ class CameraPanel(QWidget):
                 alias = onvif_data.host()
         onvif_data.alias = alias
 
-        if existing := self.getCameraBySerialNumber(onvif_data.serial_number()):
-            displayProfile = existing.onvif_data.displayProfile
-            onvif_data.setSetting = existing.setSetting
-            onvif_data.getSetting = existing.getSetting
-            if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
-                onvif_data.getProxyURI = self.mw.getProxyURI
+        if not self.getCameraBySerialNumber(onvif_data.serial_number()):
 
-            for profile in onvif_data.profiles:
-                profile.setSetting = existing.setSetting
-                profile.getSetting = existing.getSetting
-                if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
-                    profile.getProxyURI = self.mw.getProxyURI
-            existing.onvif_data = onvif_data
-            existing.profiles = onvif_data.profiles
-            existing.setDisplayProfile(displayProfile)
-        else:
-            camera = Camera(onvif_data, self.mw)
-            camera.setIconIdle()
-            camera.dimForeground()
-            self.mw.addCameraProxy(camera)
+            self.mw.alarm_ordinals[len(self.mw.alarm_ordinals)] = onvif_data.serial_number()
 
-            self.lstCamera.addItem(camera)
-            self.lstCamera.sortItems()
-            camera.setDisplayProfile(camera.getDisplayProfileSetting())
-            logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Serial Number: {onvif_data.serial_number()}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}')
+            add_camera = True
+            if self.mw.settingsPanel.discover.radCached.isChecked() and self.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
+                tmp = self.mw.settings.value(self.mw.settingsPanel.discover.cameraListKey)
+                if tmp:
+                    numbers = tmp.strip().split("\n")
+                    if onvif_data.serial_number() not in numbers:
+                        add_camera = False
 
-        self.filled(onvif_data)
+            if add_camera:
+                camera = Camera(onvif_data, self.mw)
+                camera.setIconIdle()
+                camera.dimForeground()
+                self.mw.addCameraProxy(camera)
+                self.lstCamera.addItem(camera)
+                self.lstCamera.sortItems()
+                camera.setDisplayProfile(camera.getDisplayProfileSetting())
+                logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Serial Number: {onvif_data.serial_number()}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}')
+
+                self.filled(onvif_data)
 
     def getData(self, onvif_data):
         if not onvif_data:
@@ -489,6 +497,11 @@ class CameraPanel(QWidget):
                         self.setTabsEnabled(True)
 
             camera.filled = True
+            if self.mw.settingsPanel.proxy.proxyType == ProxyType.SERVER and \
+               self.mw.settingsPanel.discover.radCached.isChecked() and \
+               self.allCamerasFilled():
+                
+                self.mw.settingsPanel.proxy.setMediaMTXProxies()
 
             # auto start after fill, recording needs onvif frame rate
             if self.mw.settingsPanel.discover.chkAutoStart.isChecked():
@@ -766,6 +779,7 @@ class CameraPanel(QWidget):
             for camera in cameras:
                 found = False
                 for profile in camera.profiles:
+                    #print("profile uri", profile.uri())
                     if profile.uri() == uri:
                         result = camera
                         found = True
@@ -889,3 +903,13 @@ class CameraPanel(QWidget):
                 waiting = tmp
                 if count > 10:
                     break
+
+    def allCamerasFilled(self):
+        result = True
+        if self.lstCamera:
+            cameras = [self.lstCamera.item(x) for x in range(self.lstCamera.count())]
+            for camera in cameras:
+                if not camera.filled:
+                    result = False
+                    break
+        return result

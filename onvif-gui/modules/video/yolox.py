@@ -294,15 +294,10 @@ class VideoConfigure(QWidget):
             if not self.isModelSettings(camera.videoModelSettings):
                 camera.videoModelSettings = YoloxSettings(self.mw, camera)
             self.mw.videoPanel.lblCamera.setText(f'Camera - {camera.name()}')
-            self.selTargets.setTargets(camera.videoModelSettings.targets)
             self.sldConfThre.setValue(camera.videoModelSettings.confidence)
             self.spnSkipFrames.setValue(camera.videoModelSettings.skipFrames)
             self.spnSampleSize.setValue(camera.videoModelSettings.sampleSize)
-            self.selTargets.sldGain.setMaximum(camera.videoModelSettings.sampleSize)
-            self.selTargets.sldGain.setValue(camera.videoModelSettings.limit)
-            self.selTargets.chkShowBoxes.setChecked(camera.videoModelSettings.show)
-            self.selTargets.barLevel.setLevel(0)
-            self.selTargets.indAlarm.setState(0)
+            self.selTargets.setModelParameters(camera.videoModelSettings)
             if profile := self.mw.cameraPanel.getProfile(camera.uri()):
                 self.enableControls(profile.getAnalyzeVideo())
 
@@ -317,15 +312,10 @@ class VideoConfigure(QWidget):
             if os.path.isdir(file):
                 file_dir = "Directory"
             self.mw.videoPanel.lblCamera.setText(f'{file_dir} - {os.path.split(file)[1]}')
-            self.selTargets.setTargets(self.mw.filePanel.videoModelSettings.targets)
             self.sldConfThre.setValue(self.mw.filePanel.videoModelSettings.confidence)
             self.spnSkipFrames.setValue(self.mw.filePanel.videoModelSettings.skipFrames)
             self.spnSampleSize.setValue(self.mw.filePanel.videoModelSettings.sampleSize)
-            self.selTargets.sldGain.setMaximum(self.mw.filePanel.videoModelSettings.sampleSize)
-            self.selTargets.sldGain.setValue(self.mw.filePanel.videoModelSettings.limit)
-            self.selTargets.chkShowBoxes.setChecked(self.mw.filePanel.videoModelSettings.show)
-            self.selTargets.barLevel.setLevel(0)
-            self.selTargets.indAlarm.setState(0)
+            self.selTargets.setModelParameters(self.mw.filePanel.videoModelSettings)
             self.enableControls(self.mw.videoPanel.chkEnableFile.isChecked())
 
     def isModelSettings(self, arg):
@@ -351,8 +341,6 @@ class VideoWorker:
             self.mw = mw
             self.last_ex = ""
             self.api = self.mw.videoConfigure.cmbAPI.currentText()
-            self.lock = False
-            self.callback_lock = False
 
             if self.mw.videoConfigure.name != MODULE_NAME or len(IMPORT_ERROR) > 0 or self.mw.glWidget.model_loading:
                 return
@@ -522,16 +510,14 @@ class VideoWorker:
     def callback(self, infer_request, player):
         try:
             if not self.mw.glWidget.model_loading:
-                while self.callback_lock:
-                    time.sleep(0.001)
-                self.callback_lock = True
+                player.lock()
                 outputs = infer_request.get_output_tensor(0).data
                 self.postprocess(outputs, player)
 
         except Exception as ex:
             logger.exception(f'{MODULE_NAME} callback error: {ex}')
 
-        self.callback_lock = False
+        player.unlock()
 
     def __call__(self, F, player):
         try:
@@ -557,22 +543,19 @@ class VideoWorker:
             if not player.videoModelSettings:
                 raise Exception("Unable to set video model parameters for player")
 
-            player.videoModelSettings.orig_img = np.array(F, copy=False)
-
             if player.videoModelSettings.skipCounter < player.videoModelSettings.skipFrames:
                 player.videoModelSettings.skipCounter += 1
                 return
             player.videoModelSettings.skipCounter = 0
 
-            while self.lock:
-                time.sleep(0.001)
-            
-            self.lock = True
+            player.lock()
+            player.videoModelSettings.orig_img = np.array(F, copy=False)
 
             if self.api == "OpenVINO" and self.compiled_model:
                 timg = self.preprocess(player)
+                
+                self.infer_queue.wait_all()
                 self.infer_queue.start_async({0: timg}, player, False)
-                self.lock = False
             
             if self.api == "PyTorch" and self.model:
                 timg = self.preprocess(player)
@@ -580,7 +563,6 @@ class VideoWorker:
                     outputs = self.model(timg)
 
                 self.postprocess(outputs, player)
-                self.lock = False
 
             if self.parameters_changed():
                 self.__init__(self.mw)
@@ -590,7 +572,7 @@ class VideoWorker:
                 logger.exception(f'{MODULE_NAME} runtime error - {ex}')
             self.last_ex = str(ex)
 
-        self.lock = False
+        player.unlock()
 
     def parameters_changed(self):
         result = False

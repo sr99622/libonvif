@@ -37,6 +37,7 @@ PYBIND11_MODULE(libonvif, m)
     py::class_<Session>(m, "Session")
         .def(py::init<>())
         .def("active_interface", &Session::active_interface)
+        .def("primary_network_interface", &Session::primary_network_interface)
         .def("getActiveInterfaces", &Session::getActiveInterfaces)
         .def("startDiscover", &Session::startDiscover)
         .def_readwrite("discovered", &Session::discovered)
@@ -215,7 +216,7 @@ PYBIND11_MODULE(libonvif, m)
         .def_readwrite("cancelled", &Data::cancelled)
         .def_readwrite("failedLogin", &Data::failedLogin);
 
-    m.attr("__version__") = "3.2.3";
+    m.attr("__version__") = "3.2.4";
 }
 
 

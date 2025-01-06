@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import QLineEdit, QGridLayout, QWidget, QCheckBox, \
 from PyQt6.QtCore import Qt, QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
 from loguru import logger
+from gui.enums import ProxyType
 import libonvif as onvif
 
 class AddCameraDialog(QDialog):
@@ -90,7 +91,7 @@ class DiscoverOptions(QWidget):
         session.getActiveInterfaces()
         i = 0
         while len(session.active_interface(i)) > 0 and i < 16:
-            self.cmbInterfaces.addItem(session.active_interface(i))
+            self.cmbInterfaces.addItem(session.active_interface(i).strip()[:50])
             i += 1
         if len(intf) > 0:
             self.cmbInterfaces.setCurrentText(intf)
@@ -158,14 +159,18 @@ class DiscoverOptions(QWidget):
             logger.debug(f'Attempting to add camera manually using xaddrs: {xaddrs}')
             data = onvif.Data()
             data.errorCallback = self.mw.cameraPanel.errorCallback
+            data.infoCallback = self.mw.cameraPanel.infoCallback
             data.setSetting = self.mw.settings.setValue
+            data.getSetting = self.mw.settings.value
             data.getData = self.mw.cameraPanel.getData
             data.getCredential = self.mw.cameraPanel.getCredential
             data.setXAddrs(xaddrs)
             data.alias = ip_address
-            data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
+            #data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
             #data.setDeviceService(xaddrs)
             data.manual_fill()
+            if self.mw.settingsPanel.proxy == ProxyType.SERVER:
+                self.mw.settingsPanel.proxy.setMediaMTXProxies()
 
     def autoDiscoverChecked(self, state):
         self.mw.settings.setValue(self.autoDiscoverKey, state)

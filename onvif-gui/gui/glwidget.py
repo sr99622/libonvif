@@ -19,11 +19,12 @@
 
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from PyQt6.QtGui import QPainter, QImage, QColorConstants, QPen, QMovie, QIcon
-from PyQt6.QtCore import QSize, QPointF, QRectF, QTimer, QObject, pyqtSignal
+from PyQt6.QtCore import QSize, QPointF, QRectF, QTimer, QObject, pyqtSignal, QSettings
+from PyQt6.QtWidgets import QMessageBox
 import numpy as np
 from datetime import datetime
 import time
-from gui.enums import StreamState
+from gui.enums import StreamState, ProxyType
 from loguru import logger
 #import psutil
 
@@ -38,7 +39,6 @@ class GLWidget(QOpenGLWidget):
 
         self.mw = mw
         self.focused_uri = None
-        self.image_loading = False
         self.model_loading = False
         self.spinner = QMovie("image:spinner.gif")
         self.spinner.start()
@@ -47,6 +47,8 @@ class GLWidget(QOpenGLWidget):
         self.alarm_recording = QMovie("image:alarm_recording.gif")
         self.alarm_recording.start()
 
+        self.buffer = None
+
         self.signals = GLWidgetSignals()
         self.signals.mouseClick.connect(self.handleMouseClick)
 
@@ -54,6 +56,9 @@ class GLWidget(QOpenGLWidget):
         self.timer.timeout.connect(self.timerCallback)
         refreshInterval = self.mw.settingsPanel.general.spnDisplayRefresh.value()
         self.timer.start(refreshInterval)
+
+        self.last_alarm_check = time.time()
+        self.alarms = {}
     
     def renderCallback(self, F, player):
         try :
@@ -72,6 +77,7 @@ class GLWidget(QOpenGLWidget):
                 player.loadRemoteDetections()
 
             ary = np.array(F, copy = False) 
+
             if len(ary.shape) < 2:
                 return
             h = ary.shape[0]
@@ -93,10 +99,7 @@ class GLWidget(QOpenGLWidget):
 
             self.mw.pm.sizes[player.uri] = QSize(w_s, h_s)
 
-            while player.rendering:
-                time.sleep(0.001)
-
-            self.image_loading = True
+            player.lock()
 
             if d > 1:
                 player.image = QImage(ary.data, w, h, d * w, QImage.Format.Format_RGB888)
@@ -112,7 +115,7 @@ class GLWidget(QOpenGLWidget):
             else:
                 player.packet_drop_frame_counter = 0
 
-            self.image_loading = False
+            player.unlock()
 
             if current := self.mw.cameraPanel.getCurrentPlayer():
                 if player.uri == current.uri:
@@ -124,16 +127,67 @@ class GLWidget(QOpenGLWidget):
             logger.error(f'GLWidget render callback exception: {str(ex)}')
 
     def timerCallback(self):
+        if len(self.mw.pm.players) or len(self.mw.timers):
+            self.create()
+        else:
+            if self.buffer:
+                self.buffer.fill(QColorConstants.Black)
+
         self.update()
+
+    def alarmBroadcast(self):
+        proxyPanel = self.mw.settingsPanel.proxy
+        if proxyPanel.proxyType == ProxyType.SERVER and proxyPanel.grpAlarmBroadcast.isChecked():
+            interval = time.time() - self.last_alarm_check
+            if interval > 1:
+                self.last_alarm_check = time.time()
+                camera_alarms = {}
+                alarm_states = []
+                if self.mw.cameraPanel:
+                    if self.mw.cameraPanel.lstCamera:
+                        lstCamera = self.mw.cameraPanel.lstCamera
+                        cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
+                        for camera in cameras:
+                            camera_alarms[camera.serial_number()] = camera.isAlarming()
+                            alarm_states.append(camera.isAlarming())
+                
+                udp_msg = str(datetime.now()) + "\n\nALARMS"
+                tmp = []
+                self.alarms = camera_alarms
+                for alarm_state in alarm_states:
+                    tmp.append(alarm_state)
+                    udp_msg += "\n\n" + str(int(alarm_state))
+
+                self.mw.broadcaster.send(udp_msg)
 
     def sizeHint(self):
         return QSize(640, 480)
 
     def mouseDoubleClickEvent(self, event):
-        if self.mw.isFullScreen():
-            self.mw.showNormal()
-        else:
-            self.mw.showFullScreen()
+        if self.mw.settingsPanel.proxy.proxyType == ProxyType.STAND_ALONE:
+            ret = QMessageBox.warning(self, "Incompatible Configuration",
+                                            "Focus Window is not available in stand alone configuration, please use Settings -> Proxy Server mode to enable",
+                                            QMessageBox.StandardButton.Ok)
+            return
+        
+        if self.mw.settings_profile == "Focus":
+            return super().mouseDoubleClickEvent(event)
+
+        if camera := self.mw.cameraPanel.getCurrentCamera():
+            if profile := camera.getRecordProfile():
+
+                existing = False
+                if self.mw.focus_window:
+                    if self.mw.focus_window.isVisible():
+                        existing = True
+
+                if not existing:
+                    self.mw.initializeFocusWindowSettings()
+
+                if camera := self.mw.focus_window.cameraPanel.getCamera(profile.uri()):
+                    self.mw.focus_window.cameraPanel.onItemDoubleClicked(camera)
+                else:
+                    self.mw.focus_window.playMedia(profile.uri())
 
         return super().mouseDoubleClickEvent(event)
     
@@ -144,8 +198,6 @@ class GLWidget(QOpenGLWidget):
                 if not player.hidden:
                     self.focused_uri = player.uri
                     if self.mw.isCameraStreamURI(player.uri):
-                        if self.mw.isSplitterCollapsed():
-                            self.mw.restoreSplitter()
                         self.mw.cameraPanel.setCurrentCamera(player.uri)
                         resolved = True
                         break
@@ -182,7 +234,23 @@ class GLWidget(QOpenGLWidget):
     
     def paintGL(self):
         try:
-            painter = QPainter(self)
+            if self.buffer:
+                if not self.buffer.isNull():
+                    painter = QPainter(self)
+                    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                    painter.fillRect(self.rect(), QColorConstants.Black)
+                    painter.drawImage(self.rect(), self.buffer)
+        except Exception as ex:
+            logger.error(f'GLWidget render callback exception: {str(ex)}')
+
+    def create(self):
+        try:
+            self.buffer = QImage(self.size(), QImage.Format.Format_ARGB32)
+            if self.buffer.isNull():
+                return
+            painter = QPainter(self.buffer)
+            if not painter.isActive():
+                return
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.fillRect(self.rect(), QColorConstants.Black)
 
@@ -211,6 +279,11 @@ class GLWidget(QOpenGLWidget):
                         player.requestShutdown(reconnect=True)
                         continue
                 #'''
+
+                if self.mw.last_alarm:
+                    interval = datetime.now() - self.mw.last_alarm
+                    if interval.total_seconds() > 10:
+                        self.mw.alarm_states = []
 
                 if player.pipe_output_start_time:
                     interval = datetime.now() - player.pipe_output_start_time
@@ -245,10 +318,7 @@ class GLWidget(QOpenGLWidget):
 
                     continue
 
-                while self.image_loading:
-                    time.sleep(0.001)
-
-                player.rendering = True
+                player.lock()
 
                 rect = self.mw.pm.displayRect(player.uri, self.size())
                 x = rect.x()
@@ -291,10 +361,8 @@ class GLWidget(QOpenGLWidget):
                 if self.mw.settingsPanel.proxy.generateAlarmsLocally():
                     if player.videoModelSettings:
                         show = player.videoModelSettings.show
-                else:
-                    show = self.mw.settingsPanel.proxy.chkShowBoxes.isChecked()
 
-                if show and player.boxes and player.analyze_video:
+                if show and len(player.boxes) and player.analyze_video:
                     if player.remote_width:
                         scalex = w / player.remote_width
                     else:
@@ -313,7 +381,7 @@ class GLWidget(QOpenGLWidget):
                         s = (box[3] - box[1]) * scaley
                         painter.drawRect(QRectF(p, q, r, s))
 
-                player.rendering = False
+                player.unlock()
 
                 if camera:
                     if camera.isCurrent():
@@ -341,7 +409,7 @@ class GLWidget(QOpenGLWidget):
                                     if timer.uri == recordProfile.uri():
                                         continue
                     
-                    timer.rendering = True
+                    timer.lock()
                     rect = self.mw.pm.displayRect(timer.uri, self.size())
                     painter.setPen(QColorConstants.LightGray)
                     rectSpinner = QRectF(0, 0, 40, 40)
@@ -371,8 +439,10 @@ class GLWidget(QOpenGLWidget):
                         painter.setPen(QColorConstants.White)
                         painter.drawRect(rect.adjusted(1, 1, -2, -2))
 
-                    timer.rendering = False
+                    timer.unlock()
 
+            self.alarmBroadcast()
+        
         except BaseException as ex:
             logger.error(f'GLWidget onPaint exception: {str(ex)}')
 

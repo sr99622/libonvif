@@ -28,6 +28,7 @@ class ClientProtocols():
                         onvif_data.addProfile(data)
                     if onvif_data:
                         self.mw.cameraPanel.getProxyData(onvif_data)
+            self.mw.viewer_cameras_filled = True
 
         if cmd == "UPDATE":
             data = onvif.Data(configs[0])

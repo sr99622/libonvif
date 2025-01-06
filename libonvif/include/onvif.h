@@ -164,6 +164,7 @@ struct OnvifSession {
     int discovery_msg_id;
     char preferred_network_address[16];
     char active_network_interfaces[16][1024];
+    char primary_network_interface[1024];
 };
 
 LIBRARY_API void initializeSession(struct OnvifSession *onvif_session);

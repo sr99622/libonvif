@@ -63,4 +63,9 @@ class DirectorySelector(QWidget):
 
     def text(self):
         return self.txtDirectory.text()
+    
+    def setEnabled(self, arg):
+        self.txtDirectory.setEnabled(arg)
+        self.btnSelect.setEnabled(arg)
+        super().setEnabled(arg)
 

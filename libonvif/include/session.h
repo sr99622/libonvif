@@ -38,7 +38,6 @@ public:
     { 
         session = (OnvifSession*)calloc(sizeof(OnvifSession), 1);
         initializeSession(session);
-        //srand(time(NULL));
     }
 
     ~Session() 
@@ -87,7 +86,11 @@ public:
 
         for (int i = 0; i < devices.size(); i++) {
             Data data = devices[i];
-            getTimeOffset(data);
+            if (getTimeOffset(data)) {
+                std::stringstream str;
+                str << "Camera get time offset error " << data.camera_name() << " : " << data.xaddrs() << " : " << data.last_error();
+                if (infoCallback) infoCallback(str.str());
+            }
             time_t initial_offset = data->time_offset;
             int count = 1;
             int direction = 1;
@@ -133,7 +136,6 @@ public:
                         std::stringstream str;
                         str << "get device information failed: " << data->camera_name << " : " << data->last_error;
                         infoCallback(str.str());
-                        //break;
                     }
                 } 
                 else {
@@ -150,6 +152,7 @@ public:
     }
 
     std::string active_interface(int arg) { return session->active_network_interfaces[arg]; }
+    std::string primary_network_interface() { return session->primary_network_interface; }
 
     std::function<void()> discovered = nullptr;
     std::function<Data(Data&)> getCredential = nullptr;

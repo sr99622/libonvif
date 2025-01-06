@@ -381,8 +381,14 @@ int main(int argc, char **argv)
 		std::string cmd(kybd_buf);
 	*/
 	/////////////////////////
+
+	std::string quit("quit");
+#ifdef _WIN32
+	quit = "quit\r";
+#endif
+
 	std::string cmd;
-	while (cmd != "quit") {
+	while (cmd != quit) {
 		std::cout << onvif_data->camera_name << "> ";
 		if (!std::getline(std::cin, cmd))
 			break;	
@@ -888,7 +894,8 @@ int main(int argc, char **argv)
 			else { 
 				//if (strcmp(kybd_buf, "quit"))
 				//	std::cout << " Unrecognized command, type help to see help\n" << std::endl;
-				if (cmd != "quit")
+
+				if (cmd != quit)
 					std::cout << " Unrecognized command \"" << args[0] << "\", type \"help\" to see help\n" << std::endl;
 			}
 		}

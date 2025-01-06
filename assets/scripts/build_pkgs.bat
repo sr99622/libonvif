@@ -9,10 +9,6 @@ set FFMPEG_INSTALL_DIR=%CD%/ffmpeg
 set SDL2_INSTALL_DIR=%CD%/sdl
 python -m build
 cd ..
-cd liblivemedia
-set CMAKE_CURRENT_SOURCE_DIR=%CD%
-python -m build
-cd ..
 cd kankakee
 set CMAKE_CURRENT_SOURCE_DIR=%CD%
 python -m build
@@ -20,8 +16,3 @@ cd ..
 cd onvif-gui
 python -m build
 cd ..
-rem for /R libonvif\dist %%F in (*.whl) do pip install "%%F"
-rem for /R libavio\dist %%F in (*.whl) do pip install "%%F"
-rem for /R liblivemedia\dist %%F in (*.whl) do pip install "%%F"
-rem for /R kankakee\dist %%F in (*.whl) do pip install "%%F"
-rem for /R onvif-gui\dist %%F in (*.whl) do pip install "%%F"

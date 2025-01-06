@@ -30,20 +30,6 @@ if [ -d "$DIR" ]; then
     rm -R avio.egg-info
 fi
 
-cd ../liblivemedia
-DIR=build
-if [ -d "$DIR" ]; then
-    rm -R build
-fi
-DIR=dist
-if [ -d "$DIR" ]; then
-    rm -R dist
-fi
-DIR=liblivemedia.egg-info
-if [ -d "$DIR" ]; then
-    rm -R liblivemedia.egg-info
-fi
-
 cd ../kankakee
 DIR=build
 if [ -d "$DIR" ]; then

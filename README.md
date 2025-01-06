@@ -66,7 +66,7 @@ And the same for Windows on an Intel Core Ultra 9 185H
 
 &nbsp;
 
-For maximum performance, the client-server configuration is recommended. Onvif GUI has a proxy server that will buffer the camera streams, providing a consistent low latency interface to the rest of the network. Additionally, this configuration isolates the cameras, blocking all traffic between the cameras and the internet. Isolating cameras on a private subnet may require a DHCP server for ip address assignments. It may also be possible to assign static IP addresses to all cameras, but a DHCP server is recommended. Please see the DHCP Servers section for detailed instructions on how to configure a DHCP server on the Onvif GUI host machine.
+For maximum performance, the client-server configuration is recommended. Onvif GUI has a proxy server that will buffer the camera streams, providing a consistent low latency interface to the rest of the network. Additionally, this configuration isolates the cameras, blocking all traffic between the cameras and the internet. Isolating cameras on a private subnet may require a DHCP server for ip address assignments. It may also be possible to assign static IP addresses to all cameras, but a DHCP server is recommended. Please see DHCP Servers in the Notes section for detailed instructions on how to configure a DHCP server on the Onvif GUI host machine.
 
 &nbsp;
 
@@ -1572,17 +1572,25 @@ It is a good idea to dry test the installation locally before uploading to pypi 
 
 &nbsp;
 
-Set up a directory named `migrate` with two subdirectories `local` and `remote`. Clone without recursion the four libraries separately. Remove pybind11 from all submodules in both repository clones.
+Set up a directory named `migrate` with two subdirectories `local` and `remote`. Clone without recursion the three libraries (kankakee, libavio, libonvif) separately into their respective subdirectory, local and remote. Using git rm, remove pybind11 from the respective submodules. Also git rm the kankakee and libavio submodules from the root libonvif directory. This is done for both the local and remote repository collections.
 
 ```
-cd remote/libonvif
+cd migrate/remote
+
+git clone https://github.com/sr99622/kankakee
 cd kankakee
 git rm pybind11
 git commit -a
+
+cd ..
+git clone https://github.com/sr99622/libavio
 cd ../libavio
 git rm pybind11
 git commit -a
-cd ../libonvif
+
+cd ..
+git clone https://github.com/sr99622/libonvif
+cd libonvif/libonvif
 git rm pybind11
 cd ..
 git rm kankakee
@@ -1595,7 +1603,7 @@ git commit -a
 
 ```
 
-Now delete the `local` .git directory and replace with the `remote` .git directory. The example is from local to github
+Now delete the `local` .git directory and replace with the `remote` .git directory. The local repository is now the base configuration for the remote.  Add the submodules back into the repository. If any new files were added into any of the repositories, it will be necessary to git add them. Finally, commit and push.
 
 ```
 cd migrate/local
@@ -1604,6 +1612,7 @@ cd kankakee
 sudo rm -R .git
 cp -R ../../remote/kankakee/.git .
 git submodule add https://github.com/pybind/pybind11
+git add --all
 git commit -a
 git push
 
@@ -1611,15 +1620,19 @@ cd ../libavio
 sudo rm -R .git
 cp -R ../../remote/libavio/.git .
 git submodule add https://github.com/pybind/pybind11
+git add --all
 git commit -a
 git push
 
 cd ../libonvif
 sudo rm -R .git
 cp -R ../../remote/libonvif/.git .
+cd libonvif
 git submodule add https://github.com/pybind/pybind11
+cd ..
 git submodule add https://github.com/sr99622/kankakee
 git submodule add https://github.com/sr99622/libavio
+git add --all
 git commit -a
 git push
 

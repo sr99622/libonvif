@@ -295,6 +295,10 @@ class ProxyOptions(QWidget):
         self.chkAutoDownload.setEnabled(checked)
         if checked:
             self.setProxyType(ProxyType.SERVER)
+            try:
+                self.mw.cameraPanel.btnDiscoverClicked()
+            except Exception as ex:
+                pass
             self.btnServerManage.setEnabled(True)
         else:
             self.lblServer.setText("\n\n")

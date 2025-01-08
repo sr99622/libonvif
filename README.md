@@ -266,6 +266,8 @@ Windows computers will work, but require more computing power to achieve similar
   onvif-gui
   ```
 
+  Please note that the first time you start the program in Windows, there may be a short delay as things are initializing. Subsequent runs will start normally.
+
 </details>
 
 ---

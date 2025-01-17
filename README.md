@@ -786,13 +786,15 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
 The application maintains a folder for the storage of camera recordings. The folder by default is the OS video storage location, and can be changed using the directory setting at the top of the panel. There is a subfolder for each camera that is registered in the application. Inside the camera folders are the individual files recorded by the camera. The files are named using a datetime convention which represents the start time of the recording. The recording is padded in the front by a time interval specified on the Settings -> Alarm panel as Pre-Alarm Buffer Size. The file creation time in the OS represents the end time of the file, which occurs as a result of the file being committed to disk at the conclusion of the recording process.
 
+Please note that the initial appearance of the file panel may not display all file info fields, hence the scroll bar at the bottom of the file list. The view can be expanded using the drag bar on the left side of the file list panel. In the picture below, this is immediately to the left of the highlighted camera folder. It may be more convenient to set up a window profile in Settings -> General for viewing files and expand the file list panel. The size of the panel will be preserved for the profile.
+
 &nbsp;
 
 <img src="assets/images/file_panel.png" style=" width: 385px;">
 
 &nbsp;
 
-File playback is configured such that one file is played at a time. Keyboard shortcuts are available for faster navigation. A file may be played along side cameras in the main display if desired, or a separate window profile can be configure on the Settings -> General tab for file viewing. The Hide Camera Panel check box can be useful for this separate window profile for file viewing
+File playback is configured such that one file is played at a time. Keyboard shortcuts are available for faster navigation. A file may be played along side cameras in the main display if desired, or a separate window profile can be configure on the Settings -> General tab for file viewing. The Hide Camera Panel check box can be useful for this separate window profile for file viewing.
 
 <h3>File Playback Controls For Mouse</h3>
 

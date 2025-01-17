@@ -30,7 +30,7 @@ import avio
 import webbrowser
 import platform
 from gui.player import Player
-from gui.enums import Style
+from gui.enums import Style, ProxyType
 
 class LogText(QTextEdit):
     def __init__(self, parent):
@@ -429,9 +429,9 @@ class GeneralOptions(QWidget):
     def cmbAppearanceChanged(self, text):
         self.mw.settings.setValue(self.appearanceKey, text)
         if text == "Dark":
-            self.mw.style(Style.DARK)
+            self.mw.setStyleSheet(self.mw.style(Style.DARK))
         if text == "Light":
-            self.mw.style(Style.LIGHT)
+            self.mw.setStyleSheet(self.mw.style(Style.LIGHT))
 
     def getProfileNames(self):
         result = []
@@ -507,13 +507,18 @@ class GeneralOptions(QWidget):
         from gui.main import MainWindow
         print(self.cmbViewerProfile.currentText())
         if self.cmbViewerProfile.currentText() == "Focus":
+            if self.mw.settingsPanel.proxy.proxyType == ProxyType.STAND_ALONE:
+                QMessageBox.warning(self.mw, "Feature Unavailable", "Focus Window is not available in Stand Alone Configuration, please use Proxy Server mode to enable this feature", QMessageBox.StandardButton.Ok)
+                return
             if not self.mw.focus_window:
                 self.mw.focus_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
+                self.mw.focus_window.audioStatus = self.mw.audioStatus
                 self.mw.initializeFocusWindowSettings()
             else:
                 self.mw.focus_window.show()
         else:
             window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
+            window.audioStatus = self.mw.audioStatus
             self.mw.external_windows.append(window)
             window.show()
 

@@ -595,7 +595,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 &nbsp;
 
-<img src="assets/images/media_tab.png" style="height: 280px; width: 540px;"/>
+<img src="assets/images/media_tab.png" style="width: 366px;"/>
 
 * ### W x H (Resolution)
 
@@ -672,7 +672,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 &nbsp;
 
-<img src="assets/images/image_tab.png" style="height: 280px; width: 540px;"/>
+<img src="assets/images/image_tab.png" style="width: 366px;"/>
 
 &nbsp;
 
@@ -685,7 +685,7 @@ The sliders control various parameters of the video quality.  The Apply button m
 
 &nbsp;
 
-<img src="assets/images/network_tab.png" style="height: 280px; width: 540px;"/>
+<img src="assets/images/network_tab.png" style="width: 366px;"/>
 
 &nbsp;
 
@@ -704,7 +704,7 @@ The Apply button must be clicked to enact any of these changes on the camera.
 
 &nbsp;
 
-<img src="assets/images/ptz_tab.png" style="height: 280px; width: 540px;"/>
+<img src="assets/images/ptz_tab.png" style="width: 366px;"/>
 
 &nbsp;
 
@@ -719,7 +719,7 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
 &nbsp;
 
-<img src="assets/images/system_tab.png" style="height: 280px; width: 540px;"/>
+<img src="assets/images/system_tab.png" style="width: 366px;"/>
 
 * ### Recording
 
@@ -747,7 +747,7 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
     Clicking the Sync Time button will bring up a dialog box with time settings options for the camera.
 
-    <image src="assets/images/sync_time.png">
+    <image src="assets/images/sync_time.png" style=" width: 640px;">
 
     At the top of the dialog are boxes showing the current settings for computer time and camera time respectively. The camera time is calculated based on the time offset parameter used by the computer for authentication. This time should, but may not necessarily, closely match the time displayed by the camera in the video stream. Variations in how cameras compute time may result in an offset mismatch between the time displayed in the camera video stream and the computed time shown on the dialog.
 
@@ -778,11 +778,17 @@ Settings pertain to preset selections or current camera position. The arrow butt
 <summary>File Operations</summary>
 &nbsp;
 
-<i>Please note that File Operations are still under development. You may experience crashes if playing a file at the same time as cameras are streaming.</i>
+<i>Camera recordings can be viewed within the application. A playback can be viewed alongside running cameras or in a separate window. Files can be searched for a particular moment in time.</i>
 
 ---
 
-File playback is configured such that one file is played at a time. Keyboard shortcuts are available. A file may be played along side cameras if desired. Note that if the application is under heavy load with a large number of cameras streaming, file playback performance may suffer. In such a case, a second instance of onvif-gui or an external media player like VLC can be used to review files.
+&nbsp;
+
+<img src="assets/images/file_panel.png" style=" width: 366px;">
+
+&nbsp;
+
+File playback is configured such that one file is played at a time. Keyboard shortcuts are available for faster navigation. A file may be played along side cameras in the main display if desired, or a separate window profile can be configure on the Settings -> General tab for file viewing. The Hide Camera Panel check box can be useful for this separate window profile for file viewing
 
 <h3>File Playback Controls For Mouse</h3>
 
@@ -794,39 +800,47 @@ Play&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pause&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 
 ### Keyboard Shortcuts
 
-Keyboard shortcuts are available when the file list of the File Panel has the application focus. A single click on any file in the list will achieve this focus.
+Keyboard shortcuts are available when the file list of the File Panel has the application focus. A single click on any file or folder in the list will achieve this focus. Keyboard operations may be significantly faster than using the mouse when browsing through files.
 
-* Enter
+* <h3>Enter</h3>
 
-  The Enter key can be used to Play the file.
+  The Enter key can be used to Play the file. Note that if another file is currently playing, it will be stopped before the new file starts.
 
-* Space
+* <h3>Space</h3>
 
   The space bar can be used to Pause the current file playing.
     
-* Escape
+* <h3>Escape</h3>
 
   The Escape key can be used to stop the current file playing.
     
-* Delete
+* <h3>Delete</h3>
 
   Files may be deleted by typing the Delete key. Multiple files may be deleted simultaneously by selecting multiple files using the Shift or Control keys while selecting.
 
-* F1
+* <h3>F1</h3>
 
   The F1 key will show a dialog with file properties.
     
-* F2
+* <h3>F2</h3>
 
   Files can be renamed using the F2 key.
     
-* Right Arrow
+* <h3>Right Arrow</h3>
 
   The Right Arrow will fast forward the file playing by 10 seconds.
     
-* Left Arrow
+* <h3>Left Arrow</h3>
 
   The Left Arrow will rewind the file playing by 10 seconds.
+
+* <h3>Up Arrow</h3>
+
+  The Up Arrow will move to the previous file without stopping the current file. Use the Enter key to start playing the newly highlighted file.
+
+* <h3>Down Arrow</h3>
+
+  The Down Arrow will move to the next file without stopping the current file. Use the Enter key to start playing the newly highlighted file.
 
 ### Progress / Seek Indicator
 
@@ -835,6 +849,18 @@ The File Panel has a progress bar that will show the state of the playback. The 
 ### Pop Up Menu
 
 Right clicking over the file will bring up a context menu that can be used to perform file operations.
+
+### File Searching by Time
+
+The application has the ability to search the files by camera for a particular moment in time.
+
+<image src="assets/images/file_search.png" style=" width: 304px;">
+
+&nbsp;
+
+Use the dialog box to select a Camera, Date and Time and the application will search the files for that particular moment. If found, a confirmation box will pop up and the file can be played directly. The application will automatically highlight the file in the list and forward the playback to a moment near the selected time. There may be a slight offset corresponding roughly to the Pre-Alarm Buffer Size from the Settings -> Alarm panel.
+
+If the application was not able to find the exact match, a pop up box will ask if you want to play the closest file in time. Note that the application will highlight this closest match in the file list, so you could use that as a starting point for navigating through the files.
 
 ---
 
@@ -850,7 +876,7 @@ Right clicking over the file will bring up a context menu that can be used to pe
 
 ## General Settings
 
-<image src="assets/images/general.png" style=" width: 480px;">
+<image src="assets/images/general.png" style=" width: 366px;">
 
 ### Common Username and Password
 
@@ -884,7 +910,7 @@ The default 'Focus' profile is a reserved profile that is integrated into applic
 
 Additional profiles can be added using the three dot button to the right of the drop down box that will launch a configuration dialog box.
 
-<image src="assets/images/profile.png" style=" width: 240px;">
+<image src="assets/images/profile.png" style=" width: 360px;">
 
 New Windows can be configured to show specific groups of cameras, which can be useful if the host computer is driving several monitors such that different groups of cameras are shown on different monitors. The Open button will launch a window with the profile selected in the drop down box. Each profile will have a seperate configuration that is set by the user.
 
@@ -903,7 +929,7 @@ Shows this file.
 
 ## Discover Settings
 
-<image src="assets/images/discover.png" style=" width: 480px;">
+<image src="assets/images/discover.png" style=" width: 366px;">
 
 ### Discovery Options
 
@@ -929,7 +955,7 @@ When selected in combination with the Auto Discovery check box, cameras shown in
 
 ## Storage Settings
 
-<image src="assets/images/storage.png" style=" width: 480px;">
+<image src="assets/images/storage.png" style=" width: 366px;">
 
 ### Disk Usage
 
@@ -949,7 +975,7 @@ The application has the ability to manage the disk space used by the recorded me
 
 ## Proxy Settings
 
-<image src="assets/images/proxy.png" style=" width: 480px;">
+<image src="assets/images/proxy.png" style=" width: 366px;">
 
 ## Proxy Type
 
@@ -973,7 +999,7 @@ The application has the ability to manage the disk space used by the recorded me
 
 ## Alarm Settings
 
-<image src="assets/images/alarm.png" style=" width: 480px;">
+<image src="assets/images/alarm.png" style=" width: 366px;">
 
 ### Pre-Alarm Buffer Size
 
@@ -1586,7 +1612,7 @@ git commit -a
 
 cd ..
 git clone https://github.com/sr99622/libavio
-cd ../libavio
+cd libavio
 git rm pybind11
 git commit -a
 

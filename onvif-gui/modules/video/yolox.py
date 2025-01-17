@@ -37,7 +37,7 @@ try:
     from torchvision.transforms import functional
     import torch.nn as nn
     from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
-    from yolox.utils import postprocess
+    import yolox.utils
     if sys.platform != "darwin":
         import openvino as ov
 
@@ -463,7 +463,7 @@ class VideoWorker:
         nmsthre = 0.65
         if isinstance(outputs, np.ndarray):
             outputs = torch.from_numpy(outputs)
-        outputs = postprocess(outputs, self.num_classes, confthre, nmsthre)
+        outputs = yolox.utils.postprocess(outputs, self.num_classes, confthre, nmsthre)
         output = None
         boxes = []
         test_size = (self.res, self.res)

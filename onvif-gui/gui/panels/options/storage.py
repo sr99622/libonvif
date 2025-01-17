@@ -34,6 +34,11 @@ class StorageOptions(QWidget):
         self.pictureKey = "settings/picture"
         self.diskLimitKey = "settings/diskLimit"
         self.mangageDiskUsagekey = "settings/manageDiskUsage"
+        self.enableBulkStorageKey = "settings/enableBulkStorage"
+        self.bulkArchiveKey = "settings/bulkArchive"
+        self.bulkPictureKey = "settings/bulkPicture"
+        self.manageBulkUsageKey = "settings/manageBulkUsage"
+        self.bulkLimitKey = "settings/bulkLimit"
 
         video_dirs = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.MoviesLocation)
         self.dirArchive = DirectorySelector(mw, self.archiveKey, "Archive Dir", video_dirs[0])
@@ -63,14 +68,47 @@ class StorageOptions(QWidget):
         lytDiskUsage.addWidget(QLabel("GB"),            0, 3, 1, 1)
         lytDiskUsage.addWidget(self.dirArchive,         1, 0, 1, 4)
         lytDiskUsage.addWidget(self.dirPictures,        2, 0, 1, 4)
+        lytDiskUsage.setColumnStretch(2, 10)
+
+        '''
+        self.dirBulkArchive = DirectorySelector(mw, self.bulkArchiveKey, "Archive Dir", "")
+        self.dirBulkPicture = DirectorySelector(mw, self.bulkPictureKey, "Picture Dir", "") 
+
+        self.chkManageBulkUsage = QCheckBox(lbl)
+        self.spnBulkLimit = QSpinBox()
+        self.spnBulkLimit.setMaximum(max_size)
+        bulk_limit = min(int(self.mw.settings.value(self.bulkLimitKey, 100)), max_size)
+        self.spnBulkLimit.setValue(bulk_limit)
+        self.spnBulkLimit.valueChanged.connect(self.spnBulkLimitChanged)
+
+        self.grpBulkUsage = QGroupBox(f'Bulk Storage (currently {10} GB)')
+        self.grpBulkUsage.setCheckable(True)
+        self.grpBulkUsage.setChecked(bool(int(self.mw.settings.value(self.enableBulkStorageKey, 0))))
+        self.grpBulkUsage.clicked.connect(self.grpBulkUsageChecked)
+
+        lytBulkUsage = QGridLayout(self.grpBulkUsage)
+        lytBulkUsage.addWidget(self.chkManageBulkUsage,  0, 0, 1, 1)
+        lytBulkUsage.addWidget(self.spnBulkLimit,        0, 2, 1, 1)
+        lytBulkUsage.addWidget(QLabel("GB"),             0, 3, 1, 1)
+        lytBulkUsage.addWidget(self.dirBulkArchive,      1, 0, 1, 4)
+        lytBulkUsage.addWidget(self.dirBulkPicture,      2, 0, 1, 4)
+        '''
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.grpDiskUsage, 0, 0, 1, 1)
         lytMain.addWidget(QLabel(),          1, 0, 1, 1)
-        lytMain.setRowStretch(1, 10)
+        #lytMain.addWidget(self.grpBulkUsage, 2, 0, 1, 1)
+        lytMain.addWidget(QLabel(),          3, 0, 1, 1)
+        lytMain.setRowStretch(3, 10)
 
     def spnDiskLimitChanged(self, value):
         self.mw.settings.setValue(self.diskLimitKey, value)
+
+    def spnBulkLimitChanged(self, value):
+        self.mw.settings.setValue(self.bulkLimitKey, value)
+
+    def grpBulkUsageChecked(self, value):
+        self.mw.settings.setValue(self.enableBulkStorageKey, int(value))
 
     def chkManageDiskUsageChanged(self):
         if self.chkManageDiskUsage.isChecked():

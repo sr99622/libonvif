@@ -81,7 +81,7 @@ public:
         }
 
         std::stringstream str;
-        str << " ONVIF Dscovery found " << devices.size() << " unique devices on network";
+        str << " ONVIF Discovery found " << devices.size() << " unique devices on network: " << interface;
         if (infoCallback) infoCallback(str.str());
 
         for (int i = 0; i < devices.size(); i++) {

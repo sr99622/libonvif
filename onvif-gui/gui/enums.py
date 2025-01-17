@@ -18,3 +18,8 @@ class MediaSource(Enum):
 class Style(Enum):
     DARK = 0
     LIGHT = 1
+
+class Occurence(Enum):
+    BEFORE = 0
+    DURING = 1
+    AFTER = 2

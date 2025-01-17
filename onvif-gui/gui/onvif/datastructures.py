@@ -88,30 +88,18 @@ class Camera(QListWidgetItem):
 
     def assignData(self, data):
         self.onvif_data = data
-        #data.setSetting = self.setSetting
-        #data.getSetting = self.getSetting
         data.setSetting = self.mw.settings.setValue
         data.getSetting = self.mw.settings.value
         if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
             data.getProxyURI = self.mw.getProxyURI
 
         for profile in data.profiles:
-            #profile.setSetting = self.setSetting
-            #profile.getSetting = self.getSetting
             profile.setSetting = self.mw.settings.setValue
             profile.getSetting = self.mw.settings.value
             if self.mw.settingsPanel.proxy.proxyType != ProxyType.STAND_ALONE:
                 profile.getProxyURI = self.mw.getProxyURI
         
         self.profiles = data.profiles
-
-    '''
-    def getSetting(self, key, default_value):
-        return str(self.mw.settings.value(key, default_value))
-    
-    def setSetting(self, key, value):
-        self.mw.settings.setValue(key, value)
-    '''
 
     def uri(self):
         return self.onvif_data.uri()
@@ -282,6 +270,14 @@ class Camera(QListWidgetItem):
             result = self.profiles[self.displayProfileIndex()]
         return result
     
+    def isDisplayProfile(self, uri):
+        result = False
+        if displayProfile := self.getDisplayProfile():
+            if uri == displayProfile.uri():
+                result = True
+        return result
+
+
     def companionURI(self, uri):
         result = None
         recordProfile = self.getRecordProfile()

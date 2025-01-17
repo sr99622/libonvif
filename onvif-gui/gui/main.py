@@ -62,7 +62,7 @@ if sys.platform == "win32":
 else:
     import tarfile
 
-VERSION = "2.4.2"
+VERSION = "2.4.3"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -212,7 +212,8 @@ class MainWindow(QMainWindow):
         self.signals.hideWaitDialog.connect(self.hideWaitDialog)
 
         self.tab = QTabWidget()
-        self.tab.addTab(self.cameraPanel, "Cameras")
+        if not bool(int(self.settings.value(self.filePanel.control.hideCameraKey, 0))):
+            self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
         self.tab.addTab(self.settingsPanel, "Settings")
         if self.settingsPanel.proxy.generateAlarmsLocally():
@@ -271,9 +272,9 @@ class MainWindow(QMainWindow):
 
         appearance = self.settingsPanel.general.cmbAppearance.currentText()
         if appearance == "Dark":
-            self.style(Style.DARK)
+            self.setStyleSheet(self.style(Style.DARK))
         if appearance == "Light":
-            self.style(Style.LIGHT)
+            self.setStyleSheet(self.style(Style.LIGHT))
 
         collapsed = int(self.settings.value(self.collapsedKey, 0))
         if collapsed:
@@ -356,7 +357,7 @@ class MainWindow(QMainWindow):
 
         return frame
     
-    def playMedia(self, uri, alarm_sound=False):
+    def playMedia(self, uri, alarm_sound=False, file_start_from_seek=-1.0):
 
         if not uri:
             logger.debug(f'Attempt to create player with null uri')
@@ -376,6 +377,7 @@ class MainWindow(QMainWindow):
                 return
         
         player = Player(uri, self)
+        player.file_start_from_seek = file_start_from_seek
 
         player.pyAudioCallback = self.pyAudioCallback
         player.video_filter = "format=rgb24"
@@ -501,9 +503,15 @@ class MainWindow(QMainWindow):
                 if count > 50:
                     logger.error("not all players closed within the allotted time, flushing player manager")
                     for player in self.pm.players:
-                        logger.debug(f'{player.uri} failed orderly shutdown')
+                        name = ""
+                        if player.isCameraStream():
+                            if camera := self.cameraPanel.getCamera(player.uri):
+                                name = camera.name()
+                        else:
+                            name = player.uri
+                        logger.debug(f'{name} failed orderly shutdown')
                         self.pm.removePlayer(player.uri)
-                        logger.debug(f'{player.uri} was removed from the list after failing orderly shutdown')
+                        logger.debug(f'{name} was removed from the list after failing orderly shutdown')
                     break
 
             self.pm.ordinals.clear()
@@ -546,7 +554,19 @@ class MainWindow(QMainWindow):
 
     def mediaPlayingStarted(self, uri):
         if self.isCameraStreamURI(uri):
-            logger.debug(f'Camera stream opened {self.getCameraName(uri)} : {uri}')
+            if profile := self.cameraPanel.getProfile(uri):
+                profile_type = ""
+                if camera := self.cameraPanel.getCamera(uri):
+                    if camera.isDisplayProfile(uri):
+                        profile_type = "Display Profile"
+                    else:
+                        profile_type = "Record Profile"
+                
+                window_name = self.settings_profile
+                if self.settings_profile == "gui":
+                    window_name = "Main"
+
+                logger.debug(f'Camera stream opened {self.getCameraName(uri)}, stream_uri : {profile.stream_uri()}, resolution : {profile.width()} x {profile.height()}, fps: {profile.frame_rate()}, {profile_type}, Window: {window_name}')
 
             if self.pm.auto_start_mode:
                 finished = True
@@ -661,7 +681,6 @@ class MainWindow(QMainWindow):
             name = ""
             last_msg = ""
             if self.isCameraStreamURI(uri):
-
                 if player := self.pm.getPlayer(uri):
                     player.requestShutdown()
                     last_msg = player.last_msg
@@ -681,7 +700,7 @@ class MainWindow(QMainWindow):
                     self.signals.error.emit(msg)
 
             else:
-                self.closeAllStreams()
+                self.signals.error.emit(msg)
 
             logger.error(f'{name}, Error: {msg}')
                 
@@ -1044,7 +1063,8 @@ class MainWindow(QMainWindow):
                 strStyle = strStyle.replace("selection_dark",    sdDefault)
                 strStyle = strStyle.replace("selection_item",    isDefault)
 
-        self.setStyleSheet(strStyle)
+        #self.setStyleSheet(strStyle)
+        return strStyle
 
 def run():
     clear_settings = False

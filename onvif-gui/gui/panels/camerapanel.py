@@ -424,7 +424,7 @@ class CameraPanel(QWidget):
                 self.lstCamera.addItem(camera)
                 self.lstCamera.sortItems()
                 camera.setDisplayProfile(camera.getDisplayProfileSetting())
-                logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Serial Number: {onvif_data.serial_number()}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}')
+                logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}')
 
                 self.filled(onvif_data)
 
@@ -467,7 +467,7 @@ class CameraPanel(QWidget):
             self.lstCamera.sortItems()
             camera.setDisplayProfile(camera.getDisplayProfileSetting())
             self.saveCameraList()
-            logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Serial Number: {onvif_data.serial_number()}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}')
+            logger.debug(f'Discovery completed for Camera: {onvif_data.alias}, Stream URI: {onvif_data.stream_uri()}, xaddrs: {onvif_data.xaddrs()}, {onvif_data.camera_name()}')
 
             synchronizeTime = self.mw.settingsPanel.general.chkAutoTimeSync.isChecked()
             if not self.closing:

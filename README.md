@@ -784,7 +784,11 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
 &nbsp;
 
-<img src="assets/images/file_panel.png" style=" width: 366px;">
+The application maintains a folder for the storage of camera recordings. The folder by default is the OS video storage location, and can be changed using the directory setting at the top of the panel. There is a subfolder for each camera that is registered in the application. Inside the camera folders are the individual files recorded by the camera. The files are named using a datetime convention which represents the start time of the recording. The recording is padded in the front by a time interval specified on the Settings -> Alarm panel as Pre-Alarm Buffer Size. The file creation time in the OS represents the end time of the file, which occurs as a result of the file being committed to disk at the conclusion of the recording process.
+
+&nbsp;
+
+<img src="assets/images/file_panel.png" style=" width: 385px;">
 
 &nbsp;
 

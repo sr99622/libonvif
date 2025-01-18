@@ -275,6 +275,8 @@ class FileSearchDialog(QDialog):
         h = int(self.hour.currentText())
         if self.AM_PM.currentText() == "PM" and h < 12:
             h += 12
+        if self.AM_PM.currentText() == "AM" and h ==12:
+            h = 0
         tmp = f'{date.year()}{date.month():02}{date.day()}{h:02}{self.minute.currentText()}00'
         result = datetime.strptime(tmp, FORMAT)
         return result

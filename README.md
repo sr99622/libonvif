@@ -1035,7 +1035,7 @@ A few default alarm sounds for selection.  A system wide volume setting for the 
 
 ---
 
-The Video Panel has multple modes of operation. The default setting is for motion, which can be used without further configuration and will run easily on a CPU only computer. YOLOX requires the installation of additional python packages, namely pytorch and openvino. YOLOX will perform well on NVIDIA, AMD ROCm, and Intel Xe or ARC Graphics. yolov8 will perform well on recent Apple Silicon M chips and requires pytorch and ultralytics python modules. RyzenAI is available for AMD chips with NPU.
+The Video Panel has multiple modes of operation. The default setting is for motion, which can be used without further configuration and will run easily on a CPU only computer. YOLOX requires the installation of additional python packages, namely pytorch and openvino. YOLOX will perform well on NVIDIA, AMD ROCm, and Intel Xe or ARC Graphics. yolov8 will perform well on recent Apple Silicon M chips and requires pytorch and ultralytics python modules. RyzenAI is available for AMD chips with NPU.
 
 In order for the panel to be enabled, either a camera or a file must be selected. If a camera is selected, the Video Alarm check box must also be selected on the Media Tab of the Camera Panel. If a file is selected, the Enable File check box on the Video Panel must be selected.
 
@@ -1067,7 +1067,7 @@ For systems with NVIDIA GPU, please install modern NVIDIA drivers for the hardwa
 
 Note: There are two versions of PyTorch, CPU and GPU. The GPU version is substantially larger and will take a long time to download. If you are running OpenVINO configuration, you do not need the GPU version of the library, the CPU version will work fine. If you are running NVIDIA GPU, you will need the GPU version for hardware acceleration. Please review the PyTorch installation instructions linked above carefully for the correct instructions for your situation.
 
-To run yolox using OpenVINO on Intel hardware, you will need to install the hardware drivers. On Windows, these drivers may be installed as part of the operating system. Look for the Intel Driver and Support Assistant in the Applications menu for configuration and updates. For best results installing hardware drivers in Ubuntu, please refer to the instructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases). The OpenVINO library is installed with the command ```pip install openvino```.
+To run yolox using OpenVINO on Intel hardware, you will need to install the hardware drivers. On Windows, these drivers may be installed as part of the operating system. Look for the Intel Driver and Support Assistant in the Applications menu for configuration and updates. To install Intel hardware drivers in Ubuntu, please refer to the instructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases). The OpenVINO python module is installed with the command ```pip install openvino```.
 
 Note that both the pytorch and OpenVINO python modules are required for either configuration. Hardware drivers are only required for the actual hardware being used.
 

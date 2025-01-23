@@ -924,6 +924,8 @@ Additional profiles can be added using the three dot button to the right of the 
 
 New Windows can be configured to show specific groups of cameras, which can be useful if the host computer is driving several monitors such that different groups of cameras are shown on different monitors. The Open button will launch a window with the profile selected in the drop down box. Each profile will have a separate configuration that is set by the user.
 
+It may be useful to create a profile excusively for viewing camera recordings from the File tab. This way the window can be configured with a larger navigation panel showing more complete file information. Additionally, the camera panel can be hidden in this profile so that the window opens directly to the file list.
+
 ### Start All / Close All
 
 This button will change appearance depending on whether there are streams playing or not. It can be used to batch control cameras to start or stop as a group. It will start all cameras on the Camera List. It will stop all streams, including files if playing.

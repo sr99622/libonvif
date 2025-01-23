@@ -64,7 +64,8 @@ class VideoPanel(QWidget):
         for worker in workers:
             if not worker.endswith(".py") or worker == "__init__.py":
                 workers.remove(worker)
-        workers.sort()
+        #workers.sort()
+        workers = sorted(workers, key=lambda s: s.casefold())
         self.cmbWorker.clear()
         self.cmbWorker.addItems(workers)
 

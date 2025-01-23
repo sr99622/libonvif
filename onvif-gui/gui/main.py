@@ -27,11 +27,13 @@ if sys.platform == "darwin":
 
 from loguru import logger
 
+'''
 if sys.platform == "win32":
     filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/logs.txt"
 else:
     filename = os.environ['HOME'] + "/.cache/onvif-gui/logs.txt"
 logger.add(filename, rotation="1 MB")
+'''
 
 from time import sleep
 from datetime import datetime
@@ -62,7 +64,7 @@ if sys.platform == "win32":
 else:
     import tarfile
 
-VERSION = "2.4.4"
+VERSION = "2.4.5"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -145,6 +147,13 @@ class MainWindowSignals(QObject):
 class MainWindow(QMainWindow):
     def __init__(self, clear_settings=False, settings_profile="gui", parent_role="None"):
         super().__init__()
+
+        if sys.platform == "win32":
+            filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/logs.txt"
+        else:
+            filename = os.environ['HOME'] + "/.cache/onvif-gui/logs.txt"
+        self.logger_id = logger.add(filename, rotation="1 MB")
+
         self.settings_profile = settings_profile
         self.parent_role = parent_role
         os.environ["QT_FILESYSTEMMODEL_WATCH_FILES"] = "ON"
@@ -791,6 +800,7 @@ class MainWindow(QMainWindow):
     def getAlarmSound(self):
         return f'{self.getLocation()}/gui/resources/drops.mp3'
     
+    '''
     def getLogFilename(self):
         source = self.windowTitle()
         source = source.replace(".", "_")
@@ -804,6 +814,7 @@ class MainWindow(QMainWindow):
             log_dir = os.environ["HOME"]
         log_dir += os.path.sep + "logs" + os.path.sep + "onvif-gui" + os.path.sep + datestamp
         return log_dir + os.path.sep + source + "_" + timestamp + ".csv"
+    '''
     
     def manageBroadcaster(self, if_addrs):
         # an empty list for if_addrs will disable broadcaster

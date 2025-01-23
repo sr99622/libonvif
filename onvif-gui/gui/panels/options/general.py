@@ -46,33 +46,40 @@ class LogDialog(QDialog):
         super().__init__(mw)
         self.mw = mw
         self.geometryKey = "LogDialog/geometry"
-        rect = self.mw.settings.value(self.geometryKey, QRect(0, 0, 480, 640))
-        if rect is not None:
+        if rect := self.mw.settings.value(self.geometryKey):
             if rect.width() and rect.height():
                 self.setGeometry(rect)
+        else:
+            g = mw.geometry()
+            rect = QRect(0, 0, g.width()-20, 480)
+            rect.moveCenter(g.center())
+            self.setGeometry(rect)
 
         self.editor = LogText(self)
         self.editor.setReadOnly(True)
         self.editor.setFontFamily("courier")
 
         self.lblSize = QLabel("Log File Size:")
-        self.btnArchive = QPushButton("Archive")
+        self.btnArchive = QPushButton("View Archive")
         self.btnArchive.clicked.connect(self.btnArchiveClicked)
         self.btnClear = QPushButton("  Clear  ")
         self.btnClear.clicked.connect(self.btnClearClicked)
+        self.btnClose = QPushButton("Close")
+        self.btnClose.clicked.connect(self.btnCloseClicked)
 
         pnlButton = QWidget()
         lytButton = QGridLayout(pnlButton)
         lytButton.addWidget(self.btnArchive,   0, 1, 1, 1)
         lytButton.addWidget(self.btnClear,     0, 2, 1, 1)
+        lytButton.addWidget(QLabel(),          0, 3, 1, 1)
+        lytButton.addWidget(self.btnClose,     0, 4, 1, 1, Qt.AlignmentFlag.AlignRight)
         lytButton.setContentsMargins(0, 0, 0, 0)
-
+        lytButton.setColumnStretch(3, 10)
+        
         panel = QWidget()
         lytPanel = QGridLayout(panel)
         lytPanel.addWidget(self.lblSize,    0, 0, 1, 1)
         lytPanel.addWidget(pnlButton,       0, 1, 1, 1)
-        lytPanel.addWidget(QLabel(),        0, 2, 1, 1)
-        lytPanel.setColumnStretch(2, 10)
 
         lyt = QGridLayout(self)
         lyt.addWidget(self.editor, 0, 0, 1, 1)
@@ -101,31 +108,66 @@ class LogDialog(QDialog):
             path = QFileDialog.getOpenFileName(self, "Select File", self.windowTitle())[0]
         if path:
             if len(path) > 0:
-                self.readLogFile(path)
+                self.readLogFile(os.path.realpath(path))
+
+    def btnCloseClicked(self):
+        self.close()
 
     def btnClearClicked(self):
         filename = self.windowTitle()
-        ret = QMessageBox.warning(self, "Deleting File",
-                                    f'\n{filename}\n\n'
-                                    "You are about to delete this file.\n"
-                                    "Are you sure you want to continue?",
-                                    QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        log_filename = self.mw.settingsPanel.general.getLogFilename()
 
-        if ret == QMessageBox.StandardButton.Ok:
-            if filename == self.mw.settingsPanel.getLogFilename():
-                ret = QMessageBox.warning(self, "Deleting Current Log",
-                                          "You are about to delete the current log.\n"
-                                          "Are you sure you want to continue?",
-                                          QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
-                if ret == QMessageBox.StandardButton.Ok:
-                    QFile.remove(filename)
-                    logger.add(filename)
-                    logger.debug("Created new log file")
-                    self.readLogFile(filename)
+        if filename == log_filename:
+            ret = QMessageBox.question(self, "Preserve File", 
+                                    "Would you like to preserve the current log file with a new name?",
+                                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            
+            if ret == QMessageBox.StandardButton.Yes:
+                path = None
+                if platform.system() == "Linux":
+                    path = QFileDialog.getSaveFileName(self, "Select A New File Name", self.windowTitle(), "Text (*.txt)", options=QFileDialog.Option.DontUseNativeDialog)[0]
+                else:
+                    path = QFileDialog.getSaveFileName(self, "Select A New File Name", self.windowTitle(), "Text (*.txt)")[0]
+                if path:
+                    if len(path) > 0:
+                        try:
+                            logger.remove(self.mw.logger_id)
+                            os.rename(filename, path)
+                        except Exception as ex:
+                            QMessageBox.warning(self, "File Error", f'File rename error occurred {ex}')
+                        self.mw.logger_id = logger.add(log_filename)
+                        logger.debug("Created new log file")
+                        self.editor.setText("")
+                        self.readLogFile(log_filename)
+
             else:
+                ret = QMessageBox.warning(self, "Deleting Current Log",
+                                            "You are about to delete the current log.\n"
+                                            "Are you sure you want to continue?",
+                                            QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+                if ret == QMessageBox.StandardButton.Ok:
+                    try:
+                        logger.remove(self.mw.logger_id)
+                        os.remove(filename)
+                        self.editor.setText("")
+                    except Exception as ex:
+                        QMessageBox.warning(self, "File Error", f'File delete error occurred {ex}')
+
+                    self.logger_id = logger.add(log_filename)
+                    logger.debug("Created new log file")
+                    self.readLogFile(log_filename)
+
+        else:
+            ret = QMessageBox.warning(self, "Deleting File",
+                                        f'\n{filename}\n\n'
+                                        "You are about to delete this file.\n"
+                                        "Are you sure you want to continue?\n\n"
+                                        "Clicking cancel will preserve the file and return you to the current log",
+                                        QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+            if ret == QMessageBox.StandardButton.Ok:
                 QFile.remove(filename)
-                self.readLogFile(self.mw.settingsPanel.getLogFilename())
-                QMessageBox.information(self, "Current Log Displayed", "The current log has been loaded into the display", QMessageBox.StandardButton.Ok)
+            self.readLogFile(log_filename)
+            QMessageBox.information(self, "Current Log Displayed", "The current log has been loaded into the display", QMessageBox.StandardButton.Ok)
 
 
 class ProfileItem(QListWidgetItem):
@@ -486,9 +528,9 @@ class GeneralOptions(QWidget):
     def getLogFilename(self):
         filename = ""
         if sys.platform == "win32":
-            filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/logs.txt"
+            filename = os.path.join(os.environ['HOMEPATH'], ".cache", "onvif-gui", "logs.txt")
         else:
-            filename = os.environ['HOME'] + "/.cache/onvif-gui/logs.txt"
+            filename = os.path.join(os.environ['HOME'], ".cache", "onvif-gui", "logs.txt")
         return filename
 
     def btnShowLogsClicked(self):

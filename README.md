@@ -1911,6 +1911,22 @@ Once logged into the camera you can set parameters using the 'set' command follo
 </details>
 
 <details>
+<summary>Move Commands</summary>
+&nbsp;
+
+---
+
+Sends continuous move commands to the camera
+
+- move pan pan_value tilt_value(all required)
+- move zoom value(required)
+- move stop - Stops both pan/tilt and zoom
+
+---
+&nbsp;
+
+
+<details>
 <summary>Maintenance Commands</summary>
 &nbsp;
 

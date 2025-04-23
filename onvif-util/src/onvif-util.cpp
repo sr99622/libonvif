@@ -145,6 +145,10 @@ static void showHelp()
 			  << "      set dns value(required)\n"
 			  << "      set dhcp value(required) - Accepted settings are 'on' and off'\n"
 			  << "      set password  value(required)\n\n"
+			  << "    Movement Commands (start with move)\n"
+			  << "      move pan pan_value tilt_value(all required)\n"
+			  << "      move zoom value(required)\n"
+			  << "      move stop - Stops both pan/tilt and zoom\n"
 			  << "    Maintenance Commands\n\n"
 			  << "      help\n"
 			  << "      safe - set safe mode on.  Viewer and browser are disabled\n"
@@ -801,6 +805,57 @@ int main(int argc, char **argv)
 					std::cout << "  Unrecognized command, use onvif-util -h to see help\n" << std::endl;
 				}
 			}
+			else if (args[0] == "move") {
+				args.erase(args.begin());
+				
+				if (args[0] == "pan") {
+			      		if (args.size() > 2) {
+				    		args.erase(args.begin());
+				    		double const pan_rate = stof(args[0]);
+				    		double const tilt_rate = stof(args[1]);
+						
+				    		if (continuousMove(pan_rate, tilt_rate, 0, onvif_data))
+					  		throw std::runtime_error(
+						      			cat("move pan - ", onvif_data->last_error));
+						
+				    		std::cout << "  Pan rate " << pan_rate << ", Tilt rate "
+				  			<< tilt_rate << "\n" << std::endl;
+						
+			      		} else {
+				    		std::cout << "  Missing value for Pan/Tilt\n" << std::endl;
+			      		}
+					
+				} else if (args[0] == "zoom") {
+			      		if (args.size() > 1) {
+				    		args.erase(args.begin());
+				    		double const zoom_rate = stof(args[0]);
+						
+				    		if (continuousMove(0, 0, zoom_rate, onvif_data))
+					  		throw std::runtime_error(
+						      			cat("move zoom - ", onvif_data->last_error));
+						
+				    		std::cout << "  Zoom rate " << zoom_rate << "\n" << std::endl;
+						
+			      		} else {
+				    		std::cout << "  Missing value for Zoom\n" << std::endl;
+			      		}
+					
+				} else if (args[0] == "stop") {
+			      		// Send stop for both pan/tilt and zoom					
+       					if (moveStop(0, onvif_data))
+				    		throw std::runtime_error(
+								cat("move stop pan/tilt - ", onvif_data->last_error));
+					
+			      		if (moveStop(1, onvif_data))
+				    		throw std::runtime_error(
+								cat("move stop zoom - ", onvif_data->last_error));
+					
+				} else {
+			      		std::cout << "  Unrecognized command \"" << args[0]
+			    			<< "\", type \"help\" to see help\n"
+			    			<< std::endl;
+				}
+		  	}
 			else if (args[0] == "reboot") {
 				std::cout << "  Are you sure you want to reboot?  Type yes to confirm\n" << std::endl;
 				/*

@@ -1916,7 +1916,7 @@ Once logged into the camera you can set parameters using the 'set' command follo
 
 ---
 
-Sends continuous move commands to the camera
+Sends continuous move commands to the camera, note that a profile must be selected i.e. get profile. Values are all floating point between -1.0 and 1.0.
 
 - move pan pan_value tilt_value(all required)
 - move zoom value(required)

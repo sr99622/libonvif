@@ -19,7 +19,7 @@
 
 import sys
 from PyQt6.QtWidgets import QApplication
-from gui import MainWindow
+from onvif_gui import MainWindow
 
 clear_settings = False
 if len(sys.argv) > 1:

@@ -43,5 +43,5 @@ FILE=onvif_gui.egg-info
 if [ -d "$FILE" ]; then
     rm -R onvif_gui.egg-info
 fi
-pip install .
+pip install -v .
 cd ..

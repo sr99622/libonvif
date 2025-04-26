@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Use the full three digit semantic version of Python
+version="3.12.9"
+
+IFS="." read -ra SemVer <<< "$version"
+major=${SemVer[0]}
+minor=${SemVer[1]}
+
+cat > ./changes.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonApplications-3.12</string>
+        </dict>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonUnixTools-3.12</string>
+        </dict>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonDocumentation-3.12</string>
+        </dict>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonProfileChanges-3.12</string>
+        </dict>
+</array>
+</plist>
+EOF
+
+if [ ! -f "/Library/Frameworks/Python.framework/Versions/$major.$minor/bin/python$major.$minor" ]; then
+    curl -o "python$major.$minor-installer.pkg" "https://www.python.org/ftp/python/$version/python-$version-macos11.pkg"
+    sudo installer -pkg "./python$major.$minor-installer.pkg" -applyChoiceChangesXML "./changes.plist" -target /
+    rm "python$major.$minor-installer.pkg"
+    echo "Python version $major.$minor installed"
+else
+    echo "Python version $major.$minor previously installed"
+fi
+
+rm changes.plist
+
+if [ ! -d "$HOME/onvif-gui-env" ]; then
+    "/Library/Frameworks/Python.framework/Versions/$major.$minor/bin/python$major.$minor" -m venv "$HOME/onvif-gui-env"
+    source "$HOME/onvif-gui-env/bin/activate"
+    python -m pip install --upgrade pip
+    deactivate
+    echo "Virtual Environment onvif-gui-env created"
+else
+    echo "Virtual Environment onvif-gui-env previously created"
+fi
+
+source $HOME/onvif-gui-env/bin/activate
+pip install onvif-gui torch torchvision
+deactivate

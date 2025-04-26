@@ -1,0 +1,145 @@
+#/********************************************************************
+# libonvif/onvif-gui/onvif_gui/panels/file/treeview.py 
+#
+# Copyright (c) 2025  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
+
+import os
+from PyQt6.QtWidgets import QTreeView, QAbstractItemView, \
+    QAbstractItemView
+from PyQt6.QtGui import QFileSystemModel, QIcon
+from PyQt6.QtCore import Qt, QObject, pyqtSignal
+from time import sleep
+
+class TreeViewSignals(QObject):
+    selectionChanged = pyqtSignal(str)
+
+class TreeModel(QFileSystemModel):
+    def __init__(self, mw):
+        super().__init__()
+        self.mw = mw
+        self.ref = None
+        #self.setOption(QFileSystemModel.Option.DontWatchForChanges)
+
+    def data(self, index, role):
+        if index.isValid():
+
+            player = None
+            if self.ref:
+                if self.ref.isValid():
+                    info = self.fileInfo(self.ref)
+                    if info.isFile():
+                        uri = info.filePath()
+                        player = self.mw.pm.getPlayer(uri)
+
+            condition = role == Qt.ItemDataRole.DecorationRole and \
+                index.column() == 0 and \
+                self.ref == index and \
+                player
+            
+            if condition:
+                return QIcon("image:play.png")
+
+        return super().data(index, role)
+
+class TreeView(QTreeView):
+    def __init__(self, mw):
+        super().__init__()
+        self.mw = mw
+        self.signals = TreeViewSignals()
+        self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+
+    def keyPressEvent(self, event):
+
+        pass_along = True
+
+        match event.key():
+
+            case Qt.Key.Key_Return:
+                index = self.currentIndex()
+                if index.isValid():
+                    fileInfo = self.model().fileInfo(index)
+                    if fileInfo.isFile():
+                        if self.model().isReadOnly():
+                            for player in self.mw.pm.players:
+                                if not player.isCameraStream():
+                                    player.requestShutdown()
+                                    while not player.stopped:
+                                        sleep(0.001)
+                            self.mw.filePanel.control.btnPlayClicked()
+                    else:
+                        if self.isExpanded(index):
+                            self.collapse(index)
+                        else:
+                            self.expand(index)
+
+            case Qt.Key.Key_Space:
+                index = self.currentIndex()
+                if index.isValid():
+                    fileInfo = self.model().fileInfo(index)
+                    if fileInfo.isFile():
+                        if self.model().isReadOnly():
+                            self.mw.filePanel.control.btnPlayClicked()
+
+            case Qt.Key.Key_Escape:
+                if self.model().isReadOnly():
+                    self.mw.filePanel.control.btnStopClicked()
+                else:
+                    self.model().setReadOnly(True)
+        
+            case Qt.Key.Key_F1:
+                self.mw.filePanel.onMenuInfo()
+
+            case Qt.Key.Key_F2:
+                self.mw.filePanel.onMenuRename()
+
+            case Qt.Key.Key_Delete:
+                self.mw.filePanel.onMenuRemove()
+
+            case Qt.Key.Key_Left:
+                pct = self.mw.filePanel.progress.sldProgress.value() / 1000
+                duration = self.mw.filePanel.progress.duration
+                interval = 10000 / duration
+                tgt = max(pct - interval, 0.0)
+                player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
+                if player:
+                    player.seek(tgt)
+                pass_along = False
+
+            case Qt.Key.Key_Right:
+                pct = self.mw.filePanel.progress.sldProgress.value() / 1000
+                duration = self.mw.filePanel.progress.duration
+                interval = 10000 / duration
+                tgt = pct + interval
+                if tgt < 1.0:
+                    player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
+                    if player:
+                        player.seek(tgt)
+                pass_along = False
+        
+        if pass_along:
+            return super().keyPressEvent(event)
+
+    def currentChanged(self, newItem, oldItem):
+        if newItem.data():
+            fullPath = os.path.join(self.model().rootPath(), newItem.data())
+            if os.path.isfile(fullPath):
+                player = self.mw.pm.getPlayer(str(fullPath))
+                if player:
+                    self.mw.glWidget.focused_uri = player.uri
+            self.signals.selectionChanged.emit(fullPath)
+            self.scrollTo(self.currentIndex())
+

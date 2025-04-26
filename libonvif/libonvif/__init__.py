@@ -13,7 +13,7 @@ if sys.platform == "win32":
 
 for file in os.listdir(directory):
     filename, ext = os.path.splitext(file)
-    if ext == module_ext:
+    if ext == module_ext and filename.startswith(name):
         target = os.path.join(directory, file)
         spec = importlib.util.spec_from_file_location(name, target)
         sys.modules[name] = importlib.util.module_from_spec(spec)

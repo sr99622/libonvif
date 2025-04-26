@@ -1,18 +1,37 @@
 pip install build
+call assets\scripts\components\windows\env_variables
+if not exist dist/ (
+    mkdir dist
+)
 cd libonvif
-set CMAKE_CURRENT_SOURCE_DIR=%CD%
+rmdir /q /s build
 python -m build
+for /f %%F in ('dir /b /a-d dist\*whl') do (
+    pip install dist\%%F
+)
+move dist\* ..\dist
 cd ..
 cd libavio
-set CMAKE_CURRENT_SOURCE_DIR=%CD%
-set FFMPEG_INSTALL_DIR=%CD%/ffmpeg
-set SDL2_INSTALL_DIR=%CD%/sdl
+rmdir /q /s build
+set SOURCE_DIR=%CD%
 python -m build
+for /f %%F in ('dir /b /a-d dist\*whl') do (
+    pip install dist\%%F
+)
+move dist\* ..\dist
 cd ..
 cd kankakee
-set CMAKE_CURRENT_SOURCE_DIR=%CD%
+rmdir /q /s build
 python -m build
+for /f %%F in ('dir /b /a-d dist\*whl') do (
+    pip install dist\%%F
+)
+move dist\* ..\dist
 cd ..
 cd onvif-gui
 python -m build
+for /f %%F in ('dir /b /a-d dist\*whl') do (
+    pip install dist\%%F
+)
+move dist\* ..\dist
 cd ..

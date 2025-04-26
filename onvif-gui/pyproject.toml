@@ -19,12 +19,12 @@
 
 [project]
 name = "onvif-gui" 
-version = "2.4.5"
+version = "3.0.10"
 dynamic = ["gui-scripts"]
 description = "A client gui for Onvif"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
 keywords = ["sample", "setuptools", "development"]
 authors = [
   {name = "Stephen Rhodes", email = "sr99622@gmail.com" }
@@ -33,12 +33,11 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Topic :: Software Development :: Build Tools",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
 ]
 
 dependencies = [
-  'libonvif==3.2.5', 'avio==3.2.5', 'kankakee==1.0.2',
+  'libonvif==3.2.6', 'avio==3.2.6', 'kankakee==1.0.3',
   'numpy', 'loguru', 'opencv-python-headless', 'PyQt6-Qt6', 'pyqt6', 'requests'
 ]
 

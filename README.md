@@ -7,7 +7,7 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 
 <!---
 <table>
-  <tr><td><image src="onvif-gui/gui/resources/onvif-gui.png"></td><td><h2>Onvif GUI</h2><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
+  <tr><td><image src="onvif-gui/onvif_gui/resources/onvif-gui.png"></td><td><h2>Onvif GUI</h2><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
 <table>
 --->
 
@@ -41,6 +41,8 @@ The system can be configured with auto start settings and a user friendly icon s
 
 Here is the application running 12 cameras on an Intel NUC with an i7 1360P acting as a host with the yolox detector using OpenVINO on the iGPU in Linux. The application has been configured to display the low resolution camera substreams in the main display on the right and the secondary window on the lower left is showing the high resolution display for a single camera as selected by double clicking the main display on the camera of interest. On the upper left is a separate system monitor application showing the compute load.
 
+&nbsp;
+
 <image src="assets/images/screenshot.png">
 
 &nbsp;
@@ -55,6 +57,8 @@ And the same for Windows on an Intel Core Ultra 9 185H
 
 <image src="assets/images/screenshot_win.png">
 
+&nbsp;
+
 ---
 
 &nbsp;
@@ -66,7 +70,7 @@ And the same for Windows on an Intel Core Ultra 9 185H
 
 &nbsp;
 
-For maximum performance, the client-server configuration is recommended. Onvif GUI has a proxy server that will buffer the camera streams, providing a consistent low latency interface to the rest of the network. Additionally, this configuration isolates the cameras, blocking all traffic between the cameras and the internet. Isolating cameras on a private subnet may require a DHCP server for ip address assignments. It may also be possible to assign static IP addresses to all cameras, but a DHCP server is recommended. Please see DHCP Servers in the Notes section for detailed instructions on how to configure a DHCP server on the Onvif GUI host machine.
+For maximum performance, the client-server configuration is recommended. In this configuration, Onvif GUI uses [MediaMTX](https://github.com/bluenviron/mediamtx) as a proxy server that will buffer the camera streams, providing a consistent low latency interface to the rest of the network. Additionally, this configuration isolates the cameras, blocking all traffic between the cameras and the internet. Isolating cameras on a private subnet may require installing a DHCP server on the Onvif GUI host for ip address assignments. Additionally, the Onvif GUI host can be configured as a file server using Samba or NFS so that clients have access to camera recordings as well. Please refer to the Notes section of this document for details on these additional configurations.
 
 &nbsp;
 
@@ -76,11 +80,11 @@ For maximum performance, the client-server configuration is recommended. Onvif G
 
 It is not recommended to use a wireless connection for the server interface in most instances. Wireless cameras are not recommended. A 1 Gb network interface on the server should be sufficient to host a reasonable number of cameras. Wired network connections will result in a more stable and performant experience than wireless connections. Wireless connection stability can also vary widely depending on hardware and drivers. Recent Apple Silicon Mac computers had a noticeably better WiFi experience and are recommended if a wireless connection is required. 
 
-Mac computers on recent M4 chips provide excellent performance. If driving multiple monitors using high resolution streams is a system requirement, the Mac Mini M4 offers high performance with low power consumption, low noise and great value.
+Mac computers with recent M4 chips provide excellent performance. If driving multiple monitors using high resolution streams is a system requirement, the Mac Mini M4 offers high performance with low power consumption, low noise and great value.
 
-Linux computers with a high end discrete GPU offer very good performance. GPU cards with PCIe 4 compatibility will outperform those designed for PCIe 3. GPU cards with 16 PCIe lanes will outperform those with only 8 lanes. A Linux computer with an integrated GPU, such as a NUC can also provide good performance, but do have limitations. These Linux configurations are capable of driving multiple monitors but may require some patience when setting up.
+Linux computers with a discrete GPU offer very good performance. GPU cards with PCIe 4 compatibility will outperform those designed for PCIe 3. GPU cards with 16 PCIe lanes will outperform those with only 8 lanes. A Linux computer with an integrated GPU, such as a NUC can also provide very good performance, but do have limitations. These Linux configurations are capable of driving multiple monitors but may require some patience when setting up.
 
-Windows computers will work, but require more computing power to achieve similar results to Linux systems with less capable hardware. If Windows is the intended OS for either host or client, a higher powered computer will be necessary for satisfactory results. Lower powered computers will run the software but will be limited to running a few streams in low resolution.
+Windows computers will work well, but do require more computing power to achieve similar results to Linux systems with less capable hardware. If Windows is the intended OS for either host or client, a higher powered computer will be necessary for satisfactory results. Lower powered computers will run the software but will be limited to running a few streams in low resolution.
 
 &nbsp;
 
@@ -92,152 +96,72 @@ Windows computers will work, but require more computing power to achieve similar
 ## Installation
 
 <details>
-<summary>Install onvif-gui</summary>
+<summary>Install Onvif GUI</summary>
 &nbsp;
-
-<i>The minimum required python version is 3.10.</i>
-
----
 
 <details>
 <summary>Linux</summary>
 
 &nbsp;
 
-<details>
-<summary>Ubuntu</summary>
+To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. For detailed information on what the script does, please consult the Notes section of this document.
 
-* ## Step 1. Install Dependencies
+```
+wget http://10.1.1.14:3000/stephen/libonvif/raw/branch/master/assets/scripts/install-onvif-gui.py && python3 install-onvif-gui.py
+```
 
-  ```
-  sudo apt install cmake g++ git python3-pip virtualenv libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
-  ```
+The program can be uninstalled by using the same script with the -u flag
 
-* ## Step 2. Create Virtual Environment
-
-  ```
-  virtualenv myenv
-  source myenv/bin/activate
-  ```
-
-* ## Step 3. Install onvif-gui
-
-  ```
-  pip install onvif-gui
-  ```
-
-* ## Step 4. Launch Program
-
-  ```
-  onvif-gui
-  ```
-
-</details>
-
-<details>
-<summary>Fedora</summary>
-
-* ## Step 1. Install Dependencies
-
-  ```
-  sudo dnf install cmake g++ libxml2-devel python3-devel python3-pip SDL2-devel virtualenv git
-  sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-  sudo dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-  sudo dnf -y install ffmpeg-devel --allowerasing
-  ```
-
-* ## Step 2. Create Virtual Environment
-
-  ```
-  virtualenv myenv
-  source myenv/bin/activate
-  ```
-
-* ## Step 3. Install onvif-gui
-
-  ```
-  pip install onvif-gui
-  ```
-
-* ## Step 4. Launch Program
-
-  ```
-  onvif-gui
-  ```
-</details>
+```
+python3 install-onvif-gui.py -u
+```
 
 ---
+
+&nbsp;
 
 </details>
 
 <details>
 <summary>Mac</summary>
 
-* ### Step 1. Install Python
+&nbsp;
 
-  Python minimum version 3.10 is required for the application. There are several approaches that can be used to achieve this requirement. Anaconda is recommended here, but other techniques may be preferred depending on the situation. Please refer to the [Anaconda Installation Instructions](https://www.anaconda.com/download#downloads). There is an alternate method using pyenv described in the Operation / Notes section of this document.
+The program is installed on Mac OS using the terminal. Open the terminal and use the following curl command to download the script for installing the program. The script will install Python version 3.12 which will not be included on the PATH. Existing versions of Python are not affected. You will need to chmod the file in order to execute.
 
-* ### Step 2. Install Xcode
+```
+curl -OL https://raw.githubusercontent.com/sr99622/libonvif/master/assets/scripts/mac_install
+chmod +x mac_install
+./mac_install
+```
 
-  Please refer to the [Xcode Installation Instructions](https://developer.apple.com/xcode/).
+The script will create a virtual environment in a subdirectory of the home folder named after the program as $HOME/onvif-gui-env. The program can be run by using the full path of the executable.
 
-* ### Step 3. Install Homebrew
+```
+$HOME/onvif-gui-env/bin/onvif-gui
+```
 
-  Please refer to the [Homebrew Installation Instructions](https://docs.brew.sh/Installation).
+### Optional Step For Server Configuration
 
-* ### Step 4. Install Dependencies
+To increase the number of socket connections available for the server, use the ulimit command to raise the file limit.
 
+```
+ulimit -n 8192
+```
 
-  ```
-  brew update
-  brew upgrade
-  brew install cmake
-  brew install git
-  brew tap homebrew-ffmpeg/ffmpeg
-  brew install homebrew-ffmpeg/ffmpeg/ffmpeg
-  ```
-
-  <i> Please note that the standard Homebrew core ffmpeg version 7 is incompatible with onvif-gui. For this reason, the install procedure calls for the 3rd party tap [homebrew-ffmpeg](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg). If you already have another version of ffmpeg installed, this will create a conflict. In order to install this version, it is necessary to run </i>```brew uninstall ffmpeg``` <i>before this tap can be installed.</i>
-
-  <i> Modern Mac OS versions of XCode come with libxml2 pre-installed. If you have difficulty installing the libonvif module, you may see errors similar to AttributeError: module 'libonvif' has no attribute 'Data'. This may result from a missing libxml2 library, which can be installed using the command </i> ```brew install libxml2``` <i> and then re-installing the program.</i>
-
-* ### Step 5. Create Virtual Environment
-
-  ```
-  conda create --name onvif python
-  conda activate onvif
-  ```
-
-* ## Step 6. Install onvif-gui
-
-  ```
-  pip install onvif-gui
-  ```
-
-* ### Step 7. Launch Program
-
-  ```
-  onvif-gui
-  ```
-
-* ### Optional Step For Server Configuration
-
-  To increase the number of socket connections available for the server, use the ulimit command to raise the file limit.
-
-  ```
-  ulimit -n 8192
-  ```
-
-  You can add this command to your shell resource file, e.g. .zshrc in the user home directory. This will then set the limit for each terminal session as it is opened on a persistent basis.
+You can add this command to your shell resource file, e.g. .zshrc in the user home directory. This will then set the limit for each terminal session as it is opened on a persistent basis.
 
 ---
 
+&nbsp;
+
 </details>
+
 
 <details>
 <summary>Windows</summary>
 
-* ## Step 1. Install Python
+* ### Step 1. Install Python
 
   Python is required for this application and is not installed on Windows by default. The minimum required version for this application is 3.10. The python installer can be downloaded from https://www.python.org/downloads/. To check if python has already been installed on the machine, use the command
 
@@ -245,22 +169,22 @@ Windows computers will work, but require more computing power to achieve similar
   python --version
   ```
 
-  Note that windows may present an installation prompt if python is not already present, however, the default version may be insufficient to properly run the application.  Please select a python version which is 3.10 or higher.
+  Note that windows may present an installation prompt if python is not already present.  Please select a python version higher than 3.10.
 
-* ## Step 2. Create Virtual Environment
+* ### Step 2. Create Virtual Environment
 
   ```
-  python -m venv myenv
-  myenv\Scripts\activate
+  python -m venv onvif-gui-env
+  onvif-gui-env\Scripts\activate
   ```
 
-* ## Step 3. Install onvif-gui
+* ### Step 3. Install onvif-gui
   
   ```
   pip install onvif-gui
   ```
 
-* ## Step 4. Launch Program
+* ### Step 4. Launch Program
 
   ```
   onvif-gui
@@ -268,21 +192,27 @@ Windows computers will work, but require more computing power to achieve similar
 
   Please note that the first time you start the program in Windows, there may be a short delay as things are initializing. Subsequent runs will start normally.
 
-</details>
+* ### Step 5. Install Icon
+
+  ```
+  pip install pywin32 winshell
+  onvif-gui --icon
+  ```
 
 ---
 
-&nbsp;
 </details>
 
+&nbsp;
 
+</details>
 
 <details>
 
 <summary>Build From Source</summary>
 &nbsp;
 
-<i>Note that in order to compile the source code, it is necessary to use the --recursive flag when git cloning the repository.</i>
+<i>Building from source on Linux may improve compatability with some cameras and systems</i>
 
 ---
 
@@ -302,8 +232,8 @@ Windows computers will work, but require more computing power to achieve similar
 * ### Step 2. Create Virtual Environment
 
   ```
-  virtualenv myenv
-  source myenv/bin/activate
+  virtualenv onvif-gui-env
+  source onvif-gui-env/bin/activate
   ```
 
 * ### Step 3. Clone Repository
@@ -341,8 +271,44 @@ Windows computers will work, but require more computing power to achieve similar
 * ### Step 2. Create Virtual Environment
 
   ```
-  virtualenv myenv
-  source myenv/bin/activate
+  virtualenv onvif-gui-env
+  source onvif-gui-env/bin/activate
+  ```
+
+* ### Step 3. Clone Repository
+
+  ```
+  git clone --recursive https://github.com/sr99622/libonvif
+  ```
+
+* ### Step 4. Install
+
+  ```
+  cd libonvif
+  assets/scripts/compile
+  ```
+
+* ### Step 5. Launch Program
+
+  ```
+  onvif-gui
+  ```
+</details>
+
+<details>
+<summary>Manjaro</summary>
+
+* ### Step 1. Install Dependencies
+  ```
+  sudo pacman -S cmake base-devel ffmpeg
+  ```
+
+* ### Step 2. Create Virtual Environment
+
+  ```
+  sudo pacman -S pythonX.XX  # where X.XX is the system python version, which must be 3.10 or higher
+  pythonX.XX -m venv onvif-gui-env
+  source onvif-gui-env/bin/activate
   ```
 
 * ### Step 3. Clone Repository
@@ -445,28 +411,63 @@ Windows computers will work, but require more computing power to achieve similar
 
 In order to build from source on Windows, development tools and python are required. Please follow the instructions for installing [Visual Studio](https://visualstudio.microsoft.com/), [cmake](https://cmake.org/download/), [git](https://git-scm.com/download/win) and [python](https://www.python.org/downloads/windows/). When installing Visual Studio, select the desktop C++ development libraries to get the compiler.
 
-* ### Step 1. Create Virtual Environment
+* ### Step 1. Go to Home Directory
 
   ```
-  python -m venv myenv
-  myenv\Scripts\activate
+  cd %HOMEPATH%
   ```
-* ### Step 2. Clone Repository
+
+* ### Step 2. Create Virtual Environment
+
+  ```
+  python -m venv onvif-gui-env
+  onvif-gui-env\Scripts\activate
+  ```
+* ### Step 3. Clone Repository
 
   ```
   git clone --recursive https://github.com/sr99622/libonvif
   ```
 
-* ### Step 3. Install
+* ### Step 4. Clone Dependencies
+
+  ```
+  git clone https://github.com/sr99622/onvif-gui-win-libs
+  ```
+
+* ### Step 5. Set Environment Variables
+
+  ```
+  set FFMPEG_INSTALL_DIR=%HOMEPATH%\onvif-gui-win-libs\ffmpeg
+  set SDL2_INSTALL_DIR=%HOMEPATH%\onvif-gui-win-libs\sdl
+  set LIBXML2_INCLUDE_DIRS=%HOMEPATH%\onvif-gui-win-libs\libxml2\include\libxml2
+  set LIBXML2_LIBRARIES=%HOMEPATH%\onvif-gui-win-libs\libxml2\lib\libxml2.lib
+  ```
+
+* ### Step 7. Move to Source Directory
 
   ```
   cd libonvif
+  ```
+
+* ### Step 8. Copy Run Time Libs to Install Path
+
+  ```
+  copy %HOMEPATH%\onvif-gui-win-libs\ffmpeg\bin\*.dll libavio\avio
+  copy %HOMEPATH%\onvif-gui-win-libs\sdl\bin\*.dll libavio\avio
+  copy %HOMEPATH%\onvif-gui-win-libs\libxml2\bin\*.dll libonvif\libonvif
+  ```
+
+* ### Step 9. Install
+
+  ```
   assets\scripts\compile
   ```
 
-* ### Step 4. Launch Program
+* ### Step 10. Launch Program
 
   ```
+  cd onvif-gui
   python run.py
   ```
 
@@ -479,54 +480,6 @@ In order to build from source on Windows, development tools and python are requi
 
 </details>
 
-<details>
-<summary>Desktop Icon</summary>
-&nbsp;
-
-<i>Please select the instructions for your operating system.</i>
-
----
-
-<details>
-<summary>Linux</summary>
-&nbsp;
-
-In order to add an icon to the desktop, administrator privileges are required. The location of the virtual environment folder must also be known and is required when invoking the command to create the desktop icon. To add the icon, use the following command, substituting the local host virtual environment configuration as appropriate.
-
-```
-sudo myenv/bin/onvif-gui --icon
-```
-
-Upon completion of the command, the icon may be found in the Applications Folder of the system. For example, on Ubuntu, the box grid in the lower left corner launches the Application Folder and the icon can be found there. Once launched, the application icon can be pinned to the start bar for easier access by right clicking the icon.
-
----
-
-</details>
-
-<details>
-<summary>Windows</summary>
-&nbsp;
-
-To install a desktop icon on windows, please make sure the virtual environment is activated and then add the winshell python module.
-
-```
-pip install pywin32 winshell
-```
-
-Now run the following command.
-
-```
-onvif-gui --icon
-```
-
-</details>
-
----
-
-&nbsp;
-
-</details>
-
 ## Operation
 
 <details>
@@ -534,7 +487,7 @@ onvif-gui --icon
 
 &nbsp;
 
-<image src="onvif-gui/gui/resources/discover.png">
+<image src="onvif-gui/onvif_gui/resources/discover.png">
 
 Discover
 
@@ -542,7 +495,7 @@ To get started, click the Discover button. A login screen will appear for each c
 
 Initially, cameras will populate the list using the default name provided by the manufacturer. To change the camera name, use the F2 key, or the right click context menu over the camera list.
 
-<image src="onvif-gui/gui/resources/play.png">
+<image src="onvif-gui/onvif_gui/resources/play.png">
 
 Play
 
@@ -550,13 +503,15 @@ Upon completion of discovery, the camera list will be populated. A single click 
 
 Multiple cameras can stream simultaneously. The application will add camera output to the display for each camera as it is started. The controls for camera operations apply to the current camera, which is the highlighted camera in the list on the camera panel. The current camera will have a thin white border around it in the display.
 
-<image src="onvif-gui/gui/resources/stop.png">
+Network conditions, compute load or internal camera issues may cause buffer overflow in the application pipeline. The result may be that packets are dropped, which can degrade the quality of the stream. If packets are being dropped, the camera display will show a yellow border.
+
+<image src="onvif-gui/onvif_gui/resources/stop.png">
 
 Stop
 
 When the camera stream is running, the play button for that camera will change appearance to the stop icon. Clicking the button will stop the stream.  The stream can also be stopped from the camera list by double clicking or typing the enter key.
 
-<image src="onvif-gui/gui/resources/record.png">
+<image src="onvif-gui/onvif_gui/resources/record.png">
 
 Record
 
@@ -566,13 +521,13 @@ During manually initiated recording, a rotating red colored tick mark will show 
 
 Files created by the application are limited in length to 15 minutes. Recordings that require a longer time will be broken up into several parts that are each 15 minutes long. There will be a slight overlap between files broken up this way corresponding to the length of the Pre Record Buffer setting.
 
-<image src="onvif-gui/gui/resources/apply.png">
+<image src="onvif-gui/onvif_gui/resources/apply.png">
 
 Apply
 
 Camera parameters are available on the tabs on the lower right side of the application. Initially, the Apply button will be disabled with a dimmed icon. Once a parameter has been changed, the Apply button will be enabled, which can be used to commit the change to the camera. The camera may re-start the stream in order to make the changes.
 
-<image src="onvif-gui/gui/resources/audio.png">
+<image src="onvif-gui/onvif_gui/resources/audio.png">
 
 Mute
 
@@ -595,7 +550,9 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 &nbsp;
 
-<img src="assets/images/media_tab.png" style="width: 366px;"/>
+<image src="assets/images/media_tab.png" style="width: 366px;"/>
+
+&nbsp;
 
 * ### W x H (Resolution)
 
@@ -615,14 +572,6 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
     Note that some cameras may have an option for Dynamic GOP or Adaptive Framerate, or some other name for a process that reduces the GOP automatically based on the lack of motion in the camera view. It is advised to turn this feature off when using onvif-gui. To access the feature, use the camera web application from the System Tab -> Browser button.
 
-* ### Cache
-
-    A read only field showing the size of the video packet input buffer for the camera prior to decoding. Higher cache values represent longer latency in the video processing, which may be observed as a delay between the time an event occurs and the event being shown in the video. 
-    
-    The maximum cache size is set on the Settings -> General tab and is by default 100. If the cache is full, incoming packets are discarded, which will affect the quality of the stream. If video packets are being discarded, the video display on the screen will have a yellow border around it.
-
-    Network conditions, compute load or internal camera buffering may cause the cache to fill. Packets may also be buffered internally in other parts of the underlying application pipeline, causing packets to be dropped, even though the cache is showing zero.
-
 * ### Bitrate
 
     The bitrate of the video stream. Higher bitrates increase the quality of the video appearance at the expense of larger file sizes. This is most relevant when maintaining recordings of videos on the host file system. Bitrates are generally expressed in kbps by cameras, but may be inaccurate or scaled differently.  Use the Apply button after changing this setting to enact the change on the camera.
@@ -631,25 +580,25 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
     Most cameras are capable of producing multiple media streams. This feature can be useful when running many cameras on the same computer or if a compute intensive task is being run on a stream. The default stream of the camera is called the Main Stream. A secondary stream running at lower settings is called the Sub Stream. The application uses the terms Display Profile and Record Profile to describe these settings.
 
-    Initially, the Main Profile is selected by default. By changing the selection to a secondary profile, a lower order Sub Stream can be displayed. The term lower order implies that the Sub Stream has lower resolution, lower frame rate and lower bitrate than the Main Stream. Note that the application may be processing both streams, but only the Display Profile selected on the Video Tab is displayed. The other stream, referred to as the Record Stream, is not decoded, but its packets are collected for writing to disk storage.
+    Initially, the Main Stream is selected by default as both the Display Profile and the Record Profile. By changing the selection to a secondary profile on the Media Tab, a lower order Sub Stream can be displayed. The term lower order implies that the Sub Stream has lower resolution, lower frame rate and lower bitrate than the Main Stream. Note that the application may be processing both streams, but only the Display Profile selected on the Video Tab is displayed. The other stream, referred to as the Record Stream, is not decoded, but its packets are collected for writing to disk storage.
 
     The display will update automatically when the Video Tab Profile combo box is changed, so it is not necessary to click the Apply button when changing this setting.
 
 * ### No Audio
 
-    Audio can be disabled by selecting this check box. This is different than mute in the sense that under mute, the audio stream is decoded, but not played on the computer speakers. If the No Audio check box is selected, the audio stream is discarded. If the No Audio checkbox is deselected, the stream will restart in order to initialize the audio. The Apply button is not clicked when changing this parameter.
+    Audio can be disabled by selecting this check box. This is different than mute in the sense that under mute, the audio stream is decoded, but not played on the computer speakers. If the No Audio check box is selected, the audio stream is discarded. If the No Audio checkbox is deselected, the stream will restart in order to initialize the audio. The Apply button is not clicked when changing this parameter. This checkbox is selected by default.
 
-    Please note that if the audio is enabled by deselecting this check box, there should be a physical audio device such as headphones or speakers connected to the host computer. Without a physical device, the audio driver may enter an undefined state which may cause the camera stream to stutter or freeze and may lead to lengthy timeouts when closing the camera stream. This condition applies only to camera streams which are displayed to the user interface. The Record Stream, if different than the Display Stream, is hidden and is not affected by this condition.
+    <b>** Please Note **</b> If the audio is enabled by deselecting this check box, there should probably be a physical audio device such as headphones, speakers or HDMI with audio connected to the host computer. Without a physical device, it may be possible in some cases for the audio driver to enter an undefined state which may cause the camera stream to stutter or freeze and may lead to lengthy timeouts when closing the camera stream. This condition applies only to camera streams which are displayed to the user interface. The Record Stream, if different than the Display Stream, is hidden and is not affected by this condition.
 
 * ### Audio
 
     The audio encoder used by the camera is set here.  If the camera does not have audio capability, the audio section will be disabled. Note that some cameras may have audio capability, but the stream is not available due to configuration issues or lack of hardware accessories.  Available audio encoders will be shown in the combo box and may be set by the user. Changes to the audio parameter require that the Apply button is clicked to enact the change on the camera.
     
-    AAC encoding is highly recommended, as G style encoders may have issues during playback. Note that some cameras have incorrect implementations for encoders and the audio may not be usable in the stream recording to disk. Please be aware that currently onvif-gui is unable to process G726.
+    AAC encoding is a higher quality stream and are recommended for recording. G711 style encoders are good for low latency playback if real time operation is important. Streams using AAC encoding map to mp4 file format and G711 uses mov. Note that some cameras have incorrect implementations for encoders and the audio may not be usable in the stream recording to disk. Please be aware that currently onvif-gui is unable to process G726.
 
 * ### Samples
 
-    Available sample rates are shown in the combo box. Use the Apply button to enact the change on the camera.  Higher sample rates increase the quality of the audio at the expense of higher bandwidth and disk space when recording. The audio bitrate is implied by the sample rate based on encoder parameters.
+    Available sample sizes are shown in the combo box. Use the Apply button to enact the change on the camera.  Higher sample sizes increase the quality of the audio at the expense of higher bandwidth and disk space when recording. Lower sample sizes correlate to lower latency. The audio bitrate is implied by the sample size based on encoder parameters.
 
 * ### Video Alarm
 
@@ -672,7 +621,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 &nbsp;
 
-<img src="assets/images/image_tab.png" style="width: 366px;"/>
+<image src="assets/images/image_tab.png" style="width: 366px;"/>
 
 &nbsp;
 
@@ -685,7 +634,7 @@ The sliders control various parameters of the video quality.  The Apply button m
 
 &nbsp;
 
-<img src="assets/images/network_tab.png" style="width: 366px;"/>
+<image src="assets/images/network_tab.png" style="width: 366px;"/>
 
 &nbsp;
 
@@ -704,7 +653,7 @@ The Apply button must be clicked to enact any of these changes on the camera.
 
 &nbsp;
 
-<img src="assets/images/ptz_tab.png" style="width: 366px;"/>
+<image src="assets/images/ptz_tab.png" style="width: 366px;"/>
 
 &nbsp;
 
@@ -719,7 +668,9 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
 &nbsp;
 
-<img src="assets/images/system_tab.png" style="width: 366px;"/>
+<image src="assets/images/system_tab.png" style="width: 366px;"/>
+
+&nbsp;
 
 * ### Recording
 
@@ -734,6 +685,14 @@ Settings pertain to preset selections or current camera position. The arrow butt
 * ### Alarm Sounds
 
     The check box at the top of the Sounds group box will enable alarm sounds on the computer speaker when checked.  If the Loop radio button is selected, the sound will play continuously during an alarm condition.  Selection of the Once radio button will cause the application to play the alarm sound once per alarm condition.
+
+* ### Record Profile
+
+    The drop down box can be used to the select the camera profile that will be recorded to disk. The Record Profile can be different than the Display Profile shown in the application. This setting can be used most effectively when the application is configured to show the low resolution substream profile in the display, and use the high resolution main profile as the recording source. This enables the application to maintain real time display status, especially with multiple streams, while preserving high resolution accuracy in the recorded stream. Because the recorded stream in not decoded, but rather is piped directly from the camera to disk, the high resolution recording presents very little compute load on the host.
+
+* ### Record Audio
+
+    In many cases, the audio of the Display Profile will be disabled. By default, audio is disabled for camera streams. This is particulaly relevant when displaying multiple streams, as the audio from multiple cameras playing simultaneously may cause confusion. This checkbox allows the display audio to be disabled while preserving audio on the recorded stream.  
 
 * ### Reboot
 
@@ -782,19 +741,19 @@ Settings pertain to preset selections or current camera position. The arrow butt
 <summary>File Operations</summary>
 &nbsp;
 
-<i>Camera recordings can be viewed within the application. A playback can be viewed alongside running cameras or in a separate window. Files can be searched for a particular moment in time.</i>
+<i>Camera recordings can be viewed from within the application. A playback can be viewed alongside running cameras or in a separate window. Files can be searched for a particular moment in time. A server can share recordings using Samba or NFS so that clients can view previously recorded streams.</i>
 
 ---
 
 &nbsp;
 
-The application maintains a folder for the storage of camera recordings. The folder by default is the OS video storage location, and can be changed using the directory setting at the top of the panel. There is a subfolder for each camera that has previously made recordings in the application. Inside the camera folders are the individual files recorded by the camera. The files are named using a datetime convention which represents the start time of the recording. The recording is prepended in the front by a time interval specified on the Settings -> Alarm panel as Pre-Alarm Buffer Size. The file creation time in the OS represents the end time of the file, which occurs as a result of the file being committed to disk at the conclusion of the recording process.
+The application maintains a folder for the storage of camera recordings. The folder by default is the OS video storage location, and can be changed using the directory setting at the top of the panel. There is a subfolder for each camera that has previously made recordings in the application. If you are using Onvif GUI as a client, and the server is configured to share files using either Samba or NFS, you can use the shared server folder to access recordings made on the server by navigating with the three dot button. Inside the camera folders are the individual files recorded by the camera. The files are named using a datetime convention which represents the start time of the recording. The recording is prepended in the front by a time interval specified on the Settings -> Alarm panel as Pre-Alarm Buffer Size. The file creation time in the OS represents the end time of the file, which occurs as a result of the file being committed to disk at the conclusion of the recording process.
 
 Please note that the initial appearance of the file panel may not display all file info fields, hence the scroll bar at the bottom of the file list. The view can be expanded dragging from left side of the file list panel. For convenience, it is possible to set up a window profile in Settings -> General-> Open New Window for viewing files and expand the file list panel, which will preserve the size of the panel for future use. It is also possible to hide the camera panel so that the file viewer window will open directly into the file panel.
 
 &nbsp;
 
-<img src="assets/images/file_panel.png" style=" width: 385px;">
+<image src="assets/images/file_panel.png" style=" width: 385px;">
 
 &nbsp;
 
@@ -802,7 +761,7 @@ File playback is configured such that one file is played at a time. Keyboard sho
 
 <h3>File Playback Controls For Mouse</h3>
 
-<image src="onvif-gui/gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/gui/resources/audio.png">
+<image src="onvif-gui/onvif_gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/audio.png">
 
 Play&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pause&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prev&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Next&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mute
 
@@ -860,17 +819,27 @@ The File Panel has a progress bar that will show the state of the playback. The 
 
 Right clicking over the file will bring up a context menu that can be used to perform file operations.
 
+### Hide Camera Panel
+
+Viewing files may be more convenient if a separate window is set up distinct from the camera display. This can be helpful if viewing archived recordings while cameras are being displayed in real time. A file view can be created from the Settings -> General tab using the three dot button in the Open New Window section. Once the file viewer is set up, the Hide Camera Panel checkbox can be selected so that only files and not cameras are shown on the file view window. Additionally, it may be helpful to expand the right side of the application to accomodate the full file parameter display tab. These settings will be preserved on the file viewer window and will not affect the default window started by the application.
+
 ### File Searching by Time
 
 The application has the ability to search the files by camera for a particular moment in time.
+
+&nbsp;
 
 <image src="assets/images/file_search.png" style=" width: 304px;">
 
 &nbsp;
 
-Use the dialog box to select a Camera, Date and Time and the application will search the files for that particular moment. If found, a confirmation box will pop up and the file can be played directly. The application will automatically highlight the file in the list and forward the playback to a moment near the selected time. There may be a slight offset corresponding roughly to the Pre-Alarm Buffer Size from the Settings -> Alarm panel.
+The search dialog is launched by clicking the search icon on the File panel. Use the dialog box to select a Camera, Date and Time and the application will search the files for that particular moment. If found, a confirmation box will pop up and the file can be played directly. The application will automatically highlight the file in the list and forward the playback to a moment near the selected time. There may be a slight offset corresponding roughly to the Pre-Alarm Buffer Size from the Settings -> Alarm panel.
 
 If the application was not able to find the exact match, a pop up box will ask if you want to play the closest file in time. Note that the application will highlight this closest match in the file list, so you could use that as a starting point for navigating through the files.
+
+### Refresh File View
+
+The files listed in the panel my not be updated automatically. Use the refresh icon to get a current listing of the files available for view.
 
 ---
 
@@ -886,7 +855,11 @@ If the application was not able to find the exact match, a pop up box will ask i
 
 ## General Settings
 
+&nbsp;
+
 <image src="assets/images/general.png" style=" width: 366px;">
+
+&nbsp;
 
 ### Common Username and Password
 
@@ -920,7 +893,11 @@ The default 'Focus' profile is a reserved profile that is integrated into applic
 
 Additional profiles can be added using the three dot button to the right of the drop down box that will launch a configuration dialog box.
 
+&nbsp;
+
 <image src="assets/images/profile.png" style=" width: 360px;">
+
+&nbsp;
 
 New Windows can be configured to show specific groups of cameras, which can be useful if the host computer is driving several monitors such that different groups of cameras are shown on different monitors. The Open button will launch a window with the profile selected in the drop down box. Each profile will have a separate configuration that is set by the user.
 
@@ -938,10 +915,18 @@ This button will show the logs of the application. Many events and errors encoun
 
 Shows this file.
 
+### Hide Display
+
+If running Onvif GUI in server configuration, it may be desirable to run in headless mode. If this is the case, hiding the display will significantly reduce compute load by bypassing the rendering routines. In this configuration, the compute load will be similar to that of a console application. Once the display is hidden, the text of the button will change to Show Display with appropriate functionality.
+
 
 ## Discover Settings
 
+&nbsp;
+
 <image src="assets/images/discover.png" style=" width: 366px;">
+
+&nbsp;
 
 ### Discovery Options
 
@@ -967,7 +952,11 @@ When selected in combination with the Auto Discovery check box, cameras shown in
 
 ## Storage Settings
 
+&nbsp;
+
 <image src="assets/images/storage.png" style=" width: 366px;">
+
+&nbsp;
 
 ### Disk Usage
 
@@ -987,7 +976,11 @@ The application has the ability to manage the disk space used by the recorded me
 
 ## Proxy Settings
 
+&nbsp;
+
 <image src="assets/images/proxy.png" style=" width: 366px;">
+
+&nbsp;
 
 ## Proxy Type
 
@@ -1011,7 +1004,11 @@ The application has the ability to manage the disk space used by the recorded me
 
 ## Alarm Settings
 
+&nbsp;
+
 <image src="assets/images/alarm.png" style=" width: 366px;">
+
+&nbsp;
 
 ### Pre-Alarm Buffer Size
 
@@ -1037,7 +1034,7 @@ A few default alarm sounds for selection.  A system wide volume setting for the 
 
 ---
 
-The Video Panel has multiple modes of operation. The default setting is for motion, which can be used without further configuration and will run easily on a CPU only computer. YOLOX requires the installation of additional python packages, namely pytorch and openvino. YOLOX will perform well on NVIDIA, AMD ROCm, and Intel Xe or ARC Graphics. yolov8 will perform well on recent Apple Silicon M chips and requires pytorch and ultralytics python modules. RyzenAI is available for AMD chips with NPU.
+The Video Panel has multiple modes of operation. The default setting is for motion, which can be used without further configuration and will run easily on a CPU only computer. YOLOX requires the installation of additional python packages, namely pytorch and openvino. YOLOX will perform well on recent Apple Silicon M chips, NVIDIA GPU, and Intel Xe, UHD or ARC Graphics.
 
 In order for the panel to be enabled, either a camera or a file must be selected. If a camera is selected, the Video Alarm check box must also be selected on the Media Tab of the Camera Panel. If a file is selected, the Enable File check box on the Video Panel must be selected.
 
@@ -1045,7 +1042,15 @@ Parameters set on the panel are applied to files globally, and to cameras indivi
 
 If the analysis produces an alarm, record and alarm sound actions are taken based on the settings made on the System Tab of the Camera Panel. Files are not connected to alarm processing.
 
-* ### Motion
+<details>
+<summary><b>Motion Detection</b></summary>
+&nbsp;
+
+<i>Motion detection is useful in lower powered systems without AI processing capabilities</i>
+
+---
+
+&nbsp;
 
 <image src="assets/images/motion.png" style="width: 640px;">
 
@@ -1053,25 +1058,54 @@ If the analysis produces an alarm, record and alarm sound actions are taken base
 
 The motion detector measures the difference between two consecutive frames by calculating the percentage of pixels that have changed. If that result is over a threshold value, an alarm is triggered. The Diff check box will show a visualization of the differential pixel map that is used by the calculation. The status bar will light green to red as the value of the algorithm result increases. The Gain slider can amplify or attenuate the result to adjust the sensitivity of the detector. Higher Gain slider values increase the sensitivity of the detector.
 
-* ### YOLOX
+Motion detection systems are prone to false alarms due to the indiscriminate nature of the analysis. They can be useful in settings where motion is limited, such as a controlled indoor environment. They are not recommended for general use, expecially in outdoor settings.
+
+---
+&nbsp;
+</details>
+
+
+<details>
+<summary><b>YOLOX</b></summary>
+&nbsp;
+
+<i>YOLOX is an AI powered analysis for detecting specific types of objects</i>
+
+---
+
+&nbsp;
 
 <image src="assets/images/yolox.png" style="width: 640px;">
 
 &nbsp;
 
-Note: If Mac OS is the operating system, please use yolov8 for video analysis.
+<b>Prerequisites</b>
 
-YOLOX will run with hardware acceleration on NVIDIA GPU and Intel iGPU, NPU, or ARC Graphics.
+YOLOX will run with hardware acceleration on Apple Silicon, NVIDIA GPU and Intel iGPU, NPU, or ARC Graphics.
+
+<b>Installation Requirements</b>
+
+<b>Please Note:</b>The installation scripts for Linux and Mac OS install the necessary python libraries automatically. The Linux installation scripts will install iGPU drivers on Intel chips automatically. If using NVIDIA GPU, those drivers are usually installed by default on modern Linux distros, but some may require manual installation. Windows users will need to install drivers and python libraries manually for the time being.
 
 YOLOX requires installation of [PyTorch](https://pytorch.org/get-started/locally/) and [OpenVINO](https://docs.openvino.ai/2024/get-started/install-openvino.html?VERSION=v_2024_1_0&OP_SYSTEM=LINUX&DISTRIBUTION=ARCHIVE)
 
 For systems with NVIDIA GPU, please install modern NVIDIA drivers for the hardware. If the drivers have been installed correctly, the ```nvidia-smi``` command will produce correct results showing the CUDA version. Use this information when installing pytorch in order to get the matching hardware acceleration library.
 
-Note: There are two versions of PyTorch, CPU and GPU. The GPU version is substantially larger and will take a long time to download. If you are running OpenVINO configuration, you do not need the GPU version of the library, the CPU version will work fine. If you are running NVIDIA GPU, you will need the GPU version for hardware acceleration. Please review the PyTorch installation instructions linked above carefully for the correct instructions for your situation.
+Note: There are two versions of PyTorch, CPU and GPU. The GPU version is substantially larger and will take a long time to download. If you are running OpenVINO configuration, you do not need the GPU version of the library, the CPU version will work fine. If you are running NVIDIA GPU, you will need the GPU version for hardware acceleration. Please review the PyTorch installation instructions linked above carefully for the correct instructions for your situation. Linux and Mac OS install scripts will automatically configure the python libraries needed.
 
-To run yolox using OpenVINO on Intel hardware, you will need to install the hardware drivers. On Windows, these drivers may be installed as part of the operating system. Look for the Intel Driver and Support Assistant in the Applications menu for configuration and updates. To install Intel hardware drivers in Ubuntu, please refer to the instructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases). The OpenVINO python module is installed with the command ```pip install openvino```.
+```
+Please follow PyTorch installation instruction linked above ^
+```
 
-Note that both the pytorch and OpenVINO python modules are required for either configuration. Hardware drivers are only required for the actual hardware being used.
+THe Linux installation script will install the GPU driver to run yolox using OpenVINO on Intel hardware. On Windows, these drivers may be installed as part of the operating system. Look for the Intel Driver and Support Assistant in the Applications menu for configuration and updates. To install Intel hardware drivers in Ubuntu, please refer to the instructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases). The OpenVINO python module is installed with the command 
+
+```
+pip install openvino
+```
+
+Note that both the pytorch and OpenVINO python modules are required for either configuration. Hardware drivers are only required for the actual hardware being used. The Linux and Mac OS install scripts handle these transactions automactically.
+
+<b>Configuration</b>
 
 The upper portion of the yolox panel has a model configuration box. Model parameters are system wide, as there will be one model running that is shared by all cameras. The Name combo box selects the model, which is named according to the size of the number of parameters in the model. Larger models may produce more accurate results at the cost of increased compute load. The Size combo box sets the resolution to which the video is scaled for model input. Larger sizes may increase accuracy at the cost of increased compute load. It is possible to change the backend API of the yolo detector by using the API combo box. The Device combo box will populate automatically with available hardware.
 
@@ -1089,19 +1123,21 @@ There is also a Confidence slider that applies to the yolox model output. Higher
 
 It is necessary to assign at least one target to the panel in order to observe detections. The + button will launch a dialog box with a list of the available targets. Targets may be removed by using the - button or the delete key while the target is highlighted in the list.
 
-<b>NOTE: If running OpenVINO on Intel Ultra chips in Linux</b>, instability has been observed when running the models on the GPU. This can be avoided by explicitly specifying NPU as the Device on the model configuration panel. Note that the AUTO setting will generally default to GPU. Prior generations of Intel chips with Xe iGPU seem to work fine, as the issue seems to be confined to the latest iGPU versions. This effect was not observed in Windows, so the AUTO setting should be fine in the Windows environment. Generally speaking, NPU is a better choice anyway, as this leaves the GPU more potential for supporting other compute loads.
+---
+&nbsp;
+</details>
 
-Note as well that there is a [bug in the OpenVINO system on Windows](https://github.com/openvinotoolkit/openvino/issues/28540) that will cause the program to double launch when starting. You may see the window blink a couple of times when starting Onvif GUI with the OpenVINO analytics running on the video stream.
+<details>
+<summary><b>Ryzen AI (FOR REFERENCE ONLY - NOT WORKING WITH CURRENT API)</b></summary>
+&nbsp;
 
-* ### yolov8
+<i>AMD NPU can run YOLOX using the Ryzen AI framework</i>
 
-yolov8 is a direct replacement for YOLOX and has the same interface. It requires the installation of pytorch. It has an additional ultralytics python module requirement as well, but will otherwise perform a very similar calculation. This model works well on Apple silicon.
+---
 
-```
-pip install ultralytics
-```
+&nbsp;
 
-* ### RyzenAI
+Source code can be found on [github](https://github.com/sr99622/onvif-gui-ryzen-ai)
 
 yolox will work with RyzenAI on AMD chips with NPU. Configuration Details are available on [Hugging Face](https://huggingface.co/amd/yolox-s). The AMD system is still under development, so options here are limited to a single model with fixed parameters, but performance is on par with competing solutions. Configuration for this model requires installation of the Ryzen AI Software which in turn requires anaconda as the python provider. Note as well that the anaconda installation required by this setup needs the anaconda binaries available in the PATH environment variable, which may cause conflicts with other python configurations. 
 
@@ -1125,6 +1161,12 @@ The Onvif GUI application will need to be installed into the anaconda environmen
 
 Note as well that the configuration requires the location of the <b>vaip_config.json</b> file generated by the RyzenAI Software installation. This file can usually be found in the RyzenAI home directory which is in the `C:\Program Files\RyzenAI\1.3.1\voe-4.0-win_amd64` folder, where 1.3.1 is the version of the software and can be expected to change with version updates. The model itself will be downloaded automatically from HuggingFace by default, or can be installed manually if preferred.
 
+
+&nbsp;
+</details>
+
+---
+
 &nbsp;
 </details>
 
@@ -1132,11 +1174,11 @@ Note as well that the configuration requires the location of the <b>vaip_config.
 <summary>Audio Panel</summary>
 &nbsp;
 
-<i>Audio streams cam be analyzed to generate alarms.</i>
+<i>AAC Audio streams can be analyzed to generate alarms.</i>
 
 ---
 
-The audio panel can analyze streams in both amplitude and frequency domains. Note that frequency analysis requires slightly more computing power than amplitude analysis. 
+The audio panel can analyze streams in both amplitude and frequency domains. Note that frequency analysis requires slightly more computing power than amplitude analysis. Please note that only AAC encoded audio is supported at this time.
 
 In order for the panel to be enabled, either a camera or a file must be selected. If a camera is selected, the Video Alarm check box must also be selected on the Media Tab of the Camera Panel. If a file is selected, the Enable File check box on the Video Panel must also be selected.
 
@@ -1148,6 +1190,8 @@ If the analysis produces an alarm, record and alarm sound actions are taken base
 &nbsp;
 
 <image src="assets/images/audio_panel.png" style="width: 400px;">
+
+&nbsp;
 
 * ### Amplitude
 
@@ -1191,8 +1235,10 @@ The control tab on the right of the application window may be toggled using the 
 
 &nbsp;
 
----
+<details>
+<summary>Servers</summary>
 
+&nbsp;
 
 <details>
 <summary>DHCP Servers</summary>
@@ -1377,6 +1423,807 @@ Please note that the installation procedure does not include instructions for se
 
 </details>
 
+<details><summary>NFS Server and Client setup</summary>
+&nbsp;
+
+---
+From [Ubuntu Docs](https://ubuntu.com/server/docs/network-file-system-nfs). A very well written explanation.
+
+
+To show available mounts from the client, use server address
+
+```
+showmount -e 10.1.1.80
+```
+
+---
+
+&nbsp;
+</details>
+
+<details>
+<summary>Setting Up a Samba Share For Windows Clients</summary>
+
+&nbsp;
+
+It is possible for Windows clients to access camera recordings residing on a Linux server on the local network by installing a samba share on the Linux server. There are a few steps needed to set up the server, which are often not well documented for this type of configuration. The instructions following first set up the shared folder on the server then show how a Windows client can attach to the shared folder as a mapped drive. Please note that this setup is intended for use in a simple private network where all users can be trusted with data. More sophisticated configurations that control data access are possible, but are beyond the scope of these instructions.
+
+* #### Linux Server Configuration
+
+  Step 1. <b>Fixed IP Address</b> The server should have a fixed IP address. This is not completely necessary for system operation, but will prevent mishaps later that can occur if the server address changes. For Ubuntu and similar systems, there is a GUI control dialog that can be used to assign a fixed IP address. The address chosen will depend on the router settings, which will set aside a range of addresses that are available for fixed IP. Usually this will be at the bottom and/or top of the IP range controlled by the router. The router setting that defines these ranges is set by DHCP. Check ahead of time that the desired IP address is not already taken and is available per the router configuration.
+
+  Step 2. <b>Install Samba</b> On Ubuntu, the Samba server is installed using the apt command
+
+  ```
+  sudo apt install samba
+  ```
+
+  Step 3. <b>Configure Samba Server</b> The Samba configuration is performed by editing the `/etc/samba/smb.conf` file. The Samba installation will create a default file in this location, which is not a good fit for this type of configuration. It is recommnded to move the file to a backup and start with a fresh file for configuration, following the commands
+
+  ```
+  cd /etc/samba
+  sudo mv smb.conf smb.conf.bak
+  sudo nano smb.conf
+  ```
+
+  You will now be starting from a clean slate. The following text saved into the `smb.conf` file will create a configuration for sharing that is compatible with the application. Note that the shared folder will need to be created later, and a symbolic link will be placed in the folder to access the home folder for the account under which Onvif GUI was installed, which has the Videos folder hosting the camera recordings.
+
+  ```
+  [global]
+    workgroup = WORKGROUP
+    allow insecure wide links = yes
+  
+  [share]
+    comment = Ubuntu File Server Share
+    path = /srv/samba/share
+    browsable = yes
+    guest ok = yes
+    read only = no
+    create mask = 0755
+    follow symlinks = yes
+    wide links = yes
+  ```
+
+  Step 4. <b>Create the Shared Folder and Set Permissions</b> Now the shared folder is created on the Linux server, and the permissions are set to allow access by the clients.
+
+  ```
+  sudo mkdir -p /srv/samba/share
+  sudo chown nobody:nogroup /srv/samba/share/
+  ```
+
+  Step 5. <b>Create Symlink</b> A symlink to the $HOME folder is placed into the samba shared folder. The reason for using a symlink rather than pointing directly to the folder is to avoid permission conflicts that can cause the Windows client to be unable to log into the samba share. By default, Onvif GUI sets the user $HOME/Videos folder as the recordings folder, which requires ownership that is incompatible with the Samba protocol. A symlink avoids this issue. The symlink is created as follows
+
+  ```
+  sudo ln -s $HOME /srv/samba/share/home
+  ```
+
+  Step 6. <b>Set Samba Password</b> Windows will require that a password is set on the share. Since Samba doesn’t use the system account password, we need to set up a Samba password for our user account. Use the username and password from the account under which Onvif GUI was installed.
+
+  ```
+  sudo smbpasswd -a username
+  ```
+
+* #### Windows Client Configuration
+
+  Open the file navigator in Windows and go to the Network section. Using the address bar at the top, enter the IP address of the server such as, for example,
+
+  ```
+  \\10.1.1.3
+  ```
+
+  If all goes well, you get a shared folder icon in the navigator. Double click the folder to get a login screen. Use the credentials of the Onvif GUI account on the Linux server. If successful, create a shared drive by right clicking over the folder and using the drop down menu, and make the drive persisent. Open the Ovnif GUI application, go to the Files tab and use the navigation bar at the top to select the Videos folder from the shared drive. You should see the folders holding the camera recordings.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Network Priority on Multi Homed Hosts</summary>
+
+&nbsp;
+
+---
+
+When connecting a host computer to multiple networks, it may be difficult to reach remote computers if one of the connected networks does not have internet access. This can happen if the host computer uses the wired ethernet interface to isolate cameras on a network without internet access and the host intends to use the wireless connection to communicate with the internet. In this situation, the host operating system may attempt to use the wired ethernet connection to communicate with the internet which can result in lengthy delays or the inability to access the internet altogether.
+
+The issue can be addressed by assigning priorities to network adapters. Most Linux distributions seem to be able to handle this situation on their own, so the issue is mostly associated with Windows and MacOS. The basic concept is to set the priority of the connection with the ability to access the internet a higher value than interfaces which are not connected to the internet.
+
+### Windows
+
+Open a powershell in Administrator mode and use the following command to show interface priorities
+
+```
+Get-NetIPInterface
+```
+
+This will show a table of the network interfaces and their associated priority. Interfaces are tagged with an identifier referred to as InterfaceIndex. The priority of the interface is referred to as InterfaceMetric where lower numbers have higher priority. The priority of an interface is set using the command
+
+```
+Set-NetIPInterface -InterfaceIndex <idx> -InterfaceMetric <metric>
+```
+
+Where `<idx>` is the network identifier number and `<metric>` is the priority
+
+### MacOS
+
+Click the Apple icon in the upper left corner of the screen and select System Settings -> Network. On the right on the dialog should be a drop down shown as `...v` with a question mark to the right. Click the drop down and select Set Service Order. You can then drag and drop the interface names to set the priority.
+
+---
+
+</details>
+
+&nbsp;
+
+---
+
+</details>
+
+<details>
+<summary>Python</summary>
+
+&nbsp;
+
+#### Introduction
+
+Python configuration is critical to program operation. Understanding some aspects of installing and runnning a Python program do impose upon the developer a burden of technical research. Compounding the difficulty of this task is the existence of several variations of Python tools that all accomplish the same thing. The recommendation here is to focus on the original work from [python.org](https://python.org) and ignore other derivative products such as Anaconda and pyenv.
+
+Python is a standard tool installed on every Linux distribution. Each Linux distro makes it's own version of Python, and it is often used to help manage shell scripts for system maintenance. Python has become quite popular and is now available on many other platforms. Python is not universally loved, however, and tales abound of Linux machines brought down by bad Python versions. This is a legitimate gripe as it is indeed possible to break the functionality of a system Python by overwriting its components installing incompatible versions.
+
+#### Virtual Environments
+
+Virtual environments are a solution to the issue of system interaction with multiple Python installations. A virtual environment has two main components, the Folder and the Shell Variables.
+
+* #### Folder
+
+  A virtual environment Folder is a subdirectory on the disk containing all the files necessary to run a particular version of Python. This allows a Python version separate from the system installed version operate independently. Python has been optimized to minimize the size of the Folder, so the virtual environments are lightwieght. The virtual environment Folder is created by a call to the venv module as ```python3 -m venv <name>```, where ```<name>``` is chosen by the user. Note that ```<name>``` is traditionally entered as a relative path name, but a full path name is valid. Note that some Linux distributoons have the venv module included by default, while other distributions require the installation of additional libraries.
+
+* #### Shell Variables
+
+  An important feature of the virtual environment Folder is that it is not located on the system $PATH. This is done in order to minimize interaction with the system Python and other libraries. When virtual environments are activated, the shell in which Python executes has additional environment variables added to the inherited system environment variables. Python appears to other processes also operating within the shell that it is installed as the system Python. When the shell is closed, the shell variables do not persist. This is how the virtual environment prepends the Folder to the $PATH so it can be found by other processes. 
+  
+  Virtual enviroments are activated by calling the ```source <name>\bin\activate``` command. This opens a shell. The ```deactivate``` command closes the shell.
+
+&nbsp;
+
+The following commands create a virtual environment named after the caller supplied ```<name>``` and activate it. You should notice that the terminal prompt will now show the environment name set by ```<name>```. This is a visual cue indicating that the environment is active.
+
+```
+python3 -m venv <name>
+source <name>/bin/activate
+```
+
+Python applications are then run in the virtual environment, for example ```python --version```. You may also observe the shell variables using the ```printenv``` commmand, which should show the Folder at the front of the $PATH. The deactivate command closes the shell, and the terminal prompt will return to its original state.
+
+```
+deactivate
+```
+
+It is worth noting at this point that Python on Linux is invoked by calling python3, which is a symbolic link to an executable file named after the system Python version e.g. python3.12. By using this strategy, multiple versions of Python can reside in the /usr/bin directory and coexist peacefully as long as the symlink python3 remains attached to the original system Python. If you want to invoke a particular Python version, just use the full python3.xx name of the executable. As a further note, virtual environments will have a symlink in their bin folder to the Python version that was used to create them, and the link is simply named python. The effect of this is that when a virtual environment is active, a call to python invokes the Python version used to create it.
+
+#### Installing and Running Programs Written in Python
+
+Virtual environments give developers the ability to build complex applications in a repeatable way without compromising system integrity. Independence from system libraries allows the use of localized versions of those libraries thereby avoiding problems with mismatched versions or missing system libraries. The Python installation helper, ```pip``` will install Python programs and packages into the virtual environment Folder, where any files needed to run the program are located as well.
+
+When a program written in Python is installed in a virtual environment, a script is placed into the ```bin``` directory of the Folder. This script can be accessed directly from the system shell without activating the virtual environment. When called, the program script will activate its own shell and start the program. In this manner, a program written in Python can be started the same way as a binary compiled program, allowing integration into the system Applications folder with an icon for launching. Knowledge of the location of the virtual environment folder is required and the script is invoked using the full path name. 
+
+#### Installing Python
+
+Most if not all modern Linux systems have a recent Python installed by default. If the version of the default installed Python is at least 3.10, Onvif GUI will run in a virtual environment created with that Python. The version of Python can be observed using the command
+
+```
+python3 --version
+```
+
+Onvif GUI can be run on older Linux versions with an upgraded Python version if the system kernel is at least 5.4. The kernel version can be observed using the command
+
+```
+uname -r
+```
+
+In the event that you need to upgrade an existing installation, and the kernel is sufficient, Python can be upgraded using a process such as outlined below for Ubuntu.
+
+<details>
+<summary>Compile Python3.12 Ubuntu</summary>
+
+&nbsp;
+
+<i>Important Note: The binaries are installed using the</i> ```make altinstall``` <i> command rather than the traditional </i> ```make install```. <i>This is important to prevent overwriting the system Python binaries.</i>
+
+```
+sudo apt update -y
+sudo apt upgrade -y
+
+sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
+    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev libffi-dev liblzma-dev python-openssl git pkg-config
+
+cd /tmp
+wget https://www.python.org/ftp/python/3.12.9/Python-3.12.9.tgz
+tar -xf Python-3.12.9.tgz
+cd Python-3.12.9
+./configure --enable-optimizations
+
+make -j$(nproc)
+sudo make altinstall
+```
+
+&nbsp;
+
+</details>
+
+<details><summary>Compile Python3.12 CentOS 9</summary>
+
+&nbsp;
+
+```
+sudo dnf update
+sudo dnf install -y gcc openssl-devel bzip2-devel libffi-devel wget tar make zlib-devel \
+    sqlite-devel xz-devel ncurses-devel readline-devel tk-devel libuuid-devel
+cd /tmp
+wget https://www.python.org/ftp/python/3.12.9/Python-3.12.9.tgz
+tar -xf Python-3.12.9.tgz
+cd Python-3.12.9
+./configure --enable-optimizations
+make -j $(nproc)
+sudo make altinstall
+```
+
+&nbsp;
+
+</details>
+
+<details><summary>Install Python3.12 Using deadsnakes (Ubuntu ONLY)</summary>
+
+&nbsp;
+
+```
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y python3.12-dev
+sudo apt install -y python3.12-venv
+```
+
+&nbsp;
+
+</details>
+
+<details><summary>Installing Python on Windows and Mac OS</summary>
+&nbsp;
+
+The Python [website](https://python.org) has installers available for Windows and Mac OS. These are graphical applications that are suitable for non-technical users. It is also possible to use the installers from the command line.
+
+[Windows Command Line Install](https://docs.python.org/3/using/windows.html#installing-without-ui)
+
+[Mac OS Command Line Install](https://docs.python.org/3/using/mac.html#installing-using-the-command-line)
+
+</details>
+
+&nbsp;
+
+---
+
+</details>
+
+<details>
+<summary>Virtual Machines</summary>
+
+&nbsp;
+
+<i>These notes are included for reference when setting up Virtual Machines to use as build platforms for the pypi packages. Some information may be outdated</i>
+
+
+<details><summary>Install QuickEMU</summary>
+
+&nbsp;
+
+---
+
+<h3>Dependencies</h3>
+
+```
+sudo apt install qemu-system bash coreutils ovmf grep jq lsb-release procps python3 genisoimage usbutils util-linux sed spice-client-gtk swtpm wget xdg-user-dirs zsync unzip
+```
+<h3>Quick EMU</h3>
+
+```
+sudo apt-add-repository ppa:flexiondotorg/quickemu
+sudo apt update
+sudo apt install quickemu
+```
+<h3>Quick GUI</h3>
+
+```
+wget https://github.com/quickemu-project/quickgui/releases/download/1.2.10/quickgui-1.2.10+1-linux.deb
+sudo dpkg -i quickgui-1.2.10+1-linux.deb
+rm quickgui-1.2.10+1-linux.deb
+```
+
+<h3>Launch From vm Directory</h3>
+
+```
+mkdir vm && cd vm
+quickgui
+```
+
+<h3>Additional Configuration</h3>
+
+By default, Quickemu will calculate the number of CPUs cores and RAM to allocate to a VM based on the specifications of your host computer. You can override this default behaviour and tune the VM configuration to your liking.
+
+Add additional lines to your virtual machine configuration:
+
+    cpu_cores="4" - Specify the number of CPU cores allocated to the VM
+    ram="4G" - Specify the amount of RAM to allocate to the VM
+    disk_size="16G" - Specify the size of the virtual disk allocated to the VM
+
+
+---
+
+&nbsp;
+
+</details>
+
+<details><summary>Shared networking for QEMU</summary>
+&nbsp;
+
+---
+Taken from this [link](https://serverfault.com/questions/1075408/can-i-have-my-kvm-guests-on-the-same-subnet-as-the-host)
+
+
+The objective of this installation is that virtual machines share the same network as the host.
+
+<h3>Set up the logical network bridge on the host</h3>
+
+<b>Note that this configuration will disable the network interface from the host perspective. It is recommended to add a usb network adapter if you only have one ethernet interface (please refer to note at the bottom of this section</b>
+
+Create `/etc/netplan/01-kvmbridge.yaml`. Example:
+
+```
+network:
+  ethernets:
+    enp4s0:
+      dhcp4: true
+  bridges:
+    virbr0:
+      interfaces: [enp4s0]
+      dhcp4: true
+      mtu: 1500
+      parameters:
+        stp: true
+        forward-delay: 15
+```
+
+Notes: NIC name will differ depending on driver. Address assignment doesn't have to be by DHCP.
+
+Run `sudo netplan try` to test the config and `sudo netplan apply` to apply it once you're satisfied it works. Note that changing a network config over ssh may not be a good idea.
+
+</h3>Tell KVM how to access the connection</h3>
+
+Create a file `~/kvmbridge.xml` with the following contents:
+
+```
+<network>
+  <name>host-bridge</name>
+  <forward mode="bridge"/>
+  <bridge name="virbr0"/>
+</network>
+```
+
+<h3>Enable the bridge</h3>
+
+```
+virsh net-define ~/kvmbridge.xml
+virsh net-start host-bridge
+virsh net-autostart host-bridge
+```
+
+You should now be able to select the network host-bridge for your VMs to have them coexist on the same network as the host. Use the blue i dot to access the hardware and set the NIC to host-bridge network.
+
+It was observed over time that the secondary usb network adapter was no longer necessary and the QEMU seemed to be sharing the single network adapter with the host, which is the desired result. It is possible that re-booting implements this functionality, or it is also possible that seemingly unrelated installations occured which may have been the cause. Unknown at this time.
+
+The instructions do not include the installation of the virt network manager. I believe it is common knowledge, with out tricky setup. I did first install the QuickGUI version of QEMU, which is not recommended.
+
+---
+
+&nbsp;
+
+</details>
+
+<details><summary>Shared filesystem for QEMU</summary>
+&nbsp;
+
+---
+
+Derived from this [link](https://blog.sergeantbiggs.net/posts/file-sharing-with-qemu-and-virt-manager/), which has further untested instructions for windows.
+
+```
+sudo apt install virtiofsd
+mkdir ~/dist
+```
+
+
+<b><u>Virtiofs needs shared memory to work</u></b>. This can be enabled in the hardware configuration window. Navigate to Hardware -> Memory and select Enable shared memory, then click the Apply button.
+
+After that, open virt-manager and select the virtual machine while it is not running. Click the Open Icon, and then click the blue circle i button. The virt-manager hardware window will be shown. The left pane contains the different categories. The right pane contains the setting for the specific category. Beneath the categorey pane, there is a button called 'Add Hardware'. A dialog box should pop up. In the pane on the left, click on Filesystem.
+
+<h3>Filesystem options</h3>
+
+The settings are as follows:
+
+For the Driver, we keep the default (virtiofs). The source path is the path on our host filesystem. The target path is a bit of a misnomer. It’s not actually a path, just an identifier that we use as a mount point in our guest file system. This will become clear when we mount the file system in the guest later.
+
+If you want a more detailed overview of these options and some alternatives, check out the libvirt knowledge base on virtiofs
+
+<h3>Guest Configuration</h3>
+
+After that, it’s time to configure the guest. First we create a folder in our users home directory that we will mount the share into.
+
+```
+mkdir ~/dist
+```
+
+After that, we can mount the share with:
+
+```
+sudo mount -t virtiofs dist /home/stephen/dist
+```
+
+If we want to make this permanent, we can just add an entry to /etc/fstab
+
+```
+dist   /home/stephen/dist       virtiofs        defaults        0       0
+```
+
+After rebooting, the share should be mounted! If your user on the host and the guest are the same, you don’t even need to worry about any other permissions. Otherwise, change the folder with chmod to suit your needs.
+
+---
+
+&nbsp;
+
+</details>
+
+<details><summary>Install Quick EMU gui</summary>
+&nbsp;
+
+---
+
+```
+sudo apt install qemu-system bash coreutils ovmf grep jq lsb-release procps python3 genisoimage usbutils util-linux sed spice-client-gtk swtpm wget xdg-user-dirs zsync unzip
+```
+```
+sudo apt-add-repository ppa:flexiondotorg/quickemu
+sudo apt update
+sudo apt install quickemu
+```
+```
+sudo add-apt-repository ppa:yannick-mauray/quickgui
+sudo apt update
+sudo apt install quickgui
+```
+
+---
+
+&nbsp;
+</details>
+
+<details><summary>Configure Windows</summary>
+&nbsp;
+
+---
+
+Install git [homepage](https://git-scm.com/downloads/win)
+
+Install cmake [hompage](https://cmake.org/download/)
+
+Install pyenv-win [homepage](https://github.com/pyenv-win/pyenv-win)
+
+Navigate to the Visual Studio Downloads page and scroll down to the "Tools for Visual Studio" section under "All downloads": Select the Build Tools: Choose the "Build Tools for Visual Studio" package
+
+
+Download and install each of these python versions using default settings. Don't change anything
+
+```
+https://www.python.org/ftp/python/3.13.2/python-3.13.2-amd64.exe
+https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe
+https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe
+https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
+
+```
+
+```
+cd %HOMEPATH%
+set PATH=C:\Users\sr996\AppData\Local\Programs\Python\Python310;%PATH%
+python -m venv py310
+py310\Scripts\activate
+python.exe -m pip install --upgrade pip
+cd libonvif
+assets/scripts/windows_build
+set PATH=%PATH:C:\Users\sr996\AppData\Local\Programs\Python\Python310;=%
+
+
+```
+
+
+```
+set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+
+```
+
+---
+
+&nbsp;
+
+</details>
+
+<details><summary>Configure Debian</summary>
+&nbsp;
+
+---
+
+<h3>Add yourself to sudoers</h3>
+
+```
+Type su -l (enter) Type administrator password (enter) Type adduser [your login name] sudo (enter) 
+```
+
+<h3>Turn off CDROM search</h3>
+
+```
+sudo nano /etc/apt/sources.list
+# deb cdrom:[Debian GNU/Linux ...] / stable main
+```
+
+<h3>Add /usr/sbin to PATH</h3>
+
+```
+nano ~/.bashrc
+...
+export PATH=$PATH:/usr/sbin
+```
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Upgrading Firefox on Ubuntu 20.04</summary>
+
+&nbsp;
+
+---
+```
+sudo install -d -m 0755 /etc/apt/keyrings && \
+wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null && \
+echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null && \
+echo '
+Package: *
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+' | sudo tee /etc/apt/preferences.d/mozilla && \ 
+sudo apt-get update && sudo apt-get install firefox
+
+
+```
+---
+
+&nbsp;
+
+</details>
+
+&nbsp;
+
+---
+
+</details>
+
+<details>
+<summary>Docker</summary>
+
+&nbsp;
+
+<i>Docker scripts are included in the project for reference purposes only. Installing the program in a container was not found to produce significant benefits. Docker scripts are not maintained and will probably be removed in a future release.</i>
+
+<details><summary>Install Docker on Linux</summary>
+
+&nbsp;
+
+These instructions are for a simple installation on a clean system of recent vintage. If you are working on a legacy system, upgrading an existing Docker installation or have other special considerations, please refer to the [official Docker instructions](https://docs.docker.com/engine/install). Please note that there are a number of unofficial Docker packages that do not have proper hardware interface and will not work with Onvif GUI. A recent official Docker package is required for proper operation. 
+
+Please note that if you have an NVIDIA GPU, the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) must be installed on top of Docker. You should be aware that the Toolkit has a number of associated bugs that you may encounter. Most of these bugs are well known and you will find many references and suggested fixes of various quality that you can try to get the card operational in a Docker container. Please make sure that you are able to run the [sample workload](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/sample-workload.html) after installing the toolkit. It may be necessary to adjust the Docker run scripts based on the results of troubleshooting efforts on the toolkit.
+
+---
+
+<details><summary>Ubuntu</summary>
+
+&nbsp;
+
+Step 0. Remove Existing Packages
+
+<b>Important</b> Some distributions may include unofficial Docker packages. These unoffical packages are unlikely to work with Onvif GUI due to the lack of proper display server protocol handling. Run the following command to uninstall if necessary.
+
+```
+for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+```
+
+Step 1. Setup Docker <b>apt</b> repository.
+
+```
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+```
+
+Step 2. Install the Docker packages.
+
+```
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+Step 3. Start the Docker service 
+
+```
+sudo service docker start
+```
+
+Step 4. Configure Rootless Mode
+
+```
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+Step 5. Test Installation
+
+```
+docker run hello-world
+```
+
+</details>
+
+<details><summary>Fedora</summary>
+
+&nbsp;
+
+Step 0. Remove Existing Packages
+
+<b>Important</b>  Onvif GUI requires a current official Docker version for operation. If an older or unofficial Docker version is installed, the following error messages may be observed when trying to run the onvif-gui Docker container. 
+
+```
+qt.qpa.xcb: could not connect to display :0
+qt.qpa.plugin: From 6.5.0, xcb-cursor0 or libxcb-cursor0 is needed to load the Qt xcb platform plugin.
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vkkhrdisplay, vnc, wayland-egl, wayland, xcb.
+```
+The current Docker installation can be viewed using the command 
+
+```
+dnf list | grep docker
+```
+
+If this is the case, it is necessary to remove the existing Docker installation and install the current official Docker version. To do this, run the following command to uninstall the default Fedora docker version if necessary.
+
+```
+sudo dnf remove docker*
+```
+
+Step 1. Setup the Repository
+
+```
+sudo dnf -y install dnf-plugins-core
+sudo dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+```
+
+Step 2. Install Docker Engine
+
+```
+sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+Step 3. Start Docker Engine
+
+```
+sudo systemctl enable --now docker
+```
+
+Step 4. Configure Rootless Mode
+
+```
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+Step 5. Test Installation
+
+```
+docker run hello-world
+```
+
+</details>
+
+<details><summary>Rocky Linux</summary>
+
+&nbsp;
+
+Very well explained in the [Documentation](https://docs.rockylinux.org/gemstones/containers/docker/)
+
+</details>
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Remove Docker containers and images</summary>
+
+&nbsp;
+
+---
+
+```
+docker rm -vf $(docker ps -aq)
+docker rmi -f $(docker images -aq)
+docker system prune -a
+```
+
+---
+
+&nbsp;
+
+</details>
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Operations</summary>
+
+&nbsp;
+
+<details>
+<summary>Linux Installation Script</summary>
+
+&nbsp;
+
+To install the program on Linux, an installation script has been developed. The basic concept of the script is to make sure that a valid version of python exists on the target machine, create a virtual environment, install onvif-gui, then create a desktop icon in the Applications folder. A design goal of the script is to have as minimal an impact on the target operating evironment as possible. The install script requires sudo privileges, so it will ask the user to type in the password.
+
+Because the script is intended to work for an arbitrary Linux distribution, it first must ascertain the package manager. Three managers are supported, those being apt, dnf and pacman. The type of package manager is determined by attempting to run a list command for each package type and the first one that succeeds is used. If the package manager is determined to be apt, the update command is run. This is necessary due to the need for current libraries for some portions of the installation. This practice is considered non-impactful as the apt update operation only updates the version pointers in the database and does not change any installed libraries. Package managers dnf and pacman are not updated in this manner as they will actually change existing configuration, and this was not observed to be necessary anyway for program installation.
+
+The install script will then look for a valid Python version, which needs to be at least 3.10. If the Python version is less than 3.10, the script will ask the user if they would like the script to install Python version 3.12. This script will work in many cases, but will require some minimum versions of libraries, which if not present, will cause the failure of the script. It has been observed that the script running on Linux versions with Python 3.8 and greater will succeed. The script installed Python will not interfere with the system installed Python. This is effect is made possible by the use of the ```make altinstall``` procedure which will place the newly compiled Python version in the system libraries under it's own name, which is not included in the system environment variables or symbolic links. The system Python will continue to operate as before, without any interference from the newly compiled version. 
+
+If a valid Python version has been found, the script will now create a virtual environment for the program. In some cases, notably under apt, a python-venv module will require installation. The script will check for the existence of this module and install it if necessary. The virtual environment will be named ```onvif-gui-env``` and will be placed in the user's ```$HOME/.local/share``` directory.
+
+Once the virtual environment has been set up, the script will source the environment and install onvif-gui. The script will then check for the use of the X11 desktop protocol. If this is being used, the script will install a minimum required configuration for the protcol. This is mostly relevant to apt as distributions using the other package managers generally include the X11 drivers by default.
+
+The script will then check for the existence of GPU and associated drivers. For NVIDIA drivers, the target computer will have to have the drivers installed prior to running the script. As most modern Linux distributions include these drivers as part of the installation process, it should be there already if the system was properly installed. The script will then check for Intel iGPU and install those drivers if necessary. Intel NPU is checked as well, but unfortunately, those drivers are only available on a limited subset of Ubuntu.
+
+Finally, the script installs an icon in the system Applications folder for starting the program.
+
+&nbsp;
+
+---
+
+</details>
+
 <details>
 <summary>Running Multiple Cameras</summary>
 
@@ -1413,7 +2260,7 @@ When setting up the computer for Onvif GUI, it can be helpful to observe the eff
 
 Lower powered CPUs with a small number of cores or systems running a large number of streams may benefit from hardware decoding. More powerful CPUs with a large core count will work as well as a hardware decoder for smaller numbers of streams.
 
-Stream analysis can potentially place significant burden on system resources. A GPU or iGPU is recommended for YOLO analysis, as a CPU only system will be able to process maybe one or two streams at the most. NVIDIA graphics cards provide the highest performance, and Intel Xe Graphics or later is recommended for iGPU. Modern Macs with Apple Silicon M series chips are capable of performing YOLO analysis, but for these systems, Yolov8 is recommended due to implementation issues on Mac with Yolox. Using Skip Frames during YOLO analysis can also greatly reduce compute load. Using substreams for analysis is recommended, ideally matching the model size parameter to the stream resolution, which by default is 640.
+Stream analysis can potentially place significant burden on system resources. A GPU or iGPU is recommended for YOLO analysis, as a CPU only system will be able to process maybe one or two streams at the most. NVIDIA graphics cards provide the highest performance, and Intel Xe Graphics or later is recommended for iGPU. Modern Macs with Apple Silicon M series chips are capable of performing YOLO analysis. Using Skip Frames during YOLO analysis can also greatly reduce compute load. Using substreams for analysis is recommended, ideally matching the model size parameter to the stream resolution, which by default is 640.
 
 Software developments in this field are constantly advancing, so it may be worthwhile to research new versions of libraries such as pytorch, openvino and associated graphics hardware drivers to see if new performance improvements are available.
 
@@ -1436,112 +2283,9 @@ If the camera DHCP setting is properly onvif compliant, the IP address may be re
 
 If there is an issue with a particular setting, it is recommended to connect to the camera with a web browser, as most cameras will have a web interface that will allow you to make the changes reliably. onvif-gui has a button on the Camera Panel System Tab that will launch the web browser connection with the camera.
 
-&nbsp;
-
 ---
 
-</details>
-
-<details>
-<summary>pyenv - Alternate Python Installation for MacOS</summary>
-
 &nbsp;
-
-Based on work by [Raphaël Hoogvliets](https://medium.com/marvelous-mlops/the-rightway-to-install-python-on-a-mac-f3146d9d9a32) 
-
-If anaconda is not preferred, python may be managed by pyenv. These instructions assume you are using the zsh and have already installed xcode and homebrew. To install pyenv, use the command
-
-```
-brew install pyenv pyenv-virtualenv
-```
-
-The next order of business is to insure proper initialization during startup. To do this, edit the .zshrc file in your home directory, adding the following lines of code to the file.
-
-```
-eval "$(pyenv init -)"
-if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
-```
-
-Now restart the terminal and ensure that pyenv is initialized. The following command will list available python versions that can be used to create a virtual environment.
-
-```
-pyenv install -l
-```
-
-Install a python version from the list e.g.
-
-```
-pyenv install 3.12-dev
-```
-
-To view the installed python versions
-
-```
-pyenv versions
-```
-
-To create an environment
-
-```
-pyenv virtualenv 3.12-dev myenv
-```
-
-To activate an environment
-
-```
-pyenv activate myenv
-```
-
-To de-activate an environment
-
-```
-pyenv shell system
-```
-
-To delete an environment
-
-```
-pyenv virtualenv-delete myenv
-```
-
-&nbsp;
-
----
-
-</details>
-
-<details>
-<summary>Network Priority on Multi Homed Hosts</summary>
-
-&nbsp;
-
-When connecting a host computer to multiple networks, it may be difficult to reach remote computers if one of the connected networks does not have internet access. This can happen if the host computer uses the wired ethernet interface to isolate cameras on a network without internet access and the host intends to use the wireless connection to communicate with the internet. In this situation, the host operating system may attempt to use the wired ethernet connection to communicate with the internet which can result in lengthy delays or the inability to access the internet altogether.
-
-The issue can be addressed by assigning priorities to network adapters. Most Linux distributions seem to be able to handle this situation on their own, so the issue is mostly associated with Windows and MacOS. The basic concept is to set the priority of the connection with the ability to access the internet a higher value than interfaces which are not connected to the internet.
-
-### Windows
-
-Open a powershell in Administrator mode and use the following command to show interface priorities
-
-```
-Get-NetIPInterface
-```
-
-This will show a table of the network interfaces and their associated priority. Interfaces are tagged with an identifier referred to as InterfaceIndex. The priority of the interface is referred to as InterfaceMetric where lower numbers have higher priority. The priority of an interface is set using the command
-
-```
-Set-NetIPInterface -InterfaceIndex <idx> -InterfaceMetric <metric>
-```
-
-Where `<idx>` is the network identifier number and `<metric>` is the priority
-
-### MacOS
-
-Click the Apple icon in the upper left corner of the screen and select System Settings -> Network. On the right on the dialog should be a drop down shown as `...v` with a question mark to the right. Click the drop down and select Set Service Order. You can then drag and drop the interface names to set the priority.
-
-&nbsp;
-
----
 
 </details>
 
@@ -1550,15 +2294,102 @@ Click the Apple icon in the upper left corner of the screen and select System Se
 
 &nbsp;
 
-If you are having difficulty installing or running the program, there are a few ways to get more information to help guide troubleshooting efforts. Building the program from source can provide a wealth of information about the system configuration and the results of the build process. This technique is useful mainly for Linux and MacOS installations. Build from source on Windows requires some expertise in programming and is not recommended for non-technical users.
+If you are having difficulty installing or running the program, this first place to check is the program logs. The program maintains a log of most important system functions that can be accessed from the Settings -> General tab. Browsing through the messages may produce some insight into root causes for some issues.
 
-The program maintains a log of most important system functions that can be accessed from the Settings -> General tab. Browsing through the messages may produce some insight into root causes for some issues.
+Running the program from the command line inside the virutal environment can help find issues as they occur during operation. To open the virtual environment, use the appropriate command from the list below.
 
-Running the program from the command line can also help find issues as they occur during operation. For Linux and Mac, this is done simply by using the `onvif-gui` command. In Windows this can be done by downloading the source code, navigating to the libonvif\onvif-gui directory and using the command `python run.py`.
+  * Linux
+
+  ```
+  source $HOME/.local/share/onvif-gui-env/bin/activate
+  ```
+
+  * Mac
+
+  ```
+  source $HOME/onvif-gui-env/bin/activate
+  ```
+
+  * Windows
+
+  ```
+  %HOMEPATH%\onvif-gui-env\Scripts\activate
+  ```
+
+  Once inside the virtual environment, the prompt will change to (onvif-gui-env) and the program can be started with the command
+
+  ```onvif-gui```
+
+The teminal will now show messages in real time as they occur during program operation.
 
 Opening an Issue in the github repository is encouraged for issues you are not able to resolve on your own. Often times, issues may exist that are unkown to the developers, and feedback is necessary to raise awareness. There are a number of common problems that have been addressed in the Issues, so a look though those may help discover a solution.
 
-Exisiting issues may have been addressed with a new release of the application, so check that you are using the latest version. The version of the application is displayed in the title bar of the program window. If you want to update, use the command `pip install --upgrade onvif-gui`.
+Existing issues may have been addressed with a new release of the application, so check that you are using the latest version. The version of the application is displayed in the title bar of the program window. If you want to update, first start the virtual environment as shown above and use the command `pip install --upgrade onvif-gui`.
+
+</details>
+
+<details><summary>Application Icon on Linux</summary>
+
+&nbsp;
+
+---
+An icon launcher can improve usability for the application, especially for non-technical users. On Linux, the desktop icons are configured with .desktop files, which can reside either in the users `$HOME/.local/share/applications` folder, or in the system `/usr/share/applications` folder. Launchers placed in the system location will require sudo access to install. 
+
+A typical .desktop file is shown below. This file was written for a bare metal install of the program in a python virtual environment. It is possible to create an icon for a Docker installation of the application, in which case the Terminal field should be set to true, and the Exec should point to the Docker launch script.
+
+```
+[Desktop Entry]
+Version=2.5.2
+Name=Onvif GUI
+Comment=Camera Manager
+Exec=/home/stephen/onvif-gui-env/bin/onvif-gui
+Terminal=false
+Icon=/home/stephen/onvif-gui-env/lib/python3.12/site-packages/onvif_gui/resources/onvif-gui.png
+StartupWMClass=python3
+Type=Application
+Categories=Utility
+```
+
+For the most part, the fields are self-explanatory. It is common, however, for the laucher to fail without any feedback, which can make troubleshooting difficult. Typical reasons for failure is the lack of an executable flag on the .desktop file. This can be fixed by using the file browser to navigate to the .desktop file, and right clicking to find the properties and setting the executable flag. You might also be able to accomplish the same with the terminal by chmod +x on the file. Another reason for failure may be an incorrect path setting for the Exec or Icon. A tool that can be used to help is `desktop-file-validate <file.desktop>` which will produce some diagnostics of varying quality.
+
+It may be necessary, particularly on older systems, to reboot the computer after changes are made to the .desktop file in order to observe the effect of the changes.
+
+There is one problem that is more difficult to solve with a GUI program and that is the StartupWMClass. The solution to this issue will vary based on whether the application is running in X11 or Wayland. The basic strategy is to start the application running, and then in another terminal, start a diagnostic program that will determine the possible setting to StartupWMClass based on the application characteristic, then adjust the .desktop field accordingly.
+
+For X11, the procedure is to start the application, then open another terminal, in which the command `xprop WM_CLASS` is entered. At this point, the cursor will become a cross, and if clicked over a running application, will produce a message in the terminal. This message or some close variation can then be used in the .desktop file to the StartupWMClass.
+
+If you are operating in Wayland, use the Keystroke combination ALT + F2 to start a dialog box. In the box, type `lg`. This will produce a diagnostic similar to the X11 output, but will show for all open windows. You will need to record the `wmclass` field for the application of interest, which can then be entered into the .dekstop file. Use the ESCAPE key to close the dialog.
+
+It has been observed that older systems prefer the StartupWMClass=onvif-gui and newer ones work with StartupWMClass=python3.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>X11 vs Wayland</summary>
+
+&nbsp;
+
+---
+The default window server can be seen by running `echo $XDG_SESSION_TYPE`
+
+The application will default to the window server in this variable. This will work best on most systems. If for some reason, you need to run on a particular server which is diffent that the default, set the environment variable 
+
+```
+export QT_QPA_PLATFORM=wayland 
+```
+before starting the application. You can set this variable to be persistent by editing the configuration file `~./profile`. Please note that the Wayland server does not allow windows to position themselves when starting. The effect of this is that the application window and error message dialogs will always appear in the upper left of the screen when starting.
+
+It has been observed that the application running X11 forced by this environment variable on and Ubuntu 24.04 with wayland as the default driver would crash when the screen saver set in.
+
+---
+
+&nbsp;
+
+</details>
 
 &nbsp;
 
@@ -1567,11 +2398,18 @@ Exisiting issues may have been addressed with a new release of the application, 
 </details>
 
 <details>
+<summary>Project Maintenance</summary>
+
+&nbsp;
+
+<details>
 <summary>Updating the Repository</summary>
 
 &nbsp;
 
-The libonvif git repository includes several git submodules that are required for onvif-gui. These git submodules compile into python modules that can be installed to a user machine from the pypi server using pip. The python modules may also be installed locally by using the pip command on the .whl files which have been created previously using the ```python -m build``` command for each repository. The official instructions for this process can be found on the [Python web site](https://packaging.python.org/en/latest/tutorials/packaging-projects/). There is a build_pkgs script in the assets/scripts subdirectory that will run the build on each of the submodules for the entire project. Note that python modules installed on Linux or MacOS are compiled on the target machine using source downloads, and Windows machines will use the pre-compiled modules based on the python version installed on the target machine. 
+The libonvif git repository includes three python modules, ```libonvif```, ```libavio```, and ```kankakee``` in addition to the main ```onvif-gui``` module. These modules can be installed to a user machine from the pypi server or locally by using the pip command on the .whl files which have been created previously using the ```python -m build``` command for each repository. The official instructions for this process can be found on the [Python web site](https://packaging.python.org/en/latest/tutorials/packaging-projects/).
+
+There are scripts for each operating system that will compile and assemble the modules for deployment on the PyPi server. The scripts are intended to be run on virtual machines and are designed to run on a freshly installed vm such that no configuration of the vm is required other than installation.
 
 Version control is critical in the update process and requires edits in several locations that should be coordinated carefully. The following git submodules are included and require similar updates to version number. The version update should be performed and tested on the development git server, then uploaded to the pypi server and tested from there. Ultimately, the changes are migrated to the github repository following the migration instructions in this document.
 
@@ -1621,9 +2459,9 @@ git commit -a
 git push
 ```
 
-A Windows machine is used to compile the python modules for upload. The machine should have anaconda installed with an environment set up for each relevant python version. This can be achieved using the command e.g. `conda create --name py312 python=3.12` The complete build can be assembled by activating each of the python versions in turn and running the build_pkgs script. Ultimately, there will be a dist folder in each of the module directories containing the source and compiled wheels, which can be uploaded to pypi using the twine function as described in the packaging instructions referenced above. 
+The build scripts can be found in the libonvif source tree at assets/scripts. ```linux_build```, ```mac_build```, and ```windows_build.bat``` are the names of the scripts. The scripts are intended to be run on virtual machines. For Linux and Windows, QEMU will create the proper vm. Mac OS vms can be built with UTM virtual machine manager on Apple Silicon. Put the appropriate script in the home directory for each platform and execute. The script will pull the latest version of the source code and build the python binary installs. The linux_build script should be run on a vm with Linux Mint 20 installed. The binary installs produced will work with any Linux kernel greater than 5.4. The mac_build script can be run on the latest Mac OS, and will produce binary installs for that particular OS version. A Windows vm is most easily built using Windows 11 and the windows_build.bat will produce binary installs that will work for most modern Windows versions. 
 
-It is a good idea to dry test the installation locally before uploading to pypi in order to uncover any issues that may exist as a result of updates that have been made on the program, as the build command may have different results than a pip install from the raw source files. The local_install script can be used to achieve this. Note that if there is an existing onvif-gui installation in the environment, the new install may produce error messages due to version incompatibilities when running the script. It is therefore recommended to create a fresh conda environment using the relevant python version for this test.
+The finshed python installs will be collected in the libonvif/dist directory and can be uploaded to PyPi from there. Testing the installs should be done for each python version. The ffmpeg_build and libxml2_build directories in the home directory should be removed to insure that the relocatable linking has been performed correctly when running the test.
 
 &nbsp;
 
@@ -1633,11 +2471,9 @@ It is a good idea to dry test the installation locally before uploading to pypi 
 
 <details>
 
-&nbsp;&nbsp;
+&nbsp;
 
 <summary>Migration from dev to remote git server</summary>
-
-&nbsp;
 
 Set up a directory named `migrate` with two subdirectories `local` and `remote`. Clone without recursion the three libraries (kankakee, libavio, libonvif) separately into their respective subdirectory, local and remote. Using git rm, remove pybind11 from the respective submodules. Also git rm the kankakee and libavio submodules from the root libonvif directory. This is done for both the local and remote repository collections.
 
@@ -1665,7 +2501,6 @@ git rm libavio
 git commit -a
 
 <repeat for migrate/local>
-
 ...
 
 ```
@@ -1702,16 +2537,44 @@ git submodule add https://github.com/sr99622/libavio
 git add --all
 git commit -a
 git push
-
 ```
 
+&nbsp;
+
+---
+
+</details>
+
+<details>
+<summary>Onvif GUI icon specs</summary>
+
+&nbsp;
+
+---
+```
+Color        State
+
+808D9E       LOW
+FFFFFF       HIGH
+C6D9F2       NORMAL
 
 
+26 x 26 pixels
+```
+---
 
+&nbsp;
 
 </details>
 
 &nbsp;
+
+---
+
+</details>
+
+
+
 
 </details>
 
@@ -1736,25 +2599,25 @@ git push
 
   ```
   git clone --recursive https://github.com/sr99622/libonvif
-  cd libonvif
+  cd libonvif/onvif-util
   mkdir build
   cd build
-  cmake -DWITHOUT_PYTHON=ON ..
+  cmake ..
   make
-  sudo make install
-  sudo ldconfig
   ```
+
+  In the build directory, there will be an executable onvif-util.
 
 ## Step 3. Test the program
 
   ```
-  onvif-util -a
+  ./onvif-util -a
   ```
 
 ## Step 4. Get program help
 
   ```
-  onvif-util -h
+  ./onvif-util -h
   ```
 
 ---
@@ -1788,10 +2651,10 @@ git push
 ## Step 3. Run cmake and build
 
   ```
-  cd libonvif
+  cd libonvif/onvif-util
   mkdir build
   cd build
-  cmake -DWITHOUT_PYTHON=ON -DCMAKE_INSTALL_PREFIX=%CONDA_PREFIX%\Library ..
+  cmake -DCMAKE_INSTALL_PREFIX=%CONDA_PREFIX%\Library ..
   cmake --build . --config Release
   cmake --install .
   ```
@@ -1916,15 +2779,17 @@ Once logged into the camera you can set parameters using the 'set' command follo
 
 ---
 
-Sends continuous move commands to the camera, note that a profile must be selected i.e. get profile. Values are all floating point between -1.0 and 1.0.
+Sends continuous move commands to the camera, note that a profile must be selected first, i.e. get profile. Values for pan_value, tilt_value and zoom_value are floating point numbers between -1.0 and 1.0
 
-- move pan pan_value tilt_value(all required)
-- move zoom value(required)
-- move stop - Stops both pan/tilt and zoom
+ - move pan pan_value tilt_value (all required)
+ - move zoom zoom_value (required)
+ - move stop (Stops both pan/tilt and zoom)
 
 ---
+
 &nbsp;
 
+</details>
 
 <details>
 <summary>Maintenance Commands</summary>
@@ -2099,6 +2964,111 @@ Exit session
 </details>
 
 <details>
+<summary>onvif-gui - <i>Apache</i></summary>
+&nbsp;
+
+---
+
+ libavio Copyright (c) 2022, 2023, 2024 Stephen Rhodes
+
+ License: Apache
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+---
+
+&nbsp;
+</details>
+
+<details>
+<summary>libxml2 - <i>Custom</i></summary>
+&nbsp;
+
+---
+
+Except where otherwise noted in the source code (e.g. the files dict.c and
+list.c, which are covered by a similar licence but with different Copyright
+notices) all the files are:
+
+ Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is fur-
+nished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FIT-
+NESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+---
+
+&nbsp;
+</details>
+
+<details>
+<summary>SDL - <i>zlib license</i></summary>
+&nbsp;
+
+---
+
+SDL 2.0 and newer are available under the [zlib license](https://www.zlib.net/zlib_license.html) :
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+
+---
+
+&nbsp;
+</details>
+
+<details>
+<summary>FFMPEG - <i>Multiple</i></summary>
+&nbsp;
+
+---
+
+Please refer to the [ffmpeg website](https://ffmpeg.org/legal.html) for detailed licensing information.
+
+---
+
+&nbsp;
+</details>
+
+
+<details>
 <summary>YOLOX - <i>Apache</i></summary>
 &nbsp;
 
@@ -2137,7 +3107,7 @@ Without the guidance of [Dr. Sun Jian](http://www.jiansun.org/), YOLOX would not
 The passing away of Dr. Sun Jian is a great loss to the Computer Vision field. We have added this section here to express our remembrance and condolences to our captain Dr. Sun.
 It is hoped that every AI practitioner in the world will stick to the concept of "continuous innovation to expand cognitive boundaries, and extraordinary technology to achieve product value" and move forward all the way.
 
-<div align="center"><img src="assets/images/sunjian.png" width="200"></div>
+<div align="center"><image src="assets/images/sunjian.png" width="200"></div>
 没有孙剑博士的指导，YOLOX也不会问世并开源给社区使用。
 孙剑博士的离去是CV领域的一大损失，我们在此特别添加了这个部分来表达对我们的“船长”孙老师的纪念和哀思。
 希望世界上的每个AI从业者秉持着“持续创新拓展认知边界，非凡科技成就产品价值”的观念，一路向前。
@@ -2254,6 +3224,8 @@ It is hoped that every AI practitioner in the world will stick to the concept of
 <summary>Media MTX - <i>MIT License</i></summary>
 &nbsp;
 
+---
+
 MIT License
 
 Copyright (c) 2019 aler9
@@ -2275,680 +3247,156 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+&nbsp;
+
 </details>
 
 <details>
-<summary>yolov8 - <i>AGPL-3.0 license</i></summary>
+<summary>CMake - <i>BSD-3-Clause license</i></summary>
 &nbsp;
 
 ---
-```
-                    GNU AFFERO GENERAL PUBLIC LICENSE
-                       Version 3, 19 November 2007
 
- Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
- Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
+Copyright 2000-2025 Kitware, Inc. and [Contributors](https://github.com/Kitware/CMake/blob/master/CONTRIBUTORS.rst)
 
-                            Preamble
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-  The GNU Affero General Public License is a free, copyleft license for
-software and other kinds of works, specifically designed to ensure
-cooperation with the community in the case of network server software.
+    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    Neither the name of Kitware, Inc. nor the names of Contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
-  The licenses for most software and other practical works are designed
-to take away your freedom to share and change the works.  By contrast,
-our General Public Licenses are intended to guarantee your freedom to
-share and change all versions of a program--to make sure it remains free
-software for all its users.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  When we speak of free software, we are referring to freedom, not
-price.  Our General Public Licenses are designed to make sure that you
-have the freedom to distribute copies of free software (and charge for
-them if you wish), that you receive source code or can get it if you
-want it, that you can change the software or use pieces of it in new
-free programs, and that you know you can do these things.
-
-  Developers that use our General Public Licenses protect your rights
-with two steps: (1) assert copyright on the software, and (2) offer
-you this License which gives you legal permission to copy, distribute
-and/or modify the software.
-
-  A secondary benefit of defending all users' freedom is that
-improvements made in alternate versions of the program, if they
-receive widespread use, become available for other developers to
-incorporate.  Many developers of free software are heartened and
-encouraged by the resulting cooperation.  However, in the case of
-software used on network servers, this result may fail to come about.
-The GNU General Public License permits making a modified version and
-letting the public access it on a server without ever releasing its
-source code to the public.
-
-  The GNU Affero General Public License is designed specifically to
-ensure that, in such cases, the modified source code becomes available
-to the community.  It requires the operator of a network server to
-provide the source code of the modified version running there to the
-users of that server.  Therefore, public use of a modified version, on
-a publicly accessible server, gives the public access to the source
-code of the modified version.
-
-  An older license, called the Affero General Public License and
-published by Affero, was designed to accomplish similar goals.  This is
-a different license, not a version of the Affero GPL, but Affero has
-released a new version of the Affero GPL which permits relicensing under
-this license.
-
-  The precise terms and conditions for copying, distribution and
-modification follow.
-
-                       TERMS AND CONDITIONS
-
-  0. Definitions.
-
-  "This License" refers to version 3 of the GNU Affero General Public License.
-
-  "Copyright" also means copyright-like laws that apply to other kinds of
-works, such as semiconductor masks.
-
-  "The Program" refers to any copyrightable work licensed under this
-License.  Each licensee is addressed as "you".  "Licensees" and
-"recipients" may be individuals or organizations.
-
-  To "modify" a work means to copy from or adapt all or part of the work
-in a fashion requiring copyright permission, other than the making of an
-exact copy.  The resulting work is called a "modified version" of the
-earlier work or a work "based on" the earlier work.
-
-  A "covered work" means either the unmodified Program or a work based
-on the Program.
-
-  To "propagate" a work means to do anything with it that, without
-permission, would make you directly or secondarily liable for
-infringement under applicable copyright law, except executing it on a
-computer or modifying a private copy.  Propagation includes copying,
-distribution (with or without modification), making available to the
-public, and in some countries other activities as well.
-
-  To "convey" a work means any kind of propagation that enables other
-parties to make or receive copies.  Mere interaction with a user through
-a computer network, with no transfer of a copy, is not conveying.
-
-  An interactive user interface displays "Appropriate Legal Notices"
-to the extent that it includes a convenient and prominently visible
-feature that (1) displays an appropriate copyright notice, and (2)
-tells the user that there is no warranty for the work (except to the
-extent that warranties are provided), that licensees may convey the
-work under this License, and how to view a copy of this License.  If
-the interface presents a list of user commands or options, such as a
-menu, a prominent item in the list meets this criterion.
-
-  1. Source Code.
-
-  The "source code" for a work means the preferred form of the work
-for making modifications to it.  "Object code" means any non-source
-form of a work.
-
-  A "Standard Interface" means an interface that either is an official
-standard defined by a recognized standards body, or, in the case of
-interfaces specified for a particular programming language, one that
-is widely used among developers working in that language.
-
-  The "System Libraries" of an executable work include anything, other
-than the work as a whole, that (a) is included in the normal form of
-packaging a Major Component, but which is not part of that Major
-Component, and (b) serves only to enable use of the work with that
-Major Component, or to implement a Standard Interface for which an
-implementation is available to the public in source code form.  A
-"Major Component", in this context, means a major essential component
-(kernel, window system, and so on) of the specific operating system
-(if any) on which the executable work runs, or a compiler used to
-produce the work, or an object code interpreter used to run it.
-
-  The "Corresponding Source" for a work in object code form means all
-the source code needed to generate, install, and (for an executable
-work) run the object code and to modify the work, including scripts to
-control those activities.  However, it does not include the work's
-System Libraries, or general-purpose tools or generally available free
-programs which are used unmodified in performing those activities but
-which are not part of the work.  For example, Corresponding Source
-includes interface definition files associated with source files for
-the work, and the source code for shared libraries and dynamically
-linked subprograms that the work is specifically designed to require,
-such as by intimate data communication or control flow between those
-subprograms and other parts of the work.
-
-  The Corresponding Source need not include anything that users
-can regenerate automatically from other parts of the Corresponding
-Source.
-
-  The Corresponding Source for a work in source code form is that
-same work.
-
-  2. Basic Permissions.
-
-  All rights granted under this License are granted for the term of
-copyright on the Program, and are irrevocable provided the stated
-conditions are met.  This License explicitly affirms your unlimited
-permission to run the unmodified Program.  The output from running a
-covered work is covered by this License only if the output, given its
-content, constitutes a covered work.  This License acknowledges your
-rights of fair use or other equivalent, as provided by copyright law.
-
-  You may make, run and propagate covered works that you do not
-convey, without conditions so long as your license otherwise remains
-in force.  You may convey covered works to others for the sole purpose
-of having them make modifications exclusively for you, or provide you
-with facilities for running those works, provided that you comply with
-the terms of this License in conveying all material for which you do
-not control copyright.  Those thus making or running the covered works
-for you must do so exclusively on your behalf, under your direction
-and control, on terms that prohibit them from making any copies of
-your copyrighted material outside their relationship with you.
-
-  Conveying under any other circumstances is permitted solely under
-the conditions stated below.  Sublicensing is not allowed; section 10
-makes it unnecessary.
-
-  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
-
-  No covered work shall be deemed part of an effective technological
-measure under any applicable law fulfilling obligations under article
-11 of the WIPO copyright treaty adopted on 20 December 1996, or
-similar laws prohibiting or restricting circumvention of such
-measures.
-
-  When you convey a covered work, you waive any legal power to forbid
-circumvention of technological measures to the extent such circumvention
-is effected by exercising rights under this License with respect to
-the covered work, and you disclaim any intention to limit operation or
-modification of the work as a means of enforcing, against the work's
-users, your or third parties' legal rights to forbid circumvention of
-technological measures.
-
-  4. Conveying Verbatim Copies.
-
-  You may convey verbatim copies of the Program's source code as you
-receive it, in any medium, provided that you conspicuously and
-appropriately publish on each copy an appropriate copyright notice;
-keep intact all notices stating that this License and any
-non-permissive terms added in accord with section 7 apply to the code;
-keep intact all notices of the absence of any warranty; and give all
-recipients a copy of this License along with the Program.
-
-  You may charge any price or no price for each copy that you convey,
-and you may offer support or warranty protection for a fee.
-
-  5. Conveying Modified Source Versions.
-
-  You may convey a work based on the Program, or the modifications to
-produce it from the Program, in the form of source code under the
-terms of section 4, provided that you also meet all of these conditions:
-
-    a) The work must carry prominent notices stating that you modified
-    it, and giving a relevant date.
-
-    b) The work must carry prominent notices stating that it is
-    released under this License and any conditions added under section
-    7.  This requirement modifies the requirement in section 4 to
-    "keep intact all notices".
-
-    c) You must license the entire work, as a whole, under this
-    License to anyone who comes into possession of a copy.  This
-    License will therefore apply, along with any applicable section 7
-    additional terms, to the whole of the work, and all its parts,
-    regardless of how they are packaged.  This License gives no
-    permission to license the work in any other way, but it does not
-    invalidate such permission if you have separately received it.
-
-    d) If the work has interactive user interfaces, each must display
-    Appropriate Legal Notices; however, if the Program has interactive
-    interfaces that do not display Appropriate Legal Notices, your
-    work need not make them do so.
-
-  A compilation of a covered work with other separate and independent
-works, which are not by their nature extensions of the covered work,
-and which are not combined with it such as to form a larger program,
-in or on a volume of a storage or distribution medium, is called an
-"aggregate" if the compilation and its resulting copyright are not
-used to limit the access or legal rights of the compilation's users
-beyond what the individual works permit.  Inclusion of a covered work
-in an aggregate does not cause this License to apply to the other
-parts of the aggregate.
-
-  6. Conveying Non-Source Forms.
-
-  You may convey a covered work in object code form under the terms
-of sections 4 and 5, provided that you also convey the
-machine-readable Corresponding Source under the terms of this License,
-in one of these ways:
-
-    a) Convey the object code in, or embodied in, a physical product
-    (including a physical distribution medium), accompanied by the
-    Corresponding Source fixed on a durable physical medium
-    customarily used for software interchange.
-
-    b) Convey the object code in, or embodied in, a physical product
-    (including a physical distribution medium), accompanied by a
-    written offer, valid for at least three years and valid for as
-    long as you offer spare parts or customer support for that product
-    model, to give anyone who possesses the object code either (1) a
-    copy of the Corresponding Source for all the software in the
-    product that is covered by this License, on a durable physical
-    medium customarily used for software interchange, for a price no
-    more than your reasonable cost of physically performing this
-    conveying of source, or (2) access to copy the
-    Corresponding Source from a network server at no charge.
-
-    c) Convey individual copies of the object code with a copy of the
-    written offer to provide the Corresponding Source.  This
-    alternative is allowed only occasionally and noncommercially, and
-    only if you received the object code with such an offer, in accord
-    with subsection 6b.
-
-    d) Convey the object code by offering access from a designated
-    place (gratis or for a charge), and offer equivalent access to the
-    Corresponding Source in the same way through the same place at no
-    further charge.  You need not require recipients to copy the
-    Corresponding Source along with the object code.  If the place to
-    copy the object code is a network server, the Corresponding Source
-    may be on a different server (operated by you or a third party)
-    that supports equivalent copying facilities, provided you maintain
-    clear directions next to the object code saying where to find the
-    Corresponding Source.  Regardless of what server hosts the
-    Corresponding Source, you remain obligated to ensure that it is
-    available for as long as needed to satisfy these requirements.
-
-    e) Convey the object code using peer-to-peer transmission, provided
-    you inform other peers where the object code and Corresponding
-    Source of the work are being offered to the general public at no
-    charge under subsection 6d.
-
-  A separable portion of the object code, whose source code is excluded
-from the Corresponding Source as a System Library, need not be
-included in conveying the object code work.
-
-  A "User Product" is either (1) a "consumer product", which means any
-tangible personal property which is normally used for personal, family,
-or household purposes, or (2) anything designed or sold for incorporation
-into a dwelling.  In determining whether a product is a consumer product,
-doubtful cases shall be resolved in favor of coverage.  For a particular
-product received by a particular user, "normally used" refers to a
-typical or common use of that class of product, regardless of the status
-of the particular user or of the way in which the particular user
-actually uses, or expects or is expected to use, the product.  A product
-is a consumer product regardless of whether the product has substantial
-commercial, industrial or non-consumer uses, unless such uses represent
-the only significant mode of use of the product.
-
-  "Installation Information" for a User Product means any methods,
-procedures, authorization keys, or other information required to install
-and execute modified versions of a covered work in that User Product from
-a modified version of its Corresponding Source.  The information must
-suffice to ensure that the continued functioning of the modified object
-code is in no case prevented or interfered with solely because
-modification has been made.
-
-  If you convey an object code work under this section in, or with, or
-specifically for use in, a User Product, and the conveying occurs as
-part of a transaction in which the right of possession and use of the
-User Product is transferred to the recipient in perpetuity or for a
-fixed term (regardless of how the transaction is characterized), the
-Corresponding Source conveyed under this section must be accompanied
-by the Installation Information.  But this requirement does not apply
-if neither you nor any third party retains the ability to install
-modified object code on the User Product (for example, the work has
-been installed in ROM).
-
-  The requirement to provide Installation Information does not include a
-requirement to continue to provide support service, warranty, or updates
-for a work that has been modified or installed by the recipient, or for
-the User Product in which it has been modified or installed.  Access to a
-network may be denied when the modification itself materially and
-adversely affects the operation of the network or violates the rules and
-protocols for communication across the network.
-
-  Corresponding Source conveyed, and Installation Information provided,
-in accord with this section must be in a format that is publicly
-documented (and with an implementation available to the public in
-source code form), and must require no special password or key for
-unpacking, reading or copying.
-
-  7. Additional Terms.
-
-  "Additional permissions" are terms that supplement the terms of this
-License by making exceptions from one or more of its conditions.
-Additional permissions that are applicable to the entire Program shall
-be treated as though they were included in this License, to the extent
-that they are valid under applicable law.  If additional permissions
-apply only to part of the Program, that part may be used separately
-under those permissions, but the entire Program remains governed by
-this License without regard to the additional permissions.
-
-  When you convey a copy of a covered work, you may at your option
-remove any additional permissions from that copy, or from any part of
-it.  (Additional permissions may be written to require their own
-removal in certain cases when you modify the work.)  You may place
-additional permissions on material, added by you to a covered work,
-for which you have or can give appropriate copyright permission.
-
-  Notwithstanding any other provision of this License, for material you
-add to a covered work, you may (if authorized by the copyright holders of
-that material) supplement the terms of this License with terms:
-
-    a) Disclaiming warranty or limiting liability differently from the
-    terms of sections 15 and 16 of this License; or
-
-    b) Requiring preservation of specified reasonable legal notices or
-    author attributions in that material or in the Appropriate Legal
-    Notices displayed by works containing it; or
-
-    c) Prohibiting misrepresentation of the origin of that material, or
-    requiring that modified versions of such material be marked in
-    reasonable ways as different from the original version; or
-
-    d) Limiting the use for publicity purposes of names of licensors or
-    authors of the material; or
-
-    e) Declining to grant rights under trademark law for use of some
-    trade names, trademarks, or service marks; or
-
-    f) Requiring indemnification of licensors and authors of that
-    material by anyone who conveys the material (or modified versions of
-    it) with contractual assumptions of liability to the recipient, for
-    any liability that these contractual assumptions directly impose on
-    those licensors and authors.
-
-  All other non-permissive additional terms are considered "further
-restrictions" within the meaning of section 10.  If the Program as you
-received it, or any part of it, contains a notice stating that it is
-governed by this License along with a term that is a further
-restriction, you may remove that term.  If a license document contains
-a further restriction but permits relicensing or conveying under this
-License, you may add to a covered work material governed by the terms
-of that license document, provided that the further restriction does
-not survive such relicensing or conveying.
-
-  If you add terms to a covered work in accord with this section, you
-must place, in the relevant source files, a statement of the
-additional terms that apply to those files, or a notice indicating
-where to find the applicable terms.
-
-  Additional terms, permissive or non-permissive, may be stated in the
-form of a separately written license, or stated as exceptions;
-the above requirements apply either way.
-
-  8. Termination.
-
-  You may not propagate or modify a covered work except as expressly
-provided under this License.  Any attempt otherwise to propagate or
-modify it is void, and will automatically terminate your rights under
-this License (including any patent licenses granted under the third
-paragraph of section 11).
-
-  However, if you cease all violation of this License, then your
-license from a particular copyright holder is reinstated (a)
-provisionally, unless and until the copyright holder explicitly and
-finally terminates your license, and (b) permanently, if the copyright
-holder fails to notify you of the violation by some reasonable means
-prior to 60 days after the cessation.
-
-  Moreover, your license from a particular copyright holder is
-reinstated permanently if the copyright holder notifies you of the
-violation by some reasonable means, this is the first time you have
-received notice of violation of this License (for any work) from that
-copyright holder, and you cure the violation prior to 30 days after
-your receipt of the notice.
-
-  Termination of your rights under this section does not terminate the
-licenses of parties who have received copies or rights from you under
-this License.  If your rights have been terminated and not permanently
-reinstated, you do not qualify to receive new licenses for the same
-material under section 10.
-
-  9. Acceptance Not Required for Having Copies.
-
-  You are not required to accept this License in order to receive or
-run a copy of the Program.  Ancillary propagation of a covered work
-occurring solely as a consequence of using peer-to-peer transmission
-to receive a copy likewise does not require acceptance.  However,
-nothing other than this License grants you permission to propagate or
-modify any covered work.  These actions infringe copyright if you do
-not accept this License.  Therefore, by modifying or propagating a
-covered work, you indicate your acceptance of this License to do so.
-
-  10. Automatic Licensing of Downstream Recipients.
-
-  Each time you convey a covered work, the recipient automatically
-receives a license from the original licensors, to run, modify and
-propagate that work, subject to this License.  You are not responsible
-for enforcing compliance by third parties with this License.
-
-  An "entity transaction" is a transaction transferring control of an
-organization, or substantially all assets of one, or subdividing an
-organization, or merging organizations.  If propagation of a covered
-work results from an entity transaction, each party to that
-transaction who receives a copy of the work also receives whatever
-licenses to the work the party's predecessor in interest had or could
-give under the previous paragraph, plus a right to possession of the
-Corresponding Source of the work from the predecessor in interest, if
-the predecessor has it or can get it with reasonable efforts.
-
-  You may not impose any further restrictions on the exercise of the
-rights granted or affirmed under this License.  For example, you may
-not impose a license fee, royalty, or other charge for exercise of
-rights granted under this License, and you may not initiate litigation
-(including a cross-claim or counterclaim in a lawsuit) alleging that
-any patent claim is infringed by making, using, selling, offering for
-sale, or importing the Program or any portion of it.
-
-  11. Patents.
-
-  A "contributor" is a copyright holder who authorizes use under this
-License of the Program or a work on which the Program is based.  The
-work thus licensed is called the contributor's "contributor version".
-
-  A contributor's "essential patent claims" are all patent claims
-owned or controlled by the contributor, whether already acquired or
-hereafter acquired, that would be infringed by some manner, permitted
-by this License, of making, using, or selling its contributor version,
-but do not include claims that would be infringed only as a
-consequence of further modification of the contributor version.  For
-purposes of this definition, "control" includes the right to grant
-patent sublicenses in a manner consistent with the requirements of
-this License.
-
-  Each contributor grants you a non-exclusive, worldwide, royalty-free
-patent license under the contributor's essential patent claims, to
-make, use, sell, offer for sale, import and otherwise run, modify and
-propagate the contents of its contributor version.
-
-  In the following three paragraphs, a "patent license" is any express
-agreement or commitment, however denominated, not to enforce a patent
-(such as an express permission to practice a patent or covenant not to
-sue for patent infringement).  To "grant" such a patent license to a
-party means to make such an agreement or commitment not to enforce a
-patent against the party.
-
-  If you convey a covered work, knowingly relying on a patent license,
-and the Corresponding Source of the work is not available for anyone
-to copy, free of charge and under the terms of this License, through a
-publicly available network server or other readily accessible means,
-then you must either (1) cause the Corresponding Source to be so
-available, or (2) arrange to deprive yourself of the benefit of the
-patent license for this particular work, or (3) arrange, in a manner
-consistent with the requirements of this License, to extend the patent
-license to downstream recipients.  "Knowingly relying" means you have
-actual knowledge that, but for the patent license, your conveying the
-covered work in a country, or your recipient's use of the covered work
-in a country, would infringe one or more identifiable patents in that
-country that you have reason to believe are valid.
-
-  If, pursuant to or in connection with a single transaction or
-arrangement, you convey, or propagate by procuring conveyance of, a
-covered work, and grant a patent license to some of the parties
-receiving the covered work authorizing them to use, propagate, modify
-or convey a specific copy of the covered work, then the patent license
-you grant is automatically extended to all recipients of the covered
-work and works based on it.
-
-  A patent license is "discriminatory" if it does not include within
-the scope of its coverage, prohibits the exercise of, or is
-conditioned on the non-exercise of one or more of the rights that are
-specifically granted under this License.  You may not convey a covered
-work if you are a party to an arrangement with a third party that is
-in the business of distributing software, under which you make payment
-to the third party based on the extent of your activity of conveying
-the work, and under which the third party grants, to any of the
-parties who would receive the covered work from you, a discriminatory
-patent license (a) in connection with copies of the covered work
-conveyed by you (or copies made from those copies), or (b) primarily
-for and in connection with specific products or compilations that
-contain the covered work, unless you entered into that arrangement,
-or that patent license was granted, prior to 28 March 2007.
-
-  Nothing in this License shall be construed as excluding or limiting
-any implied license or other defenses to infringement that may
-otherwise be available to you under applicable patent law.
-
-  12. No Surrender of Others' Freedom.
-
-  If conditions are imposed on you (whether by court order, agreement or
-otherwise) that contradict the conditions of this License, they do not
-excuse you from the conditions of this License.  If you cannot convey a
-covered work so as to satisfy simultaneously your obligations under this
-License and any other pertinent obligations, then as a consequence you may
-not convey it at all.  For example, if you agree to terms that obligate you
-to collect a royalty for further conveying from those to whom you convey
-the Program, the only way you could satisfy both those terms and this
-License would be to refrain entirely from conveying the Program.
-
-  13. Remote Network Interaction; Use with the GNU General Public License.
-
-  Notwithstanding any other provision of this License, if you modify the
-Program, your modified version must prominently offer all users
-interacting with it remotely through a computer network (if your version
-supports such interaction) an opportunity to receive the Corresponding
-Source of your version by providing access to the Corresponding Source
-from a network server at no charge, through some standard or customary
-means of facilitating copying of software.  This Corresponding Source
-shall include the Corresponding Source for any work covered by version 3
-of the GNU General Public License that is incorporated pursuant to the
-following paragraph.
-
-  Notwithstanding any other provision of this License, you have
-permission to link or combine any covered work with a work licensed
-under version 3 of the GNU General Public License into a single
-combined work, and to convey the resulting work.  The terms of this
-License will continue to apply to the part which is the covered work,
-but the work with which it is combined will remain governed by version
-3 of the GNU General Public License.
-
-  14. Revised Versions of this License.
-
-  The Free Software Foundation may publish revised and/or new versions of
-the GNU Affero General Public License from time to time.  Such new versions
-will be similar in spirit to the present version, but may differ in detail to
-address new problems or concerns.
-
-  Each version is given a distinguishing version number.  If the
-Program specifies that a certain numbered version of the GNU Affero General
-Public License "or any later version" applies to it, you have the
-option of following the terms and conditions either of that numbered
-version or of any later version published by the Free Software
-Foundation.  If the Program does not specify a version number of the
-GNU Affero General Public License, you may choose any version ever published
-by the Free Software Foundation.
-
-  If the Program specifies that a proxy can decide which future
-versions of the GNU Affero General Public License can be used, that proxy's
-public statement of acceptance of a version permanently authorizes you
-to choose that version for the Program.
-
-  Later license versions may give you additional or different
-permissions.  However, no additional obligations are imposed on any
-author or copyright holder as a result of your choosing to follow a
-later version.
-
-  15. Disclaimer of Warranty.
-
-  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
-APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
-HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
-OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
-IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
-ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
-
-  16. Limitation of Liability.
-
-  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
-WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
-THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
-GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
-USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
-DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
-PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
-EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGES.
-
-  17. Interpretation of Sections 15 and 16.
-
-  If the disclaimer of warranty and limitation of liability provided
-above cannot be given local legal effect according to their terms,
-reviewing courts shall apply local law that most closely approximates
-an absolute waiver of all civil liability in connection with the
-Program, unless a warranty or assumption of liability accompanies a
-copy of the Program in return for a fee.
-
-                     END OF TERMS AND CONDITIONS
-
-            How to Apply These Terms to Your New Programs
-
-  If you develop a new program, and you want it to be of the greatest
-possible use to the public, the best way to achieve this is to make it
-free software which everyone can redistribute and change under these terms.
-
-  To do so, attach the following notices to the program.  It is safest
-to attach them to the start of each source file to most effectively
-state the exclusion of warranty; and each file should have at least
-the "copyright" line and a pointer to where the full notice is found.
-
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Also add information on how to contact you by electronic and paper mail.
-
-  If your software can interact with users remotely through a computer
-network, you should also make sure that it provides a way for users to
-get its source.  For example, if your program is a web application, its
-interface could display a "Source" link that leads users to an archive
-of the code.  There are many ways you could offer source, and different
-solutions will be better for different programs; see section 13 for the
-specific requirements.
-
-  You should also get your employer (if you work as a programmer) or school,
-if any, to sign a "copyright disclaimer" for the program, if necessary.
-For more information on this, and how to apply and follow the GNU AGPL, see
-<https://www.gnu.org/licenses/>.
-```
 
 ---
 
 &nbsp;
+
 </details>
 
+</details>
 
+<details>
+<summary>nasm - <i>BSD-2-Clause license</i></summary>
+&nbsp;
+
+---
+
+Copyright <YEAR> <COPYRIGHT HOLDER>
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>x264 - <i>GNU GPLv2 or later</i></summary>
+&nbsp;
+
+---
+
+Copyright (C) 2018-2025 x264 project
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+
+This program is also available under a commercial proprietary license.
+For more information, contact us at licensing@x264.com.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>x265 - <i>GNU GPLv2 or later</i></summary>
+&nbsp;
+
+---
+
+Copyright (C) 2013-2020 MulticoreWare, Inc
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+
+This program is also available under a commercial proprietary license.
+For more information, contact us at licensing@x265.com.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>automake - <i>GNU GPLv3</i></summary>
+&nbsp;
+
+---
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>FDK-AAC - <i>Multiple</i></summary>
+&nbsp;
+
+---
+
+Please refer to the website [fdk-aac](https://github.com/mstorsjo/fdk-aac) for more detailed licensing information
+
+---
+
+</details>

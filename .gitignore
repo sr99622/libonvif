@@ -10,6 +10,12 @@ share/
 *.pt
 *.engine
 *.onnx
+libonvif/libonvif/*.so.*
+libonvif/libonvif/*.dll
+libonvif/libonvif/*.dylib
+assets/scripts/components/libxml2/
+assets/scripts/components/windows/python/*.exe
+assets/scripts/components/mac/*.plist
+assets/scripts/components/mac/*.pkg
 runs/
-models/
 .DS_Store

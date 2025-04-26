@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonApplications-_VERSION_</string>
+        </dict>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonUnixTools-_VERSION_</string>
+        </dict>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonDocumentation-_VERSION_</string>
+        </dict>
+        <dict>
+                <key>attributeSetting</key>
+                <integer>0</integer>
+                <key>choiceAttribute</key>
+                <string>selected</string>
+                <key>choiceIdentifier</key>
+                <string>org.python.Python.PythonProfileChanges-_VERSION_</string>
+        </dict>
+</array>
+</plist>

@@ -1,0 +1,11 @@
+<Options>
+    <Option Name="InstallAllUsers" value="1" />
+    <Option Name="Include_tcltk" value="0" />
+    <Option Name="Include_test" value="0" />
+    <Option Name="Include_doc" value="0" />
+    <Option Name="Shortcuts" value="0" />
+    <Option Name="AssociateFiles" value="0" />
+    <Option Name="Include_launcher" value="0" />
+    <Option Name="SimpleInstall" value="1" />
+    <Option Name="SimpleInstallDescription">Build System Configuration for Onvif GUI</Option>
+</Options>

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+sudo apt install -y \
+  '^libxcb.*-dev' \
+  libxkbcommon-x11-dev \
+  meson \
+  texinfo \
+  wget \
+  yasm \
+  libtool \
+  zlib1g-dev \
+  libasound2-dev \
+  libpulse-dev \
+  libjack-dev \
+  libsamplerate0-dev \
+  libx11-dev \
+  libxext-dev \
+  libxrandr-dev \
+  libxcursor-dev \
+  libxfixes-dev \
+  libxi-dev \
+  libxinerama-dev \
+  libwayland-dev \
+  libxkbcommon-dev \
+  wayland-protocols \
+  libdbus-1-dev \
+  libnuma-dev

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+mkdir -p dist
+pip install build
+cd libonvif
+python -m build
+pip install dist/*.whl
+mv dist/* ../dist
+cd ../libavio
+python -m build
+pip install dist/*.whl
+mv dist/* ../dist
+cd ../kankakee
+python -m build
+pip install dist/*.whl
+mv dist/* ../dist
+cd ../onvif-gui
+python -m build
+pip install dist/*.whl
+mv dist/* ../dist
+cd ..

@@ -25,16 +25,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "libonvif"
-version = "3.2.5"
+version = "3.2.6"
 authors = [
     { name="Stephen Rhodes", email="sr99622@gmail.com" },
 ]
 description = "A python module for communicating with onvif cameras"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "LGPL-2.1"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)",
     "Operating System :: OS Independent",
 ]
 

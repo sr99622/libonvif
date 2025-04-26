@@ -21,93 +21,48 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(libonvif VERSION 3.2.5)
+project(libonvif VERSION 3.2.6)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_definitions(-w)
-
-# pass current dir in from host when building in virtual env
-set (MY_CURRENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-if (DEFINED ENV{CMAKE_CURRENT_SOURCE_DIR})
-    set(MY_CURRENT_DIR $ENV{CMAKE_CURRENT_SOURCE_DIR})
-endif()
-file(TO_CMAKE_PATH "${MY_CURRENT_DIR}" MY_DIR_VAR)
-
-if (WIN32)
-    set(LIBXML2_INCLUDE_DIRS ${MY_DIR_VAR}/libxml2/include/libxml2)
-    set(LIBXML2_LIBRARIES ${MY_DIR_VAR}/libxml2/lib/libxml2.lib)
+if (DEFINED ENV{LIBXML2_INCLUDE_DIRS})
+    set(LIBXML2_INCLUDE_DIRS $ENV{LIBXML2_INCLUDE_DIRS})
+    set(LIBXML2_LIBRARIES $ENV{LIBXML2_LIBRARIES})
 else()
     find_package(LibXml2 REQUIRED)
 endif()
 
-if (NOT WITHOUT_LIBS)
+add_subdirectory(pybind11)
 
-    add_library(libonvif SHARED
-        src/onvif.c
-        src/cencode.c
-        src/sha1.c
-    )
+pybind11_add_module(pyonvif
+    src/onvif.cpp
+    src/onvif.c
+    src/cencode.c
+    src/sha1.c
+)
 
-    target_link_libraries(libonvif PRIVATE
-        ${LIBXML2_LIBRARIES}
-    )
+set_target_properties(pyonvif PROPERTIES
+    OUTPUT_NAME libonvif
+)
 
-    if (UNIX)
-        set_target_properties(libonvif PROPERTIES
-            OUTPUT_NAME onvif
-            SOVERSION 1
-        )
-    endif()
+target_link_libraries(pyonvif PRIVATE
+    ${LIBXML2_LIBRARIES}
+)
 
-    target_include_directories(libonvif PUBLIC
-        include
-        ${LIBXML2_INCLUDE_DIRS}
-    )
+message("-- LIBXML2_INCLUDE_DIRS: " ${LIBXML2_INCLUDE_DIRS})
+message("-- LIBXML2_LIBRARIES: " ${LIBXML2_LIBRARIES})
 
-endif()
+target_include_directories(pyonvif PUBLIC
+    include
+    ${LIBXML2_INCLUDE_DIRS}
+)
 
-IF (NOT WITHOUT_PYTHON)
-
-    add_subdirectory(pybind11)
-
-    pybind11_add_module(pyonvif
-        src/onvif.cpp
-        src/onvif.c
-        src/cencode.c
-        src/sha1.c
-    )
-
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_target_properties(pyonvif PROPERTIES
-        OUTPUT_NAME libonvif
+        BUILD_RPATH "$ORIGIN"
+        BUILD_RPATH_USE_ORIGIN TRUE
+        INSTALL_RPATH "$ORIGIN"
+        INSTALL_RPATH_USE_ORIGIN TRUE
     )
-
-    target_link_libraries(pyonvif PRIVATE
-        ${LIBXML2_LIBRARIES}
-    )
-
-    message("-- LIBXML2_INCLUDE_DIRS: " ${LIBXML2_INCLUDE_DIRS})
-    message("-- LIBXML2_LIBRARIES: " ${LIBXML2_LIBRARIES})
-
-    target_include_directories(pyonvif PUBLIC
-        include
-        ${LIBXML2_INCLUDE_DIRS}
-    )
-
-endif()
-
-IF (BUILD_TEST)
-    add_executable(onvif-test
-        test/onvif-test.cpp
-    )
-
-    target_link_libraries(onvif-test PRIVATE
-        libonvif
-    )
-
-    target_include_directories(onvif-test PUBLIC
-        include
-    )
-
 endif()

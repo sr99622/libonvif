@@ -1,0 +1,49 @@
+#!/bin/bash
+
+sudo apt install -y git
+
+cd $HOME
+git -C libonvif pull --recurse-submodules 2> /dev/null || git clone --recursive http://10.1.1.14:3000/stephen/libonvif
+cd libonvif
+
+cd assets/scripts/components/linux
+
+versions=("3.10" "3.11" "3.12" "3.13")
+for version in "${versions[@]}"; do
+    ./install_python $version
+done
+
+source ./env_variables
+../make_build_dirs
+./prerequisites
+./build_libs
+
+cd $HOME/libonvif
+first_pass=1
+venvs=("py310" "py311" "py312" "py313")
+for venv in "${venvs[@]}"; do
+    echo "venv: $venv"
+    source "$HOME/$venv/bin/activate"
+    python --version
+    if [ $first_pass == 1 ]; then
+        assets/scripts/compile
+        pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
+        pydir=$HOME/$venv/lib/$pyname/site-packages
+        modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
+        export executable=$modname
+        export sourcedir=$HOME/libonvif/libonvif/libonvif
+        assets/scripts/components/linux/copy_libs
+        modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
+        export executable=$modname
+        export sourcedir=$HOME/libonvif/libavio/avio
+        assets/scripts/components/linux/copy_libs
+        pip uninstall -y libonvif
+        pip uninstall -y avio
+        pip uninstall -y kankakee
+        pip uninstall -y onvif-gui
+        rm -rf dist
+    fi
+    first_pass=0
+    assets/scripts/linux_pkgs
+    deactivate
+done

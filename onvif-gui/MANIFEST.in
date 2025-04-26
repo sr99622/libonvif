@@ -1,2 +1,2 @@
 include README.md LICENSE
-recursive-include gui/resources *
+recursive-include onvif_gui/resources *

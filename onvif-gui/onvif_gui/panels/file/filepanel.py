@@ -1,0 +1,408 @@
+#/********************************************************************
+# libonvif/onvif-gui/onvif_gui/panels/file/filepanel.py 
+#
+# Copyright (c) 2023  Stephen Rhodes
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#*********************************************************************/
+
+import os
+import sys
+from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, \
+    QMessageBox, QMenu, QApplication
+from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt, QStandardPaths, QObject, pyqtSignal
+from onvif_gui.components import Progress
+from onvif_gui.enums import MediaSource
+from loguru import logger
+import avio
+from . import FileControlPanel, TreeModel, TreeView, DirectorySetter
+
+class FilePanelSignals(QObject):
+    removeFile = pyqtSignal(str)
+    renameFile = pyqtSignal(str, str)
+
+class FilePanel(QWidget):
+    def __init__(self, mw):
+        super().__init__()
+        self.mw = mw
+        self.videoModelSettings = None
+        self.audioModelSettings = None
+        self.alarmSoundVolume = 80
+        self.expandedPaths = []
+        self.loadedCount = 0
+        self.restorationPath = None
+        self.verticalScrollBarPosition = 0
+
+        self.signals = FilePanelSignals()
+        self.signals.removeFile.connect(self.removeFile)
+
+        self.dirSetter = DirectorySetter(mw)
+        self.dirSetter.txtDirectory.setText(self.getDirectory())
+
+        self.model = TreeModel(mw)
+        self.model.fileRenamed.connect(self.onFileRenamed)
+        self.model.directoryLoaded.connect(self.loaded)
+        self.tree = TreeView(mw)
+        self.tree.setModel(self.model)
+        self.tree.clicked.connect(self.treeClicked)
+        self.tree.doubleClicked.connect(self.treeDoubleClicked)
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self.showContextMenu)
+
+        self.progress = Progress(mw)
+        self.control = FileControlPanel(mw)
+
+        lytMain = QGridLayout(self)
+        lytMain.addWidget(self.dirSetter,  0, 0, 1, 1)
+        lytMain.addWidget(self.tree,       1, 0, 1, 1)
+        lytMain.addWidget(self.progress,   2, 0, 1, 1)
+        lytMain.addWidget(QLabel(),        3, 0, 1, 1)
+        lytMain.addWidget(self.control,    4, 0, 1, 1)
+        lytMain.setRowStretch(1, 10)
+
+        self.dirSetter.txtDirectory.textEdited.connect(self.dirChanged)
+        self.dirChanged(self.dirSetter.txtDirectory.text())
+
+        self.menu = QMenu("Context Menu", self)
+        self.remove = QAction("Delete", self)
+        self.rename = QAction("Rename", self)
+        self.info = QAction("Info", self)
+        self.play = QAction("Play", self)
+        self.remove.triggered.connect(self.onMenuRemove)
+        self.rename.triggered.connect(self.onMenuRename)
+        self.info.triggered.connect(self.onMenuInfo)
+        self.play.triggered.connect(self.onMenuPlay)
+        self.menu.addAction(self.remove)
+        self.menu.addAction(self.rename)
+        self.menu.addAction(self.info)
+        self.menu.addAction(self.play)
+
+    def loaded(self, path):
+        self.loadedCount += 1
+        self.model.sort(0)
+        for i in range(self.model.rowCount(self.model.index(path))):
+            idx = self.model.index(i, 0, self.model.index(path))
+            if idx.isValid():
+                if self.model.filePath(idx) in self.expandedPaths:
+                    self.tree.setExpanded(idx, True)
+
+        if len(self.expandedPaths):
+            if self.loadedCount == len(self.expandedPaths) + 1:
+                if self.verticalScrollBarPosition:
+                    QApplication.processEvents()
+                    self.tree.verticalScrollBar().setValue(self.verticalScrollBarPosition)
+                self.expandedPaths.clear()
+                self.restoreSelectedPath()
+        else:
+            self.restoreSelectedPath()
+
+    def restoreSelectedPath(self):
+        if self.restorationPath:
+            idx = self.model.index(self.restorationPath)
+            if idx.isValid():
+                self.tree.setCurrentIndex(idx)
+            self.restorationPath = None
+
+    def refresh(self):
+        self.loadedCount = 0
+        self.expandedPaths = []
+        self.restorationPath = self.model.filePath(self.tree.currentIndex())
+        path = self.dirSetter.txtDirectory.text()
+        self.model.sort(0)
+        for i in range(self.model.rowCount(self.model.index(path))):
+            idx = self.model.index(i, 0, self.model.index(path))
+            if idx.isValid():
+                if self.tree.isExpanded(idx):
+                    self.expandedPaths.append(self.model.filePath(idx))
+        self.verticalScrollBarPosition = self.tree.verticalScrollBar().value()
+        self.model = TreeModel(self.mw)
+        self.model.setRootPath(path)
+        self.model.fileRenamed.connect(self.onFileRenamed)
+        self.model.directoryLoaded.connect(self.loaded)
+        self.tree.setModel(self.model)
+        self.tree.setRootIndex(self.model.index(path))
+
+    def dirChanged(self, path):
+        if len(path) > 0:
+            self.model.setRootPath(path)
+            self.tree.setRootIndex(self.model.index(path))
+            self.setDirectory(path)
+
+    def treeClicked(self, index):
+        if index.isValid():
+            fileInfo = self.model.fileInfo(index)
+            if self.mw.videoConfigure:
+                self.mw.videoConfigure.setFile(fileInfo.canonicalFilePath())
+
+    def treeDoubleClicked(self, index):
+        if index.isValid():
+            fileInfo = self.model.fileInfo(index)
+            if fileInfo.isDir():
+                self.tree.setExpanded(index, self.tree.isExpanded(index))
+            else:
+                for player in self.mw.pm.players:
+                    if not player.isCameraStream():
+                        self.mw.pm.playerShutdownWait(player.uri)
+                uri = self.getCurrentFileURI()
+                if uri:
+                    self.tree.model().ref = self.tree.currentIndex()
+                    self.mw.playMedia(uri)
+                    self.mw.glWidget.focused_uri = uri
+
+    def onMediaStarted(self, duration):
+        if self.mw.tab.currentIndex() == 1:
+            self.tree.setFocus()
+        self.control.setBtnPlay()
+        self.control.setBtnMute()
+        self.control.setSldVolume()
+
+    def onMediaStopped(self, uri):
+        self.control.setBtnPlay()
+        self.progress.updateProgress(0.0)
+
+        another = None
+        for player in self.mw.pm.players:
+            if not player.isCameraStream():
+                another = player
+
+        if not another:
+            self.progress.lblDuration.setText("0:00")
+
+        if self.mw.glWidget.focused_uri == uri:
+            if self.mw.videoPanel.chkEnableFile.isChecked():
+                if self.mw.videoWorker:
+                    self.mw.videoWorker(None, None)
+            if self.mw.audioPanel.chkEnableFile.isChecked():
+                if self.mw.audioWorker:
+                    self.mw.audioWorker(None, None)
+
+    def onMediaProgress(self, pct, uri):
+        player = self.mw.pm.getPlayer(uri)
+        if player is not None:
+            player.file_progress = pct
+
+        if pct >= 0.0 and pct <= 1.0:
+            if uri == self.mw.glWidget.focused_uri:
+                if player is not None:
+                    self.progress.updateDuration(player.duration)
+                self.progress.updateProgress(pct)
+
+    def showContextMenu(self, pos):
+        player = self.mw.pm.getPlayer(self.getCurrentFileURI())
+        self.remove.setDisabled(bool(player))
+        self.rename.setDisabled(bool(player))
+        index = self.tree.indexAt(pos)
+        if index.isValid():
+            fileInfo = self.model.fileInfo(index)
+            if fileInfo.isFile():
+                self.menu.exec(self.mapToGlobal(pos))
+
+    def onMenuRemove(self):
+        ret = QMessageBox.warning(self, "onvif-gui",
+                                    "You are about to delete this file.\n"
+                                    "Are you sure you want to continue?",
+                                    QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+        if ret == QMessageBox.StandardButton.Ok:
+
+            indexes = [index for index in self.tree.selectedIndexes() if index.column() == 0]
+            for i, index in enumerate(indexes):
+                if index.isValid():
+                    if i == 0:
+                        idxAbove = self.tree.indexAbove(index)
+                        idxBelow = self.tree.indexBelow(index)
+                        resolved = False
+                        if idxAbove.isValid():
+                            if os.path.isfile(self.model.filePath(idxAbove)) or len(indexes) > 1:
+                                self.tree.setCurrentIndex(idxAbove)
+                                resolved = True
+                        if not resolved:
+                            if idxBelow.isValid():
+                                self.tree.setCurrentIndex(idxBelow)
+                    filename = self.model.filePath(index)
+                    player = self.mw.pm.getPlayer(filename)
+                    if player:
+                        self.mw.pm.playerShutdownWait(player.uri)
+                    self.signals.removeFile.emit(filename)
+
+    def removeFile(self, filename):
+        try:
+            os.remove(filename)
+        except Exception as e:
+            msg = f'File delete exception {str(e)}'
+            logger.debug(msg)
+            self.mw.onError(msg)
+
+    def onMenuRename(self):
+        player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
+        if player:
+            self.mw.onError("Please stop the file playing in order to rename")
+            return
+        index = self.tree.currentIndex()
+        if index.isValid():
+            self.model.setReadOnly(False)
+            self.tree.edit(index)
+
+    def onFileRenamed(self, path, oldName, newName):
+        self.model.setReadOnly(True)
+
+    def onMenuInfo(self):
+        strInfo = ""
+        try:
+            index = self.tree.currentIndex()
+            if (index.isValid()):
+                info = self.model.fileInfo(index)
+                strInfo += "Filename: " + info.fileName()
+                strInfo += "\nModified: " + info.lastModified().toString()
+
+                reader = avio.Reader(info.absoluteFilePath(), None)
+                duration = reader.duration()
+                time_in_seconds = int(duration / 1000)
+                hours = int(time_in_seconds / 3600)
+                minutes = int((time_in_seconds - (hours * 3600)) / 60)
+                seconds = int((time_in_seconds - (hours * 3600) - (minutes * 60)))
+                strInfo += "\nDuration: " + str(minutes) + ":" + "{:02d}".format(seconds)
+                title = reader.metadata("title")
+                if len(title):
+                    strInfo += "\nTitle: " + reader.metadata("title")
+
+                if (reader.has_video()):
+                    strInfo += "\n\nVideo Stream:"
+                    strInfo += "\n    Resolution:  " + str(reader.width()) + " x " + str(reader.height())
+                    strInfo += "\n    Frame Rate:  " + f'{reader.frame_rate().num / reader.frame_rate().den:.2f}'
+                    strInfo += "  (" + str(reader.frame_rate().num) + " / " + str(reader.frame_rate().den) +")"
+                    strInfo += "\n    Time Base:  " + str(reader.video_time_base().num) + " / " + str(reader.video_time_base().den)
+                    strInfo += "\n    Video Codec:  " + reader.str_video_codec()
+                    strInfo += "\n    Pixel Format:  " + reader.str_pix_fmt()
+                    strInfo += "\n    Bitrate:  " + f'{reader.video_bit_rate():,}'
+                
+                if (reader.has_audio()):
+                    strInfo += "\n\nAudio Stream:"
+                    strInfo += "\n    Channel Layout:  " + reader.str_channel_layout()
+                    strInfo += "\n    Audio Codec:  " + reader.str_audio_codec()
+                    strInfo += "\n    Sample Rate:  " + str(reader.sample_rate())
+                    strInfo += "\n    Sample Size:  " + str(reader.frame_size())
+                    strInfo += "\n    Time Base:  " + str(reader.audio_time_base().num) + " / " + str(reader.audio_time_base().den)
+                    strInfo += "\n    Sample Format:  " + reader.str_sample_format()
+                    strInfo += "\n    Bitrate:  " + f'{reader.audio_bit_rate():,}'
+                
+            else:
+                strInfo = "Invalid Index"
+        except Exception as ex:
+            strInfo = f'Unable to read file info: {ex}'
+
+        msgBox = QMessageBox(self)
+        msgBox.setWindowTitle("File Info")
+        msgBox.setText(strInfo)
+        msgBox.exec()
+
+    def onMenuPlay(self):
+        index = self.tree.currentIndex()
+        if (index.isValid()):
+            info = self.model.fileInfo(index)
+            self.mw.playMedia(info.absoluteFilePath())
+
+    def getCurrentFileURI(self):
+        result = None
+        index = self.tree.currentIndex()
+        if index.isValid():
+            info = self.model.fileInfo(index)
+            if info.isFile():
+                result = info.filePath()
+        return result
+            
+    def setCurrentFile(self, uri):
+        index = self.model.index(uri)
+        self.tree.setCurrentIndex(index)
+        self.control.setBtnPlay()
+        self.control.setBtnMute()
+        self.control.setSldVolume()
+        if self.mw.videoConfigure:
+            if self.mw.videoConfigure.source != MediaSource.FILE:
+                if uri:
+                    self.mw.videoConfigure.setFile(uri)
+        if self.mw.audioConfigure:
+            if self.mw.audioConfigure.source != MediaSource.FILE:
+                if uri:
+                    self.mw.audioConfigure.setFile(uri)
+        player = self.mw.pm.getPlayer(uri)
+        if player:
+            self.onMediaProgress(player.file_progress, uri)
+
+    def showEvent(self, event):
+        self.restoreHeader()
+
+    def headerChanged(self, a, b, c):
+        key = f'File/Header'
+        self.mw.settings.setValue(key, self.tree.header().saveState())
+
+    def restoreHeader(self):
+        key = f'File/Header'
+        data = self.mw.settings.value(key)
+        if data:
+            self.tree.header().restoreState(data)
+        self.tree.update()
+        self.tree.header().sectionResized.connect(self.headerChanged)
+        self.tree.header().sectionMoved.connect(self.headerChanged)
+
+    def getDirectory(self):
+        try:
+            if sys.platform == "win32":
+                path = os.environ["HOMEPATH"]
+            else:
+                path = os.environ["HOME"]
+            key = f'File/Directory'
+            dirs = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.MoviesLocation)
+            path = self.mw.settings.value(key, dirs[0])
+            os.makedirs(path, exist_ok=True)
+        except Exception as ex:
+            logger.error(f'Unable to find Videos directory: {ex}')
+        return path
+
+    def setDirectory(self, path):
+        key = f'File/Directory'
+        self.mw.settings.setValue(key, path)
+
+    def getMute(self):
+        key = f'File/Mute'
+        return bool(int(self.mw.settings.value(key, 0)))
+    
+    def setMute(self, state):
+        key = f'File/Mute'
+        self.mw.settings.setValue(key, int(state))
+
+    def getVolume(self):
+        key = f'File/Volume'
+        return int(self.mw.settings.value(key, 80))
+    
+    def setVolume(self, volume):
+        key = f'File/Volume'
+        self.mw.settings.setValue(key, volume)
+
+    def getAnalyzeVideo(self):
+        key = f'File/AnalyzeVideo'
+        return bool(int(self.mw.settings.value(key, 0)))
+        
+    def setAnalyzeVideo(self, state):
+        key = f'File/AnalyzeVideo'
+        self.mw.settings.setValue(key, int(state))
+
+    def getAnalyzeAudio(self):
+        key = f'File/AnalyzeAudio'
+        return bool(int(self.mw.settings.value(key, 0)))
+        
+    def setAnalyzeAudio(self, state):
+        key = f'File/AnalyzeAudio'
+        self.mw.settings.setValue(key, int(state))

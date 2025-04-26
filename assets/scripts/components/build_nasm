@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd $HOME/ffmpeg_sources && \
+if [[ ! -d "nasm-2.16.01" ]]; then
+    wget https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/nasm-2.16.01.tar.bz2 && \
+    tar xjvf nasm-2.16.01.tar.bz2
+fi && \
+cd nasm-2.16.01 && \
+./autogen.sh && \
+PATH="$HOME/bin:$PATH" ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" && \
+make -j$(nproc) && \
+make install

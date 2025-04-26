@@ -1,0 +1,11 @@
+#!/bin/bash
+
+../make_build_dirs && \
+../build_cmake_mac && \
+../build_h264 && \
+../build_h265 && \
+./fix_x265_rpath && \
+../build_aac && \
+../build_sdl2 && \
+../build_ffmpeg && \
+../build_libxml2

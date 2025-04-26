@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "copy libs"
+echo "executable: ${executable}"
+echo "sourcedir: ${sourcedir}"
+for name in $(ldd $executable | awk '{if ($2 == "=>") print $(NF-1)}'); do
+    dir_name=$(dirname "$name")
+    if [ "$dir_name" != /lib/x86_64-linux-gnu ]; then
+        echo "name: $name"
+        cp $name $sourcedir
+    fi
+done

@@ -28,7 +28,7 @@ from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
 PKG_NAME = "libonvif"
-VERSION = "3.2.5"
+VERSION = "3.2.6"
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
@@ -42,7 +42,7 @@ class CMakeBuild(build_ext):
 
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
-            f"-DWITHOUT_LIBS=1",
+            f"-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
             f"-Wno-dev",]
         
         if sys.platform == "win32":
@@ -61,10 +61,8 @@ class CMakeBuild(build_ext):
 
 def get_package_data():
     data = []
-    shared_lib_extension = distutils.ccompiler.new_compiler().shared_lib_extension
     for f in os.listdir(PKG_NAME):
-        _, extension = os.path.splitext(f)
-        if extension == shared_lib_extension:
+        if f != "__init__.py":
             data.append(f)
     return data
 

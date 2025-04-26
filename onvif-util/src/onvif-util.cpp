@@ -38,15 +38,15 @@ int longopt = 0;
 #define VERSION "1.4.7"
 
 static struct option longopts[] = {
-             { "user",       required_argument, NULL,      'u'},
-             { "password",   required_argument, NULL,      'p'},
-             { "all",        no_argument,       NULL,      'a'},
-			 { "safe_off",   no_argument,       NULL,      's'},
-             { "help",       required_argument, NULL,      'h'},
-			 { "version",    no_argument,       NULL,      'v'},
-			 { "time_sync",  no_argument,       NULL,      't'},
-             { NULL,         0,                 NULL,       0 }
-     };
+	{ "user",       required_argument, NULL,      'u'},
+	{ "password",   required_argument, NULL,      'p'},
+	{ "all",        no_argument,       NULL,      'a'},
+	{ "safe_off",   no_argument,       NULL,      's'},
+	{ "help",       required_argument, NULL,      'h'},
+	{ "version",    no_argument,       NULL,      'v'},
+	{ "time_sync",  no_argument,       NULL,      't'},
+	{ NULL,         0,                 NULL,       0 }
+};
 
 static const char *username = nullptr;
 static const char *password = nullptr;
@@ -148,7 +148,7 @@ static void showHelp()
 			  << "    Movement Commands (start with move)\n"
 			  << "      move pan pan_value tilt_value(all required)\n"
 			  << "      move zoom value(required)\n"
-			  << "      move stop - Stops both pan/tilt and zoom\n"
+			  << "      move stop - Stops both pan/tilt and zoom\n\n"
 			  << "    Maintenance Commands\n\n"
 			  << "      help\n"
 			  << "      safe - set safe mode on.  Viewer and browser are disabled\n"
@@ -374,20 +374,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-
-	/*
-	char kybd_buf[128] = {0};
-	while (strcmp(kybd_buf, "quit")) {
-		memset(kybd_buf, 0, 128);
-		fgets(kybd_buf, 128, stdin);
-		kybd_buf[strcspn(kybd_buf, "\r\n")] = 0;
-
-		std::string cmd(kybd_buf);
-	*/
-	/////////////////////////
-
 	std::string quit("quit");
-#ifdef _WIN32
+
+	#ifdef _WIN32
 	quit = "quit\r";
 #endif
 
@@ -396,7 +385,6 @@ int main(int argc, char **argv)
 		std::cout << onvif_data->camera_name << "> ";
 		if (!std::getline(std::cin, cmd))
 			break;	
-	/////////////////////////
 	
 		if (cmd.length() == 0)
 			continue;
@@ -573,7 +561,6 @@ int main(int argc, char **argv)
 					std::cout << "  DHCP:       " << (onvif_data->dhcp_enabled ? "YES" : "NO") << "\n" << std::endl;
 				}
 				else { 
-					//std::cout << "  Unrecognized command, use onvif-util -h to see help\n" << std::endl;
 					std::cout << "  Unrecognized command \"" << args[0] << "\", type \"help\" to see help\n" << std::endl;
 				}
 			}
@@ -856,18 +843,12 @@ int main(int argc, char **argv)
 			    			<< std::endl;
 				}
 		  	}
+
 			else if (args[0] == "reboot") {
 				std::cout << "  Are you sure you want to reboot?  Type yes to confirm\n" << std::endl;
-				/*
-				memset(kybd_buf, 0, 128);
-				fgets(kybd_buf, 128, stdin);
-				kybd_buf[strcspn(kybd_buf, "\r\n")] = 0;
-				std::string reply(kybd_buf);
-				*/
-				/////////////////////////////
 				std::string reply;
 				std::getline(std::cin, reply);
-				/////////////////////////////
+
 				if (reply == "yes") {
 					if (rebootCamera(onvif_data)) throw std::runtime_error(cat("reboot camera - ", onvif_data->last_error));
 					std::cout << "  Camera is rebooting...\n" 
@@ -947,9 +928,6 @@ int main(int argc, char **argv)
 				showHelp();
 			}
 			else { 
-				//if (strcmp(kybd_buf, "quit"))
-				//	std::cout << " Unrecognized command, type help to see help\n" << std::endl;
-
 				if (cmd != quit)
 					std::cout << " Unrecognized command \"" << args[0] << "\", type \"help\" to see help\n" << std::endl;
 			}
@@ -959,34 +937,3 @@ int main(int argc, char **argv)
 		}
 	}
 }
-
-/*
-else if (args[0] == "ntp") {
-	if (args.size() > 1) {
-		args.erase(args.begin());
-		if (args[0] == "manual") {
-			profileCheck(onvif_data, args);
-			if (getHostname(onvif_data)) throw std::runtime_error(cat("get host name - ", onvif_data->last_error));
-			if (getTimeOffset(onvif_data)) throw std::runtime_error(cat("get time offset - ", onvif_data->last_error));
-			onvif_data->datetimetype = 'M';
-			if (setSystemDateAndTime(onvif_data)) throw std::runtime_error(cat("set NTP - ", onvif_data->last_error));
-			std::cout << "  NTP set to manual\n" << std::endl;
-		}
-		else {
-			std::cout << "DHCP NTP" << std::endl;
-			profileCheck(onvif_data, args);
-			if (getHostname(onvif_data)) throw std::runtime_error(cat("get host name - ", onvif_data->last_error));
-			if (getTimeOffset(onvif_data)) throw std::runtime_error(cat("get time offset - ", onvif_data->last_error));
-			onvif_data->datetimetype = 'N';
-			onvif_data->ntp_dhcp = false;
-			strcpy(onvif_data->ntp_addr, "192.168.1.1");
-			strcpy(onvif_data->ntp_type, "IPv4");
-			if (setSystemDateAndTime(onvif_data)) throw std::runtime_error(cat("set NTP - ", onvif_data->last_error));
-			if (setNTP(onvif_data)) throw std::runtime_error(cat("set ntp - ", onvif_data->last_error));
-		}
-	}
-	else {
-		std::cout << "  Missing value for NTP\n" << std::endl;
-	}
-}
-*/

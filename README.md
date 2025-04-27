@@ -107,7 +107,7 @@ Windows computers will work well, but do require more computing power to achieve
 To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. If you are installing on an Intel platform, the script will ask if you want to install the compute drivers, which are necessary for YOLO analysis on Intel iGPU. For detailed information on what the script does, please consult the Notes - Operations section of this document.
 
 ```
-wget http://10.1.1.14:3000/stephen/libonvif/raw/branch/master/assets/scripts/install-onvif-gui.py && python3 install-onvif-gui.py
+wget https://raw.githubusercontent.com/sr99622/libonvif/refs/heads/master/assets/scripts/install-onvif-gui.py && python3 install-onvif-gui.py
 ```
 
 The program can be uninstalled by using the same script with the -u flag

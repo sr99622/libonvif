@@ -104,7 +104,7 @@ Windows computers will work well, but do require more computing power to achieve
 
 &nbsp;
 
-To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. For detailed information on what the script does, please consult the Notes section of this document.
+To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. If you are installing on an Intel platform, the script will ask if you want to install the compute drivers, which are necesary for YOLO analysis on Intel iGPU, which is recommended. For detailed information on what the script does, please consult the Notes - Operations section of this document.
 
 ```
 wget http://10.1.1.14:3000/stephen/libonvif/raw/branch/master/assets/scripts/install-onvif-gui.py && python3 install-onvif-gui.py
@@ -2214,9 +2214,9 @@ If a valid Python version has been found, the script will now create a virtual e
 
 Once the virtual environment has been set up, the script will source the environment and install onvif-gui. The script will then check for the use of the X11 desktop protocol. If this is being used, the script will install a minimum required configuration for the protcol. This is mostly relevant to apt as distributions using the other package managers generally include the X11 drivers by default.
 
-The script will then check for the existence of GPU and associated drivers. For NVIDIA drivers, the target computer will have to have the drivers installed prior to running the script. As most modern Linux distributions include these drivers as part of the installation process, it should be there already if the system was properly installed. The script will then check for Intel iGPU and install those drivers if necessary. Intel NPU is checked as well, but unfortunately, those drivers are only available on a limited subset of Ubuntu.
+The script will then check for the existence of GPU and associated drivers. For NVIDIA drivers, the target computer will have to have the drivers installed prior to running the script. As most modern Linux distributions include these drivers as part of the installation process, it should be there already if the system was properly installed. The script will then check for Intel iGPU and will ask for permission to install those drivers. Intel NPU is checked as well, but unfortunately, those drivers are only available on a limited subset of Ubuntu.
 
-Finally, the script installs an icon in the system Applications folder for starting the program.
+Finally, the script installs an icon in the system Applications folder for starting the program. The program can be started by clicking the icon.
 
 &nbsp;
 

@@ -338,6 +338,11 @@ class Install():
         print(f"CPU: {output.split(':')[1].strip()}")
         if not "Intel" in output:
             return
+        response = input("\nIn order to run YOLO on Intel GPU, some drivers need to be installed. Would you like to install compute drivers for Intel GPU? N/y ")
+        if not response:
+            return
+        if response.lower() != "y":
+            return
 
         if pkg_mgr == "apt":
 
@@ -377,12 +382,20 @@ class Install():
             print(self.run_command("sudo pacman -S --noconfirm intel-compute-runtime"))
 
     def check_for_intel_npu(self, pkg_mgr):
+        if not pkg_mgr == "apt":
+            return
+
+        print("Checking for Intel NPU ...")
         output = self.run_command("lscpu | grep 'Model name:'")
         print(f"CPU: {output.split(':')[1].strip()}")
         if not "Intel(R) Core(TM) Ultra" in output:
+            print("Did not find Intel NPU")
             return
 
-        if not pkg_mgr == "apt":
+        response = input("Would you like to install optional drivers for Intel NPU? N/y ")
+        if not response:
+            return
+        if response.lower() != "y":
             return
 
         if self.rcwec("wget https://github.com/oneapi-src/level-zero/releases/download/v1.20.2/level-zero_1.20.2+u22.04_amd64.deb"): return
@@ -403,9 +416,9 @@ class Install():
         self.rcwec("rm intel-fw-npu_1.16.0.20250328-14132024782_ubuntu24.04_amd64.deb")
         self.rcwec("rm intel-driver-compiler-npu_1.16.0.20250328-14132024782_ubuntu24.04_amd64.deb")
 
-        response = input("The system needs to reboot to enable the NPU drivers, would you like to reboot now? N/y  ")
-        if response.lower() == "y":
-            self.run_command("sudo reboot now")
+        if response := input("The system needs to reboot to enable the NPU drivers, would you like to reboot now? N/y  "):
+            if response.lower() == "y":
+                self.run_command("sudo reboot now")
 
     def get_host_dist(self):
         result = None
@@ -497,6 +510,7 @@ if __name__ == "__main__":
     install.check_display_protocol(pkg_mgr)
     install.check_for_nvidia()
     install.check_for_intel_gpu(pkg_mgr)
-    install.check_for_intel_npu(pkg_mgr)
 
     install.install_icon()
+
+    install.check_for_intel_npu(pkg_mgr)

@@ -104,7 +104,7 @@ Windows computers will work well, but do require more computing power to achieve
 
 &nbsp;
 
-To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. If you are installing on an Intel platform, the script will ask if you want to install the compute drivers, which are necessary for YOLO analysis on Intel iGPU. For detailed information on what the script does, please consult the Notes - Operations section of this document.
+To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. If you are installing on an Intel platform, the script will ask if you want to install the compute drivers, which are necessary for YOLO analysis on Intel iGPU. For detailed information on what the script does, please consult the Notes - Operations section of this document. The end result of the script is an icon in the system Applications that can be used to launch the program. 
 
 ```
 wget https://raw.githubusercontent.com/sr99622/libonvif/refs/heads/master/assets/scripts/install-onvif-gui.py && python3 install-onvif-gui.py
@@ -1423,26 +1423,8 @@ Please note that the installation procedure does not include instructions for se
 
 </details>
 
-<details><summary>NFS Server and Client setup</summary>
-&nbsp;
-
----
-From [Ubuntu Docs](https://ubuntu.com/server/docs/network-file-system-nfs). A very well written explanation.
-
-
-To show available mounts from the client, use server address
-
-```
-showmount -e 10.1.1.80
-```
-
----
-
-&nbsp;
-</details>
-
 <details>
-<summary>Setting Up a Samba Share For Windows Clients</summary>
+<summary>Setting Up a Samba Share</summary>
 
 &nbsp;
 
@@ -1513,6 +1495,15 @@ It is possible for Windows clients to access camera recordings residing on a Lin
 
   If all goes well, you get a shared folder icon in the navigator. Double click the folder to get a login screen. Use the credentials of the Onvif GUI account on the Linux server. If successful, create a shared drive by right clicking over the folder and using the drop down menu, and make the drive persisent. Open the Ovnif GUI application, go to the Files tab and use the navigation bar at the top to select the Videos folder from the shared drive. You should see the folders holding the camera recordings.
 
+* #### Linux Client Configuration
+
+  Samba client functionality in Linux is provided by the ```cifs-utils``` package. Use the package manager for your distribution to install it. The samba share is then accessed as a mount. Several pieces of data are required for the full mount call. It is recommended to create a directory in the /opt folder to be the mount point. In this way, users are in a read only mode for the data within the directory, which is desirable.
+
+  ```
+  sudo mkdir -p /opt/smb
+  sudo mount -t cifs -o "domain=WORKGROUP,username=user,password=passwd" //10.1.1.3/share /opt/smb
+  ```
+
 ---
 
 &nbsp;
@@ -1567,9 +1558,9 @@ Click the Apple icon in the upper left corner of the screen and select System Se
 
 #### Introduction
 
-Python configuration is critical to program operation. Understanding some aspects of installing and runnning a Python program do impose upon the developer a burden of technical research. Compounding the difficulty of this task is the existence of several variations of Python tools that all accomplish the same thing. The recommendation here is to focus on the original work from [python.org](https://python.org) and ignore other derivative products such as Anaconda and pyenv.
+Python configuration is critical to program operation. Part of the configuration involves the use of virtual environments, which may appear nebulous due to the abstract nature of the concept. Compounding the difficulty of developing an understanding of the mechanics of the implementation is the existence of several variations of Python tools that are capable of creating and managing virtual environments. The recommendation here is to focus on the original work from [python.org](https://python.org) and ignore other derivative products such as Anaconda and pyenv.
 
-Python is a standard tool installed on every Linux distribution. Each Linux distro makes it's own version of Python, and it is often used to help manage shell scripts for system maintenance. Python has become quite popular and is now available on many other platforms. Python is not universally loved, however, and tales abound of Linux machines brought down by bad Python versions. This is a legitimate gripe as it is indeed possible to break the functionality of a system Python by overwriting its components installing incompatible versions.
+Python is a standard tool installed on every Linux distribution. Each Linux distro makes it's own version of Python, and it is often used to help manage shell scripts for system maintenance. Python has become quite popular and is now available on many other platforms. Python is not universally loved, however, and tales abound of Linux machines brought down by bad Python versions. This is a legitimate gripe as it is indeed possible to break the functionality of a system Python by overwriting its components with incompatible versions.
 
 #### Virtual Environments
 
@@ -1577,13 +1568,13 @@ Virtual environments are a solution to the issue of system interaction with mult
 
 * #### Folder
 
-  A virtual environment Folder is a subdirectory on the disk containing all the files necessary to run a particular version of Python. This allows a Python version separate from the system installed version operate independently. Python has been optimized to minimize the size of the Folder, so the virtual environments are lightwieght. The virtual environment Folder is created by a call to the venv module as ```python3 -m venv <name>```, where ```<name>``` is chosen by the user. Note that ```<name>``` is traditionally entered as a relative path name, but a full path name is valid. Note that some Linux distributoons have the venv module included by default, while other distributions require the installation of additional libraries.
+  A virtual environment Folder is a subdirectory on the disk containing all the files necessary to run a particular version of Python. This allows a Python version separate from the system installed version to operate independently. Python has been optimized to minimize the size of the Folder, so the virtual environments are lightwieght. The virtual environment Folder is created by a call to the venv module as ```python3 -m venv <name>```, where ```<name>``` is chosen by the user. Note that ```<name>``` is traditionally entered as a relative path name, but a full path name is valid. Note that some Linux distributoons have the venv module included by default, while other distributions require the installation of additional libraries.
 
 * #### Shell Variables
 
-  An important feature of the virtual environment Folder is that it is not located on the system $PATH. This is done in order to minimize interaction with the system Python and other libraries. When virtual environments are activated, the shell in which Python executes has additional environment variables added to the inherited system environment variables. Python appears to other processes also operating within the shell that it is installed as the system Python. When the shell is closed, the shell variables do not persist. This is how the virtual environment prepends the Folder to the $PATH so it can be found by other processes. 
+  An important feature of the virtual environment Folder is that it is not located on the system $PATH. This is done in order to minimize interaction with the system Python and other libraries. When virtual environments are activated, the shell in which Python executes has additional environment variables added to the inherited system environment variables. Python appears to other processes also operating within the shell that it is installed as the system Python. When the shell is closed, the shell variables do not persist. This is how the virtual environment prevents the interaction of the environment Python and the system Python. 
   
-  Virtual enviroments are activated by calling the ```source <name>\bin\activate``` command. This opens a shell. The ```deactivate``` command closes the shell.
+  Virtual enviroments are activated by calling the ```source <name>\bin\activate``` command. This opens a shell. The ```deactivate``` command closes the shell. During the time that the environment is active, the terminal prompt is changed to the environment name.
 
 &nbsp;
 
@@ -1594,7 +1585,7 @@ python3 -m venv <name>
 source <name>/bin/activate
 ```
 
-Python applications are then run in the virtual environment, for example ```python --version```. You may also observe the shell variables using the ```printenv``` commmand, which should show the Folder at the front of the $PATH. The deactivate command closes the shell, and the terminal prompt will return to its original state.
+Python applications are then run in the virtual environment, for example ```python --version```. You may also observe the shell variables using the ```printenv``` commmand, which will show the virtual environment Folder at the front of the $PATH. The deactivate command closes the shell, and the terminal prompt will return to its original state.
 
 ```
 deactivate
@@ -1610,19 +1601,19 @@ When a program written in Python is installed in a virtual environment, a script
 
 #### Installing Python
 
-Most if not all modern Linux systems have a recent Python installed by default. If the version of the default installed Python is at least 3.10, Onvif GUI will run in a virtual environment created with that Python. The version of Python can be observed using the command
+Most if not all modern Linux systems have a recent system Python version installed by default. The system version of Python can be observed using the command
 
 ```
 python3 --version
 ```
 
-Onvif GUI can be run on older Linux versions with an upgraded Python version if the system kernel is at least 5.4. The kernel version can be observed using the command
+If the system Python version is at least 3.10, Onvif GUI can run directly on the system version. Onvif GUI can be run on older Linux versions with an upgraded Python version if the system kernel is at least 5.4 and the system Python is at least 3.8. The kernel version can be observed using the command
 
 ```
 uname -r
 ```
 
-In the event that you need to upgrade an existing installation, and the kernel is sufficient, Python can be upgraded using a process such as outlined below for Ubuntu.
+The installation script will ask the user if they want to install an upgrade Python if the qualifications are met. The Python installation methods shown below are for reference.
 
 <details>
 <summary>Compile Python3.12 Ubuntu</summary>
@@ -1674,7 +1665,7 @@ sudo make altinstall
 
 </details>
 
-<details><summary>Install Python3.12 Using deadsnakes (Ubuntu ONLY)</summary>
+<details><summary>Install Python3.12 Using deadsnakes Ubuntu</summary>
 
 &nbsp;
 
@@ -1710,59 +1701,6 @@ The Python [website](https://python.org) has installers available for Windows an
 <summary>Virtual Machines</summary>
 
 &nbsp;
-
-<i>These notes are included for reference when setting up Virtual Machines to use as build platforms for the pypi packages. Some information may be outdated</i>
-
-
-<details><summary>Install QuickEMU</summary>
-
-&nbsp;
-
----
-
-<h3>Dependencies</h3>
-
-```
-sudo apt install qemu-system bash coreutils ovmf grep jq lsb-release procps python3 genisoimage usbutils util-linux sed spice-client-gtk swtpm wget xdg-user-dirs zsync unzip
-```
-<h3>Quick EMU</h3>
-
-```
-sudo apt-add-repository ppa:flexiondotorg/quickemu
-sudo apt update
-sudo apt install quickemu
-```
-<h3>Quick GUI</h3>
-
-```
-wget https://github.com/quickemu-project/quickgui/releases/download/1.2.10/quickgui-1.2.10+1-linux.deb
-sudo dpkg -i quickgui-1.2.10+1-linux.deb
-rm quickgui-1.2.10+1-linux.deb
-```
-
-<h3>Launch From vm Directory</h3>
-
-```
-mkdir vm && cd vm
-quickgui
-```
-
-<h3>Additional Configuration</h3>
-
-By default, Quickemu will calculate the number of CPUs cores and RAM to allocate to a VM based on the specifications of your host computer. You can override this default behaviour and tune the VM configuration to your liking.
-
-Add additional lines to your virtual machine configuration:
-
-    cpu_cores="4" - Specify the number of CPU cores allocated to the VM
-    ram="4G" - Specify the amount of RAM to allocate to the VM
-    disk_size="16G" - Specify the size of the virtual disk allocated to the VM
-
-
----
-
-&nbsp;
-
-</details>
 
 <details><summary>Shared networking for QEMU</summary>
 &nbsp;
@@ -1883,79 +1821,6 @@ After rebooting, the share should be mounted! If your user on the host and the g
 
 </details>
 
-<details><summary>Install Quick EMU gui</summary>
-&nbsp;
-
----
-
-```
-sudo apt install qemu-system bash coreutils ovmf grep jq lsb-release procps python3 genisoimage usbutils util-linux sed spice-client-gtk swtpm wget xdg-user-dirs zsync unzip
-```
-```
-sudo apt-add-repository ppa:flexiondotorg/quickemu
-sudo apt update
-sudo apt install quickemu
-```
-```
-sudo add-apt-repository ppa:yannick-mauray/quickgui
-sudo apt update
-sudo apt install quickgui
-```
-
----
-
-&nbsp;
-</details>
-
-<details><summary>Configure Windows</summary>
-&nbsp;
-
----
-
-Install git [homepage](https://git-scm.com/downloads/win)
-
-Install cmake [hompage](https://cmake.org/download/)
-
-Install pyenv-win [homepage](https://github.com/pyenv-win/pyenv-win)
-
-Navigate to the Visual Studio Downloads page and scroll down to the "Tools for Visual Studio" section under "All downloads": Select the Build Tools: Choose the "Build Tools for Visual Studio" package
-
-
-Download and install each of these python versions using default settings. Don't change anything
-
-```
-https://www.python.org/ftp/python/3.13.2/python-3.13.2-amd64.exe
-https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe
-https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe
-https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
-
-```
-
-```
-cd %HOMEPATH%
-set PATH=C:\Users\sr996\AppData\Local\Programs\Python\Python310;%PATH%
-python -m venv py310
-py310\Scripts\activate
-python.exe -m pip install --upgrade pip
-cd libonvif
-assets/scripts/windows_build
-set PATH=%PATH:C:\Users\sr996\AppData\Local\Programs\Python\Python310;=%
-
-
-```
-
-
-```
-set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
-
-```
-
----
-
-&nbsp;
-
-</details>
-
 <details><summary>Configure Debian</summary>
 &nbsp;
 
@@ -1982,31 +1847,6 @@ nano ~/.bashrc
 export PATH=$PATH:/usr/sbin
 ```
 
----
-
-&nbsp;
-
-</details>
-
-<details>
-<summary>Upgrading Firefox on Ubuntu 20.04</summary>
-
-&nbsp;
-
----
-```
-sudo install -d -m 0755 /etc/apt/keyrings && \
-wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null && \
-echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null && \
-echo '
-Package: *
-Pin: origin packages.mozilla.org
-Pin-Priority: 1000
-' | sudo tee /etc/apt/preferences.d/mozilla && \ 
-sudo apt-get update && sudo apt-get install firefox
-
-
-```
 ---
 
 &nbsp;
@@ -2214,7 +2054,7 @@ If a valid Python version has been found, the script will now create a virtual e
 
 Once the virtual environment has been set up, the script will source the environment and install onvif-gui. The script will then check for the use of the X11 desktop protocol. If this is being used, the script will install a minimum required configuration for the protcol. This is mostly relevant to apt as distributions using the other package managers generally include the X11 drivers by default.
 
-The script will then check for the existence of GPU and associated drivers. For NVIDIA drivers, the target computer will have to have the drivers installed prior to running the script. As most modern Linux distributions include these drivers as part of the installation process, it should be there already if the system was properly installed. The script will then check for Intel iGPU and will ask for permission to install those drivers. Intel NPU is checked as well, but unfortunately, those drivers are only available on a limited subset of Ubuntu.
+The script will then check for the existence of GPU and associated drivers. For NVIDIA drivers the script will attempt to run the ```nvidia-smi``` command. The target computer will have to have the drivers installed prior to running the script in order for it to succeed. As most modern Linux distributions include these drivers as part of the installation process, it should be there already if the system was properly installed. The script will then check for Intel iGPU and will ask for permission to install those drivers. Intel NPU is checked as well, but unfortunately, those drivers are only available on a limited subset of Ubuntu.
 
 Finally, the script installs an icon in the system Applications folder for starting the program. The program can be started by clicking the icon.
 

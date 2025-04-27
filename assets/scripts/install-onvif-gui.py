@@ -140,7 +140,7 @@ class Install():
                 if response := input("Would you like to safely install an alternate Python version (3.12) for running Onvif GUI y/N? "):
                     if response.lower() == "y":
                         if self.build_python(pkg_mgr):
-                            print("\n\nPython3.12 installation SUCCESSFUL. Please wait while Onvif Gui is installed ...")
+                            print("\n\nPython3.12 installation SUCCESSFUL. Press the enter key to continue ...")
                         else:
                             print("\n\n An error occurred attempting to build Python 3.12")
                         print(self.run_command('sudo rm -rf Python-3.12.9*'))

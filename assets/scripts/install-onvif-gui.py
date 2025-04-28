@@ -137,7 +137,7 @@ class Install():
                 print(f"\nThere is an existing supported version {valid_existing_python_version} on this machine.\nOnvif GUI will be installed using this version, please wait ...")
                 print(self.run_command(f"{valid_existing_python_version} install-onvif-gui.py"))
             else:
-                if response := input("Would you like to safely install an alternate Python version (3.12) for running Onvif GUI y/N? "):
+                if response := input("Would you like to safely install an alternate Python version (3.12) for running Onvif GUI N/y? "):
                     if response.lower() == "y":
                         if self.build_python(pkg_mgr):
                             print("\n\nPython3.12 installation SUCCESSFUL. Press the enter key to continue ...")
@@ -334,11 +334,11 @@ class Install():
         return self.status
     
     def check_for_intel_gpu(self, pkg_mgr):
-        output = self.run_command("lscpu | grep 'Model name:'")
-        print(f"CPU: {output.split(':')[1].strip()}")
+        output = self.run_command("lspci -k | grep -EA3 'VGA|3D|Display'")
         if not "Intel" in output:
             return
-        response = input("\nIn order to run YOLO on Intel GPU, some drivers need to be installed. Would you like to install compute drivers for Intel GPU? N/y ")
+        print(output)
+        response = input("\nIn order to run YOLO on Intel iGPU, some drivers need to be installed. Would you like to install compute drivers for Intel iGPU? N/y ")
         if not response:
             return
         if response.lower() != "y":
@@ -378,8 +378,11 @@ class Install():
             print(self.run_command("sudo dnf install -y intel-compute-runtime"))
 
         if pkg_mgr == "pacman":
-
-            print(self.run_command("sudo pacman -S --noconfirm intel-compute-runtime"))
+            output = self.run_command("pacman -Q | grep intel-compute-runtime")
+            if output:
+                print("Intel compute runtime is already installed on this system")
+            else:
+                print(self.run_command("sudo pacman -S --noconfirm intel-compute-runtime"))
 
     def check_for_intel_npu(self, pkg_mgr):
         if not pkg_mgr == "apt":

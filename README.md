@@ -127,29 +127,7 @@ python3 install-onvif-gui.py -u
 
 &nbsp;
 
-The program is installed on Mac OS using the terminal. Open the terminal and use the following curl command to download the script for installing the program. The script will install Python version 3.12 which will not be included on the PATH. Existing versions of Python are not affected. You will need to chmod the file in order to execute.
-
-```
-curl -OL https://raw.githubusercontent.com/sr99622/libonvif/master/assets/scripts/mac_install
-chmod +x mac_install
-./mac_install
-```
-
-The script will create a virtual environment in a subdirectory of the home folder named after the program as $HOME/onvif-gui-env. The program can be run by using the full path of the executable.
-
-```
-$HOME/onvif-gui-env/bin/onvif-gui
-```
-
-### Optional Step For Server Configuration
-
-To increase the number of socket connections available for the server, use the ulimit command to raise the file limit.
-
-```
-ulimit -n 8192
-```
-
-You can add this command to your shell resource file, e.g. .zshrc in the user home directory. This will then set the limit for each terminal session as it is opened on a persistent basis.
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.0.10/OnvifGUI.dmg) and open it. Drag the OnvifGUI icon into the Applications folder and then program will be installed.
 
 ---
 

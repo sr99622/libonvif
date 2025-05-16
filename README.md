@@ -127,7 +127,9 @@ python3 install-onvif-gui.py -u
 
 &nbsp;
 
-Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.0.10/OnvifGUI.dmg) and open it. Drag the OnvifGUI icon into the Applications folder and then program will be installed.
+---
+
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.0.10/OnvifGUI.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. The program can then be started from the Launchpad.
 
 ---
 

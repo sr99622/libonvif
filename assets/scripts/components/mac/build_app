@@ -1,0 +1,121 @@
+#!/bin/bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+echo >> $HOME/.zprofile
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
+source $HOME/.zprofile
+brew install readline pkg-config xz tcl-tk mpdecimal
+
+Contents="/Applications/OnvifGUI.app/Contents"
+MacOS="$Contents/MacOS"
+Resources="$Contents/Resources"
+
+cd $HOME
+mkdir -p $MacOS
+mkdir -p $Resources
+
+mkdir Icon.iconset
+sips -z 16 16 "$HOME/libonvif/assets/scripts/components/mac/icons/16 x 16.png" --out Icon.iconset/icon_16x16.png
+sips -z 32 32 "$HOME/libonvif/assets/scripts/components/mac/icons/32 x 32.png" --out Icon.iconset/icon_32x32.png
+sips -z 64 64 "$HOME/libonvif/assets/scripts/components/mac/icons/64 x 64.png" --out Icon.iconset/icon_64x64.png
+sips -z 128 128 "$HOME/libonvif/assets/scripts/components/mac/icons/128 x 128.png" --out Icon.iconset/icon_128x128.png
+sips -z 256 256 "$HOME/libonvif/assets/scripts/components/mac/icons/256 x 256.png" --out Icon.iconset/icon_256x256.png
+#sips -z 256 256 $HOME/libonvif/onvif-gui/onvif_gui/resources/onvif-gui.png --out Icon.iconset/icon_256x256.png
+iconutil -c icns Icon.iconset -o $Resources/app.icns
+
+install_dir=$MacOS
+cd $HOME
+git clone https://github.com/openssl/openssl.git
+cd openssl
+git switch openssl-3.5
+./Configure --prefix=$install_dir/OpenSSL
+make -j$(nproc)
+make install
+
+cd $HOME
+curl -OL https://ftp.gnu.org/gnu/gdbm/gdbm-1.25.tar.gz
+tar xzvf gdbm-1.25.tar.gz
+cd gdbm-1.25
+sed -i.bak 's/if (clock_nanosleep (CLOCK_REALTIME, 0, iv, &r))/if (nanosleep (iv, \&r))/g' src/lock.c
+./configure --prefix=$install_dir/gdbm CPPFLAGS="-I$(brew --prefix readline)/include" LDFLAGS="-L$(brew --prefix readline)/lib"
+make 
+make install
+
+cd $HOME
+git clone https://github.com/python/cpython.git
+cd cpython
+git switch 3.13
+GDBM_CFLAGS="-I$install_dir/gdbm/include" GDBM_LIBS="-L$install_dir/gdbm/lib -lgdbm" \
+    ./configure --enable-optimizations \
+    --enable-framework=/Applications/OnvifGUI.app/Contents/MacOS/Python/Library/Frameworks \
+    --with-app-store-compliance \
+    --with-system-libmpdec \
+    --with-openssl="$install_dir/OpenSSL" \
+    --prefix=$install_dir/Python
+make -j$(nproc)
+make install
+
+cc $HOME/libonvif/assets/scripts/components/mac/launcher.c -o $MacOS/launcher
+
+rm -R $MacOS/Python/Applications
+rm -R $MacOS/Python/bin
+rm -R $MacOS/Python/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/test
+rm -R $MacOS/OpenSSL/include
+rm -R $MacOS/OpenSSL/share
+rm -R $MacOS/OpenSSL/lib/pkgconfig
+rm -R $MacOS/OpenSSL/lib/cmake
+rm -R $MacOS/OpenSSL/lib/*.a
+rm -R $MacOS/gdbm/include
+rm -R $MacOS/gdbm/share
+
+framework="$MacOS/Python/Library/Frameworks/Python.framework"
+$framework/Versions/3.13/bin/python3.13 -m venv $framework/Versions/3.13/onvif-gui-env
+source $framework/Versions/3.13/onvif-gui-env/bin/activate
+pip install $HOME/libonvif/onvif-gui torch torchvision
+deactivate
+rm $framework/Versions/3.13/onvif-gui-env/bin/python*
+cp $framework/Versions/3.13/bin/python3.13 $framework/Versions/3.13/onvif-gui-env/bin
+
+cache="$framework/Versions/3.13/onvif-gui-env/lib/python3.13/site-packages/cache"
+mkdir -p $cache/checkpoints
+cd $cache/checkpoints
+curl -OL https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth
+
+mkdir -p $cache/proxy
+cd $cache/proxy
+curl -OL https://github.com/bluenviron/mediamtx/releases/download/v1.12.2/mediamtx_v1.12.2_darwin_arm64.tar.gz
+tar xzf mediamtx_v1.12.2_darwin_arm64.tar.gz
+rm mediamtx_v1.12.2_darwin_arm64.tar.gz
+sed -i.bak 's/srt: yes/srt: no/g' mediamtx.yml
+sed -i.bak 's/webrtc: yes/webrtc: no/g' mediamtx.yml
+sed -i.bak 's/hls: yes/hls: no/g' mediamtx.yml
+sed -i.bak 's/rtmp: yes/rtmp: no/g' mediamtx.yml
+rm mediamtx.yml.bak
+
+cat > $Contents/Info.plist <<EOF
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" 
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Onvif GUI</string>
+    <key>CFBundleDisplayName</key>
+    <string>Onvif GUI</string>
+    <key>CFBundleIdentifier</key>
+    <string>io.github.sr99622.onvif-gui</string>
+    <key>CFBundleVersion</key>
+    <string>3.0.11</string>
+    <key>CFBundleExecutable</key>
+    <string>launcher</string>
+    <key>CFBundleIconFile</key>
+    <string>app.icns</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+</dict>
+</plist>
+EOF
+
+find '/Applications/OnvifGUI.app' \( -type f -perm +111 -o -name "*.dylib" -o -name "*.so" \) -exec codesign --force --deep --options runtime --timestamp --entitlements /Users/stephen/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" {} \;
+codesign --force --deep --options runtime --timestamp --entitlements /Users/stephen/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" /Applications/OnvifGUI.app

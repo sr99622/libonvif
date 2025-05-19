@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Required for network access including TCP server/client and UDP multicast -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <key>com.apple.security.network.server</key>
+    <true/>
+
+    <!-- File access -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- Optional: direct access to Movies and Pictures folders without a file picker -->
+    <key>com.apple.security.assets.movies.read-write</key>
+    <true/>
+    <key>com.apple.security.assets.pictures.read-write</key>
+    <true/>
+    <key>com.apple.security.assets.music.read-write</key>
+    <true/>
+
+    <!-- Recommended for hardened runtime -->
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+</dict>
+</plist>

@@ -20,11 +20,8 @@
 import os
 import sys
 
-if sys.platform == "darwin":
-    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
-
 from loguru import logger
-
+import hashlib
 from time import sleep
 from datetime import datetime
 import importlib.util
@@ -55,7 +52,7 @@ if sys.platform == "win32":
 else:
     import tarfile
 
-VERSION = "3.0.10"
+VERSION = "3.0.11"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -141,11 +138,7 @@ class MainWindow(QMainWindow):
 
         self.version = VERSION        
 
-        if sys.platform == "win32":
-            filename = os.environ['HOMEPATH'] + "/.cache/onvif-gui/logs/logs.txt"
-        else:
-            filename = os.environ['HOME'] + "/.cache/onvif-gui/logs/logs.txt"
-        self.logger_id = logger.add(filename, rotation="1 MB")
+        self.logger_id = logger.add(self.getLogFilename(), rotation="1 MB")
         logger.debug(f'starting onvif-gui version: {VERSION}')
 
         self.settings_profile = settings_profile
@@ -783,6 +776,9 @@ class MainWindow(QMainWindow):
         path = Path(os.path.dirname(__file__))
         return str(path.parent.absolute())
     
+    def getLogFilename(self):
+        return os.path.join(self.getLocation(), "cache", "logs", "logs.txt")
+    
     def initializeFocusWindowSettings(self):
         proxy = None
         match self.settingsPanel.proxy.proxyType:
@@ -899,9 +895,31 @@ class MainWindow(QMainWindow):
         except Exception as ex:
             logger.error(f'Error stopping Onvif Server : {ex}')
     
-    def downloadProxyServer(self):
+    def calculate_sha256(self, filename):
         try:
-            dir = self.settingsPanel.proxy.getProxyServerDir()
+            with open(filename, 'rb') as file:
+                hasher = hashlib.sha256()
+                while chunk := file.read(4096):
+                    hasher.update(chunk)
+            return hasher.hexdigest()
+        except Exception as ex:
+            logger.error(f'An error occurred computing the hash for {filename}: {ex}')
+            return None
+        
+    def downloadProxyServer(self, dir):
+
+        hashes = {
+            "mediamtx_v1.12.2_darwin_amd64.tar.gz": "572a766870f821196ec0977fda7993ac5a8c45ba34174b3a048f000e3fe1dd0b",
+            "mediamtx_v1.12.2_darwin_arm64.tar.gz": "df388cb70bcefe3822a63eb884576191120e63099d1fac4314d63d38b60eb238",
+            "mediamtx_v1.12.2_linux_amd64.tar.gz": "f0ec6e21c3cde41d02f186f58636f0ea8ee67c9d44dacf5b9391e85600f56e74",
+            "mediamtx_v1.12.2_linux_arm64.tar.gz": "35803953e27a7b242efb1f25b4d48e3cc24999bcb43f6895383a85d6f8000651",
+            "mediamtx_v1.12.2_linux_armv6.tar.gz": "765156e430b6664d1092116e33c5ba5c5fc711d0fe4a0e5805326852d0fa7523",
+            "mediamtx_v1.12.2_linux_armv7.tar.gz": "b10a5267113bc013339e3bfc7b60a3c32aeba1bf56f0e86be36f02b123ff1328",
+            "mediamtx_v1.12.2_windows_amd64.zip": "f83b9954f3b39f2aed5e93dd739ce2e3dbb276aa21c1759547ba6d858ca68671"
+        }
+
+        try:
+            #dir = self.settingsPanel.proxy.getProxyServerDir()
             if not os.path.exists(dir):
                 os.makedirs(dir)
 
@@ -927,20 +945,21 @@ class MainWindow(QMainWindow):
                 case "win32":
                     operating_system = "windows"
 
-            version = "v1.11.2"
+            version = "v1.12.2"
             home = "https://github.com/bluenviron/mediamtx/releases/download"
             suffix = "tar.gz"
             if operating_system == "windows":
                 suffix = "zip"
 
+            id = f'mediamtx_{version}_{operating_system}_{architecture}.{suffix}'
             url = None
             if architecture and operating_system:
-                url = f'{home}/{version}/mediamtx_{version}_{operating_system}_{architecture}.{suffix}'
+                url = f'{home}/{version}/{id}'
             else:
                 raise AttributeError(f'Unable to determine MediaMTX server for operating system for {sys.platform} and architecture {platform.machine()}')
 
             if url:
-                download_filename = os.path.join(dir, url.rsplit('/', 1)[1])
+                download_filename = os.path.join(dir, id)
                 logger.debug(f'Downloading MediaMTX from {url} to {download_filename}')
             
                 response = requests.get(url, allow_redirects=True, timeout=(10, 120))
@@ -951,7 +970,15 @@ class MainWindow(QMainWindow):
                     content.write(response.content)
 
                 if os.path.isfile(download_filename):
-                    logger.debug(f'MediaMTX {url} compressed file was downloaded successfully')
+                    verified = False
+                    if hash := self.calculate_sha256(download_filename):
+                        if hash == hashes.get(id, None):
+                            verified = True
+                    if not verified:
+                        os.remove(download_filename)
+                        raise RuntimeError(f'Unable to verify {id}')
+                    
+                    logger.debug(f'MediaMTX {url} compressed file was downloaded and verified successfully')
 
                     archive = None
                     if sys.platform == "win32":
@@ -959,10 +986,11 @@ class MainWindow(QMainWindow):
                     else:
                         archive = tarfile.open(download_filename)
                     if archive:
-                        archive.extractall(dir)
+                        archive.extractall(dir, filter='data')
                         archive.close()
                     else:
                         raise RuntimeError("Unable to open decompression utility for MediaMTX")
+                    os.remove(download_filename)
 
         except Exception as ex:
             self.signals.hideWaitDialog.emit()
@@ -971,6 +999,7 @@ class MainWindow(QMainWindow):
         self.signals.hideWaitDialog.emit()
 
     def startProxyServer(self, autoDownload, dir):
+        print("START PROXY SERVER", dir)
         try:
             executable_filename = f'{dir}/mediamtx'
             if sys.platform == "win32":
@@ -982,7 +1011,7 @@ class MainWindow(QMainWindow):
                     self.signals.error.emit(f'Error: cannot find MediaMTX in {dir}, please use auto download selection in Settings -> Proxy')
                     return
 
-                thread = threading.Thread(target=self.downloadProxyServer)
+                thread = threading.Thread(target=self.downloadProxyServer, args=(dir,))
                 thread.start()
                 self.signals.showWaitDialog.emit("Please wait for MediaMTX binary to download")
 
@@ -1000,6 +1029,7 @@ class MainWindow(QMainWindow):
     def stopProxyServer(self):
         if self.mediamtx_process:
             self.mediamtx_process.terminate()
+            self.mediamtx_process.wait()
             self.mediamtx_process = None
             logger.debug("Proxy server stopped")
 
@@ -1020,6 +1050,10 @@ class MainWindow(QMainWindow):
                     self.proxies[profile.stream_uri()] = f'{server}{camera.serial_number()}/{profile.profile()}'
 
     def style(self, appearance):
+        filename = self.getLocation() + "/onvif_gui/resources/darkstyle.qss"
+        with open(filename, 'r') as file:
+            strStyle = file.read()
+
         match appearance:
             case Style.DARK:
                 blDefault = "#5B5B5B"
@@ -1032,7 +1066,6 @@ class MainWindow(QMainWindow):
                 smDefault = "#DDEEFF"
                 sdDefault = "#306294"
                 isDefault = "#323232"
-                strStyle = open(self.getLocation() + "/onvif_gui/resources/darkstyle.qss", "r").read()
                 strStyle = strStyle.replace("background_light",  blDefault)
                 strStyle = strStyle.replace("background_medium", bmDefault)
                 strStyle = strStyle.replace("background_dark",   bdDefault)
@@ -1054,7 +1087,6 @@ class MainWindow(QMainWindow):
                 smDefault = "#222222"
                 sdDefault = "#999999"
                 isDefault = "#888888"
-                strStyle = open(self.getLocation() + "/onvif_gui/resources/darkstyle.qss", "r").read()
                 strStyle = strStyle.replace("background_light",  blDefault)
                 strStyle = strStyle.replace("background_medium", bmDefault)
                 strStyle = strStyle.replace("background_dark",   bdDefault)

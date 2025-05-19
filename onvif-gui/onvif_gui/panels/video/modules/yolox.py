@@ -297,38 +297,38 @@ class VideoWorker:
                 if self.mw.videoConfigure.chkAuto.isChecked():
                     self.ckpt_file = self.get_auto_ckpt_filename()
                     cache = Path(self.ckpt_file)
-
                     if not cache.is_file():
                         self.mw.signals.showWaitDialog.emit("Please wait for yolox model to download")
                         try:
-
-
                             cache.parent.mkdir(parents=True, exist_ok=True)
-                            link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + self.model_name + ".pth"
-                        
-                        
-                            #if os.path.split(sys.executable)[1] == "pythonw.exe":
-                            #    torch.hub.download_url_to_file(link, self.ckpt_file, progress=False)
-                            #else:
-                            #    torch.hub.download_url_to_file(link, self.ckpt_file)
-                        
+                            id = f'{self.model_name}.pth'
+                            link = "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/" + id
                             response = requests.get(link, allow_redirects=True, timeout=(10, 120))
                             if not response:
                                 raise RuntimeError(f'Error downloading {link}: {response.status_code}')
                             with open(self.ckpt_file, 'wb') as content:
                                 content.write(response.content)
                             if os.path.isfile(self.ckpt_file):
+
+                                hashes = {
+                                    "yolox_tiny.pth": "9de513de589ac98bb92d3bca53b5af7b9acfa9b0bacb831f7999d0f7afaee8f0",
+                                    "yolox_s.pth": "f55ded7181e1b0c13285c56e7790b8f0e8f8db590fe4edb37f0b7f345c913a30",
+                                    "yolox_m.pth": "60076992b32da82951c90cfa7bd6ab70eba9eda243e08b940a396f60ac2d19b6",
+                                    "yolox_l.pth": "1e6b7fa6240375370b2a8a8eab9066b3cdd43fd1d0bfa8d2027fd3a51def2917",
+                                    "yolox_x.pth": "5652330b6ae860043f091b8f550a60c10e1129f416edfdb65c259be6caf355cf"
+                                }
+
+                                verified = False
+                                if hash := self.mw.calculate_sha256(self.ckpt_file):
+                                    if hash == hashes.get(id, None):
+                                        verified = True
+                                if not verified:
+                                    os.remove(self.ckpt_file)
+                                    raise RuntimeError(f'Error verifying {self.ckpt_file}')
+
                                 logger.debug(f'model {self.ckpt_file} was downloaded succesfully')
-                   
-                        
-                        
-                        
                         except Exception as ex:
                             logger.error(f'YOLO model {link} download failure: {ex}')
-
-
-
-
                         self.mw.signals.hideWaitDialog.emit()
                 else:
                     self.ckpt_file = self.mw.videoConfigure.txtFilename.text()
@@ -520,20 +520,12 @@ class VideoWorker:
     def get_ov_model_filename(self):
         model_name = self.mw.videoConfigure.cmbModelName.currentText()
         openvino_device = self.mw.videoConfigure.cmbDevice.currentText()
-        path = None
-        if sys.platform == "win32":
-            path = Path(f'{os.environ['HOMEPATH']}/.cache/checkpoints/{model_name}/{openvino_device}/model.xml').absolute()
-        else:
-            path = Path(f'{os.environ['HOME']}/.cache/onvif-gui/checkpoints/{model_name}/{openvino_device}/model.xml').absolute()
+        path = os.path.join(self.mw.getLocation(), "cache", "checkpoints", model_name, openvino_device, "model.xml")
         return path
 
     def get_auto_ckpt_filename(self):
         model_name = self.mw.videoConfigure.cmbModelName.currentText()
-        path = None
-        if sys.platform == "win32":
-            path = Path(f'{os.environ['HOMEPATH']}/.cache/onvif-gui/checkpoints/{model_name}.pth').absolute()
-        else:
-            path = Path(f'{os.environ['HOME']}/.cache/onvif-gui/checkpoints/{model_name}.pth').absolute()
+        path = os.path.join(self.mw.getLocation(), "cache", "checkpoints", f'{model_name}.pth')
         return path
 
     def get_model(self, num_classes, depth, width, act):

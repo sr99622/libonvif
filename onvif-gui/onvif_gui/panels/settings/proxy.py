@@ -161,11 +161,7 @@ class ProxyOptions(QWidget):
         dir = None
         autoDownload = self.chkAutoDownload.isChecked()
         if autoDownload:
-            if sys.platform == "win32":
-                dir = os.environ['HOMEPATH'] + "/.cache/onvif-gui/proxy"
-            else:
-                dir = os.environ['HOME'] + "/.cache/onvif-gui/proxy"
-
+            dir = os.path.join(self.mw.getLocation(), "cache", "proxy")
         else:
             dir = self.txtDirectoryMTX.text()
         return dir

@@ -1,0 +1,8 @@
+cd $HOME
+if [ ! -d "gdbm-1.25" ]; then
+    curl -OL https://ftp.gnu.org/gnu/gdbm/gdbm-1.25.tar.gz
+    tar xzvf gdbm-1.25.tar.gz
+fi 
+cd gdbm-1.25
+./configure --prefix=/app/bin/gdbm
+sudo make install

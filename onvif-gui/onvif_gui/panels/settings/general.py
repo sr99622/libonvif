@@ -58,7 +58,7 @@ class LogDialog(QDialog):
 
         self.editor = LogText(self)
         self.editor.setReadOnly(True)
-        self.editor.setFontFamily("courier")
+        self.editor.setFontFamily("Courier")
 
         self.lblSize = QLabel("Log File Size:")
         self.btnArchive = QPushButton("View Archive")
@@ -116,7 +116,7 @@ class LogDialog(QDialog):
 
     def btnClearClicked(self):
         filename = self.windowTitle()
-        log_filename = self.mw.settingsPanel.general.getLogFilename()
+        log_filename = self.mw.getLogFilename()
 
         if filename == log_filename:
             ret = QMessageBox.question(self, "Preserve File", 
@@ -538,16 +538,8 @@ class GeneralOptions(QWidget):
             self.mw.startAllCameras()
             self.btnCloseAll.setText("Close All")
 
-    def getLogFilename(self):
-        filename = ""
-        if sys.platform == "win32":
-            filename = os.path.join(os.environ['HOMEPATH'], ".cache", "onvif-gui", "logs" "logs.txt")
-        else:
-            filename = os.path.join(os.environ['HOME'], ".cache", "onvif-gui", "logs", "logs.txt")
-        return filename
-
     def btnShowLogsClicked(self):
-        filename = self.getLogFilename()
+        filename = self.mw.getLogFilename()
         if not self.dlgLog:
             self.dlgLog = LogDialog(self.mw)
         self.dlgLog.readLogFile(filename)
@@ -634,7 +626,10 @@ class GeneralOptions(QWidget):
             response = QMessageBox.question(self.mw, "Update Available", "There is a newer version available, would you like to upgrade")
             if response == QMessageBox.StandardButton.Yes:
                 logger.debug(f'Upgrading Onvif GUI from version {self.mw.version} to {latest_version}')
-                print(self.mw.run_command("source $HOME/.local/share/onvif-gui-env/bin/activate && pip install --upgrade onvif-gui"))
+                if sys.platform == "linux":
+                    print(self.mw.run_command("source $HOME/.local/share/onvif-gui-env/bin/activate && pip install --upgrade onvif-gui"))
+                if sys.platform == "darwin":
+                    print(self.mw.run_command("source /Applications/OnvifGUI.app/Contents/MacOS/onvif-gui/bin/activate && pip install --upgrade onvif-gui"))
                 QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI has been updated, please restart the program")
         else:
             QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI is currently the latest version")

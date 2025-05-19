@@ -1,0 +1,19 @@
+# codesign app folder
+find '/Applications/OnvifGUI.app' -type f -perm +111 -exec codesign --force --options runtime --entitlements /Users/stephen/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" {} \;
+codesign --force --options runtime --timestamp --entitlements /Users/stephen/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" /Applications/OnvifGUI.app
+
+
+# verify code signature
+codesign --display --verbose /Applications/OnvifGUI.app
+codesign -vvv --deep --strict /Applications/OnvifGUI.app
+
+# zip app folder
+rm $HOME/install/OnvifGUI.zip
+/usr/bin/ditto -c -k --keepParent /Applications/OnvifGUI.app $HOME/install/OnvifGUI.zip
+
+# python binary
+/Applications/OnvifGUI.app/Contents/MacOS/Python/Library/Frameworks/Python.framework/Versions/3.13/bin/python3.13
+
+# find universal binaries
+find OnvifGUI.app -type f -perm +111 -exec file "{}" \; | grep x86_64       
+find OnvifGUI.app -name "*.so" -o -name "*.dylib" | xargs file | grep x86_64

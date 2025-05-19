@@ -129,7 +129,11 @@ python3 install-onvif-gui.py -u
 
 ---
 
+An installer is available for Apple Silicon running Mac OS version Sequoia (15).
+
 Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.0.10/OnvifGUI.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. Once the installation is complete, the program can then be started from the Launchpad.
+
+For other Mac OS versions, please build from source.
 
 ---
 
@@ -1548,7 +1552,7 @@ Virtual environments are a solution to the issue of system interaction with mult
 
 * #### Folder
 
-  A virtual environment Folder is a subdirectory on the disk containing all the files necessary to run a particular version of Python. This allows a Python version separate from the system installed version to operate independently. Python has been optimized to minimize the size of the Folder, so the virtual environments are lightwieght. The virtual environment Folder is created by a call to the venv module as ```python3 -m venv <name>```, where ```<name>``` is chosen by the user. Note that ```<name>``` is traditionally entered as a relative path name, but a full path name is valid. Note that some Linux distributoons have the venv module included by default, while other distributions require the installation of additional libraries.
+  A virtual environment Folder is a subdirectory on the disk containing all the files necessary to run a particular version of Python. This allows a Python version separate from the system installed version to operate independently. Python has been optimized to minimize the size of the Folder, so the virtual environments are lightwieght. The virtual environment Folder is created by a call to the venv module as ```python3 -m venv <name>```, where ```<name>``` is chosen by the user. Note that ```<name>``` is traditionally entered as a relative path name, but a full path name is valid. Note that some Linux distributions have the venv module included by default, while other distributions require the installation of additional libraries.
 
 * #### Shell Variables
 
@@ -2127,7 +2131,7 @@ Running the program from the command line inside the virutal environment can hel
   * Mac
 
   ```
-  source $HOME/onvif-gui-env/bin/activate
+  source /Applications/OnvifGUI.app/Contents/MacOS/Python/Library/Frameworks/Python.framework/Versions/Current/onvif-gui-env/bin/activate
   ```
 
   * Windows
@@ -2181,6 +2185,21 @@ For X11, the procedure is to start the application, then open another terminal, 
 If you are operating in Wayland, use the Keystroke combination ALT + F2 to start a dialog box. In the box, type `lg`. This will produce a diagnostic similar to the X11 output, but will show for all open windows. You will need to record the `wmclass` field for the application of interest, which can then be entered into the .dekstop file. Use the ESCAPE key to close the dialog.
 
 It has been observed that older systems prefer the StartupWMClass=onvif-gui and newer ones work with StartupWMClass=python3.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Application Icon on Mac OS</summary>
+
+&nbsp;
+
+---
+
+To launch the application using an icon on Mac OS, a directory named OnvifGUI.app is created in the /Applications folder. The directory is populated with content specific to Mac. A custom build of python is created with the openssl and gdbm libraries required for a functional pip, which is then used to build a virtual environment in the OnvifGUI.app folder. A line in the Info.plist file points to the executable script in the virtual environment that starts the program. Currently, the openssl and gdbm binaries are built with hardcoded path as /Applications/Contents/MacOS/<libname>. This should be ok for now as this is where the app will be installed on every machine. An RPATH solution is probably better, but documentation is murky and time for experimentation is short. In any event, there is a script in the assets/scripts/components/mac directory named build_app that will perform the actions for building this configuration. Create a virtual machine and copy the script along with the onvif-gui.png file from onvif-gui/onvif_gui/resources and run.
 
 ---
 
@@ -2789,7 +2808,7 @@ Exit session
 
 ---
 
- libavio Copyright (c) 2022, 2023, 2024 Stephen Rhodes
+ onvif-gui Copyright (c) 2022 - 2025 Stephen Rhodes
 
  License: Apache
 

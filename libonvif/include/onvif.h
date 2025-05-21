@@ -155,6 +155,9 @@ struct OnvifData {
     bool hidden;
     int cache_max;
     bool sync_audio;
+    /*move status*/
+    // 0 = pan position, 1 = tilt position
+    float position[2];
 };
 
 struct OnvifSession {
@@ -200,6 +203,8 @@ LIBRARY_API int getOptions(struct OnvifData *onvif_data);
 LIBRARY_API int getImagingSettings(struct OnvifData *onvif_data);
 LIBRARY_API int setImagingSettings(struct OnvifData *onvif_data);
 
+LIBRARY_API int getStatus(struct OnvifData *onvif_data);
+LIBRARY_API int absoluteMove(float positoin, float speed, struct OnvifData *onvif_data);
 LIBRARY_API int continuousMove(float x, float y, float z, struct OnvifData *onvif_data);
 LIBRARY_API int moveStop(int type, struct OnvifData *onvif_data);
 LIBRARY_API int setPreset(char * arg, struct OnvifData *onvif_data);

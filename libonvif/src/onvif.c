@@ -1328,6 +1328,115 @@ int setImagingSettings(struct OnvifData *onvif_data) {
     return result;
 }
 
+
+int getStatus(struct OnvifData *onvif_data) {
+    memset(onvif_data->last_error, 0, sizeof(onvif_data->last_error));
+    int result = 0;
+    xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
+    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);
+    xmlDocSetRootElement(doc, root);
+    xmlNsPtr ns_env = xmlNewNs(root, BAD_CAST "http://www.w3.org/2003/05/soap-envelope", BAD_CAST "SOAP-ENV");
+    xmlNsPtr ns_ptz = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver20/ptz/wsdl", BAD_CAST "tptz");
+    xmlNsPtr ns_tt  = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/schema", BAD_CAST "tt");
+    xmlSetNs(root, ns_env);
+    addUsernameDigestHeader(root, ns_env, onvif_data->username, onvif_data->password, onvif_data->time_offset);
+    xmlNodePtr body = xmlNewTextChild(root, ns_env, BAD_CAST "Body", NULL);
+    xmlNodePtr getStatus = xmlNewTextChild(body, ns_ptz, BAD_CAST "GetStatus", NULL);
+    xmlNewTextChild(getStatus, ns_ptz, BAD_CAST "ProfileToken", BAD_CAST onvif_data->profileToken);
+    char cmd[4096] = {0};
+    addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->ptz_service, cmd, sizeof(cmd));
+    xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
+    if (reply != NULL) {
+        xmlXPathContextPtr xpathCtx = xmlXPathNewContext(reply);
+        xmlXPathRegisterNs(xpathCtx, BAD_CAST "s", BAD_CAST "http://www.w3.org/2003/05/soap-envelope");
+        xmlXPathRegisterNs(xpathCtx, BAD_CAST "tptz", BAD_CAST "http://www.onvif.org/ver20/ptz/wsdl");
+        xmlXPathRegisterNs(xpathCtx, BAD_CAST "tt", BAD_CAST "http://www.onvif.org/ver10/schema");
+
+        xmlXPathObjectPtr resultObj = xmlXPathEvalExpression(
+            BAD_CAST "//s:Body//tptz:GetStatusResponse//tptz:PTZStatus//tt:Position//tt:PanTilt", 
+            xpathCtx);
+
+        if (resultObj && resultObj->nodesetval && resultObj->nodesetval->nodeNr > 0) {
+            xmlNodePtr node = resultObj->nodesetval->nodeTab[0];
+            xmlChar *xVal = xmlGetProp(node, BAD_CAST "x");
+            xmlChar *yVal = xmlGetProp(node, BAD_CAST "y");
+
+            if (xVal && yVal) {
+                onvif_data->position[0] = atof((char*)xVal);
+                onvif_data->position[1] = atof((char*)yVal);
+            } else {
+                strcpy(onvif_data->last_error, "getStatus - Missing PanTilt values");
+                result = -1;
+            }
+
+            if (xVal) xmlFree(xVal);
+            if (yVal) xmlFree(yVal);
+        } else {
+            strcpy(onvif_data->last_error, "getStatus - PTZStatus PanTilt not found");
+            result = -1;
+        }
+
+        if (resultObj)
+            xmlXPathFreeObject(resultObj);
+        xmlXPathFreeContext(xpathCtx);
+
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " getStatus");
+        xmlFreeDoc(reply);
+    } else {
+        result = -1;
+        strcpy(onvif_data->last_error, "getStatus - No XML reply");
+    }
+
+    return result;
+}
+
+int absoluteMove(float position, float speed, struct OnvifData *onvif_data) {
+    memset(onvif_data->last_error, 0, sizeof(onvif_data->last_error));
+    int result = 0;
+
+    char pan_tilt_string[128] = {0};
+    sprintf(pan_tilt_string, "PanTilt x=\"%.*f\" y=\"%.*f\"", 2, position, 2, 0);
+
+    xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
+    xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);
+    xmlDocSetRootElement(doc, root);
+
+    xmlNsPtr ns_env = xmlNewNs(root, BAD_CAST "http://www.w3.org/2003/05/soap-envelope", BAD_CAST "SOAP-ENV");
+    xmlNsPtr ns_ptz = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver20/ptz/wsdl", BAD_CAST "ptz");
+    xmlNsPtr ns_tt = xmlNewNs(root, BAD_CAST "http://www.onvif.org/ver10/schema", BAD_CAST "tt");
+    xmlSetNs(root, ns_env);
+
+    // Add WS-Security Header
+    addUsernameDigestHeader(root, ns_env, onvif_data->username, onvif_data->password, onvif_data->time_offset);
+
+    // Body
+    xmlNodePtr body = xmlNewTextChild(root, ns_env, BAD_CAST "Body", NULL);
+    xmlNodePtr absoluteMove = xmlNewTextChild(body, ns_ptz, BAD_CAST "AbsoluteMove", NULL);
+
+    // ProfileToken
+    xmlNewTextChild(absoluteMove, ns_ptz, BAD_CAST "ProfileToken", BAD_CAST onvif_data->profileToken);
+
+    // Position
+    xmlNodePtr position_node = xmlNewChild(absoluteMove, ns_ptz, BAD_CAST "Position", NULL);
+    xmlNewTextChild(position_node, ns_tt, BAD_CAST pan_tilt_string, NULL);
+
+    char cmd[4096] = {0};
+    addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->ptz_service, cmd, 4096);
+    xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
+    if (reply != NULL) {
+        result = checkForXmlErrorMsg(reply, onvif_data->last_error);
+        if (result < 0)
+            strcat(onvif_data->last_error, " absoluteMove");
+        xmlFreeDoc(reply);
+    } else {
+        result = -1;
+        strcpy(onvif_data->last_error, "absoluteMove - No XML reply");
+    }
+    return result;
+}
+
 int continuousMove(float x, float y, float z, struct OnvifData *onvif_data) {
     memset(onvif_data->last_error, 0, sizeof(onvif_data->last_error));
     int result = 0;
@@ -3618,6 +3727,7 @@ void dumpConfigAll (struct OnvifData *onvif_data) {
     getVideoEncoderConfiguration(onvif_data);
     getProfile(onvif_data);
     getOptions(onvif_data);
+    getStatus(onvif_data);
     getImagingSettings(onvif_data);
     getFirstProfileToken(onvif_data);
     getTimeOffset(onvif_data);

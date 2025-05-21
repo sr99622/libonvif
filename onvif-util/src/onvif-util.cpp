@@ -131,6 +131,7 @@ static void showHelp()
 			  << "      get imaging\n"
 			  << "      get imaging options\n"
 			  << "      get network\n\n"
+			  << "      get status\n\n"
 			  << "    Parameter Setting Commands (start with set)\n\n"
 			  << "      set resolution (n) - Resolution setting in the format widthxheight, must match the video option\n"
 			  << "      set framerate (n)\n"
@@ -146,6 +147,7 @@ static void showHelp()
 			  << "      set dhcp value(required) - Accepted settings are 'on' and off'\n"
 			  << "      set password  value(required)\n\n"
 			  << "    Movement Commands (start with move)\n"
+			  << "      move position value(required)\n"
 			  << "      move pan pan_value tilt_value(all required)\n"
 			  << "      move zoom value(required)\n"
 			  << "      move stop - Stops both pan/tilt and zoom\n\n"
@@ -560,6 +562,12 @@ int main(int argc, char **argv)
 					std::cout << "  DNS:        " << onvif_data->dns_buf << "\n";
 					std::cout << "  DHCP:       " << (onvif_data->dhcp_enabled ? "YES" : "NO") << "\n" << std::endl;
 				}
+				else if (args[0] == "status") {
+					profileCheck(onvif_data, args);
+					if (getStatus(onvif_data)) throw std::runtime_error(cat("get status - ", onvif_data->last_error));
+					std::cout << "  Position X: " << onvif_data->position[0] << "\n";
+					std::cout << "  Position Y: " << onvif_data->position[1] << "\n";
+				}
 				else { 
 					std::cout << "  Unrecognized command \"" << args[0] << "\", type \"help\" to see help\n" << std::endl;
 				}
@@ -795,7 +803,22 @@ int main(int argc, char **argv)
 			else if (args[0] == "move") {
 				args.erase(args.begin());
 				
-				if (args[0] == "pan") {
+				if (args[0] == "position") {
+			      		if (args.size() > 1) {
+				    		args.erase(args.begin());
+				    		double const position = stof(args[0]);
+						
+				    		if (absoluteMove(position, 0.5, onvif_data))
+					  		throw std::runtime_error(
+						      			cat("move position - ", onvif_data->last_error));
+						
+				    		std::cout << "  Position " << position << "\n" << std::endl;
+						
+			      		} else {
+				    		std::cout << "  Missing value for Position\n" << std::endl;
+			      		}
+					
+				} else if (args[0] == "pan") {
 			      		if (args.size() > 2) {
 				    		args.erase(args.begin());
 				    		double const pan_rate = stof(args[0]);

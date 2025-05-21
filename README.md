@@ -1879,6 +1879,7 @@ Once logged into the camera you can view data using the 'get' command followed b
 - get imaging
 - get imaging options
 - get network
+- get status
 
 ---
 &nbsp;
@@ -1916,7 +1917,13 @@ Once logged into the camera you can set parameters using the 'set' command follo
 
 ---
 
-Sends continuous move commands to the camera, note that a profile must be selected i.e. get profile. Values are all floating point between -1.0 and 1.0.
+Note that for all commands a profile must be selected i.e. get profile. Values are all floating point between -1.0 and 1.0.
+
+Sends an absolute move command to the camera.
+
+- move position value(required)
+
+Sends continuous move commands to the camera.
 
 - move pan pan_value tilt_value(all required)
 - move zoom value(required)

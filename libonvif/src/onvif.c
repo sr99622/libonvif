@@ -1397,7 +1397,7 @@ int absoluteMove(float position, float speed, struct OnvifData *onvif_data) {
     int result = 0;
 
     char pan_tilt_string[128] = {0};
-    sprintf(pan_tilt_string, "PanTilt x=\"%.*f\" y=\"%.*f\"", 2, position, 2, 0);
+    sprintf(pan_tilt_string, "PanTilt x=\"%.*f\" y=\"%.*f\"", 2, position, 2, 0.0);
 
     xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
     xmlNodePtr root = xmlNewDocNode(doc, NULL, BAD_CAST "Envelope", NULL);

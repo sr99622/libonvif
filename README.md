@@ -1506,49 +1506,6 @@ It is possible for Windows clients to access camera recordings residing on a Lin
   _____________
 
 
-<h1> Please Remember to Delete the old instructions</h1>
-  ______________
-  
-  
-  Note that the shared folder will need to be created later, and a symbolic link will be placed in the folder to access the home folder for the account under which Onvif GUI was installed, which has the Videos folder hosting the camera recordings.
-
-  ```
-  [global]
-    workgroup = WORKGROUP
-    allow insecure wide links = yes
-  
-  [share]
-    comment = Ubuntu File Server Share
-    path = /srv/samba/share
-    browsable = yes
-    guest ok = yes
-    read only = no
-    create mask = 0755
-    follow symlinks = yes
-    wide links = yes
-  ```
-
-  Step 4. <b>Create the Shared Folder and Set Permissions</b> Now the shared folder is created on the Linux server, and the permissions are set to allow access by the clients.
-
-  ```
-  sudo mkdir -p /srv/samba/share
-  sudo chown nobody:nogroup /srv/samba/share/
-  ```
-
-  Step 5. <b>Create Symlink</b> A symlink to the $HOME folder is placed into the samba shared folder. The reason for using a symlink rather than pointing directly to the folder is to avoid permission conflicts that can cause the Windows client to be unable to log into the samba share. By default, Onvif GUI sets the user $HOME/Videos folder as the recordings folder, which requires ownership that is incompatible with the Samba protocol. A symlink avoids this issue. The symlink is created as follows
-
-  ```
-  sudo ln -s $HOME /srv/samba/share/home
-  ```
-
-  Step 6. <b>Set Samba Password</b> Windows will require that a password is set on the share. Since Samba doesn’t use the system account password, we need to set up a Samba password for our user account. Use the username and password from the account under which Onvif GUI was installed.
-
-  ```
-  sudo smbpasswd -a $USER
-  ```
-
-  If you need to make adjustments to the configuration file, use the command 
-
 * #### Windows Client Configuration
 
   Open the file navigator in Windows and go to the Network section. Using the address bar at the top, enter the IP address of the server such as, for example,

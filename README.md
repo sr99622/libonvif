@@ -104,6 +104,74 @@ Windows computers will work well, but do require more computing power to achieve
 
 &nbsp;
 
+---
+
+<details>
+<summary>Flatpak</summary>
+
+&nbsp;
+
+Download the [Flatpak installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/OnvifGUI-3.1.9.flatpak), then open a terminal and navigate to the Downloads folder. Use the following command to install.
+
+```
+flatpak install OnvifGUI-3.1.9.flatpak
+```
+
+The program can then be launched from the Applications menu. To uninstall use the command.
+
+```
+flatpak uninstall io.github.sr99622.OnvifGUI
+```
+
+---
+
+</details>
+
+<details>
+<summary>Snap</summary>
+
+&nbsp;
+
+Download the [snap installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/onvif-gui_3.1.9_amd64.snap), then open a terminal and navigate to the Downloads folder. Use the following command to install.
+
+```
+sudo snap install onvif-gui_3.1.9_amd64.snap --dangerous
+```
+
+The program can then be launched from the Applications menu. In order to get audio, you need to connect the pulseaudio driver.
+
+```
+sudo snap connect onvif-gui:pulseaudio
+```
+
+If you would like to use the NPU on Intel, the driver can be installed as follows.
+
+```
+sudo snap install intel-npu-driver
+sudo chown root:render /dev/accel/accel0
+sudo chmod g+rw /dev/accel/accel0
+sudo usermod -a -G render $USER
+sudo bash -c "echo 'SUBSYSTEM==\"accel\", KERNEL==\"accel*\", GROUP=\"render\", MODE=\"0660\"' > /etc/udev/rules.d/10-intel-vpu.rules"
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=accel
+sudo reboot now
+```
+
+To uninstall.
+
+```
+sudo snap remove onvif-gui
+```
+
+---
+
+</details>
+
+<details>
+<summary>General Purpose Script Installation</summary> 
+
+&nbsp;
+
 To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. If you are installing on an Intel platform, the script will ask if you want to install the compute drivers, which are necessary for YOLO analysis on Intel iGPU. For detailed information on what the script does, please consult the Notes - Operations section of this document. The end result of the script is an icon in the system Applications that can be used to launch the program. 
 
 ```
@@ -115,6 +183,8 @@ The program can be uninstalled by using the same script with the -u flag
 ```
 python3 install-onvif-gui.py -u
 ```
+
+</details>
 
 ---
 
@@ -131,7 +201,7 @@ python3 install-onvif-gui.py -u
 
 An installer is available for Apple Silicon running Mac OS version Sequoia (15).
 
-Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.0.10/OnvifGUI.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. Once the installation is complete, the program can then be started from the Launchpad.
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/OnvifGUI-3.1.9.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. Once the installation is complete, the program can then be started from the Launchpad. To uninstall the program, use Finder to go to the Applications directory, then right click over the icon and select Move to Trash.
 
 For other Mac OS versions, please build from source.
 
@@ -145,45 +215,17 @@ For other Mac OS versions, please build from source.
 <details>
 <summary>Windows</summary>
 
-* ### Step 1. Install Python
-
-  Python is required for this application and is not installed on Windows by default. The minimum required version for this application is 3.10. The python installer can be downloaded from https://www.python.org/downloads/. To check if python has already been installed on the machine, use the command
-
-  ```
-  python --version
-  ```
-
-  Note that windows may present an installation prompt if python is not already present.  Please select a python version higher than 3.10.
-
-* ### Step 2. Create Virtual Environment
-
-  ```
-  python -m venv onvif-gui-env
-  onvif-gui-env\Scripts\activate
-  ```
-
-* ### Step 3. Install onvif-gui
-  
-  ```
-  pip install onvif-gui
-  ```
-
-* ### Step 4. Launch Program
-
-  ```
-  onvif-gui
-  ```
-
-  Please note that the first time you start the program in Windows, there may be a short delay as things are initializing. Subsequent runs will start normally.
-
-* ### Step 5. Install Icon
-
-  ```
-  pip install pywin32 winshell
-  onvif-gui --icon
-  ```
+&nbsp;
 
 ---
+
+An installer is available for Windows.
+
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/OnvifGUI-installer-3.1.9.exe) and double click on it. You will receive a warning message from the Operating System. Follow the prompts on the screen to install the program. It can be launched from the icon found in the Applications menu. To uninstall the program, go to Settings -> Apps -> Installed Apps and find the icon, then use the three dot button on the right to select action.
+
+---
+
+&nbsp;
 
 </details>
 
@@ -196,7 +238,7 @@ For other Mac OS versions, please build from source.
 <summary>Build From Source</summary>
 &nbsp;
 
-<i>Building from source on Linux may improve compatability with some cameras and systems</i>
+<i>Building from source on Linux or MacOS may improve compatability with some cameras and systems</i>
 
 ---
 

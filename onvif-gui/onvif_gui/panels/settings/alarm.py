@@ -32,6 +32,7 @@ class AlarmOptions(QWidget):
         self.alarmSoundFileKey = "settings/alarmSoundFile"
         self.alarmSoundVolumeKey = "settings/alarmSoundVolume"
         self.showDisplayAlarmKey = "settings/showDisplayAlarm"
+        self.savePictureKey = "settings/savePictureOnAlarm"
 
         self.spnBufferSize = QSpinBox()
         self.spnBufferSize.setMinimum(1)
@@ -64,6 +65,10 @@ class AlarmOptions(QWidget):
         self.chkShowDisplay.setChecked(int(self.mw.settings.value(self.showDisplayAlarmKey, 1)))
         self.chkShowDisplay.stateChanged.connect(self.chkShowDisplayClicked)
 
+        self.chkSavePicture = QCheckBox("Save Picture for Alarms")
+        self.chkSavePicture.setChecked(int(self.mw.settings.value(self.savePictureKey, 1)))
+        self.chkSavePicture.stateChanged.connect(self.chkSavePictureClicked)
+
         pnlSoundFile = QWidget()
         lytSoundFile =  QGridLayout(pnlSoundFile)
         lytSoundFile.addWidget(lblSoundFiles,        0, 0, 1, 1)
@@ -71,6 +76,7 @@ class AlarmOptions(QWidget):
         lytSoundFile.addWidget(self.sldAlarmVolume,  0, 2, 1, 1)
         lytSoundFile.addWidget(QLabel(),             1, 0, 1, 3)
         lytSoundFile.addWidget(self.chkShowDisplay,  2, 0, 1, 2)
+        lytSoundFile.addWidget(self.chkSavePicture,  3, 0, 1, 2)
         lytSoundFile.setColumnStretch(1, 10)
 
         pnlBuffer = QWidget()
@@ -101,3 +107,6 @@ class AlarmOptions(QWidget):
 
     def chkShowDisplayClicked(self, state):
         self.mw.settings.setValue(self.showDisplayAlarmKey, state)
+
+    def chkSavePictureClicked(self, state):
+        self.mw.settings.setValue(self.savePictureKey, state)

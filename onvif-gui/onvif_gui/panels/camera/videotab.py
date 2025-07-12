@@ -94,9 +94,9 @@ class VideoTab(QWidget):
         self.cmbSampleRates.setMaximumWidth(50)
         self.lblSampleRates = QLabel("Samples")
 
-        self.chkSyncAudio = QCheckBox("Sync Audio")
-        self.chkSyncAudio.clicked.connect(self.chkSyncAudioChecked)
-        self.chkSyncAudio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        #self.chkSyncAudio = QCheckBox("Sync Audio")
+        #self.chkSyncAudio.clicked.connect(self.chkSyncAudioChecked)
+        #self.chkSyncAudio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self.btnSnapshot = QPushButton("Snapshot")
         self.btnSnapshot.clicked.connect(self.btnSnapshotClicked)
@@ -161,7 +161,7 @@ class VideoTab(QWidget):
         lytMain.addWidget(pnlRow5,             5, 0, 1, 2)
 
     def fill(self, onvif_data):
-        self.cmbResolutions.disconnect()
+        self.cmbResolutions.currentTextChanged.disconnect()
         self.cmbResolutions.clear()
         i = 0
         while len(onvif_data.resolutions_buf(i)) > 0 and i < 16:
@@ -171,7 +171,7 @@ class VideoTab(QWidget):
         self.cmbResolutions.setCurrentText(current_resolution)
         self.cmbResolutions.currentTextChanged.connect(self.cp.onEdit)
 
-        self.cmbProfiles.disconnect()
+        self.cmbProfiles.currentIndexChanged.disconnect()
         self.cmbProfiles.clear()
         for profile in onvif_data.profiles:
             self.cmbProfiles.addItem(profile.profile())
@@ -179,25 +179,25 @@ class VideoTab(QWidget):
         self.cmbProfiles.setCurrentText(onvif_data.profile())
         self.cmbProfiles.currentIndexChanged.connect(self.cmbProfilesChanged)
 
-        self.spnFrameRate.disconnect()
+        self.spnFrameRate.textChanged.disconnect()
         self.spnFrameRate.setMaximum(onvif_data.frame_rate_max())
         self.spnFrameRate.setMinimum(onvif_data.frame_rate_min())
         self.spnFrameRate.setValue(onvif_data.frame_rate())
         self.spnFrameRate.textChanged.connect(self.cp.onEdit)
 
-        self.spnGovLength.disconnect()
+        self.spnGovLength.textChanged.disconnect()
         self.spnGovLength.setMaximum(min(onvif_data.gov_length_max(), 250))
         self.spnGovLength.setMinimum(onvif_data.gov_length_min())
         self.spnGovLength.setValue(onvif_data.gov_length())
         self.spnGovLength.textChanged.connect(self.cp.onEdit)
 
-        self.spnBitrate.disconnect()
+        self.spnBitrate.textChanged.disconnect()
         self.spnBitrate.setMaximum(min(onvif_data.bitrate_max(), 16384))
         self.spnBitrate.setMinimum(onvif_data.bitrate_min())
         self.spnBitrate.setValue(onvif_data.bitrate())
         self.spnBitrate.textChanged.connect(self.cp.onEdit)
 
-        self.cmbAudio.disconnect()
+        self.cmbAudio.currentTextChanged.disconnect()
         encoders = onvif_data.audio_encoders()
         encoding = onvif_data.audio_encoding()
         self.cmbAudio.clear()
@@ -288,7 +288,7 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(True)
                 self.lblSampleRates.setEnabled(True)
                 self.chkAnalyzeAudio.setEnabled(True)
-                self.chkSyncAudio.setEnabled(True)
+                #self.chkSyncAudio.setEnabled(True)
             else:
                 self.chkDisableAudio.setChecked(False)
                 self.chkDisableAudio.setEnabled(False)
@@ -297,7 +297,7 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(False)
                 self.lblSampleRates.setEnabled(False)
                 self.chkAnalyzeAudio.setEnabled(False)
-                self.chkSyncAudio.setEnabled(False)
+                #self.chkSyncAudio.setEnabled(False)
 
             #print("video tab profile", profile.camera_name(), profile.profile(), profile.getDisableAudio())
             self.chkDisableAudio.setChecked(profile.getDisableAudio())
@@ -307,13 +307,13 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(False)
                 self.lblSampleRates.setEnabled(False)
                 self.chkAnalyzeAudio.setEnabled(False)
-                self.chkSyncAudio.setEnabled(False)
+                #self.chkSyncAudio.setEnabled(False)
 
-            self.chkSyncAudio.setChecked(profile.getSyncAudio())
+            #self.chkSyncAudio.setChecked(profile.getSyncAudio())
             self.chkAnalyzeVideo.setChecked(profile.getAnalyzeVideo())
             self.chkAnalyzeAudio.setChecked(profile.getAnalyzeAudio())
 
-        self.cmbAspect.disconnect()
+        self.cmbAspect.currentTextChanged.disconnect()
         found = False
         if ratio >= 176 and ratio <= 178:
             found = True
@@ -403,12 +403,12 @@ class VideoTab(QWidget):
         self.cp.tabSystem.syncGUI()
         self.syncGUI()
 
-    def chkSyncAudioChecked(self, state):
-        if profile := self.cp.getCurrentProfile():
-            profile.setSyncAudio(state)
-
-        if player := self.cp.getCurrentPlayer():
-            player.sync_audio = bool(state)
+    #def chkSyncAudioChecked(self, state):
+    #    if profile := self.cp.getCurrentProfile():
+    #        profile.setSyncAudio(state)
+    #
+    #    if player := self.cp.getCurrentPlayer():
+    #        player.sync_audio = bool(state)
 
     def chkAnalyzeVideoChecked(self, state):
         self.chkAnalyzeVideo.setChecked(state)

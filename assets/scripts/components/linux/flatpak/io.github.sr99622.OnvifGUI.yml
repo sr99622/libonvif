@@ -1,0 +1,264 @@
+id: io.github.sr99622.OnvifGUI
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: onvif-gui
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --share=network
+  - --device=all
+  - --device=dri
+  - --socket=pulseaudio
+  - --filesystem=xdg-cache:rw
+  - --filesystem=xdg-videos:rw
+  - --filesystem=xdg-pictures:rw
+  - --env=LEVEL_ZERO_DISABLE_SYSTEM=1
+  - --env=LD_LIBRARY_PATH=/app/usr/local/lib:/app/usr/lib/x86_64-linux-gnu:/app/lib
+  - --env=OCL_ICD_VENDORS=/app/etc/OpenCL/vendors
+modules:
+  - name: onvif-gui
+    buildsystem: simple
+    build-commands:
+      - pip3 install --exists-action=i --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} 
+        onvif-gui --no-build-isolation
+      - pip3 install --exists-action=i --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} 
+        torch-2.7.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl --no-build-isolation
+      - pip3 install --exists-action=i --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} 
+        torchvision-0.22.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl --no-build-isolation
+      - pip3 install --exists-action=i --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} 
+        openvino --no-build-isolation
+      - install -Dm644 io.github.sr99622.OnvifGUI.desktop -t /app/share/applications
+      - install -Dm644 io.github.sr99622.OnvifGUI.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 io.github.sr99622.OnvifGUI.png -t /app/share/icons/hicolor/256x256/apps
+      - ar x intel-igc-core-2_2.11.7+19146_amd64.deb
+      - tar -xvf data.tar.gz -C /app
+      - ar x intel-igc-opencl-2_2.11.7+19146_amd64.deb
+      - tar -xvf data.tar.gz -C /app
+      - ar x intel-ocloc_25.18.33578.6-0_amd64.deb
+      - tar -xvf data.tar.zst -C /app
+      - ar x intel-opencl-icd_25.18.33578.6-0_amd64.deb
+      - tar -xvf data.tar.zst -C /app
+      - ar x libigdgmm12_22.7.0_amd64.deb
+      - tar -xvf data.tar.zst -C /app
+      - ar x libze-intel-gpu1_25.18.33578.6-0_amd64.deb
+      - tar -xvf data.tar.zst -C /app
+      - echo "/app/usr/lib/x86_64-linux-gnu/intel-opencl/libigdrcl.so" > /app/etc/OpenCL/vendors/intel.icd
+
+    sources:
+      - type: file
+        path: io.github.sr99622.OnvifGUI.desktop
+      - type: file
+        path: io.github.sr99622.OnvifGUI.metainfo.xml
+      - type: file
+        path: io.github.sr99622.OnvifGUI.png
+      #- type: file
+      #  path: onvif_gui-3.1.9-py3-none-any.whl
+      - type: file
+        url: https://files.pythonhosted.org/packages/8e/26/66a82b51224613a7216cf4b3ce090bc449810365bd7abe1303d08532ef34/onvif_gui-3.1.9-py3-none-any.whl
+        sha256: dad41739393604a6fe24a326fb35708559e21b5f76f8d506f4bd30f5e9da7994
+        x-checker-data:
+          type: pypi
+          name: onvif-gui
+      - type: file
+        url: https://files.pythonhosted.org/packages/10/55/f91ac7804942b69cc158aedc6d366e984d3f2497ef5f6b3bf0b9e982cfb8/avio-3.2.6-cp312-cp312-manylinux_2_31_x86_64.whl
+        sha256: 3744c4f7f3d6b4cf8ae7567f903563b1da318512b4d2a1ca625ccdfcb786894f
+        x-checker-data:
+          type: pypi
+          name: avio
+      - type: file
+        url: https://files.pythonhosted.org/packages/4a/7e/3db2bd1b1f9e95f7cddca6d6e75e2f2bd9f51b1246e546d88addca0106bd/certifi-2025.4.26-py3-none-any.whl
+        sha256: 30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3
+        x-checker-data:
+          type: pypi
+          name: certifi
+      - type: file
+        url: https://files.pythonhosted.org/packages/8c/73/6ede2ec59bce19b3edf4209d70004253ec5f4e319f9a2e3f2f15601ed5f7/charset_normalizer-3.4.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: 4e594135de17ab3866138f496755f302b72157d115086d100c3f19370839dd3a
+        x-checker-data:
+          type: pypi
+          name: charset-normalizer
+      - type: file
+        url: https://files.pythonhosted.org/packages/20/94/c5790835a017658cbfabd07f3bfb549140c3ac458cfc196323996b10095a/charset_normalizer-3.4.2-py3-none-any.whl
+        sha256: 7f56930ab0abd1c45cd15be65cc741c28b1c9a34876ce8c17a2fa107810c0af0
+        x-checker-data:
+          type: pypi
+          name: charset-normalizer
+      - type: file
+        url: https://files.pythonhosted.org/packages/81/54/84d42a0bee35edba99dee7b59a8d4970eccdd44b99fe728ed912106fc781/filelock-3.13.1-py3-none-any.whl
+        sha256: 57dbda9b35157b05fb3e58ee91448612eb674172fab98ee235ccb0b5bee19a1c
+        x-checker-data:
+          type: pypi
+          name: filelock
+      - type: file
+        url: https://files.pythonhosted.org/packages/5e/44/73bea497ac69bafde2ee4269292fa3b41f1198f4bb7bbaaabde30ad29d4a/fsspec-2024.6.1-py3-none-any.whl
+        sha256: 3cb443f8bcd2efb31295a5b9fdb02aee81d8452c80d28f97a6d0959e6cee101e
+        x-checker-data:
+          type: pypi
+          name: fsspec
+      - type: file
+        url: https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl
+        sha256: 946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
+        x-checker-data:
+          type: pypi
+          name: idna
+      - type: file
+        url: https://files.pythonhosted.org/packages/31/80/3a54838c3fb461f6fec263ebf3a3a41771bd05190238de3486aae8540c36/jinja2-3.1.4-py3-none-any.whl
+        sha256: bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d
+        x-checker-data:
+          type: pypi
+          name: Jinja2
+      - type: file
+        url: https://files.pythonhosted.org/packages/9b/b8/fce51bfaf05152f6c9b5914969fcd12d5cb8eceb4648a1e025de55bfcc64/kankakee-1.0.3-cp312-cp312-manylinux_2_31_x86_64.whl
+        sha256: eb58c96c5072e9f455b749ecd3e836951bc20ad6bc87711e7facbda79cdfbf91
+        x-checker-data:
+          type: pypi
+          name: kankakee
+      - type: file
+        url: https://files.pythonhosted.org/packages/04/93/d8aa206985682d3b225b7e7ad891a5032e34aa4044ea51f624d0b04f7e3f/libonvif-3.2.6-cp312-cp312-manylinux_2_31_x86_64.whl
+        sha256: 0dcb844703bcdc320a4dfb1213f5491a4941f7dfec1b9511ba7cd7d6fa925b53
+        x-checker-data:
+          type: pypi
+          name: libonvif
+      - type: file
+        url: https://files.pythonhosted.org/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl
+        sha256: 31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c
+        x-checker-data:
+          type: pypi
+          name: loguru
+      - type: file
+        url: https://files.pythonhosted.org/packages/0a/0d/2454f072fae3b5a137c119abf15465d1771319dfe9e4acbb31722a0fff91/MarkupSafe-2.1.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: f5dfb42c4604dddc8e4305050aa6deb084540643ed5804d7455b5df8fe16f5e5
+        x-checker-data:
+          type: pypi
+          name: MarkupSafe
+      - type: file
+        url: https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl
+        sha256: a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c
+        x-checker-data:
+          type: pypi
+          name: mpmath
+      - type: file
+        url: https://files.pythonhosted.org/packages/38/e9/5f72929373e1a0e8d142a130f3f97e6ff920070f87f91c4e13e40e0fba5a/networkx-3.3-py3-none-any.whl
+        sha256: 28575580c6ebdaf4505b22c6256a2b9de86b316dc63ba9e93abde3d78dfdbcf2
+        x-checker-data:
+          type: pypi
+          name: networkx
+      - type: file
+        url: https://files.pythonhosted.org/packages/9b/b4/e3c7e6fab0f77fff6194afa173d1f2342073d91b1d3b4b30b17c3fb4407a/numpy-2.1.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: 6d95f286b8244b3649b477ac066c6906fbb2905f8ac19b170e2175d3d799f4df
+        x-checker-data:
+          type: pypi
+          name: numpy
+      - type: file
+        url: https://files.pythonhosted.org/packages/dd/5c/c139a7876099916879609372bfa513b7f1257f7f1a908b0bdc1c2328241b/opencv_python_headless-4.11.0.86-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: 0e0a27c19dd1f40ddff94976cfe43066fbbe9dfbb2ec1907d66c19caef42a57b
+        x-checker-data:
+          type: pypi
+          name: opencv_python_headless
+      - type: file
+        url: https://files.pythonhosted.org/packages/aa/c4/9c0d03c9e65ced1d60fe003c99a795aee044822cdfe71ee18cc62daf2279/openvino-2025.1.0-18503-cp312-cp312-manylinux2014_x86_64.whl
+        sha256: 0ef5e48d565d78885fc98eb2cf59904cc8e6477102fa68d7ff0d6f8ba89eb5a8
+        x-checker-data:
+          type: pypi
+          name: openvino
+      - type: file
+        url: https://files.pythonhosted.org/packages/3e/cd/f26e5c79f5dcc64359d489c9b8e468658474dc8a6cd579d8873ad2348d0e/openvino_telemetry-2025.1.0-py3-none-any.whl
+        sha256: 5bee18ce3bc8f287def5bfa4c73205417d4c5f281da6932486c2877558c712b3
+        x-checker-data:
+          type: pypi
+          name: openvino-telemetry
+      - type: file
+        url: https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl
+        sha256: 29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484
+        x-checker-data:
+          type: pypi
+          name: packaging
+      - type: file
+        url: https://files.pythonhosted.org/packages/9d/21/84c9f287d17180f26263b5f5c8fb201de0f88b1afddf8a2597a5c9fe787f/pillow-11.0.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+        sha256: f02541ef64077f22bf4924f225c0fd1248c168f86e4b7abdedd87d6ebaceab0f
+        x-checker-data:
+          type: pypi
+          name: pillow
+      - type: file
+        url: https://files.pythonhosted.org/packages/ed/3a/bcc7687c5a11079bbd1606a015514562f2ac8cb01c5e3e4a3b30fcbdad36/PyQt6-6.9.0-cp39-abi3-manylinux_2_28_x86_64.whl
+        sha256: e344868228c71fc89a0edeb325497df4ff731a89cfa5fe57a9a4e9baecc9512b
+        x-checker-data:
+          type: pypi
+          name: PyQt6
+      - type: file
+        url: https://files.pythonhosted.org/packages/0f/70/ec018b6e979b3914c984e5ab7e130918930d5423735ac96c70c328227b9b/PyQt6_Qt6-6.9.0-py3-none-manylinux_2_28_x86_64.whl
+        sha256: 9c0e603c934e4f130c110190fbf2c482ff1221a58317266570678bc02db6b152
+        x-checker-data:
+          type: pypi
+          name: PyQt6_Qt6
+      - type: file
+        url: https://files.pythonhosted.org/packages/99/34/2ec54bd475f0a811df1d32be485f2344cf9e8b388ce7adb26b46ce5552d4/PyQt6_sip-13.10.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.whl
+        sha256: ae15358941f127cd3d1ab09c1ebd45c4dabb0b2e91587b9eebde0279d0039c54
+        x-checker-data:
+          type: pypi
+          name: PyQt6_sip
+      - type: file
+        url: https://files.pythonhosted.org/packages/f9/9b/335f9764261e915ed497fcdeb11df5dfd6f7bf257d4a6a2a686d80da4d54/requests-2.32.3-py3-none-any.whl
+        sha256: 70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
+        x-checker-data:
+          type: pypi
+          name: requests
+      - type: file
+        url: https://files.pythonhosted.org/packages/42/54/2a8ecfcc9a714a6fbf86559a4b0f50b126a4ac4269ea8134f2c75c3e73de/setuptools-70.2.0-py3-none-any.whl
+        sha256: b8b8060bb426838fbe942479c90296ce976249451118ef566a5a0b7d8b78fb05
+        x-checker-data:
+          type: pypi
+          name: setuptools
+      - type: file
+        url: https://files.pythonhosted.org/packages/99/ff/c87e0622b1dadea79d2fb0b25ade9ed98954c9033722eb707053d310d4f3/sympy-1.13.3-py3-none-any.whl
+        sha256: 54612cf55a62755ee71824ce692986f23c88ffa77207b30c1368eda4a7060f73
+        x-checker-data:
+          type: pypi
+          name: sympy
+      - type: file
+        url: https://download.pytorch.org/whl/cpu/torch-2.7.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl
+        sha256: 64123c05615e27368c7a7816f6e39c6d219998693beabde0b0b9cedf91b5ed8b
+        x-checker-data:
+          type: pypi
+          name: torch
+      - type: file
+        url: https://download.pytorch.org/whl/cpu/torchvision-0.22.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl
+        sha256: effb34eabe87ae0d811fe2d6e3433ed1eee2d1850ff0670964d1475a06512c73
+        x-checker-data:
+          type: pypi
+          name: torchvision
+      - type: file
+        url: https://files.pythonhosted.org/packages/26/9f/ad63fc0248c5379346306f8668cda6e2e2e9c95e01216d2b8ffd9ff037d0/typing_extensions-4.12.2-py3-none-any.whl
+        sha256: 04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d
+        x-checker-data:
+          type: pypi
+          name: typing_extensions
+      - type: file
+        url: https://files.pythonhosted.org/packages/6b/11/cc635220681e93a0183390e26485430ca2c7b5f9d33b15c74c2861cb8091/urllib3-2.4.0-py3-none-any.whl
+        sha256: 4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813
+        x-checker-data:
+          type: pypi
+          name: urllib3
+      - type: file
+        url: https://github.com/intel/compute-runtime/releases/download/25.18.33578.6/intel-ocloc_25.18.33578.6-0_amd64.deb
+        sha256: c772db8891539890237d50c357af1480b22cbd859c0b8afb5355f605a818d758
+      - type: file
+        url: https://github.com/intel/compute-runtime/releases/download/25.18.33578.6/intel-opencl-icd_25.18.33578.6-0_amd64.deb
+        sha256: f522954a3cd85bafcfb16c303f808b6fc41af54b96637ecebe2d88f7c8a9655a
+      - type: file
+        url: https://github.com/intel/compute-runtime/releases/download/25.18.33578.6/libigdgmm12_22.7.0_amd64.deb
+        sha256: 3360af2bc0efaf05ad77c7f04a72320bf02ee6ae4989415d7256a656ee1ed37e
+      - type: file
+        url: https://github.com/intel/compute-runtime/releases/download/25.18.33578.6/libze-intel-gpu1_25.18.33578.6-0_amd64.deb
+        sha256: 8c61b62e91e96e481f64bc74c011601bdcf8fb3c13b990037a0f87e9eb736e15
+      - type: file
+        url: https://github.com/intel/intel-graphics-compiler/releases/download/v2.11.7/intel-igc-core-2_2.11.7+19146_amd64.deb
+        sha256: f9a593d38ddcca83325725b12289fb3972a737fb821ddb8d7e4adbe616140f1a
+      - type: file
+        url: https://github.com/intel/intel-graphics-compiler/releases/download/v2.11.7/intel-igc-opencl-2_2.11.7+19146_amd64.deb
+        sha256: 632b9665712f85c906a51ad8d43f5913ef0a026e8f74d78c3cf36857f702b1b8
+
+      
+

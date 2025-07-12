@@ -74,7 +74,7 @@ For maximum performance, the client-server configuration is recommended. In this
 
 &nbsp;
 
-<image src="assets/images/net_config.png" style="width: 640px;">
+<image src="assets/images/net_config.png" width="640">
 
 &nbsp;
 
@@ -534,7 +534,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 &nbsp;
 
-<image src="assets/images/media_tab.png" style="width: 366px;"/>
+<image src="assets/images/media_tab.png" width="400"/>
 
 &nbsp;
 
@@ -572,7 +572,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
     Audio can be disabled by selecting this check box. This is different than mute in the sense that under mute, the audio stream is decoded, but not played on the computer speakers. If the No Audio check box is selected, the audio stream is discarded. If the No Audio checkbox is deselected, the stream will restart in order to initialize the audio. The Apply button is not clicked when changing this parameter. This checkbox is selected by default.
 
-    <b>** Please Note **</b> If the audio is enabled by deselecting this check box, there should probably be a physical audio device such as headphones, speakers or HDMI with audio connected to the host computer. Without a physical device, it may be possible in some cases for the audio driver to enter an undefined state which may cause the camera stream to stutter or freeze and may lead to lengthy timeouts when closing the camera stream. This condition applies only to camera streams which are displayed to the user interface. The Record Stream, if different than the Display Stream, is hidden and is not affected by this condition.
+    <b>** Please Note **</b> If the audio is enabled by deselecting this check box, and there is no physical audio device connected to the computer, there may be issues with stream processing. If an Audio Driver is specified on the Settings -> General panel such as pulseaudio, there should be a physical audio device such as headphones, speakers or HDMI connected to the host computer. Without a physical device, it may be possible in some cases for the audio driver to enter an undefined state which may cause the camera stream to stutter or freeze and may lead to lengthy timeouts when closing the camera stream. If there is no physical device available, the Audio Driver can be changed to dummy in order to avoid this problem. This condition applies only to camera streams which are displayed to the user interface. The Record Stream, if different than the Display Stream, is hidden and is not affected by this condition.
 
 * ### Audio
 
@@ -605,7 +605,7 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 
 &nbsp;
 
-<image src="assets/images/image_tab.png" style="width: 366px;"/>
+<image src="assets/images/image_tab.png" width="400"/>
 
 &nbsp;
 
@@ -618,7 +618,7 @@ The sliders control various parameters of the video quality.  The Apply button m
 
 &nbsp;
 
-<image src="assets/images/network_tab.png" style="width: 366px;"/>
+<image src="assets/images/network_tab.png" width="400"/>
 
 &nbsp;
 
@@ -637,7 +637,7 @@ The Apply button must be clicked to enact any of these changes on the camera.
 
 &nbsp;
 
-<image src="assets/images/ptz_tab.png" style="width: 366px;"/>
+<image src="assets/images/ptz_tab.png" width="400"/>
 
 &nbsp;
 
@@ -652,7 +652,7 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
 &nbsp;
 
-<image src="assets/images/system_tab.png" style="width: 366px;"/>
+<image src="assets/images/system_tab.png" width="400"/>
 
 &nbsp;
 
@@ -692,7 +692,7 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
     &nbsp;
 
-    <image src="assets/images/sync_time.png" style=" width: 640px;">
+    <image src="assets/images/sync_time.png" width="640">
 
     &nbsp;
 
@@ -710,9 +710,9 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
     Manual Time Setting will use the computer hosting the application to derive the time sent to the camera. The computer will send a UTC time to the camera and the camera will calculate its time based on the Time Zone and DST information that it has in its settings.
 
-    UTC as Local setting is a specific type of manual setting that will force the camera into displaying the same time as the computer host. This is done by setting the camera Time Zone to UTC0 and setting the time on the camera to match the application computer host time. As UTC time is not dependent on DST, issues associated with DST can be ignored. If the computer time is accurate and regularly updated, this can be a good strategy for many cameras, as it circumvents a lot of ambiguity in time setting configurations which may be inaccurate or outdated. Note that some cameras, if connected to the internet, may eventually resort to hidden NTP settings that will reset the camera time to UTC if this strategy is employed. If a camera is using this type of NTP access, it is advisable to isolate it from the internet as a security precaution. If this is not practical or desired, the time zone and DST settings can be used such that the camera displays the correct time.
+    UTC as Local setting is a specific type of manual setting that will force the camera into displaying the same time as the computer host. This is done by setting the camera Time Zone to UTC0 and setting the time on the camera to match the application computer host time. As UTC time is not dependent on DST, issues associated with DST can be ignored. If the computer time is accurate and regularly updated, this can be a good strategy for many cameras, as it circumvents a lot of ambiguity in time setting configurations which may be inaccurate or outdated. Note that some cameras, if connected to the internet, may eventually resort to hidden NTP settings that will reset the camera time (often incorrectly) if this strategy is employed. If a camera is using this type of NTP access, it is advisable to isolate it from the internet as a security precaution. If this is not practical or desired, the time zone and DST settings can be used such that the camera perhaps might display the correct time.
 
-    Ultimately, there are many variations and inconsistencies when dealing with camera times. In most cases, UTC as Local will provide the best results, as the camera algorithms for time setting are often opaque and in many cases incomplete or incorrect. Cameras with proper time setting implementations can be set using the Time Zone and DST settings, but should be verified for accuracy and completeness, especially regarding DST. NTP use is discouraged, as cameras should be isolated from the internet as a security precaution. Using an NTP server on the internal network does not provide any advantage over Manual time setting via the application host computer.
+    Ultimately, there are many variations and inconsistencies when dealing with camera times. In most cases, UTC as Local with cameras isolated from the internet will provide the best results. Camera algorithms for time setting are often opaque and in many cases incomplete or incorrect. Cameras with proper time setting implementations can be set using the Time Zone and DST settings, but should be verified for accuracy and completeness, especially regarding DST. NTP use is discouraged, as cameras should be isolated from the internet as a security precaution. Using an NTP server on the internal network does not provide any advantage over Manual time setting via the application host computer.
 
 </details>
 
@@ -737,13 +737,17 @@ Please note that the initial appearance of the file panel may not display all fi
 
 &nbsp;
 
-<image src="assets/images/file_panel.png" style=" width: 385px;">
+<image src="assets/images/file_panel.png" width="500">
 
 &nbsp;
 
 File playback is configured such that one file is played at a time. Keyboard shortcuts are available for faster navigation. A file may be played along side cameras in the main display if desired, or a separate window profile can be configure on the Settings -> General tab for file viewing. The Hide Camera Panel check box can be useful for this separate window profile for file viewing.
 
 <h3>File Playback Controls For Mouse</h3>
+
+<image src="onvif-gui/onvif_gui/resources/search.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/refresh.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/event.png">
+
+Search&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Refresh&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Events
 
 <image src="onvif-gui/onvif_gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/audio.png">
 
@@ -813,7 +817,7 @@ The application has the ability to search the files by camera for a particular m
 
 &nbsp;
 
-<image src="assets/images/file_search.png" style=" width: 304px;">
+<image src="assets/images/file_search.png">
 
 &nbsp;
 
@@ -824,6 +828,19 @@ If the application was not able to find the exact match, a pop up box will ask i
 ### Refresh File View
 
 The files listed in the panel my not be updated automatically. Use the refresh icon to get a current listing of the files available for view.
+
+
+### Event Browser
+
+  If the Save Picture for Alarms checkbox on the Settings -> Alarm panel is selected (yes by default), the system will save a picture each time an alarm is triggered. Clicking the Events button on the file panel will pop up the Event Browser dialog which can be used to view the pictures.
+
+  &nbsp;
+
+  <image src="assets/images/event_browser.png" width="640">
+
+  &nbsp;
+
+  The pictures are shown as the current selection on the list changes. Double clicking, typing the Enter key or clicking the View button will start the video associated with the event at the time point of the occurrence of the event.
 
 ---
 
@@ -841,7 +858,7 @@ The files listed in the panel my not be updated automatically. Use the refresh i
 
 &nbsp;
 
-<image src="assets/images/general.png" style=" width: 366px;">
+<image src="assets/images/general.png" width="400">
 
 &nbsp;
 
@@ -873,13 +890,15 @@ Adjust the maximum number of frames held in the cache before frames are dropped.
 
 Manage profiles for secondary windows used to display a camera or a group of cameras separately from the main application window.
 
+The default 'Reader' profile is a reserved profile that launches a specialized secondary File panel browser that can operate with it's own configuration for viewing files. The secondary File panel can be used during camera operation without interferring with the main program.
+
 The default 'Focus' profile is a reserved profile that is integrated into application logic. The Focus Window can be launched by double clicking on a camera stream in the main display and can show that camera at higher resolution and frame rate for a more detailed view. The Focus Window will show only one camera at a time. The application will automatically configure the Focus settings for proxy type and auto discovery.
 
 Additional profiles can be added using the three dot button to the right of the drop down box that will launch a configuration dialog box.
 
 &nbsp;
 
-<image src="assets/images/profile.png" style=" width: 360px;">
+<image src="assets/images/profile.png" width="360">
 
 &nbsp;
 
@@ -908,7 +927,7 @@ If running Onvif GUI in server configuration, it may be desirable to run in head
 
 &nbsp;
 
-<image src="assets/images/discover.png" style=" width: 366px;">
+<image src="assets/images/discover.png" width="400">
 
 &nbsp;
 
@@ -924,7 +943,7 @@ If running Onvif GUI in server configuration, it may be desirable to run in head
 
 * Add Camera
 
-  It is possible to add a camera manually to the address cache by using the Add Camera button. The IP address and ONVIF port are required to connect.  The ONVIF port by default is 80. If successful, the camera will be added silently to the camera list.
+  It is possible to add a camera manually to the address cache by using the Add Camera button. The IP address and ONVIF port are required to connect.  The ONVIF port by default is 80. If successful, the camera will be added silently to the camera list. If a camera is added manually using this method, it will not persist in the interface unless the Cached Addresses option is selected.
 
 ### Auto Discovery
 
@@ -938,7 +957,7 @@ When selected in combination with the Auto Discovery check box, cameras shown in
 
 &nbsp;
 
-<image src="assets/images/storage.png" style=" width: 366px;">
+<image src="assets/images/storage.png" width="400">
 
 &nbsp;
 
@@ -962,7 +981,7 @@ The application has the ability to manage the disk space used by the recorded me
 
 &nbsp;
 
-<image src="assets/images/proxy.png" style=" width: 366px;">
+<image src="assets/images/proxy.png" width="400">
 
 &nbsp;
 
@@ -990,7 +1009,7 @@ The application has the ability to manage the disk space used by the recorded me
 
 &nbsp;
 
-<image src="assets/images/alarm.png" style=" width: 366px;">
+<image src="assets/images/alarm.png" width="400">
 
 &nbsp;
 
@@ -1005,6 +1024,14 @@ In the case where a camera is configured to record during alarms, this length of
 ### Alarm Sounds
 
 A few default alarm sounds for selection.  A system wide volume setting for the alarm volume can be made with the slider.
+
+### Show Alarms on Display
+
+When selected (default is yes) a red filled circle will be displayed on the camera stream during alarm conditions. The circle will blink if the stream is being recorded during an alarm. De-selecting this checkbox will show the camera stream without any alarm markings.
+
+### Save Picture for Alarms
+
+When selected (default is yes) a picture will be saved to the Pictures directory each time an alarm is triggered. The pictures are used to populate the Event Browser accessible from the File panel which can be used to view vidoes at the time point of the alarm.
 
 ---
 &nbsp;
@@ -1036,7 +1063,7 @@ If the analysis produces an alarm, record and alarm sound actions are taken base
 
 &nbsp;
 
-<image src="assets/images/motion.png" style="width: 640px;">
+<image src="assets/images/motion.png" width="640">
 
 &nbsp;
 
@@ -1059,7 +1086,7 @@ Motion detection systems are prone to false alarms due to the indiscriminate nat
 
 &nbsp;
 
-<image src="assets/images/yolox.png" style="width: 640px;">
+<image src="assets/images/yolox.png" width="640">
 
 &nbsp;
 
@@ -1070,24 +1097,6 @@ YOLOX will run with hardware acceleration on Apple Silicon, NVIDIA GPU and Intel
 <b>Installation Requirements</b>
 
 <b>Please Note:</b>The installation scripts for Linux and Mac OS install the necessary python libraries automatically. The Linux installation scripts will install iGPU drivers on Intel chips automatically. If using NVIDIA GPU, those drivers are usually installed by default on modern Linux distros, but some may require manual installation. Windows users will need to install drivers and python libraries manually for the time being.
-
-YOLOX requires installation of [PyTorch](https://pytorch.org/get-started/locally/) and [OpenVINO](https://docs.openvino.ai/2024/get-started/install-openvino.html?VERSION=v_2024_1_0&OP_SYSTEM=LINUX&DISTRIBUTION=ARCHIVE)
-
-For systems with NVIDIA GPU, please install modern NVIDIA drivers for the hardware. If the drivers have been installed correctly, the ```nvidia-smi``` command will produce correct results showing the CUDA version. Use this information when installing pytorch in order to get the matching hardware acceleration library.
-
-Note: There are two versions of PyTorch, CPU and GPU. The GPU version is substantially larger and will take a long time to download. If you are running OpenVINO configuration, you do not need the GPU version of the library, the CPU version will work fine. If you are running NVIDIA GPU, you will need the GPU version for hardware acceleration. Please review the PyTorch installation instructions linked above carefully for the correct instructions for your situation. Linux and Mac OS install scripts will automatically configure the python libraries needed.
-
-```
-Please follow PyTorch installation instruction linked above ^
-```
-
-THe Linux installation script will install the GPU driver to run yolox using OpenVINO on Intel hardware. On Windows, these drivers may be installed as part of the operating system. Look for the Intel Driver and Support Assistant in the Applications menu for configuration and updates. To install Intel hardware drivers in Ubuntu, please refer to the instructions for the latest version of the [Intel compute-runtime package](https://github.com/intel/compute-runtime/releases). The OpenVINO python module is installed with the command 
-
-```
-pip install openvino
-```
-
-Note that both the pytorch and OpenVINO python modules are required for either configuration. Hardware drivers are only required for the actual hardware being used. The Linux and Mac OS install scripts handle these transactions automactically.
 
 <b>Configuration</b>
 
@@ -1173,7 +1182,7 @@ If the analysis produces an alarm, record and alarm sound actions are taken base
 
 &nbsp;
 
-<image src="assets/images/audio_panel.png" style="width: 400px;">
+<image src="assets/images/audio_panel.png" width="400">
 
 &nbsp;
 
@@ -1408,23 +1417,23 @@ Please note that the installation procedure does not include instructions for se
 </details>
 
 <details>
-<summary>Setting Up a Samba Share</summary>
+<summary>Setting Up a Samba Share on Linux</summary>
 
 &nbsp;
 
-It is possible for Windows clients to access camera recordings residing on a Linux server on the local network by installing a samba share on the Linux server. There are a few steps needed to set up the server, which are often not well documented for this type of configuration. The instructions following first set up the shared folder on the server then show how a Windows client can attach to the shared folder as a mapped drive. Please note that this setup is intended for use in a simple private network where all users can be trusted with data. More sophisticated configurations that control data access are possible, but are beyond the scope of these instructions.
+It is possible for Windows clients to access camera recordings residing on a Linux server on the local network by installing a samba share on the Linux server. There are a few steps needed to set up the server, which are often not well documented for this type of configuration. The following instructions will set up the shared folder on the server, then show how a Windows client can attach to the shared folder as a mapped drive. Please note that this setup is intended for use in a simple private network where all users can be trusted with data. More sophisticated configurations that control data access are possible, but are beyond the scope of these instructions.
 
 * #### Linux Server Configuration
 
-  Step 1. <b>Fixed IP Address</b> The server should have a fixed IP address. This is not completely necessary for system operation, but will prevent mishaps later that can occur if the server address changes. For Ubuntu and similar systems, there is a GUI control dialog that can be used to assign a fixed IP address. The address chosen will depend on the router settings, which will set aside a range of addresses that are available for fixed IP. Usually this will be at the bottom and/or top of the IP range controlled by the router. The router setting that defines these ranges is set by DHCP. Check ahead of time that the desired IP address is not already taken and is available per the router configuration.
+  <h3>Step 1. <b>Set Fixed IP Address</b></h3> The server should have a fixed IP address. This is not completely necessary for system operation, but will prevent mishaps later that can occur if the server address changes. For Ubuntu and similar systems, there is a GUI control dialog that can be used to assign a fixed IP address. The address chosen will depend on the router settings, which will set aside a range of addresses that are available for fixed IP. Usually this will be at the bottom and/or top of the IP range controlled by the router. The router setting that defines these ranges is set by DHCP. Check ahead of time that the desired IP address is not already taken and is available per the router configuration.
 
-  Step 2. <b>Install Samba</b> On Ubuntu, the Samba server is installed using the apt command
+  <h3>Step 2. <b>Install and Configure Samba</b></h3> On Ubuntu, the Samba server is installed using the apt command
 
   ```
   sudo apt install samba
   ```
 
-  Step 3. <b>Configure Samba Server</b> The Samba configuration is performed by editing the `/etc/samba/smb.conf` file. The Samba installation will create a default file in this location, which is not a good fit for this type of configuration. It is recommnded to move the file to a backup and start with a fresh file for configuration, following the commands
+  The Samba configuration is performed by editing the `/etc/samba/smb.conf` file. The Samba installation will create a default file in this location, which is not a good fit for this type of configuration. It is recommnded to move the file to a backup and start with a fresh file for configuration, following the commands
 
   ```
   cd /etc/samba
@@ -1432,7 +1441,76 @@ It is possible for Windows clients to access camera recordings residing on a Lin
   sudo nano smb.conf
   ```
 
-  You will now be starting from a clean slate. The following text saved into the `smb.conf` file will create a configuration for sharing that is compatible with the application. Note that the shared folder will need to be created later, and a symbolic link will be placed in the folder to access the home folder for the account under which Onvif GUI was installed, which has the Videos folder hosting the camera recordings.
+  You will now be starting from a clean slate. The following text saved into the `smb.conf` file will create a sharing configuration that is compatible with the application. For this configuration, you will need to know the account under which Onvif GUI was installated. For example, if you created a user onvif-gui, and were logged on as that user during the time the appliation was installed, the default directory for the application will be /home/onvif-gui. The configuration shown below will share two sub-directories used by the program, namely Videos and Pictures.
+  
+  ```
+  [global]
+    workgroup = WORKGROUP
+
+   [Videos]
+    comment = Shared Videos Folder
+    path = /home/onvif-gui/Videos
+    browasble = yes
+    read only = yes
+
+  [Pictures]
+    comment = Shared Pictures Folder
+    path = /home/onvif-gui/Pictures
+    browsable = yes
+    read only = yes
+  ```
+
+  <h3>Step 3. Re-start the Samba service</h3> After changing the configuration file, it is necessary to re-start the service in order to enact the changes made. This should be done any time changes are made to the smb.conf file.
+
+  ```
+  sudo systemctl restart smbd
+  ```
+  
+  <h3>Step 4. <b>Add User and Set Samba Password</b></h3>
+
+  The command to add a user is
+
+  ```
+  sudo useradd -m <username>
+  ```
+  
+  The samba access requires a passord for the user
+    
+  ```
+  sudo smbpasswd -a <username>
+  ```
+
+  The system will prompt you to enter a password.
+
+  ____________
+  
+  A script to get a list of active samba accounts
+
+  ```
+  #!/bin/bash
+
+  # Run pdbedit and extract only the Unix usernames
+  sudo pdbedit -L -v | while IFS= read -r line; do
+    # Skip empty lines
+    [[ -z "$line" ]] && continue
+
+    # Match only lines that start with "Unix username:"
+    if [[ "$line" == "Unix username:"* ]]; then
+      value="${line#Unix username: }"
+      echo "$value"
+    fi
+  done
+
+  ```
+
+  _____________
+
+
+<h1> Please Remember to Delete the old instructions</h1>
+  ______________
+  
+  
+  Note that the shared folder will need to be created later, and a symbolic link will be placed in the folder to access the home folder for the account under which Onvif GUI was installed, which has the Videos folder hosting the camera recordings.
 
   ```
   [global]
@@ -1466,8 +1544,10 @@ It is possible for Windows clients to access camera recordings residing on a Lin
   Step 6. <b>Set Samba Password</b> Windows will require that a password is set on the share. Since Samba doesn’t use the system account password, we need to set up a Samba password for our user account. Use the username and password from the account under which Onvif GUI was installed.
 
   ```
-  sudo smbpasswd -a username
+  sudo smbpasswd -a $USER
   ```
+
+  If you need to make adjustments to the configuration file, use the command 
 
 * #### Windows Client Configuration
 
@@ -1481,12 +1561,7 @@ It is possible for Windows clients to access camera recordings residing on a Lin
 
 * #### Linux Client Configuration
 
-  Samba client functionality in Linux is provided by the ```cifs-utils``` package. Use the package manager for your distribution to install it. The samba share is then accessed as a mount. Several pieces of data are required for the full mount call. It is recommended to create a directory in the /opt folder to be the mount point. In this way, users are in a read only mode for the data within the directory, which is desirable.
-
-  ```
-  sudo mkdir -p /opt/smb
-  sudo mount -t cifs -o "domain=WORKGROUP,username=user,password=passwd" //10.1.1.3/share /opt/smb
-  ```
+  Detailed configuration instructions can be found in the Operations -> Mount SMB Drive from Linux section of the notes.
 
 ---
 
@@ -2192,20 +2267,6 @@ It has been observed that older systems prefer the StartupWMClass=onvif-gui and 
 
 </details>
 
-<details>
-<summary>Application Icon on Mac OS</summary>
-
-&nbsp;
-
----
-
-To launch the application using an icon on Mac OS, a directory named OnvifGUI.app is created in the /Applications folder. The directory is populated with content specific to Mac. A custom build of python is created with the openssl and gdbm libraries required for a functional pip, which is then used to build a virtual environment in the OnvifGUI.app folder. A line in the Info.plist file points to the executable script in the virtual environment that starts the program. Currently, the openssl and gdbm binaries are built with hardcoded path as /Applications/Contents/MacOS/<libname>. This should be ok for now as this is where the app will be installed on every machine. An RPATH solution is probably better, but documentation is murky and time for experimentation is short. In any event, there is a script in the assets/scripts/components/mac directory named build_app that will perform the actions for building this configuration. Create a virtual machine and copy the script along with the onvif-gui.png file from onvif-gui/onvif_gui/resources and run.
-
----
-
-&nbsp;
-
-</details>
 
 <details>
 <summary>X11 vs Wayland</summary>
@@ -2223,6 +2284,144 @@ export QT_QPA_PLATFORM=wayland
 before starting the application. You can set this variable to be persistent by editing the configuration file `~./profile`. Please note that the Wayland server does not allow windows to position themselves when starting. The effect of this is that the application window and error message dialogs will always appear in the upper left of the screen when starting.
 
 It has been observed that the application running X11 forced by this environment variable on and Ubuntu 24.04 with wayland as the default driver would crash when the screen saver set in.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Turn Off Windows Update</summary>
+
+&nbsp;
+
+---
+To turn off Windows Update completely, you can follow these steps: 
+
+Press the Windows key on your keyboard.
+
+Type "services" and click on "Services" in the search results.
+
+Scroll down and double-click on "Windows Update".
+
+Click the "Startup type" menu and select "Disabled".
+
+Click the "Stop" button.
+
+Click "Apply", then click "OK".
+
+Check the update service periodically to ensure it remains disabled.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Sharing Drives From Windows</summary>
+
+&nbsp;
+
+---
+
+There are a few different paths you can take during this process, so some of the steps below may be redundant. If you click around enough, you should be able to get it working.
+
+The First step is to turn on windows sharing
+* Settings -> Network & Internet -> Sharing
+* Under Private ensure that both "Turn on Network Discovery: and "Turn on file and printer sharing" are toggled on
+
+Share a folder
+* Use the file explorer to find the folder you want to share
+* Right click over the folder
+* Properties -> Sharing -> Advanced Sharing
+* Give access to users with the dropdown box
+* You can create a new account from the dropdown
+
+Create an account for the external machines to use when mounting the shared folder
+* Settings -> Accounts -> Other Users --> Add Account
+* Unfortunately, Microsoft will try to make this a Microsoft account, so you have to click through a couple screens to get to a local acccount
+  * I don't have this person's sign-on information
+  * Add a user without a Microsoft Account
+* Type in a user name, password and hints, which are required
+
+Add User to Shared Folder
+* Use the file explorer and right click over the folder to be shared
+* Show More Options -> Give access to -> Specific People
+* Select the User name from the dropdown box
+* Click Add
+* When asked if you want to change folder settings say yes (twice)
+
+You should now be able to sign into the folder from an SMB client with the user credentials
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Mount SMB Drive from Linux</summary>
+
+&nbsp;
+
+---
+Create a Mount Point. Please note that if you installed the application by snap or flatpak, you will not have access to the /mnt directory. The installers create a container environment that limits your access to directories on the host. In this case, you should create another mount point that is accessible from within the application container. 
+
+The application containers only allow connection to Videos and Pictures directories on the host. In this case, the easiest option is to create subdirectories in your Videos and Pictures folders. The mounting process will obscure files on the host system in favor of files on the mounted remote. If you have existing files in the Videos or Pictures folders, or if you need to preserve the location for use by other programs, using subdirectories as the mounting points will let you keep using the Videos and Pictures folders without disrupting other programs.
+
+The examples that follow are based on general mounting instructions, and use the generic tag `<mount_point>` to indicate the mount directory. Note that the best practice is to use the full path name of the mount point directory in the following commands.
+
+```
+sudo mkdir -p <mount_point>
+```
+
+Mount the share, you can get the uid and gid using the command `id $USER`
+```
+sudo mount -t cifs //<server_ip>/<share_path> <mount_point> -o username=<username>,password=<password>,uid=<user_id>,gid=<group_id>
+```
+
+Once you are done testing the mount, you can unmount the remote server before setting it up permanently
+```
+umount <mount_point>
+```
+
+If you are having trouble finding the share, you can use the smb client to query the server
+```
+smbclient -L <server_address>
+```
+
+For better security, you should use a credentials file
+```
+sudo nano /root/.smbcredentials
+
+username=<username>
+password=<password>
+domain=<domain> (if applicable)
+
+sudo chmod 600 /root/.smbcredentials
+
+sudo mount -t cifs //<server_ip>/<share_path> <mount_point> -o credentials=/root/.smbcredentials,uid=<user_id>,gid=<group_id>
+
+```
+
+To make the mount persistent, edit the fstab file
+```
+sudo nano /etc/fstab
+
+//<server_ip>/<share_path> <mount_point> cifs x-systemd.automount,_netdev,credentials=/root/.smbcredentials,uid=<user_id>,gid=<group_id> 0 0
+```
+
+You can test the fstab file
+```
+sudo systemctl daemon-reload
+sudo mount -a
+```
+
+Please note that the mount requires the system to wait for the network to be up before running fstab. The part of the fstab entry - `x-systemd.automount,_netdev,` is what does this. It assumes you have systemd in you Linux distribution. If you don't know what systemd is, you probably have it, as most mainstream linux distros use it by default. If you are using a distro that doesn't have it, then you probably already know what to do.
+
+Once the mount is established, you can use the directory browser from the Files panel to set the Video directory used by the application. Note that the Files panel setting is used for viewing existing videos. The setting on the Storage panel Archive Dir is used by the application for writing videos files as they are produced by the cameras.
 
 ---
 
@@ -2281,6 +2480,22 @@ Version control for the onvif-gui module is different, as it is the main module 
   * setup.py
   * gui/main.py
 
+<h3>flatpak</h3>
+
+  * io.github.sr99622.OnvifGUI.yml (onvif_gui whl from pypi)
+  * io.github.sr99622.OnvifGUI.metainfo.xml (release version)
+
+<h3>snap</h3>
+
+  * snapcraft.yaml
+
+<h3>mac</h3>
+
+  * <i>implicit in the onvif-gui whl</i>
+
+<h3>windows</h3>
+
+  * onvif-gui.nsi (!VERSIONMAJOR  !VERSIONMINOR  !VERSIONBUILD)
 
 After making these changes, commit the respective directories as follows, assuming a start from the main libonvif directory. Please note that the git repository structure is not symmetric with respect to the placement of the libonvif python module in the main repository, rather than a separate git submodule as the others.
 
@@ -2381,6 +2596,243 @@ git push
 &nbsp;
 
 ---
+
+</details>
+
+<details>
+<summary>App Installer on Mac OS</summary>
+
+&nbsp;
+
+---
+
+TLDR;
+
+Use Finder to move existing /Applications/OnvifGUI to the trash, then run
+
+```
+cd $HOME/libonvif
+git pull
+assets/scripts/components/mac/build_app
+```
+
+When finished, launch DMG Canvas and open the OnvifGUI.dmg file from Recent Files. Start by clicking the hammer icon. The installer file will be
+
+```
+$HOME/assets/scripts/components/mac/OnvifGUI.dmg
+```
+
+Rename it to OnvifGUI-x.y.z.dmg where x.y.z is the version number.
+
+----------
+
+Background Info
+
+The script build_app in the assets/scripts/components/mac folder is used to build the MacOS installer DMG. The script relies on homebrew and will install it as the first action along with a few tools needed for compilation. The basic theory behind the installer is that a python virtual environment is built within the /Applications/OnvifGUI.app folder under the premise that this will be the location for any arbitrary installation. This is a critical assumption, as the location of the onvif-gui executable script is required for launching. Any exisiting OnvifGUI folder in the Applications folder should be removed prior to starting the build.
+
+Once the app has been assembled in situ, the [DMG Canvas application](https://www.araelium.com/dmgcanvas) is used to build the DMG file and notarize it on the Apple Developer site. A valid developer subscription and certificate are required for this operation. It may also be necessary to have an app-specific password in the Keychain for the developer machine, although it is unclear if this is actually required. It is important to note that the app should not be launched from the build location after compile but prior to notarization, as artifacts created in the folder will invalidate the codesign. It has also been observed that running the DMG Canvas application twice in a row will fail the notarization the second time. A reboot has been found to avoid this problem.
+
+ A good resource for understanding the app building process can be found at this [link](https://blog.xojo.com/2024/08/22/macos-apps-from-sandboxing-to-notarization-the-basics/)
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>App Installer for Flatpak</summary>
+
+&nbsp;
+
+---
+
+The script to build a flatpak can be found in the assets/scripts/components/flatpak folder. There is code for building the flatpak using either onvif-gui from PyPi or from a local file. If a local file is selected, you need to build it first using `python -m build` from the libonvif/onvif-gui folder then copy the whl file from the dist subdirectory to the flatpak folder.
+
+To install flatpak-builder
+
+```
+sudo dnf install flatpak-builder
+```
+
+Flatpak needs to know the location of the Flathub repository. Because the flatpak will be built using the --user flag, you must also apply this flag when adding the remote repository.
+
+```
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+
+You can list available remotes.
+
+```
+flatpak remotes
+```
+
+The flatpak can be built and installed using the following command. To build without installing, remove the `--install` flag.
+
+```
+flatpak-builder --force-clean --user --install-deps-from=flathub --repo=repo --install builddir $HOME/libonvif/assets/scripts/components/linux/flatpak/io.github.sr99622.OnvifGUI.yml
+```
+
+While the application is installed, a command prompt can run the container environment.
+
+```
+flatpak run --command=sh io.github.sr99622.OnvifGUI
+```
+
+To uninstall the application, use the command.
+
+```
+flatpak uninstall io.github.sr99622.OnvifGUI
+```
+
+To build a single file flatpak installer, run the command (this will take a while to run).
+
+```
+flatpak build-bundle repo OnvifGUI.flatpak io.github.sr99622.OnvifGUI
+```
+
+This can then be used to install the application.
+
+```
+sudo flatpak install OnvifGUI.flatpak
+```
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>App Installer for snap</summary>
+
+&nbsp;
+
+---
+
+The script for building a snap is in the libonvif/assets/scripts/components/linux/snap folder. The commands to build the snap should be run from the parent of the snap folder i.e. libonvif/assets/scripts/components/linux. 
+
+The first thing you need to do is to install snapcraft
+
+```
+sudo snap install snapcraft --classic
+```
+
+Then you have to [install and configure LXD](https://documentation.ubuntu.com/lxd/latest/tutorial/first_steps/#first-steps), permissions should do it. A reboot is needed to complete.
+
+```
+sudo snap install lxd
+sudo usermod -aG lxd "$USER"
+newgrp lxd
+lxd init --minimal
+sudo reboot now
+```
+
+To build the package, use the command from the directory which is the parent of the snap directory containing snapcraft.yaml
+
+```
+snapcraft
+```
+
+There will be a large volume of error messages and such. Most can be ignored, but some may be relavant. If it doesn't work, then you can comb through the messages and look for things. If it does work, it's fine. You can run the command as `snapcraft --debug` flag to drop into a shell if the process fails.
+
+Sometimes, the system will cache parts of the build that can cause actual errors, to clean the cache
+
+```
+snapcraft clean
+```
+
+To install the package
+
+```
+sudo snap install onvif-gui*snap --dangerous
+```
+
+To get audio working, you should be on pulse audio (which is the default). From the terminal, run the command
+
+```
+sudo snap connect onvif-gui:pulseaudio
+```
+
+To uninstall
+
+```
+sudo snap remove onvif-gui
+```
+
+
+The yaml configuration file includes code for installing the NPU driver, which requires separate installation. 
+
+```
+sudo snap install intel-npu-driver
+sudo chown root:render /dev/accel/accel0
+sudo chmod g+rw /dev/accel/accel0
+sudo usermod -a -G render $USER
+sudo bash -c "echo 'SUBSYSTEM==\"accel\", KERNEL==\"accel*\", GROUP=\"render\", MODE=\"0660\"' > /etc/udev/rules.d/10-intel-vpu.rules"
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=accel
+sudo reboot now
+```
+
+If it's not working, you can start a shell prompt to look around
+
+```
+snap run --shell onvif-gui
+```
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>App Installer for Windows</summary>
+
+&nbsp;
+
+---
+
+There is a script that will handle most of the work for a windows installer build. ** Note ** the installer must be run from a command prompt with Administrator Privilege. The installer uses the NSIS program to build and the script will check if that is installed on the machine and download it if necessary. The basic concept for the installer is similar MacOS, in that the onvif-gui-env virtual environment is created in a known location that will be common across machines, in this case, C:\Program Files (x86). There is a chance that this strategy will fail if the user has configured the OS to run from another drive such as D:, Oh Well. 
+
+The onvif-gui.nsi file is fed into the NSIS script reader. There is some prep work to do before the script is run, edit the onvif-gui.nsi file at the top to set the current version number. The script will set up a directory at %HOMEPATH%\installer and copy some configuration files and run from there. To run the script
+
+```
+%HOMEPATH%\libonvif\assets\scripts\components\windows\installer\build_installer.bat
+```
+
+The result is an executable file in the %HOMEPATH%\installer directory named OnvifGUI-installer-x.x.x.exe, where x.x.x is the version triplet. Just double click to install. There will be a warning sign that the developer is unkown. To uninstall, go to the settings panel and look through the installed apps.
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>Vectorize Windows Icon</summary>
+
+&nbsp;
+
+---
+
+courtesy of [thebunnyrules](https://superuser.com/users/529932/thebunnyrules)
+
+Open said png in Gimp. Your going to make an image with several layers. When you finish each layer is going to be a different size in the finished icon. Here's the layer layout I usually use 256px (optional), 128px, 96px, 64px, 48px, 40px,32px and 24px. You want to have this diversity in sizes because you need to account for all the different zooms the user will have while browsing in explorer. 256 is overkill but why not future proof your icon?
+
+Step 1: import png into gimp. I usually do this by using Open With in windows on the png and selecting gimp. Gimp will do the rest after that. make sure it's the only layer at the moment (delete any background layers if gimp made any).
+
+Step 2: Resize picture to 256x256 (or 128x128 if you don't want to use 256) by clicking the Image menu and selecting Scale Image. If the image you're stating with isn't square, you'll have to crop it before doing the scaling or it will look weird. You can crop by using rectangle select tool (make sure you do a square selection by pressing shift while selecting). When you're done selecting, click on Image menu and select Crop to Selection.
+
+Step 3: Duplicate current layer by selecting the Layer menu and selecting Duplicate Layer. Click Layer menu again and select Scale Layer and resize duplicated layer to new size like 128 or 96 etc.
+
+Step 4: rinse and repeat until you have made your layers all the way to 24px.
+
+step 5: export current drawing as an Icon by clicking on File menu and selecting Export As. When you get the dialog prompt, you want to make sure that you put in the correct extension (.Ico) and gimp will handle the rest.
+
+---
+
+&nbsp;
 
 </details>
 
@@ -2618,11 +3070,12 @@ Once logged into the camera you can set parameters using the 'set' command follo
 
 ---
 
-Sends continuous move commands to the camera, note that a profile must be selected first, i.e. get profile. Values for pan_value, tilt_value and zoom_value are floating point numbers between -1.0 and 1.0
+Sends move commands to the camera. Values for pan_value, tilt_value and zoom_value are floating point numbers between -1.0 and 1.0. Values for x_position and y_position are floating point numbers between 0.0 and 1.0.
 
- - move pan pan_value tilt_value (all required)
- - move zoom zoom_value (required)
+ - move pan pan_value tilt_value (all required and must be between -1 and 1)
+ - move zoom zoom_value (required and must be between -1 and 1)
  - move stop (Stops both pan/tilt and zoom)
+ - move position x_position y_position (all required and must be between 0 and 1)
 
 ---
 

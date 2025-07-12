@@ -58,7 +58,10 @@ class Session(onvif.Session):
         self.cp.discoveryTimeout()
 
     def info(self, msg):
-        logger.debug(msg)
+        try:
+            logger.debug(msg)
+        except Exception as ex:
+            logger.error("session info callback exception: {ex}")
 
 class Camera(QListWidgetItem):
     def __init__(self, onvif_data, mw):
@@ -159,11 +162,14 @@ class Camera(QListWidgetItem):
                 result = True
         return result
     
-    def isFocus(self):
+    def isCurrent(self):
         result = False
         for profile in self.profiles:
-            if profile.uri() == self.mw.glWidget.focused_uri:
-                result = True
+            #if profile.uri() == self.mw.glWidget.focused_uri:
+                camera = self.mw.cameraPanel.getCurrentCamera()
+                #if player.uri == self.mw.glWidget.focused_uri:
+                if camera.getProfile(profile.uri()):
+                    result = True
         return result
 
     def editing(self):

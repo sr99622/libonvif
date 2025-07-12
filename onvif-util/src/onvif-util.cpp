@@ -560,6 +560,12 @@ int main(int argc, char **argv)
 					std::cout << "  DNS:        " << onvif_data->dns_buf << "\n";
 					std::cout << "  DHCP:       " << (onvif_data->dhcp_enabled ? "YES" : "NO") << "\n" << std::endl;
 				}
+				else if (args[0] == "status") {
+					profileCheck(onvif_data, args);
+					if (getStatus(onvif_data)) throw std::runtime_error(cat("get status - ", onvif_data->last_error));
+					std::cout << "  Position X: " << onvif_data->position[0] << "\n";
+					std::cout << "  Position Y: " << onvif_data->position[1] << "\n";
+				}
 				else { 
 					std::cout << "  Unrecognized command \"" << args[0] << "\", type \"help\" to see help\n" << std::endl;
 				}
@@ -796,51 +802,73 @@ int main(int argc, char **argv)
 				args.erase(args.begin());
 				
 				if (args[0] == "pan") {
-			      		if (args.size() > 2) {
-				    		args.erase(args.begin());
-				    		double const pan_rate = stof(args[0]);
-				    		double const tilt_rate = stof(args[1]);
-						
-				    		if (continuousMove(pan_rate, tilt_rate, 0, onvif_data))
-					  		throw std::runtime_error(
-						      			cat("move pan - ", onvif_data->last_error));
-						
-				    		std::cout << "  Pan rate " << pan_rate << ", Tilt rate "
-				  			<< tilt_rate << "\n" << std::endl;
-						
-			      		} else {
-				    		std::cout << "  Missing value for Pan/Tilt\n" << std::endl;
-			      		}
+					if (args.size() > 2) {
+						args.erase(args.begin());
+
+						float const pan_rate = stof(args[0]);
+						float const tilt_rate = stof(args[1]);
+						if (pan_rate < -1 || pan_rate > 1 || tilt_rate < -1 || tilt_rate > 1)
+							throw std::runtime_error("Invalid parameter value - must be between -1 and 1");
+					
+						profileCheck(onvif_data, args);
+						if (continuousMove(pan_rate, tilt_rate, 0, onvif_data))
+							throw std::runtime_error(cat("move pan - ", onvif_data->last_error));
+					
+						std::cout << "  Pan rate " << pan_rate << ", Tilt rate " << tilt_rate << "\n" << std::endl;
+					
+					} else {
+						std::cout << "  Missing value for Pan/Tilt\n" << std::endl;
+					}
 					
 				} else if (args[0] == "zoom") {
-			      		if (args.size() > 1) {
-				    		args.erase(args.begin());
-				    		double const zoom_rate = stof(args[0]);
-						
-				    		if (continuousMove(0, 0, zoom_rate, onvif_data))
-					  		throw std::runtime_error(
-						      			cat("move zoom - ", onvif_data->last_error));
-						
-				    		std::cout << "  Zoom rate " << zoom_rate << "\n" << std::endl;
-						
-			      		} else {
-				    		std::cout << "  Missing value for Zoom\n" << std::endl;
-			      		}
+					if (args.size() > 1) {
+						args.erase(args.begin());
+
+						float const zoom_rate = stof(args[0]);
+						if (zoom_rate < -1 || zoom_rate > 1)
+							throw std::runtime_error("Invalid parameter value - must be between -1 and 1");
+					
+						profileCheck(onvif_data, args);
+						if (continuousMove(0, 0, zoom_rate, onvif_data))
+							throw std::runtime_error(cat("move zoom - ", onvif_data->last_error));
+					
+						std::cout << "  Zoom rate " << zoom_rate << "\n" << std::endl;
+					
+					} else {
+						std::cout << "  Missing value for Zoom\n" << std::endl;
+					}
+
+				} else if (args[0] == "position") {
+					if (args.size() > 2) {
+						args.erase(args.begin());
+
+						float const x_position = stof(args[0]);
+						float const y_position = stof(args[1]);
+						if (x_position < 0 || x_position > 1 || y_position < 0 || y_position > 1)
+							throw std::runtime_error("Invalid parameter value - must be between 0 and 1");
+
+						profileCheck(onvif_data, args);
+						if (absoluteMove(x_position, y_position, onvif_data))
+							throw std::runtime_error(cat("move position - ", onvif_data->last_error));
+						std::cout << "  Postion " << x_position << " " << y_position << "\n" << std::endl;
+
+					} else {
+						std::cout << "  Missing value for Postion\n" << std::endl;
+					}
 					
 				} else if (args[0] == "stop") {
-			      		// Send stop for both pan/tilt and zoom					
-       					if (moveStop(0, onvif_data))
-				    		throw std::runtime_error(
-								cat("move stop pan/tilt - ", onvif_data->last_error));
-					
-			      		if (moveStop(1, onvif_data))
-				    		throw std::runtime_error(
-								cat("move stop zoom - ", onvif_data->last_error));
+					// Send stop for both pan/tilt and zoom
+					profileCheck(onvif_data, args);					
+					if (moveStop(0, onvif_data))
+						throw std::runtime_error(cat("move stop pan/tilt - ", onvif_data->last_error));
+				
+					if (moveStop(1, onvif_data))
+						throw std::runtime_error(cat("move stop zoom - ", onvif_data->last_error));
 					
 				} else {
-			      		std::cout << "  Unrecognized command \"" << args[0]
-			    			<< "\", type \"help\" to see help\n"
-			    			<< std::endl;
+					std::cout << "  Unrecognized command \"" << args[0]
+						<< "\", type \"help\" to see help\n"
+						<< std::endl;
 				}
 		  	}
 

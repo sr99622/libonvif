@@ -139,7 +139,7 @@ class FileSearchDialog(QDialog):
         self.closest_after = None
         try:
             selected = self.getSelectedDate()
-            main_directory = self.mw.filePanel.dirSetter.txtDirectory.text()
+            main_directory = self.mw.filePanel.dirArchive.txtDirectory.text()
             sub_directory = self.cameras.currentText()
             self.findFileForEventTime(selected, main_directory,  sub_directory)
 
@@ -150,7 +150,7 @@ class FileSearchDialog(QDialog):
             if self.matching_file:
                 answer = QMessageBox.question(self.mw, "Found Event Time", "The program found a match, would you like to start the playback?")
                 if answer == QMessageBox.StandardButton.Yes:
-                    main_directory = self.mw.filePanel.dirSetter.txtDirectory.text()
+                    main_directory = self.mw.filePanel.dirArchive.txtDirectory.text()
                     sub_directory = self.cameras.currentText()
                     tree = self.mw.filePanel.tree
                     model = tree.model()
@@ -163,7 +163,13 @@ class FileSearchDialog(QDialog):
                             file_start_time = self.fileAsDate(self.matching_file).timestamp()
                             file_end_time = self.endTimestamp(os.path.join(main_directory, sub_directory), self.matching_file)
                             file_seek_time = selected.timestamp()
-                            pct = (file_seek_time - file_start_time)/(file_end_time - file_start_time)
+                            pct = 0
+                            num = file_seek_time - file_start_time
+                            den = file_end_time - file_start_time
+                            if den:
+                                pct = num/den
+                            if pct > .99:
+                                pct = 0
                             self.mw.filePanel.control.startPlayer(file_start_from_seek=pct)
             else:
                 file_to_index = None
@@ -231,13 +237,17 @@ class FileSearchDialog(QDialog):
 
     def isBefore(self, target, filename):
         result = False
-        if target < datetime.strptime(os.path.splitext(filename)[0], FORMAT):
+        reference = datetime.strptime(os.path.splitext(filename)[0], FORMAT)
+        reference = reference.replace(second=0)
+        if target <= reference:
             result = True
         return result
     
     def isAfter(self, target, path, filename):
         result = False
-        if target > datetime.fromtimestamp(os.path.getmtime(os.path.join(path, filename))):
+        reference = datetime.fromtimestamp(os.path.getmtime(os.path.join(path, filename)))
+        reference = reference.replace(second=59)
+        if target >= reference:
             result = True
         return result
     
@@ -266,9 +276,9 @@ class FileSearchDialog(QDialog):
         h = int(self.hour.currentText())
         if self.AM_PM.currentText() == "PM" and h < 12:
             h += 12
-        if self.AM_PM.currentText() == "AM" and h ==12:
+        if self.AM_PM.currentText() == "AM" and h == 12:
             h = 0
-        tmp = f'{date.year()}{date.month():02}{date.day():02}{h:02}{self.minute.currentText()}00'
+        tmp = f'{date.year()}{date.month():02}{date.day():02}{h:02}{self.minute.currentText()}30'
         result = datetime.strptime(tmp, FORMAT)
         return result
 

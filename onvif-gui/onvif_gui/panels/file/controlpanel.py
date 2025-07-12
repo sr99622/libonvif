@@ -19,11 +19,12 @@
 
 import os
 from PyQt6.QtWidgets import QPushButton, QGridLayout, \
-    QWidget, QSlider, QCheckBox, QMessageBox
+    QWidget, QSlider, QCheckBox
 from PyQt6.QtCore import Qt
 import sys
 from time import sleep
 from .searchdialog import FileSearchDialog
+from .pictures import PictureDialog
 
 class FileControlPanel(QWidget):
     def __init__(self, mw):
@@ -32,18 +33,24 @@ class FileControlPanel(QWidget):
         self.hideCameraKey = "filePanel/hideCameraPanel"
 
         self.dlgSearch = FileSearchDialog(self.mw)
+        self.dlgPicture = PictureDialog(self.mw)
 
         self.btnSearch = QPushButton()
         self.btnSearch.setStyleSheet(self.getButtonStyle("search"))
         self.btnSearch.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnSearch.clicked.connect(self.btnSearchClicked)
 
+        self.btnPictures = QPushButton()
+        self.btnPictures.setStyleSheet(self.getButtonStyle("event"))
+        self.btnPictures.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.btnPictures.clicked.connect(self.btnPicturesClicked)
+
         self.btnRefresh = QPushButton()
         self.btnRefresh.setStyleSheet(self.getButtonStyle("refresh"))
         self.btnRefresh.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRefresh.clicked.connect(self.btnRefreshClicked)
 
-        self.chkHideCameras = QCheckBox("Hide Camera Panel")
+        self.chkHideCameras = QCheckBox("Hide Camera Functions")
         self.chkHideCameras.setChecked(bool(int(self.mw.settings.value(self.hideCameraKey, 0))))
         self.chkHideCameras.stateChanged.connect(self.chkHideCamerasChecked)
 
@@ -67,9 +74,6 @@ class FileControlPanel(QWidget):
         self.btnNext.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnNext.clicked.connect(self.btnNextClicked)
 
-        #spacer = QLabel()
-        #spacer.setMinimumWidth(self.btnStop.minimumWidth())
-        
         self.btnMute = QPushButton()
         self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
         self.btnMute.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -79,11 +83,11 @@ class FileControlPanel(QWidget):
         self.sldVolume.setValue(80)
         self.sldVolume.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.sldVolume.valueChanged.connect(self.sldVolumeChanged)
-        #self.sldVolume.setEnabled(False)
 
         lytMain =  QGridLayout(self)
         lytMain.addWidget(self.btnSearch,       0, 0, 1, 1)
         lytMain.addWidget(self.btnRefresh,      0, 1, 1, 1)
+        lytMain.addWidget(self.btnPictures,     0, 2, 1 ,1)
         lytMain.addWidget(self.chkHideCameras,  0, 3, 1, 3)
         lytMain.addWidget(self.btnPrevious,     1, 0, 1, 1)
         lytMain.addWidget(self.btnPlay,         1, 1, 1, 1)
@@ -104,17 +108,10 @@ class FileControlPanel(QWidget):
         self.startPlayer()
 
     def startPlayer(self, file_start_from_seek=-1.0):
-        tree = self.mw.filePanel.tree
-        tree.model().ref = tree.currentIndex()
-
         for player in self.mw.pm.players:
             if not player.isCameraStream():
                 if player.uri != self.mw.filePanel.getCurrentFileURI():
-                    if player.isPaused():
-                        player.togglePaused()
-                    player.requestShutdown()
-                    while not player.stopped:
-                        sleep(0.001)
+                    self.mw.pm.playerShutdownWait(player.uri)
 
         found = False
         for player in self.mw.pm.players:
@@ -130,14 +127,12 @@ class FileControlPanel(QWidget):
 
     def setBtnPlay(self):
         self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
-        player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
-        if player:
+        if player := self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI()):
             if not player.isPaused():
                 self.btnPlay.setStyleSheet(self.getButtonStyle("pause"))
 
     def btnMuteClicked(self):
-        player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
-        if player:
+        if player := self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI()):
             player.setMute(not player.isMuted())
             self.mw.filePanel.setMute(player.isMuted())
         else:
@@ -146,21 +141,8 @@ class FileControlPanel(QWidget):
 
     def setBtnMute(self):
         self.btnMute.setStyleSheet(self.getButtonStyle("mute"))
-        #self.sldVolume.setEnabled(False)
         if not self.mw.filePanel.getMute():
             self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
-            #self.sldVolume.setEnabled(True)
-        '''
-        player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
-        if player:
-            if not player.isMuted():
-                self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
-                self.sldVolume.setEnabled(True)
-        else:
-            if not self.mw.filePanel.getMute():
-                self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
-                self.sldVolume.setEnabled(True)
-        '''
 
     def btnPreviousClicked(self):
         tree = self.mw.filePanel.tree
@@ -176,7 +158,6 @@ class FileControlPanel(QWidget):
                         self.mw.pm.playerShutdownWait(player.uri)
                 
                 if tree.model().fileInfo(prevIndex).isFile():
-                    tree.model().ref = prevIndex
                     uri = tree.model().fileInfo(prevIndex).filePath()
                     self.mw.playMedia(uri)
                     self.mw.glWidget.focused_uri = uri
@@ -201,7 +182,6 @@ class FileControlPanel(QWidget):
                         self.mw.pm.playerShutdownWait(player.uri)
 
                 if tree.model().fileInfo(nextIndex).isFile():
-                    tree.model().ref = nextIndex
                     uri = tree.model().fileInfo(nextIndex).filePath()
                     if uri:
                         self.mw.playMedia(uri)
@@ -209,7 +189,7 @@ class FileControlPanel(QWidget):
 
     def btnSearchClicked(self):
         camera_names = []
-        path = self.mw.filePanel.dirSetter.txtDirectory.text()
+        path = self.mw.filePanel.dirArchive.txtDirectory.text()
         for name in os.listdir(path):
             if os.path.isdir(os.path.join(path, name)):
                 valid = True
@@ -231,26 +211,33 @@ class FileControlPanel(QWidget):
             self.dlgSearch.move(x, y)
         self.dlgSearch.show()
 
+    def btnPicturesClicked(self):
+        self.dlgPicture.show()
+
     def btnRefreshClicked(self):
         self.mw.filePanel.refresh()
 
     def chkHideCamerasChecked(self, state):
         self.mw.settings.setValue(self.hideCameraKey, state)
         if state:
+            self.mw.tab.removeTab(4)
+            self.mw.tab.removeTab(3)
+            self.mw.tab.removeTab(2)
             self.mw.tab.removeTab(0)
         else:
             self.mw.tab.insertTab(0, self.mw.cameraPanel, "Cameras")
+            self.mw.tab.insertTab(2, self.mw.settingsPanel, "Settings")
+            self.mw.tab.insertTab(3, self.mw.videoPanel, "Video")
+            self.mw.tab.insertTab(4, self.mw.audioPanel, "Audio")
 
     def sldVolumeChanged(self, value):
         self.mw.filePanel.setVolume(value)
-        player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
-        if player:
+        if player := self.mw.filePanel.getCurrentlyPlayingFile():
             player.setVolume(value)
 
     def setSldVolume(self):
         volume = 80
-        player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
-        if player:
+        if player := self.mw.filePanel.getCurrentlyPlayingFile():
             volume = player.getVolume()
         else:
             volume = self.mw.filePanel.getVolume()

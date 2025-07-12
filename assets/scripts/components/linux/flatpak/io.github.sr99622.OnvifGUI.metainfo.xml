@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+	<id>io.github.sr99622.OnvifGUI</id>
+	<name>Onvif GUI</name>
+	<summary>Onvif Camera Management System</summary>
+	<metadata_license>CC-BY-SA-3.0</metadata_license>
+	<project_license>Apache-2.0</project_license>
+	<description>
+		<p>  A graphical interface for working with ONVIF compatible IP cameras. This application can discover cameras on
+		the network, control camera parameters and display camera output. Multiple cameras can be viewed simuoltaneously
+		in the display. Camera output can be recorded to disk archive. Cameras can be configured to use lower resolution
+		streams during real time operation to conserve resources and to stream high resolution output to disk archive
+		for maximum observability.
+
+		The application is equipped with a built in yolox model for computer vision analysis of real time stream data
+		to generate alarms and recordings. The application includes built in OpenVINO compute runtime drivers so that
+		computers with Intel CPU can leverage iGPU compute power to increase the number of streams that can be analyzed.
+		</p>
+	</description>
+	<developer_name>Stephen Rhodes</developer_name>
+	<url type="homepage">https://github.com/sr99622/libonvif</url>
+	<screenshots>
+		<screenshot type="default">
+			<caption>The app running YOLOX detection on a camera stream</caption>
+			<image>https://raw.githubusercontent.com/sr99622/OnvifGUI/main/screenshots/Screenshot_1.png</image>
+		</screenshot>
+		<screenshot>
+			<caption>The app running audio analysis on a camera stream</caption>
+			<image>https://raw.githubusercontent.com/sr99622/OnvifGUI/main/screenshots/Screenshot_2.png</image>
+		</screenshot>
+	</screenshots>
+	<releases>
+		<release version="3.1.9" date="2025-07-11">
+			<description>
+				<p>Flatpak installer added</p>
+			</description>
+			<url>https://github.com/sr99622/libonvif/releases/tag/v3.0.12</url>
+		</release>
+	</releases>
+	<categories>
+		<category>Utility</category>
+	</categories>
+	<keywords>
+		<keyword>Camera</keyword>
+		<keyword>Networking</keyword>
+		<keyword>Yolo</keyword>
+	</keywords>
+	<recommends>
+		<control>keyboard</control>
+	</recommends>
+	<supports>
+		<control>pointing</control>
+	</supports>
+	<content_rating type="oars-1.1"/>
+	<launchable type="desktop-id">io.github.sr99622.OnvifGUI.desktop</launchable>
+</component>

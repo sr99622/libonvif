@@ -32,7 +32,7 @@ from PyQt6.QtCore import pyqtSignal, QObject, QSettings, QDir, QSize, QTimer, Qt
 from PyQt6.QtGui import QIcon, QGuiApplication, QMovie
 from onvif_gui.panels import CameraPanel, FilePanel, SettingsPanel, VideoPanel, \
     AudioPanel
-from onvif_gui.enums import ProxyType, Style
+from onvif_gui.enums import ProxyType, Style, PkgType
 from onvif_gui.glwidget import GLWidget
 from onvif_gui.manager import Manager
 from onvif_gui.player import Player
@@ -52,7 +52,7 @@ if sys.platform == "win32":
 else:
     import tarfile
 
-VERSION = "3.0.11"
+VERSION = "3.1.9"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -109,7 +109,9 @@ class WaitDialog(QDialog):
         self.movie = QMovie("image:spinner.gif")
         self.movie.setScaledSize(QSize(50, 50))
         self.lblProgress.setMovie(self.movie)
-        self.setWindowTitle("Downloading")
+        self.setWindowTitle("Onvif GUI")
+        if sys.platform == "linux":
+            self.setMinimumWidth(350)
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.lblMessage,  0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
@@ -133,16 +135,30 @@ class MainWindowSignals(QObject):
     hideWaitDialog = pyqtSignal()
 
 class MainWindow(QMainWindow):
-    def __init__(self, clear_settings=False, settings_profile="gui", parent_role="None"):
+    def __init__(self, clear_settings=False, settings_profile="gui", parent_window=None):
         super().__init__()
 
-        self.version = VERSION        
-
+        self.version = VERSION
         self.logger_id = logger.add(self.getLogFilename(), rotation="1 MB")
         logger.debug(f'starting onvif-gui version: {VERSION}')
 
+        if sys.platform == "linux":
+            self.pkg_type = PkgType.NATIVE
+            for key in os.environ:
+                if "SNAP" in key:
+                    self.pkg_type = PkgType.SNAP
+                if "FLATPAK" in key:
+                    self.pkg_type = PkgType.FLATPAK
+            match self.pkg_type:
+                case PkgType.NATIVE:
+                    logger.debug("Linux package type is NATIVE")
+                case PkgType.SNAP:
+                    logger.debug("Linux package type is SNAP")
+                case PkgType.FLATPAK:
+                    logger.debug("Linux package type is FLATPAK")
+
         self.settings_profile = settings_profile
-        self.parent_role = parent_role
+        self.parent_window = parent_window
 
         QDir.addSearchPath("image", self.getLocation() + "/onvif_gui/resources/")
         self.STD_FILE_DURATION = 900 # duration in seconds (15 * 60)
@@ -160,8 +176,12 @@ class MainWindow(QMainWindow):
 
         self.program_name = f'Onvif GUI version {VERSION}'
         self.setWindowTitle(self.program_name)
-        self.setWindowIcon(QIcon('image:onvif-gui.png'))
-        QGuiApplication.setWindowIcon(QIcon('image:onvif-gui.png'))
+        if sys.platform == "darwin":
+            self.setWindowIcon(QIcon('image:mac_icon.png'))
+            QGuiApplication.setWindowIcon(QIcon('image:mac_icon.png'))
+        else:
+            self.setWindowIcon(QIcon('image:onvif-gui.png'))
+            QGuiApplication.setWindowIcon(QIcon('image:onvif-gui.png'))
 
         self.settings = QSettings("onvif-gui", settings_profile)
         logger.debug(f'Settings loaded from file {self.settings.fileName()} using format {self.settings.format()}')
@@ -170,7 +190,6 @@ class MainWindow(QMainWindow):
         self.geometryKey = "MainWindow/geometry"
         self.splitKey = "MainWindow/split"
         self.collapsedKey = "MainWindow/collapsed"
-        self.nvidiaKey = "MainWindow/haveNVIDIA"
         self.closing = False
         self.dlgWait = WaitDialog(self)
         self.signals = MainWindowSignals()
@@ -211,11 +230,13 @@ class MainWindow(QMainWindow):
         self.signals.hideWaitDialog.connect(self.hideWaitDialog)
 
         self.tab = QTabWidget()
-        if not bool(int(self.settings.value(self.filePanel.control.hideCameraKey, 0))):
+        hideCameras = bool(int(self.settings.value(self.filePanel.control.hideCameraKey, 0)))
+        if not hideCameras:
             self.tab.addTab(self.cameraPanel, "Cameras")
         self.tab.addTab(self.filePanel, "Files")
-        self.tab.addTab(self.settingsPanel, "Settings")
-        if self.settingsPanel.proxy.generateAlarmsLocally():
+        if not hideCameras:
+            self.tab.addTab(self.settingsPanel, "Settings")
+        if self.settingsPanel.proxy.generateAlarmsLocally() and not hideCameras:
             self.tab.addTab(self.videoPanel, "Video")
             self.tab.addTab(self.audioPanel, "Audio")
         self.tabVisible = True
@@ -283,14 +304,23 @@ class MainWindow(QMainWindow):
 
         logger.debug(f'FFMPEG VERSION: {Player("", self).getFFMPEGVersions()}')
 
+    def specVideo(self, workerLocation):
+        spec = importlib.util.spec_from_file_location("VideoConfigure", workerLocation)
+        sys.modules["VideoConfigure"] = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sys.modules["VideoConfigure"])
+        self.signals.hideWaitDialog.emit()
+
     def loadVideoConfigure(self, workerName):
-        spec = importlib.util.spec_from_file_location("VideoConfigure", self.videoPanel.stdLocation + "/" + workerName)
-        videoConfigureHook = importlib.util.module_from_spec(spec)        
-        sys.modules["VideoConfigure"] = videoConfigureHook
-        spec.loader.exec_module(videoConfigureHook)
-        self.videoConfigure = videoConfigureHook.VideoConfigure(self)
+        workerLocation = f'{self.videoPanel.stdLocation}/{workerName}'
+        if sys.platform == "win32" or (sys.platform == "linux" and self.isVisible()) or sys.platform == "darwin":
+            thread = threading.Thread(target=self.specVideo, args=(workerLocation,))
+            thread.start()
+            self.signals.showWaitDialog.emit("Please wait for modules to load")
+        else:
+            self.specVideo(workerLocation)
+
+        self.videoConfigure = sys.modules["VideoConfigure"].VideoConfigure(self)
         self.cameraPanel.lstCamera.currentItemChanged.connect(self.videoConfigure.setCamera)
-        self.filePanel.tree.signals.selectionChanged.connect(self.videoConfigure.setFile)
         self.videoPanel.setPanel(self.videoConfigure)
 
     def pyVideoCallback(self, frame, player):
@@ -308,7 +338,6 @@ class MainWindow(QMainWindow):
                     player.clearCache()
 
         if self.videoWorker:
-            # motion detector has the option to return the diff frame for viewing
             result = self.videoWorker(frame, player)
             if result is not None:
                 frame = result
@@ -322,37 +351,39 @@ class MainWindow(QMainWindow):
         spec.loader.exec_module(audioConfigureHook)
         self.audioConfigure = audioConfigureHook.AudioConfigure(self)
         self.cameraPanel.lstCamera.currentItemChanged.connect(self.audioConfigure.setCamera)
-        self.filePanel.tree.signals.selectionChanged.connect(self.audioConfigure.setFile)
         self.audioPanel.setPanel(self.audioConfigure)
     
     def pyAudioCallback(self, frame, player):
-        if player.analyze_audio:
+        try:
+            if player.analyze_audio:
 
-            while self.audioLock:
-                sleep(0.001)
-            self.audioLock = True
+                while self.audioLock:
+                    sleep(0.001)
+                self.audioLock = True
 
-            if self.audioWorkerHook is None:
-                workerName = self.audioPanel.cmbWorker.currentText()
-                spec = importlib.util.spec_from_file_location("AudioWorker", self.audioPanel.stdLocation + "/" + workerName)
-                self.audioWorkerHook = importlib.util.module_from_spec(spec)
-                sys.modules["AudioWorker"] = self.audioWorkerHook
-                spec.loader.exec_module(self.audioWorkerHook)
-                self.audioWorker = None
+                if self.audioWorkerHook is None:
+                    workerName = self.audioPanel.cmbWorker.currentText()
+                    spec = importlib.util.spec_from_file_location("AudioWorker", self.audioPanel.stdLocation + "/" + workerName)
+                    self.audioWorkerHook = importlib.util.module_from_spec(spec)
+                    sys.modules["AudioWorker"] = self.audioWorkerHook
+                    spec.loader.exec_module(self.audioWorkerHook)
+                    self.audioWorker = None
 
-            if self.audioWorkerHook:
-                if not self.audioWorker:
-                    self.audioWorker = self.audioWorkerHook.AudioWorker(self)
-                
-            if self.audioWorker:
-                self.audioWorker(frame, player)
-            
-            self.audioLock = False
-
-        else:
-            if player.uri == self.glWidget.focused_uri:
+                if self.audioWorkerHook:
+                    if not self.audioWorker:
+                        self.audioWorker = self.audioWorkerHook.AudioWorker(self)
+                    
                 if self.audioWorker:
-                    self.audioWorker(None, None)
+                    self.audioWorker(frame, player)
+                
+                self.audioLock = False
+
+            else:
+                if player.uri == self.glWidget.focused_uri:
+                    if self.audioWorker:
+                        self.audioWorker(None, None)
+        except Exception as ex:
+            logger.error(f'Audio callback error: {ex}')
 
         return frame
     
@@ -364,7 +395,7 @@ class MainWindow(QMainWindow):
 
         count = 0
 
-        if self.settings_profile == "Focus":
+        if self.settings_profile == "Focus" or self.settings_profile == "Reader":
             self.closeAllStreams()
 
         while player := self.pm.getPlayer(uri):
@@ -374,7 +405,7 @@ class MainWindow(QMainWindow):
                 logger.debug(f'Duplicate media uri from {self.getCameraName(uri)}:{uri} is blocking launch of new player, requesting shutdown')
                 player.requestShutdown()
                 return
-        
+
         player = Player(uri, self)
         player.file_start_from_seek = file_start_from_seek
 
@@ -411,15 +442,15 @@ class MainWindow(QMainWindow):
                 player.sync_audio = profile.getSyncAudio()
                 camera = self.cameraPanel.getCamera(uri)
                 if camera:
-                    player.systemTabSettings = camera.systemTabSettings
+                    #player.systemTabSettings() = camera.systemTabSettings
                     player.setVolume(camera.volume)
                     player.setMute(camera.mute)
+            else:
+                logger.error(f'play media profile was not found: {uri}')
         else:
             player.request_reconnect = False
-            player.analyze_video = self.filePanel.getAnalyzeVideo()
             player.setVolume(self.filePanel.getVolume())
             player.setMute(self.filePanel.getMute())
-            player.analyze_audio = self.filePanel.getAnalyzeAudio()
             player.progressCallback = self.mediaProgress
 
         self.pm.startPlayer(player)
@@ -429,7 +460,7 @@ class MainWindow(QMainWindow):
             case Qt.Key.Key_Escape:
                 if self.settings_profile == "gui":
                     self.showNormal()
-                else:
+                elif self.settings_profile == "Focus":
                     self.close()
             case Qt.Key.Key_F12:
                 if self.isFullScreen():
@@ -501,18 +532,20 @@ class MainWindow(QMainWindow):
                 sleep(0.1)
                 count += 1
                 if count > 50:
-                    logger.error("not all players closed within the allotted time, flushing player manager")
+                    logger.error("not all players closed within the allotted time")
                     for player in self.pm.players:
                         name = ""
                         if player.isCameraStream():
-                            if camera := self.cameraPanel.getCamera(player.uri):
-                                name = camera.name()
+                            name = self.getCameraName(player.uri)
                         else:
                             name = player.uri
+                            # seems to be ok for files
+                            self.pm.removePlayer(player.uri)
                         logger.debug(f'{name} failed orderly shutdown')
+                        # sleep(1)
                         # This can cause crashing
                         # self.pm.removePlayer(player.uri)
-                        # logger.debug(f'{name} was removed from the list after failing orderly shutdown')
+                        # logger.error(f'{name} was removed from the list after failing orderly shutdown')
                     break
 
             self.pm.ordinals.clear()
@@ -543,6 +576,9 @@ class MainWindow(QMainWindow):
             for window in self.external_windows:
                 window.close()
 
+            if self.filePanel.control.dlgPicture.isVisible():
+                self.filePanel.control.dlgPicture.close()
+
         except Exception as ex:
             logger.error(f'Window close error : {ex}')
 
@@ -553,55 +589,75 @@ class MainWindow(QMainWindow):
     def hideWaitDialog(self):
         self.dlgWait.hide()
 
+    def initializeFocusWindowSettings(self):
+        proxy = None
+        match self.settingsPanel.proxy.proxyType:
+            case ProxyType.CLIENT:
+                proxy = self.settingsPanel.proxy.txtRemote.text()
+            case ProxyType.SERVER:
+                proxy = self.settingsPanel.proxy.lblServer.text().split()[0]
+        focus_settings = QSettings("onvif-gui", "Focus")
+        focus_settings.setValue("settings/proxyType", ProxyType.CLIENT)
+        focus_settings.setValue("settings/proxyRemote", proxy)
+        focus_settings.setValue("settings/autoDiscover", 1)
+        focus_settings.setValue(self.collapsedKey, 1)
+        self.focus_window = onvif_gui.main.MainWindow(settings_profile="Focus")
+        self.focus_window.audioStatus = self.audioStatus
+        self.focus_window.show()
 
     def mediaPlayingStarted(self, uri):
-        if self.isCameraStreamURI(uri):
-            if profile := self.cameraPanel.getProfile(uri):
-                profile_type = ""
-                if camera := self.cameraPanel.getCamera(uri):
-                    if camera.isDisplayProfile(uri):
-                        profile_type = "Display Profile"
-                    else:
-                        profile_type = "Record Profile"
-                
-                window_name = self.settings_profile
-                if self.settings_profile == "gui":
-                    window_name = "Main"
+        try:
+            if self.isCameraStreamURI(uri):
+                if profile := self.cameraPanel.getProfile(uri):
+                    profile_type = ""
+                    if camera := self.cameraPanel.getCamera(uri):
+                        if camera.isDisplayProfile(uri):
+                            profile_type = "Display Profile"
+                        else:
+                            profile_type = "Record Profile"
+                    
+                    window_name = self.settings_profile
+                    if self.settings_profile == "gui":
+                        window_name = "Main"
 
-                logger.debug(f'Camera stream opened {self.getCameraName(uri)}, stream_uri : {profile.stream_uri()}, resolution : {profile.width()} x {profile.height()}, fps: {profile.frame_rate()}, {profile_type}, Window: {window_name}')
+                    logger.debug(f'Camera stream opened {self.getCameraName(uri)}, stream_uri : {profile.stream_uri()}, resolution : {profile.width()} x {profile.height()}, fps: {profile.frame_rate()}, {profile_type}, Window: {window_name}')
 
-            if self.pm.auto_start_mode:
-                finished = True
-                cameras = [self.cameraPanel.lstCamera.item(x) for x in range(self.cameraPanel.lstCamera.count())]
-                for camera in cameras:
-                    state = camera.getStreamState(camera.displayProfileIndex())
-                    if state == StreamState.IDLE:
-                        finished = False
-                if finished:
-                    self.pm.auto_start_mode = False
+                if self.pm.auto_start_mode:
+                    finished = True
+                    cameras = [self.cameraPanel.lstCamera.item(x) for x in range(self.cameraPanel.lstCamera.count())]
+                    for camera in cameras:
+                        state = camera.getStreamState(camera.displayProfileIndex())
+                        if state == StreamState.IDLE:
+                            finished = False
+                    if finished:
+                        self.pm.auto_start_mode = False
 
-            if player := self.pm.getPlayer(uri):
-                player.clearCache()
-                if player.systemTabSettings:
-                    if player.systemTabSettings.record_enable and player.systemTabSettings.record_always:
-                        camera = self.cameraPanel.getCamera(uri)
-                        if camera:
-                            record = False
-                            if camera.displayProfileIndex() != camera.recordProfileIndex():
-                                if camera.isRecordProfile(uri):
-                                    record = True
-                            else:
-                                if camera.profiles[camera.displayProfileIndex()].uri() == uri:
-                                    record = True
-                            if record:
-                                d = self.settingsPanel.storage.dirArchive.txtDirectory.text()
-                                if self.settingsPanel.storage.chkManageDiskUsage.isChecked():
-                                    self.diskManager.manageDirectory(d, player.uri)
-                                if filename := player.getPipeOutFilename():
-                                    player.toggleRecording(filename)
+                if player := self.pm.getPlayer(uri):
+                    player.clearCache()
+                    if player.systemTabSettings():
+                        if player.systemTabSettings().record_enable and player.systemTabSettings().record_always:
+                            camera = self.cameraPanel.getCamera(uri)
+                            if camera:
+                                record = False
+                                if camera.displayProfileIndex() != camera.recordProfileIndex():
+                                    if camera.isRecordProfile(uri):
+                                        record = True
+                                else:
+                                    if camera.profiles[camera.displayProfileIndex()].uri() == uri:
+                                        record = True
+                                if record:
+                                    d = self.settingsPanel.storage.dirArchive.txtDirectory.text()
+                                    if self.settingsPanel.storage.chkManageDiskUsage.isChecked():
+                                        self.diskManager.manageDirectory(d, player.uri)
+                                    #else:
+                                    #    self.diskManager.getDirectorySize(d)
+                                    if filename := player.getPipeOutFilename():
+                                        player.toggleRecording(filename)
 
-        self.signals.stopReconnect.emit(uri)
-        self.signals.started.emit(uri)
+            self.signals.stopReconnect.emit(uri)
+            self.signals.started.emit(uri)
+        except Exception as ex:
+            logger.error(f'Exception occured during callback media playing started: {ex}')
 
     def stopReconnectTimer(self, uri):
         if timer := self.timers.get(uri, None):
@@ -610,19 +666,26 @@ class MainWindow(QMainWindow):
             timer.unlock()
 
     def mediaPlayingStopped(self, uri):
-        if player := self.pm.getPlayer(uri):
-            self.pm.removePlayer(uri)
+        try:
+            if player := self.pm.getPlayer(uri):
+                self.pm.removePlayer(uri)
 
-            if player.request_reconnect:
-                if camera := self.cameraPanel.getCamera(uri):
-                    logger.debug(f'Camera stream closed with reconnect requested {self.getCameraName(uri)}')
+                if player.request_reconnect:
+                    showMessage = True
+                    if timer := self.timers.get(player.uri):
+                        if timer.attempting_reconnect:
+                            showMessage = False
+                    if showMessage:
+                        logger.debug(f'Camera stream closed with reconnect requested {self.getCameraName(uri)}')
                     self.signals.reconnect.emit(uri)
-            else:
-                if self.isCameraStreamURI(uri):
-                    logger.debug(f'Stream closed {self.getCameraName(uri)}')
+                else:
+                    if self.isCameraStreamURI(uri):
+                        logger.debug(f'Stream closed {self.getCameraName(uri)}')
 
-            if self.signals:
-                self.signals.stopped.emit(uri)
+                if self.signals:
+                    self.signals.stopped.emit(uri)
+        except Exception as ex:
+            logger.error(f'Exception occurred during callback media playing stopped: {ex}')
 
     def startReconnectTimer(self, uri):
         if uri in self.timers:
@@ -632,102 +695,126 @@ class MainWindow(QMainWindow):
         self.cameraPanel.syncGUI()
 
     def infoCallback(self, msg, uri):
-        if msg == "player audio disabled":
-            return
-        if msg == "player video disabled":
-            return
-        if msg == "dropping frames due to buffer overflow":
-            return
-        if msg.startswith("Pipe opened write file:"):
-            return
-        if msg.startswith("Pipe closed file:"):
-            return
-        if msg == "NO AUDIO STREAM FOUND":
-            return
-        
-        name = ""
-        if self.isCameraStreamURI(uri):
-            camera = self.cameraPanel.getCamera(uri)
-            if camera:
-                name = f'Camera: {self.getCameraName(uri)}'
-        else:
-            name = f'File: {uri}'
-
-        if msg.startswith("Output file creation failure") or \
-           msg.startswith("Record to file close error"):
-            logger.error(f'{name}, Message: {msg}')
-            return
-
-        if msg.startswith("SDL_OpenAudioDevice exception"):
-            if profile := self.cameraPanel.getProfile(uri):
-                profile.setDisableAudio(True)
-                self.cameraPanel.tabVideo.syncGUI()
-                self.signals.error.emit("Error: Audio output device initialization has failed, audio for this stream has been disabled")
+        try:
+            if msg == "player audio disabled":
+                return
+            if msg == "player video disabled":
+                return
+            if msg == "dropping frames due to buffer overflow":
+                return
+            if msg.startswith("Pipe opened write file:"):
+                return
+            if msg.startswith("Pipe closed file:"):
+                return
+            if msg == "NO AUDIO STREAM FOUND":
+                return
+            
+            if "Reader seek exception: av_seek_frame has failed with error: Operation not permitted" in msg:
+                err_msg = f'Unable to seek to requested time in file {uri}. The file is highlighted in the file panel, you can start it manually.'
+                self.signals.error.emit(err_msg)
                 return
 
-        if msg.startswith("Using SDL audio driver"):
-            logger.debug(msg)
-            return
+            name = ""
+            if self.isCameraStreamURI(uri):
+                camera = self.cameraPanel.getCamera(uri)
+                if camera:
+                    name = f'Camera: {self.getCameraName(uri)}'
+            else:
+                name = f'File: {uri}'
 
-        print(f'{name}, Message: {msg}')
+            if msg.startswith("Output file creation failure") or \
+            msg.startswith("Record to file close error"):
+                logger.error(f'{name}, Message: {msg}')
+                return
+
+            if msg.startswith("SDL_OpenAudioDevice exception"):
+                if profile := self.cameraPanel.getProfile(uri):
+                    profile.setDisableAudio(True)
+                    self.cameraPanel.tabVideo.syncGUI()
+                    self.signals.error.emit("Error: Audio output device initialization has failed, audio for this stream has been disabled")
+                    return
+
+            if msg.startswith("Using SDL audio driver"):
+                logger.debug(msg)
+                return
+
+            print(f'{name}, Message: {msg}')
+        except Exception as ex:
+            logger.error(f'Exception occured during info callback: {ex}')
 
     def errorCallback(self, msg, uri, reconnect):
-        if reconnect:
-            camera_name = ""
-            last_msg = ""
-
-            if camera := self.cameraPanel.getCamera(uri):
-                camera_name = self.getCameraName(uri)
-                last_msg = camera.last_msg
-                camera.last_msg = msg
-
-                self.signals.reconnect.emit(uri)
-
-            if msg != last_msg:
-                logger.error(f'Error from camera: {camera_name} : {msg}, attempting to re-connect')
-        else:
-            name = ""
-            last_msg = ""
-            if self.isCameraStreamURI(uri):
-                if player := self.pm.getPlayer(uri):
-                    player.requestShutdown()
-                    last_msg = player.last_msg
-                    player.last_msg = msg
+        try:
+            if reconnect:
+                camera_name = ""
+                last_msg = ""
 
                 if camera := self.cameraPanel.getCamera(uri):
-                    if c_uri := camera.companionURI(uri):
-                        if c_player := self.pm.getPlayer(c_uri):
-                            c_player.requestShutdown()
+                    camera_name = self.getCameraName(uri)
+                    last_msg = camera.last_msg
+                    camera.last_msg = msg
 
-                    name = f'Camera: {self.getCameraName(uri)}'
-                    camera.setIconIdle()
-                    self.cameraPanel.syncGUI()
-                    self.cameraPanel.setTabsEnabled(True)
-                
+                    self.signals.reconnect.emit(uri)
+
                 if msg != last_msg:
+                    logger.error(f'Error from camera: {camera_name} : {msg}, attempting to re-connect')
+            else:
+                name = ""
+                last_msg = ""
+                if self.isCameraStreamURI(uri):
+                    if player := self.pm.getPlayer(uri):
+                        player.requestShutdown()
+                        last_msg = player.last_msg
+                        player.last_msg = msg
+
+                    if camera := self.cameraPanel.getCamera(uri):
+                        if c_uri := camera.companionURI(uri):
+                            if c_player := self.pm.getPlayer(c_uri):
+                                c_player.requestShutdown()
+
+                        name = f'Camera: {self.getCameraName(uri)}'
+                        camera.setIconIdle()
+                        self.cameraPanel.syncGUI()
+                        self.cameraPanel.setTabsEnabled(True)
+                    
+                    if msg != last_msg:
+                        self.signals.error.emit(msg)
+
+                else:
                     self.signals.error.emit(msg)
 
-            else:
-                self.signals.error.emit(msg)
+                logger.error(f'{name}, Error: {msg}')
+        except Exception as ex:
+            logger(f'exception occured during error handling: {ex}')
 
-            logger.error(f'{name}, Error: {msg}')
-                
     def mediaProgress(self, pct, uri):
         self.signals.progress.emit(pct, uri)
 
     def packetDrop(self, uri):
-        player = self.pm.getPlayer(uri)
-        if player:
-            frames = 10
-            if player.onvif_frame_rate.num and player.onvif_frame_rate.den:
-                frames = int((player.onvif_frame_rate.num / player.onvif_frame_rate.den) * 2)
-            player.packet_drop_frame_counter = frames
+        try:
+            if player := self.pm.getPlayer(uri):
+                frames = 10
+                if player.onvif_frame_rate.num and player.onvif_frame_rate.den:
+                    frames = int((player.onvif_frame_rate.num / player.onvif_frame_rate.den) * 2)
+                player.packet_drop_frame_counter = frames
+        except Exception as ex:
+            logger.error(f'Packet drop error: {ex}')
 
     def getAudioStatus(self):
         return self.audioStatus
     
     def setAudioStatus(self, status):
-        self.audioStatus = status
+        try:
+            self.audioStatus = status
+            if self.parent_window:
+                self.parent_window.audioStatus = status
+            if self.focus_window:
+                self.focus_window.audioStatus = status
+            if self.reader_window:
+                self.reader_window.audioStatus = status
+            for window in self.external_windows:
+                window.audioStatus = status
+        except Exception as ex:
+            logger.error(f'set audio status exception: {ex}')
 
     def onError(self, msg):
         if not self.closing:
@@ -776,32 +863,21 @@ class MainWindow(QMainWindow):
         path = Path(os.path.dirname(__file__))
         return str(path.parent.absolute())
     
+    def getCacheLocation(self):
+        if sys.platform == "win32":
+            home = os.environ['HOMEPATH']
+        else:
+            home = os.environ['HOME']
+        path = None
+        if sys.platform == "darwin":
+            path = os.path.join(self.getLocation(), "cache")
+        else:
+            path = Path(f'{home}/.cache/onvif-gui')
+        return path
+
     def getLogFilename(self):
-        return os.path.join(self.getLocation(), "cache", "logs", "logs.txt")
+        return os.path.join(self.getCacheLocation(), "logs", "logs.txt")
     
-    def initializeFocusWindowSettings(self):
-        proxy = None
-        match self.settingsPanel.proxy.proxyType:
-            case ProxyType.CLIENT:
-                proxy = self.settingsPanel.proxy.txtRemote.text()
-            case ProxyType.SERVER:
-                proxy = self.settingsPanel.proxy.lblServer.text().split()[0]
-        focus_settings = QSettings("onvif-gui", "Focus")
-        focus_settings.setValue("settings/proxyType", ProxyType.CLIENT)
-        focus_settings.setValue("settings/proxyRemote", proxy)
-        focus_settings.setValue("settings/autoDiscover", 1)
-        focus_settings.setValue(self.collapsedKey, 1)
-        self.focus_window = onvif_gui.main.MainWindow(settings_profile="Focus")
-        self.focus_window.show()
-        while not self.focus_window.viewer_cameras_filled:
-            sleep(0.001)
-
-    def initializeReaderWindowSettings(self):
-        reader_settings = QSettings("onvif-gui", "Reader")
-        reader_settings.setValue("filePanel/hideCameraPanel", 1)
-        self.reader_window = onvif_gui.main.MainWindow(settings_profile="Reader")
-        self.reader_window.show()
-
     def isCameraStreamURI(self, uri):
         result = False
         if uri:
@@ -919,7 +995,6 @@ class MainWindow(QMainWindow):
         }
 
         try:
-            #dir = self.settingsPanel.proxy.getProxyServerDir()
             if not os.path.exists(dir):
                 os.makedirs(dir)
 
@@ -983,23 +1058,35 @@ class MainWindow(QMainWindow):
                     archive = None
                     if sys.platform == "win32":
                         archive = ZipFile(download_filename, 'r')
+                        archive.extractall(dir)
                     else:
                         archive = tarfile.open(download_filename)
-                    if archive:
                         archive.extractall(dir, filter='data')
+                    if archive:
                         archive.close()
                     else:
                         raise RuntimeError("Unable to open decompression utility for MediaMTX")
                     os.remove(download_filename)
 
+                    config_filename = os.path.join(dir, "mediamtx.yml")
+                    with open(config_filename, 'r') as file:
+                        contents = file.read()
+
+                    contents = contents.replace("srt: yes", "srt: no")
+                    contents = contents.replace("webrtc: yes", "webrtc: no")
+                    contents = contents.replace("hls: yes", "hls: no")
+                    contents = contents.replace("rtmp: yes", "rtmp: no")
+
+                    with open(config_filename, 'w') as file:
+                        file.write(contents) 
+
         except Exception as ex:
             self.signals.hideWaitDialog.emit()
-            raise RuntimeError(f'Unable download MediaMTX {ex}')
+            raise RuntimeError(f'Unable to download and configure MediaMTX {ex}')
         
         self.signals.hideWaitDialog.emit()
 
     def startProxyServer(self, autoDownload, dir):
-        print("START PROXY SERVER", dir)
         try:
             executable_filename = f'{dir}/mediamtx'
             if sys.platform == "win32":
@@ -1011,9 +1098,12 @@ class MainWindow(QMainWindow):
                     self.signals.error.emit(f'Error: cannot find MediaMTX in {dir}, please use auto download selection in Settings -> Proxy')
                     return
 
-                thread = threading.Thread(target=self.downloadProxyServer, args=(dir,))
-                thread.start()
-                self.signals.showWaitDialog.emit("Please wait for MediaMTX binary to download")
+                if self.isVisible():
+                    thread = threading.Thread(target=self.downloadProxyServer, args=(dir,))
+                    thread.start()
+                    self.signals.showWaitDialog.emit("Please wait for MediaMTX binary to download")
+                else:
+                    self.downloadProxyServer(dir)
 
             if os.path.isfile(executable_filename) and os.path.isfile(config_filename):
                 if not self.mediamtx_process:
@@ -1101,11 +1191,26 @@ class MainWindow(QMainWindow):
         return strStyle
 
     def haveNvidia(self):
-        output = self.run_command("source $HOME/.local/share/onvif-gui-env/bin/activate && pip list | grep nvidia")
-        if len(output.strip()):
-            return True
-        else:
+        output = ""
+        if sys.platform == "linux":
+            output = self.run_command("lspci | grep NVIDIA")
+        if not len(output.strip()):
             return False
+        elif "command not found" in output:
+            return False
+        else:
+            return True
+        
+    def win_command(self, cmd):
+        logger.debug(cmd)
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NEW_CONSOLE) as process:
+            stdout, stderr = process.communicate()
+            logger.debug(stdout.decode())
+            if stderr:
+                logger.debug(stderr.decode())
+            return_code = process.returncode
+            if return_code != 0:
+                logger.error(f"Error occurred with return code {return_code}")
 
     def run_command(self, command, env=None, exit_on_error=False, silent=True):
         if env is None:

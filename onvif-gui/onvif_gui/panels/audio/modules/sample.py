@@ -20,10 +20,8 @@
 import numpy as np
 from numpy.fft import fft
 import math
-import os
 from loguru import logger
-from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QLabel, QWidget, QCheckBox, \
-    QGroupBox, QRadioButton
+from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QLabel, QWidget, QCheckBox
 from PyQt6.QtGui import QPainter, QColorConstants, QColor
 from PyQt6.QtCore import QPointF, Qt, QRectF
 from onvif_gui.components import WarningBar, Indicator
@@ -46,7 +44,6 @@ class SampleSettings():
         self.frequencyPctHighPass = self.getAudioFrequencyPctHighPass()
         self.frequencyPctLowPass = self.getAudioFrequencyPctLowPass()
         self.frequencyPctCoverage = self.getAudioFrequencyPctCoverage()
-        self.alarmLimitOver = self.getAudioAlarmLimitOver()
         
     def getAudioAmplitudeEnabled(self):
         key = f'{self.id}/{MODULE_NAME}AudioAmplitudeEnabled'
@@ -110,15 +107,6 @@ class SampleSettings():
         key = f'{self.id}/{MODULE_NAME}AudioFrequencyPctCoverage'
         self.frequencyPctCoverage = value
         self.mw.settings.setValue(key, value)
-
-    def getAudioAlarmLimitOver(self):
-        key = f'{self.id}/{MODULE_NAME}AudioAlarmLimitOver'
-        return bool(int(self.mw.settings.value(key, 1)))
-    
-    def setAudioAlarmLimitOver(self, state):
-        key = f'{self.id}/{MODULE_NAME}AudioAlarmLimitOver'
-        self.alarmLimitOver = bool(state)
-        self.mw.settings.setValue(key, int(state))
 
 class AmplitudeDisplay(QLabel):
     def __init__(self, mw):
@@ -216,13 +204,8 @@ class FrequencyDisplay(QLabel):
             x = min(max(event.pos().x(), 0), self.size().width()-1)
             lowPass = x
             self.pctLowPass = lowPass / self.width()
-            match self.mw.audioConfigure.source:
-                case MediaSource.CAMERA:
-                    camera = self.mw.cameraPanel.getCurrentCamera()
-                    if camera:
-                        camera.audioModelSettings.setAudioFrequencyPctLowPass(self.pctLowPass)
-                case MediaSource.FILE:
-                    self.mw.filePanel.audioModelSettings.setAudioFrequencyPctLowPass(self.pctLowPass)
+            if camera := self.mw.cameraPanel.getCurrentCamera():
+                camera.audioModelSettings.setAudioFrequencyPctLowPass(self.pctLowPass)
             self.update()
 
         highPass = int(self.pctHighPass * self.width())
@@ -230,13 +213,8 @@ class FrequencyDisplay(QLabel):
             x = min(max(event.pos().x(), 0), self.size().width())
             highPass = x
             self.pctHighPass = highPass / self.width()
-            match self.mw.audioConfigure.source:
-                case MediaSource.CAMERA:
-                    camera = self.mw.cameraPanel.getCurrentCamera()
-                    if camera:
-                        camera.audioModelSettings.setAudioFrequencyPctHighPass(self.pctHighPass)
-                case MediaSource.FILE:
-                    self.mw.filePanel.audioModelSettings.setAudioFrequencyPctHighPass(self.pctHighPass)
+            if camera := self.mw.cameraPanel.getCurrentCamera():
+                camera.audioModelSettings.setAudioFrequencyPctHighPass(self.pctHighPass)
             self.update()
 
         if self.draggingHighPass or self.draggingLowPass:
@@ -245,13 +223,8 @@ class FrequencyDisplay(QLabel):
             else:
                 self.pctCoverage = (highPass - lowPass - 1) / self.width()
             self.pctCoverage = max(self.pctCoverage, 0.01)
-            match self.mw.audioConfigure.source:
-                case MediaSource.CAMERA:
-                    camera = self.mw.cameraPanel.getCurrentCamera()
-                    if camera:
-                        camera.audioModelSettings.setAudioFrequencyPctCoverage(self.pctCoverage)
-                case MediaSource.FILE:
-                    self.mw.filePanel.audioModelSettings.setAudioFrequencyPctCoverage(self.pctCoverage)
+            if camera := self.mw.cameraPanel.getCurrentCamera():
+                camera.audioModelSettings.setAudioFrequencyPctCoverage(self.pctCoverage)
 
         return super().mouseMoveEvent(event)
     
@@ -318,16 +291,6 @@ class AudioConfigure(QWidget):
             self.barFrequency = WarningBar()
             self.indFrequency = Indicator(self.mw)
 
-            self.grpAlarmCondition = QGroupBox("Trigger Alarm if Limit Reached")
-            self.radOver = QRadioButton("Over", self.grpAlarmCondition)
-            self.radOver.setChecked(True)
-            self.radOver.toggled.connect(self.radOverToggled)
-            self.radUnder = QRadioButton("Under", self.grpAlarmCondition)
-            self.radUnder.setChecked(not self.radOver.isChecked())
-            lytAlarmCondition = QGridLayout(self.grpAlarmCondition)
-            lytAlarmCondition.addWidget(self.radOver,   0, 0, 1, 1)
-            lytAlarmCondition.addWidget(self.radUnder,  0, 1, 1, 1)
-
             self.pnlAmplitude = QWidget()
             lytAmplitude = QGridLayout(self.pnlAmplitude)
             lytAmplitude.addWidget(self.chkAmplitude,       0, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
@@ -358,7 +321,6 @@ class AudioConfigure(QWidget):
             lytMain = QGridLayout(self)
             lytMain.addWidget(self.pnlAmplitude,      0, 0, 1, 4)
             lytMain.addWidget(self.pnlFrequency,      1, 0, 1, 4)
-            lytMain.addWidget(self.grpAlarmCondition, 2, 0, 1, 3)
             lytMain.addWidget(QLabel(),               3, 0, 1, 4)
             lytMain.setRowStretch(3, 3)
 
@@ -367,62 +329,29 @@ class AudioConfigure(QWidget):
         except:
             logger.exception("sample configuration failed to load")
 
-    def radOverToggled(self):
-        self.barAmplitude.inverted = not self.radOver.isChecked()
-        self.barAmplitude.update()
-        self.barFrequency.inverted = not self.radOver.isChecked()
-        self.barFrequency.update()
-        match self.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.audioModelSettings.setAudioAlarmLimitOver(self.radOver.isChecked())
-            case MediaSource.FILE:
-                self.mw.filePanel.audioModelSettings.setAudioAlarmLimitOver(self.radOver.isChecked())
-
     def sldAmpGainValueChanged(self, value):
         self.amplitudeGain = math.exp(0.1 * (value - 50))
-        match self.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.audioModelSettings.setAudioAmplitudeGain(value)
-            case MediaSource.FILE:
-                self.mw.filePanel.audioModelSettings.setAudioAmplitudeGain(value)
+        if camera := self.mw.cameraPanel.getCurrentCamera():
+            camera.audioModelSettings.setAudioAmplitudeGain(value)
 
     def sldFreqGainValueChanged(self, value):
         self.frequencyGain = math.exp(0.05 * (value - 50))
-        match self.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.audioModelSettings.setAudioFrequencyGain(value)
-            case MediaSource.FILE:
-                self.mw.filePanel.audioModelSettings.setAudioFrequencyGain(value)
+        if camera := self.mw.cameraPanel.getCurrentCamera():
+            camera.audioModelSettings.setAudioFrequencyGain(value)
 
     def chkAmpStateChanged(self, state):
         self.barAmplitude.setLevel(0.0)
         self.indAmplitude.setState(0)
         self.dspAmplitude.setData(None)
-        match self.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.audioModelSettings.setAudioAmplitudeEnabled(state)
-            case MediaSource.FILE:
-                self.mw.filePanel.audioModelSettings.setAudioAmplitudeEnabled(state)
+        if camera := self.mw.cameraPanel.getCurrentCamera():
+            camera.audioModelSettings.setAudioAmplitudeEnabled(state)
 
     def chkFreqStateChanged(self, state):
         self.barFrequency.setLevel(0.0)
         self.indFrequency.setState(0)
         self.dspFrequency.setData(None)
-        match self.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.audioModelSettings.setAudioFrequencyEnabled(state)
-            case MediaSource.FILE:
-                self.mw.filePanel.audioModelSettings.setAudioFrequencyEnabled(state)
+        if camera := self.mw.cameraPanel.getCurrentCamera():
+            camera.audioModelSettings.setAudioFrequencyEnabled(state)
 
     def clearIndicators(self):
         self.barAmplitude.setLevel(0)
@@ -434,7 +363,6 @@ class AudioConfigure(QWidget):
         self.clearIndicators()
         self.pnlAmplitude.setEnabled(bool(state))
         self.pnlFrequency.setEnabled(bool(state))
-        self.grpAlarmCondition.setEnabled(bool(state))
 
     def setCamera(self, camera):
         self.source = MediaSource.CAMERA
@@ -448,7 +376,6 @@ class AudioConfigure(QWidget):
             self.sldAmplitudeGain.setValue(camera.audioModelSettings.amplitudeGain)
             self.chkFrequency.setChecked(camera.audioModelSettings.frequencyEnabled)
             self.sldFrequencyGain.setValue(camera.audioModelSettings.frequencyGain)
-            self.radUnder.setChecked(not camera.audioModelSettings.alarmLimitOver)
             self.dspFrequency.setPctHighPass(camera.audioModelSettings.frequencyPctHighPass)
             self.dspFrequency.setPctLowPass(camera.audioModelSettings.frequencyPctLowPass)
             self.barAmplitude.setLevel(0)
@@ -469,28 +396,6 @@ class AudioConfigure(QWidget):
                 enable = False
             self.enableControls(enable)
 
-            self.update()
-
-    def setFile(self, file):
-        self.source = MediaSource.FILE
-        if file:
-
-            if not self.isModelSettings(self.mw.filePanel.audioModelSettings):
-                self.mw.filePanel.audioModelSettings = SampleSettings(self.mw)
-
-            self.mw.audioPanel.lblCamera.setText(f'File - {os.path.split(file)[1]}')
-            self.chkAmplitude.setChecked(self.mw.filePanel.audioModelSettings.amplitudeEnabled)
-            self.sldAmplitudeGain.setValue(self.mw.filePanel.audioModelSettings.amplitudeGain)
-            self.chkFrequency.setChecked(self.mw.filePanel.audioModelSettings.frequencyEnabled)
-            self.sldFrequencyGain.setValue(self.mw.filePanel.audioModelSettings.frequencyGain)
-            self.radUnder.setChecked(not self.mw.filePanel.audioModelSettings.alarmLimitOver)
-            self.dspFrequency.setPctHighPass(self.mw.filePanel.audioModelSettings.frequencyPctHighPass)
-            self.dspFrequency.setPctLowPass(self.mw.filePanel.audioModelSettings.frequencyPctLowPass)
-            self.enableControls(self.mw.audioPanel.chkEnableFile.isChecked())
-            self.barAmplitude.setLevel(0)
-            self.indAmplitude.setState(0)
-            self.barFrequency.setLevel(0)
-            self.indFrequency.setState(0)
             self.update()
 
     def isModelSettings(self, arg):
@@ -523,16 +428,13 @@ class AudioWorker:
             if self.mw.audioConfigure.name != MODULE_NAME:
                 return
             
+            player.lock()
             camera = self.mw.cameraPanel.getCamera(player.uri)
             if not self.mw.audioConfigure.isModelSettings(player.audioModelSettings):
                 if player.isCameraStream():
                     if camera:
                         camera.audioModelSettings = SampleSettings(self.mw, camera)
                     player.audioModelSettings = camera.audioModelSettings
-                else:
-                    if not self.mw.audioConfigure.isModelSettings(self.mw.filePanel.audioModelSettings):
-                        self.mw.filePanel.audioModelSettings = SampleSettings(self.mw)
-                    player.audioModelSettings = self.mw.filePanel.audioModelSettings
 
             if not player.audioModelSettings:
                 raise Exception("Unable to set audio model parameters for player")
@@ -550,18 +452,15 @@ class AudioWorker:
                     rms = math.sqrt(rms/samples.size)
 
                 alarmState = False
-                if player.audioModelSettings.alarmLimitOver:
-                    if rms > 1:
-                        alarmState = True
-                else:
-                    if rms < 0.005:
-                        alarmState = True
+                if rms > 1:
+                    alarmState = True
 
-                if player.uri == self.mw.glWidget.focused_uri:
-                    self.mw.audioConfigure.barAmplitude.setLevel(rms)
-                    self.mw.audioConfigure.dspAmplitude.setData(samples)
-                    if alarmState:
-                        self.mw.audioConfigure.indAmplitude.setState(1)
+                if camera := self.mw.cameraPanel.getCurrentCamera():
+                    if camera.isCurrent():
+                        self.mw.audioConfigure.barAmplitude.setLevel(rms)
+                        self.mw.audioConfigure.dspAmplitude.setData(samples)
+                        if alarmState:
+                            self.mw.audioConfigure.indAmplitude.setState(1)
 
                 player.handleAlarm(alarmState)
 
@@ -583,23 +482,24 @@ class AudioWorker:
                 sph /= (frequencies.size * player.audioModelSettings.frequencyPctCoverage)
 
                 alarmState = False
-                if player.audioModelSettings.alarmLimitOver:
-                    if sph > 1:
-                        alarmState = True
-                else:
-                    if sph < 0.005:
-                        alarmState = True
+                if sph > 1:
+                    alarmState = True
 
-                if player.uri == self.mw.glWidget.focused_uri:
-                    self.mw.audioConfigure.barFrequency.setLevel(sph)
-                    self.mw.audioConfigure.dspFrequency.setData(frequencies)
-                    if alarmState:
-                        self.mw.audioConfigure.indFrequency.setState(1)
+                if camera := self.mw.cameraPanel.getCurrentCamera():
+                    if camera.isCurrent():
+                        self.mw.audioConfigure.barFrequency.setLevel(sph)
+                        self.mw.audioConfigure.dspFrequency.setData(frequencies)
+                        if alarmState:
+                            self.mw.audioConfigure.indFrequency.setState(1)
 
                 player.handleAlarm(alarmState)
+                self.mw.audioPanel.lblMessage.setText("")
+                self.last_error = ""
 
-        except BaseException as err:
+        except Exception as err:
             if str(err) != self.last_error:
                 logger.exception("pyAudioCallback exception")
+                self.mw.audioPanel.lblMessage.setText(str(err))
             self.last_error = str(err)
+        player.unlock()
 

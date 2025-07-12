@@ -161,7 +161,7 @@ class ProxyOptions(QWidget):
         dir = None
         autoDownload = self.chkAutoDownload.isChecked()
         if autoDownload:
-            dir = os.path.join(self.mw.getLocation(), "cache", "proxy")
+            dir = os.path.join(self.mw.getCacheLocation(), "proxy")
         else:
             dir = self.txtDirectoryMTX.text()
         return dir

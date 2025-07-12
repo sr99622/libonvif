@@ -4,5 +4,5 @@ if [ ! -d "gdbm-1.25" ]; then
     tar xzvf gdbm-1.25.tar.gz
 fi 
 cd gdbm-1.25
-./configure --prefix=/app/bin/gdbm
-sudo make install
+./configure --prefix=$HOME/bin/gdbm
+make install

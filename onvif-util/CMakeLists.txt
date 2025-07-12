@@ -33,7 +33,7 @@ else()
     find_package(LibXml2 REQUIRED)
 endif()
 
-add_library(libonvif STATIC
+add_library(libonvif STATIC SHARED
     ../libonvif/src/onvif.c
     ../libonvif/src/cencode.c
     ../libonvif/src/sha1.c

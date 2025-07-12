@@ -19,13 +19,18 @@
 
 from PyQt6.QtWidgets import QDialogButtonBox, QLineEdit, QGridLayout, QDialog, QLabel
 from PyQt6.QtCore import Qt
+import sys
 
 class LoginDialog(QDialog):
     def __init__(self, p):
         super().__init__(p)
         self.active = False
-        self.setWindowTitle("Camera Login")
-        self.setMinimumWidth(280)
+        if sys.platform == "linux":
+            self.setMinimumWidth(320)
+            self.setWindowTitle("Login")
+        else:
+            self.setWindowTitle("Camera Login")
+            self.setMinimumWidth(280)
         self.lblCameraIP = QLabel()
         self.lblCameraName = QLabel()
         buttonBox = QDialogButtonBox( \

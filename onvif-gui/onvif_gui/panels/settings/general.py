@@ -31,7 +31,9 @@ import webbrowser
 import platform
 import requests
 from onvif_gui.player import Player
-from onvif_gui.enums import Style, ProxyType
+from onvif_gui.enums import Style, ProxyType, PkgType
+import threading
+import time
 
 class LogText(QTextEdit):
     def __init__(self, parent):
@@ -320,6 +322,10 @@ class GeneralOptions(QWidget):
         if sys.platform == "linux":
             decoders += ["CUDA", "VAAPI", "VDPAU"]
 
+        self.isUpdatable = True
+        if sys.platform == "linux" and self.mw.pkg_type != PkgType.NATIVE:
+            self.isUpdatable = False
+
         p = Player("", self)
         audioDrivers = p.getAudioDrivers()
 
@@ -441,8 +447,11 @@ class GeneralOptions(QWidget):
         lytButtons.addWidget(self.btnShowLogs,    0, 1, 1, 1)
         lytButtons.addWidget(self.btnHelp,        0, 2, 1, 1)
         lytButtons.addWidget(self.btnHideDisplay, 1, 0, 1, 1)
-        if sys.platform != "win32":
-            lytButtons.addWidget(self.btnUpdate,      1, 2, 1, 1)
+        
+        # Abandon the update button for now
+        
+        #if self.isUpdatable:
+        #    lytButtons.addWidget(self.btnUpdate,  1, 2, 1, 1)
         #lytButtons.addWidget(self.btnTest,   1, 1, 1, 1)
 
         self.lblMemory = QLabel()
@@ -506,6 +515,8 @@ class GeneralOptions(QWidget):
     def autoTimeSyncChecked(self, state):
         self.mw.settings.setValue(self.autoTimeSyncKey, state)
         self.mw.cameraPanel.enableAutoTimeSync(state)
+        if state:
+            self.mw.cameraPanel.timeSync()
 
     def spnDisplayRefreshChanged(self, i):
         self.mw.settings.setValue(self.displayRefreshKey, i)
@@ -578,20 +589,22 @@ class GeneralOptions(QWidget):
                 QMessageBox.warning(self.mw, "Feature Unavailable", "Focus Window is not available in Stand Alone Configuration, please use Proxy Server mode to enable this feature", QMessageBox.StandardButton.Ok)
                 return
             if not self.mw.focus_window:
-                self.mw.focus_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
-                self.mw.focus_window.audioStatus = self.mw.audioStatus
+                #self.mw.focus_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
+                #self.mw.focus_window.audioStatus = self.mw.audioStatus
                 self.mw.initializeFocusWindowSettings()
             else:
                 self.mw.focus_window.show()
         elif self.cmbViewerProfile.currentText() == "Reader":
             if not self.mw.reader_window:
-                self.mw.reader_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
-                self.mw.initializeReaderWindowSettings()
-            else:
-                self.mw.reader_window.show()
+                reader_settings = QSettings("onvif-gui", "Reader")
+                reader_settings.setValue("filePanel/hideCameraPanel", 1)
+                self.mw.reader_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText(), parent_window=self.mw)
+                self.mw.reader_window.audioStatus = self.mw.audioStatus
+            self.mw.reader_window.show()
         else:
             window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
             window.audioStatus = self.mw.audioStatus
+            window.parent_window = self.mw
             self.mw.external_windows.append(window)
             window.show()
 
@@ -615,6 +628,12 @@ class GeneralOptions(QWidget):
             # v1 is greater than v2
             return True
         return False
+    
+    def threadUpdate(self):
+        pip = os.path.join(os.path.dirname(sys.executable), "pip3")
+        time.sleep(2)
+        cmd = [pip, "install", "--upgrade", "onvif-gui"]
+        self.mw.win_command(cmd)
 
     def btnUpdateClicked(self):
         url = f"https://pypi.org/pypi/onvif-gui/json"
@@ -627,13 +646,26 @@ class GeneralOptions(QWidget):
             if response == QMessageBox.StandardButton.Yes:
                 logger.debug(f'Upgrading Onvif GUI from version {self.mw.version} to {latest_version}')
                 if sys.platform == "linux":
-                    print(self.mw.run_command("source $HOME/.local/share/onvif-gui-env/bin/activate && pip install --upgrade onvif-gui"))
+                    pip = os.path.join(os.path.dirname(sys.executable), "pip3")
+                    cmd = f'{pip} install --upgrade onvif-gui'
+                    print(self.mw.run_command(cmd))
+                    QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI has been updated, please restart the program")
                 if sys.platform == "darwin":
-                    print(self.mw.run_command("source /Applications/OnvifGUI.app/Contents/MacOS/onvif-gui/bin/activate && pip install --upgrade onvif-gui"))
-                QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI has been updated, please restart the program")
+                    pip = os.path.join(os.path.dirname(sys.executable), "pip3")
+                    cmd = f'{pip} install --upgrade onvif-gui'
+                    print(self.mw.run_command(cmd))
+                    QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI has been updated, please restart the program")
+                if sys.platform == "win32":
+                    QMessageBox.information(self.mw, "Onvif GUI", "The application will be closed during the update. Please re-start the application once the update completes.")
+                    thread = threading.Thread(target=self.threadUpdate)
+                    thread.start()
+                    self.mw.close()
         else:
             QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI is currently the latest version")
 
-
     def btnTestClicked(self):
         print("test button clicked")
+        for key in os.environ:
+            #if "SNAP" in key:
+            #    print(f'key: {key}, value: {os.environ[key]}')
+            print(f'key: {key}, value: {os.environ[key]}')

@@ -21,17 +21,14 @@ import os
 import sys
 from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, \
     QMessageBox, QMenu, QApplication
-from PyQt6.QtGui import QAction
-from PyQt6.QtCore import Qt, QStandardPaths, QObject, pyqtSignal
+from PyQt6.QtGui import QAction, QFileSystemModel
+from PyQt6.QtCore import Qt, QStandardPaths
 from onvif_gui.components import Progress
-from onvif_gui.enums import MediaSource
 from loguru import logger
 import avio
-from . import FileControlPanel, TreeModel, TreeView, DirectorySetter
-
-class FilePanelSignals(QObject):
-    removeFile = pyqtSignal(str)
-    renameFile = pyqtSignal(str, str)
+from . import FileControlPanel
+from onvif_gui.components.directoryselector import DirectorySelector
+from . import TreeView
 
 class FilePanel(QWidget):
     def __init__(self, mw):
@@ -45,18 +42,18 @@ class FilePanel(QWidget):
         self.restorationPath = None
         self.verticalScrollBarPosition = 0
 
-        self.signals = FilePanelSignals()
-        self.signals.removeFile.connect(self.removeFile)
+        if self.mw.parent_window:
+            video_dir = self.mw.parent_window.settingsPanel.storage.dirArchive.text()
+        else:
+            video_dir = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.MoviesLocation)[0]
+        self.dirArchive = DirectorySelector(mw, self.mw.settingsPanel.storage.archiveKey, "", video_dir)
+        self.dirArchive.signals.dirChanged.connect(self.mw.settingsPanel.storage.dirArchiveChanged)
 
-        self.dirSetter = DirectorySetter(mw)
-        self.dirSetter.txtDirectory.setText(self.getDirectory())
-
-        self.model = TreeModel(mw)
+        self.model = QFileSystemModel()
         self.model.fileRenamed.connect(self.onFileRenamed)
         self.model.directoryLoaded.connect(self.loaded)
         self.tree = TreeView(mw)
         self.tree.setModel(self.model)
-        self.tree.clicked.connect(self.treeClicked)
         self.tree.doubleClicked.connect(self.treeDoubleClicked)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.showContextMenu)
@@ -65,29 +62,31 @@ class FilePanel(QWidget):
         self.control = FileControlPanel(mw)
 
         lytMain = QGridLayout(self)
-        lytMain.addWidget(self.dirSetter,  0, 0, 1, 1)
+        lytMain.addWidget(self.dirArchive,  0, 0, 1, 1)
         lytMain.addWidget(self.tree,       1, 0, 1, 1)
         lytMain.addWidget(self.progress,   2, 0, 1, 1)
         lytMain.addWidget(QLabel(),        3, 0, 1, 1)
         lytMain.addWidget(self.control,    4, 0, 1, 1)
         lytMain.setRowStretch(1, 10)
 
-        self.dirSetter.txtDirectory.textEdited.connect(self.dirChanged)
-        self.dirChanged(self.dirSetter.txtDirectory.text())
+        self.dirChanged(self.dirArchive.text())
 
         self.menu = QMenu("Context Menu", self)
         self.remove = QAction("Delete", self)
         self.rename = QAction("Rename", self)
         self.info = QAction("Info", self)
         self.play = QAction("Play", self)
+        self.stop = QAction("Stop", self)
         self.remove.triggered.connect(self.onMenuRemove)
         self.rename.triggered.connect(self.onMenuRename)
         self.info.triggered.connect(self.onMenuInfo)
         self.play.triggered.connect(self.onMenuPlay)
+        self.stop.triggered.connect(self.onMenuStop)
         self.menu.addAction(self.remove)
         self.menu.addAction(self.rename)
         self.menu.addAction(self.info)
         self.menu.addAction(self.play)
+        self.menu.addAction(self.stop)
 
     def loaded(self, path):
         self.loadedCount += 1
@@ -119,7 +118,7 @@ class FilePanel(QWidget):
         self.loadedCount = 0
         self.expandedPaths = []
         self.restorationPath = self.model.filePath(self.tree.currentIndex())
-        path = self.dirSetter.txtDirectory.text()
+        path = self.dirArchive.txtDirectory.text()
         self.model.sort(0)
         for i in range(self.model.rowCount(self.model.index(path))):
             idx = self.model.index(i, 0, self.model.index(path))
@@ -127,7 +126,7 @@ class FilePanel(QWidget):
                 if self.tree.isExpanded(idx):
                     self.expandedPaths.append(self.model.filePath(idx))
         self.verticalScrollBarPosition = self.tree.verticalScrollBar().value()
-        self.model = TreeModel(self.mw)
+        self.model = QFileSystemModel()
         self.model.setRootPath(path)
         self.model.fileRenamed.connect(self.onFileRenamed)
         self.model.directoryLoaded.connect(self.loaded)
@@ -138,13 +137,6 @@ class FilePanel(QWidget):
         if len(path) > 0:
             self.model.setRootPath(path)
             self.tree.setRootIndex(self.model.index(path))
-            self.setDirectory(path)
-
-    def treeClicked(self, index):
-        if index.isValid():
-            fileInfo = self.model.fileInfo(index)
-            if self.mw.videoConfigure:
-                self.mw.videoConfigure.setFile(fileInfo.canonicalFilePath())
 
     def treeDoubleClicked(self, index):
         if index.isValid():
@@ -157,7 +149,6 @@ class FilePanel(QWidget):
                         self.mw.pm.playerShutdownWait(player.uri)
                 uri = self.getCurrentFileURI()
                 if uri:
-                    self.tree.model().ref = self.tree.currentIndex()
                     self.mw.playMedia(uri)
                     self.mw.glWidget.focused_uri = uri
 
@@ -179,14 +170,6 @@ class FilePanel(QWidget):
 
         if not another:
             self.progress.lblDuration.setText("0:00")
-
-        if self.mw.glWidget.focused_uri == uri:
-            if self.mw.videoPanel.chkEnableFile.isChecked():
-                if self.mw.videoWorker:
-                    self.mw.videoWorker(None, None)
-            if self.mw.audioPanel.chkEnableFile.isChecked():
-                if self.mw.audioWorker:
-                    self.mw.audioWorker(None, None)
 
     def onMediaProgress(self, pct, uri):
         player = self.mw.pm.getPlayer(uri)
@@ -210,40 +193,38 @@ class FilePanel(QWidget):
                 self.menu.exec(self.mapToGlobal(pos))
 
     def onMenuRemove(self):
-        ret = QMessageBox.warning(self, "onvif-gui",
-                                    "You are about to delete this file.\n"
-                                    "Are you sure you want to continue?",
-                                    QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        index = self.tree.currentIndex()
+        if index.isValid():
+            if self.mw.pm.getPlayer(self.model.filePath(index)):
+                QMessageBox.warning(self, "Warning",
+                                        "Camera is currently playing. Please stop before deleting.",
+                                        QMessageBox.StandardButton.Ok)
+                return
+            
+            ret = QMessageBox.warning(self, "onvif-gui",
+                                        "You are about to ** PERMANENTLY ** delete this file.\n"
+                                        "Are you sure you want to continue?",
+                                        QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
-        if ret == QMessageBox.StandardButton.Ok:
+            if ret == QMessageBox.StandardButton.Ok:
+                try:
+                    idxAbove = self.tree.indexAbove(index)
+                    idxBelow = self.tree.indexBelow(index)
 
-            indexes = [index for index in self.tree.selectedIndexes() if index.column() == 0]
-            for i, index in enumerate(indexes):
-                if index.isValid():
-                    if i == 0:
-                        idxAbove = self.tree.indexAbove(index)
-                        idxBelow = self.tree.indexBelow(index)
-                        resolved = False
-                        if idxAbove.isValid():
-                            if os.path.isfile(self.model.filePath(idxAbove)) or len(indexes) > 1:
-                                self.tree.setCurrentIndex(idxAbove)
-                                resolved = True
-                        if not resolved:
-                            if idxBelow.isValid():
+                    self.model.remove(index)
+                    
+                    resolved = False
+                    if idxAbove.isValid():
+                        if os.path.isfile(self.model.filePath(idxAbove)):
+                            self.tree.setCurrentIndex(idxAbove)
+                            resolved = True
+                    if not resolved:
+                        if idxBelow.isValid():
+                            if os.path.isfile(self.model.filePath(idxBelow)):
                                 self.tree.setCurrentIndex(idxBelow)
-                    filename = self.model.filePath(index)
-                    player = self.mw.pm.getPlayer(filename)
-                    if player:
-                        self.mw.pm.playerShutdownWait(player.uri)
-                    self.signals.removeFile.emit(filename)
-
-    def removeFile(self, filename):
-        try:
-            os.remove(filename)
-        except Exception as e:
-            msg = f'File delete exception {str(e)}'
-            logger.debug(msg)
-            self.mw.onError(msg)
+                
+                except Exception as e:
+                    logger.error(f'File delete error: {e}')
 
     def onMenuRename(self):
         player = self.mw.pm.getPlayer(self.mw.filePanel.getCurrentFileURI())
@@ -265,6 +246,7 @@ class FilePanel(QWidget):
             if (index.isValid()):
                 info = self.model.fileInfo(index)
                 strInfo += "Filename: " + info.fileName()
+                strInfo += "\nCreated: " + info.birthTime().toString()
                 strInfo += "\nModified: " + info.lastModified().toString()
 
                 reader = avio.Reader(info.absoluteFilePath(), None)
@@ -309,10 +291,27 @@ class FilePanel(QWidget):
         msgBox.exec()
 
     def onMenuPlay(self):
-        index = self.tree.currentIndex()
-        if (index.isValid()):
-            info = self.model.fileInfo(index)
-            self.mw.playMedia(info.absoluteFilePath())
+        self.mw.filePanel.control.btnPlayClicked()
+
+    def onMenuStop(self):
+        self.mw.filePanel.control.btnStopClicked()
+
+    def fastForward(self):
+        pct = self.progress.sldProgress.value() / 1000
+        if duration := self.progress.duration:
+            interval = 10000 / duration
+            tgt = pct + interval
+            if tgt < 1.0:
+                if player := self.getCurrentlyPlayingFile():
+                    player.seek(tgt)
+
+    def rewind(self):
+        pct = self.progress.sldProgress.value() / 1000
+        if duration := self.progress.duration:
+            interval = 10000 / duration
+            tgt = max(pct - interval, 0.0)
+            if player := self.getCurrentlyPlayingFile():
+                player.seek(tgt)
 
     def getCurrentFileURI(self):
         result = None
@@ -320,7 +319,15 @@ class FilePanel(QWidget):
         if index.isValid():
             info = self.model.fileInfo(index)
             if info.isFile():
-                result = info.filePath()
+                result = info.absoluteFilePath()
+        return result
+    
+    def getCurrentlyPlayingFile(self):
+        result = None
+        for player in self.mw.pm.players:
+            if not player.isCameraStream():
+                result = player
+                break
         return result
             
     def setCurrentFile(self, uri):
@@ -329,14 +336,6 @@ class FilePanel(QWidget):
         self.control.setBtnPlay()
         self.control.setBtnMute()
         self.control.setSldVolume()
-        if self.mw.videoConfigure:
-            if self.mw.videoConfigure.source != MediaSource.FILE:
-                if uri:
-                    self.mw.videoConfigure.setFile(uri)
-        if self.mw.audioConfigure:
-            if self.mw.audioConfigure.source != MediaSource.FILE:
-                if uri:
-                    self.mw.audioConfigure.setFile(uri)
         player = self.mw.pm.getPlayer(uri)
         if player:
             self.onMediaProgress(player.file_progress, uri)
@@ -390,19 +389,3 @@ class FilePanel(QWidget):
     def setVolume(self, volume):
         key = f'File/Volume'
         self.mw.settings.setValue(key, volume)
-
-    def getAnalyzeVideo(self):
-        key = f'File/AnalyzeVideo'
-        return bool(int(self.mw.settings.value(key, 0)))
-        
-    def setAnalyzeVideo(self, state):
-        key = f'File/AnalyzeVideo'
-        self.mw.settings.setValue(key, int(state))
-
-    def getAnalyzeAudio(self):
-        key = f'File/AnalyzeAudio'
-        return bool(int(self.mw.settings.value(key, 0)))
-        
-    def setAnalyzeAudio(self, state):
-        key = f'File/AnalyzeAudio'
-        self.mw.settings.setValue(key, int(state))

@@ -69,8 +69,8 @@ class Manager():
                 self.ordinals[player.uri] = ordinal
 
         self.players.append(player)
-        player.start()
         self.unlock()
+        player.start()
 
     def getUniqueOrdinals(self):
         result = []
@@ -178,8 +178,7 @@ class Manager():
         self.unlock()
 
     def playerShutdownWait(self, uri):
-        player = self.getPlayer(uri)
-        if player:
+        if player := self.getPlayer(uri):
             player.requestShutdown()
             count = 0
             while self.getPlayer(uri):
@@ -189,6 +188,12 @@ class Manager():
                     logger.error(f'Player did not complete shut down during allocated time interval: {uri}')
                     # this tends to cause crashing
                     # self.removePlayer(uri)
+                    
+                    # UNTESTED
+                    # was experiencing hangs with samba but could not replicate
+                    # if not uri.startswith("rtsp"):
+                    #    self.removePlayer(uri)
+                    
                     break
 
     def getMostCommonAspectRatio(self):

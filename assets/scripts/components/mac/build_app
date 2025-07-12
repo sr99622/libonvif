@@ -15,37 +15,79 @@ mkdir -p $MacOS
 mkdir -p $Resources
 
 mkdir Icon.iconset
-sips -z 16 16 "$HOME/libonvif/assets/scripts/components/mac/icons/16 x 16.png" --out Icon.iconset/icon_16x16.png
-sips -z 32 32 "$HOME/libonvif/assets/scripts/components/mac/icons/32 x 32.png" --out Icon.iconset/icon_32x32.png
-sips -z 64 64 "$HOME/libonvif/assets/scripts/components/mac/icons/64 x 64.png" --out Icon.iconset/icon_64x64.png
-sips -z 128 128 "$HOME/libonvif/assets/scripts/components/mac/icons/128 x 128.png" --out Icon.iconset/icon_128x128.png
-sips -z 256 256 "$HOME/libonvif/assets/scripts/components/mac/icons/256 x 256.png" --out Icon.iconset/icon_256x256.png
-#sips -z 256 256 $HOME/libonvif/onvif-gui/onvif_gui/resources/onvif-gui.png --out Icon.iconset/icon_256x256.png
+#sips -z 16 16 "$HOME/libonvif/assets/scripts/components/mac/icons/16.png" --out Icon.iconset/icon_16x16.png
+#sips -z 32 32 "$HOME/libonvif/assets/scripts/components/mac/icons/32.png" --out Icon.iconset/icon_32x32.png
+#sips -z 64 64 "$HOME/libonvif/assets/scripts/components/mac/icons/64.png" --out Icon.iconset/icon_64x64.png
+#sips -z 128 128 "$HOME/libonvif/assets/scripts/components/mac/icons/128.png" --out Icon.iconset/icon_128x128.png
+#sips -z 256 256 "$HOME/libonvif/assets/scripts/components/mac/icons/256.png" --out Icon.iconset/icon_256x256.png
+sips -z 256 256 $HOME/libonvif/onvif-gui/onvif_gui/resources/mac_icon.png --out Icon.iconset/icon_256x256.png
 iconutil -c icns Icon.iconset -o $Resources/app.icns
+
+echo "-----------------START OPENSSL---------------------------------"
 
 install_dir=$MacOS
 cd $HOME
-git clone https://github.com/openssl/openssl.git
+if [ ! -d openssl ]; then
+    git clone https://github.com/openssl/openssl.git
+fi
 cd openssl
 git switch openssl-3.5
 ./Configure --prefix=$install_dir/OpenSSL
 make -j$(nproc)
 make install
 
+echo "-----------------START GDBM---------------------------------"
+
 cd $HOME
 curl -OL https://ftp.gnu.org/gnu/gdbm/gdbm-1.25.tar.gz
-tar xzvf gdbm-1.25.tar.gz
+tar xzf gdbm-1.25.tar.gz
 cd gdbm-1.25
 sed -i.bak 's/if (clock_nanosleep (CLOCK_REALTIME, 0, iv, &r))/if (nanosleep (iv, \&r))/g' src/lock.c
 ./configure --prefix=$install_dir/gdbm CPPFLAGS="-I$(brew --prefix readline)/include" LDFLAGS="-L$(brew --prefix readline)/lib"
 make 
 make install
 
+echo "-----------------START LZMA---------------------------------"
+
 cd $HOME
-git clone https://github.com/python/cpython.git
+curl -OL https://github.com/tukaani-project/xz/releases/download/v5.8.1/xz-5.8.1.tar.gz
+tar xzf xz-5.8.1.tar.gz
+cd xz-5.8.1
+./configure --prefix=$install_dir/xz
+make
+make install
+
+echo "-----------------START LIBB2---------------------------------"
+
+cd $HOME
+curl -OL https://github.com/BLAKE2/libb2/releases/download/v0.98.1/libb2-0.98.1.tar.gz
+tar xzf libb2-0.98.1.tar.gz
+cd libb2-0.98.1
+./configure --prefix=$install_dir/b2
+make
+make install
+
+echo "-----------------START MPDECIMAL---------------------------------"
+
+curl -OL https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz
+tar xzf mpdecimal-4.0.1.tar.gz
+cd mpdecimal-4.0.1
+./configure --prefix=$install_dir/mpdec
+make
+make install
+
+echo "-----------------START PYTHON---------------------------------"
+
+cd $HOME
+if [ ! -d cpython ]; then
+    git clone https://github.com/python/cpython.git
+fi
 cd cpython
 git switch 3.13
 GDBM_CFLAGS="-I$install_dir/gdbm/include" GDBM_LIBS="-L$install_dir/gdbm/lib -lgdbm" \
+LIBLZMA_CFLAGS="-I$install_dir/xz/include" LIBLZMA_LIBS="-L$install_dir/xz/lib -llzma" \
+LIBB2_CFLAGS="-I$install_dir/b2/include" LIBB2_LIBS="-L$install_dir/b2/lib -lb2" \
+LIBMPDEC_CFLAGS="-I$install_dir/mpdec/include" LIBMPDEC_LIBS="-L$install_dir/mpdec/lib -lmpdec" \
     ./configure --enable-optimizations \
     --enable-framework=/Applications/OnvifGUI.app/Contents/MacOS/Python/Library/Frameworks \
     --with-app-store-compliance \
@@ -117,5 +159,6 @@ cat > $Contents/Info.plist <<EOF
 </plist>
 EOF
 
-find '/Applications/OnvifGUI.app' \( -type f -perm +111 -o -name "*.dylib" -o -name "*.so" \) -exec codesign --force --deep --options runtime --timestamp --entitlements /Users/stephen/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" {} \;
-codesign --force --deep --options runtime --timestamp --entitlements /Users/stephen/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" /Applications/OnvifGUI.app
+find '/Applications/OnvifGUI.app' \( -type f -perm +111 -o -name "*.dylib" -o -name "*.so" \) -exec codesign --force --deep --options runtime --timestamp --entitlements $HOME/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" {} \;
+codesign --force --deep --options runtime --timestamp --entitlements $HOME/libonvif/assets/scripts/components/mac/entitlements.plist --sign "Developer ID Application: Stephen Rhodes (NPMFEZ6V9H)" /Applications/OnvifGUI.app
+codesign -vvv --deep --strict /Applications/OnvifGUI.app

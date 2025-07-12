@@ -44,7 +44,7 @@ try:
 except ModuleNotFoundError as ex:
     IMPORT_ERROR = str(ex)
     logger.debug("Import Error has occurred, missing modules need to be installed, please consult documentation: ", ex)
-    QMessageBox.critical(None, MODULE_NAME + " Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
+    #QMessageBox.critical(None, MODULE_NAME + " Import Error", "Modules required for running this function are missing: " + IMPORT_ERROR)
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
@@ -202,23 +202,6 @@ class VideoConfigure(QWidget):
             self.selTargets.setModelParameters(camera.videoModelSettings)
             if profile := self.mw.cameraPanel.getProfile(camera.uri()):
                 self.enableControls(profile.getAnalyzeVideo())
-
-    def setFile(self, file):
-        self.source = MediaSource.FILE
-        self.media = file
-
-        if file and not len(IMPORT_ERROR):
-            if not self.isModelSettings(self.mw.filePanel.videoModelSettings):
-                self.mw.filePanel.videoModelSettings = YoloxSettings(self.mw)
-            file_dir = "File"
-            if os.path.isdir(file):
-                file_dir = "Directory"
-            self.mw.videoPanel.lblCamera.setText(f'{file_dir} - {os.path.split(file)[1]}')
-            self.sldConfThre.setValue(self.mw.filePanel.videoModelSettings.confidence)
-            self.spnSkipFrames.setValue(self.mw.filePanel.videoModelSettings.skipFrames)
-            self.spnSampleSize.setValue(self.mw.filePanel.videoModelSettings.sampleSize)
-            self.selTargets.setModelParameters(self.mw.filePanel.videoModelSettings)
-            self.enableControls(self.mw.videoPanel.chkEnableFile.isChecked())
 
     def isModelSettings(self, arg):
         return type(arg) == YoloxSettings
@@ -411,7 +394,7 @@ class VideoWorker:
 
         show_alarm = False
         if camera := self.mw.cameraPanel.getCamera(player.uri):
-            if camera.isFocus():
+            if camera.isCurrent():
                 show_alarm = True
         if not player.isCameraStream():
                 show_alarm = True
@@ -450,18 +433,12 @@ class VideoWorker:
                 self.mw.videoConfigure.selTargets.indAlarm.setState(0)
                 return
             
-            #camera = self.mw.cameraPanel.getCamera(player.uri)
             if not self.mw.videoConfigure.isModelSettings(player.videoModelSettings):
                 if player.isCameraStream():
                     if camera := self.mw.cameraPanel.getCamera(player.uri):
                         if not self.mw.videoConfigure.isModelSettings(camera.videoModelSettings):
-                            #self.mw.cameraPanel.setCurrentCamera(camera)
                             self.mw.videoConfigure.setCamera(camera)
                         player.videoModelSettings = camera.videoModelSettings
-                else:
-                    if not self.mw.videoConfigure.isModelSettings(self.mw.filePanel.videoModelSettings):
-                        self.mw.filePanel.videoModelSettings = YoloxSettings(self.mw)
-                    player.videoModelSettings = self.mw.filePanel.videoModelSettings
 
             if not player.videoModelSettings:
                 raise Exception("Unable to set video model parameters for player")
@@ -520,12 +497,12 @@ class VideoWorker:
     def get_ov_model_filename(self):
         model_name = self.mw.videoConfigure.cmbModelName.currentText()
         openvino_device = self.mw.videoConfigure.cmbDevice.currentText()
-        path = os.path.join(self.mw.getLocation(), "cache", "checkpoints", model_name, openvino_device, "model.xml")
+        path = os.path.join(self.mw.getCacheLocation(), "checkpoints", model_name, openvino_device, "model.xml")
         return path
 
     def get_auto_ckpt_filename(self):
         model_name = self.mw.videoConfigure.cmbModelName.currentText()
-        path = os.path.join(self.mw.getLocation(), "cache", "checkpoints", f'{model_name}.pth')
+        path = os.path.join(self.mw.getCacheLocation(), "checkpoints", f'{model_name}.pth')
         return path
 
     def get_model(self, num_classes, depth, width, act):

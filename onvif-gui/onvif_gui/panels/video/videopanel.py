@@ -18,12 +18,10 @@
 #*********************************************************************/
 
 import os
-from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox, \
+from PyQt6.QtWidgets import QGridLayout, QWidget, \
     QLabel, QComboBox, QVBoxLayout
 from PyQt6.QtCore import Qt
 from onvif_gui.enums import MediaSource
-import sys
-from pathlib import Path
 
 class VideoPanel(QWidget):
     def __init__(self, mw):
@@ -33,7 +31,6 @@ class VideoPanel(QWidget):
         self.panel = None
         self.layout = QVBoxLayout(self)
         self.workerKey = "VideoPanel/worker"
-        self.enableFileKey = "VideoPanel/enableFile"
         self.stdLocation = mw.getLocation() + "/onvif_gui/panels/video/modules"
 
         self.lblCamera = QLabel("Please select a camera to enable this panel")
@@ -42,17 +39,13 @@ class VideoPanel(QWidget):
         self.fillModules()
         self.cmbWorker.setCurrentText(mw.settings.value(self.workerKey, "motion.py"))
         self.cmbWorker.currentTextChanged.connect(self.cmbWorkerChanged)
-        lblWorkers = QLabel("Python Worker")
-
-        self.chkEnableFile = QCheckBox("Enable File")
-        self.chkEnableFile.setChecked(self.mw.filePanel.getAnalyzeVideo())
-        self.chkEnableFile.stateChanged.connect(self.chkEnableFileChanged)
+        lblWorkers = QLabel("Video Analyzer")
 
         fixedPanel = QWidget()
         lytFixed = QGridLayout(fixedPanel)
         lytFixed.addWidget(lblWorkers,         2, 0, 1, 1)
         lytFixed.addWidget(self.cmbWorker,     2, 1, 1, 1)
-        lytFixed.addWidget(self.chkEnableFile, 3, 0, 1, 1)
+        lytFixed.addWidget(QLabel(),           3, 0, 1, 1)
         lytFixed.addWidget(self.lblCamera,     4, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
         lytFixed.setColumnStretch(1, 10)
         self.layout.addWidget(fixedPanel)
@@ -114,11 +107,3 @@ class VideoPanel(QWidget):
                 self.mw.videoConfigure.setFile(player.uri)
 
         self.mw.settings.setValue(self.workerKey, worker)
-
-    def chkEnableFileChanged(self, state):
-        self.mw.filePanel.setAnalyzeVideo(state)
-        for player in self.mw.pm.players:
-            if not player.isCameraStream():
-                player.analyze_video = bool(state)
-        if self.mw.videoConfigure.source == MediaSource.FILE:
-            self.mw.videoConfigure.enableControls(state)

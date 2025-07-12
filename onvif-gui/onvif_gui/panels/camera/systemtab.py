@@ -260,12 +260,9 @@ class SystemTabSettings():
             if self.record_always or (self.record_alarm and self.camera.isAlarming()):
                 record = True
         if record:
-            profile = self.camera.getRecordProfile()
-            if profile:
-                player = self.mw.pm.getPlayer(profile.uri())
-                if player:
+            if profile := self.camera.getRecordProfile():
+                if player := self.mw.pm.getPlayer(profile.uri()):
                     if not player.isRecording():
-                        d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                         if filename := player.getPipeOutFilename():
                             player.toggleRecording(filename)
         else:
@@ -273,6 +270,7 @@ class SystemTabSettings():
             for player in players:
                 if player.isRecording():
                     player.toggleRecording("")
+                    self.mw.diskManager.getDirectorySize(self.mw.settingsPanel.storage.dirArchive.txtDirectory.text())
                 
         self.mw.cameraPanel.syncGUI()
 
@@ -297,7 +295,7 @@ class SystemTabSettings():
 
     def getRecordAlways(self):
         key = f'{self.camera.serial_number()}/RecordAlways'
-        return bool(int(self.mw.settings.value(key, 0)))
+        return bool(int(self.mw.settings.value(key, 1)))
     
     def setRecordAlways(self, state):
         self.record_always = bool(state)
@@ -307,7 +305,7 @@ class SystemTabSettings():
 
     def getRecordOnAlarm(self):
         key = f'{self.camera.serial_number()}/RecordOnAlarm'
-        return bool(int(self.mw.settings.value(key, 1)))
+        return bool(int(self.mw.settings.value(key, 0)))
     
     def setRecordOnAlarm(self, state):
         self.record_alarm = bool(state)
@@ -465,7 +463,7 @@ class SystemTab(QWidget):
                     self.cp.mw.playMedia(player.uri)
 
     def fill(self, onvif_data):
-        self.cmbRecordProfile.disconnect()
+        self.cmbRecordProfile.currentIndexChanged.disconnect()
         self.cmbRecordProfile.clear()
         for profile in onvif_data.profiles:
             self.cmbRecordProfile.addItem(profile.profile())
@@ -501,6 +499,7 @@ class SystemTab(QWidget):
                 self.cp.btnRecord.setStyleSheet(self.cp.getButtonStyle("record"))
 
             '''
+            # attempted to put record resolution on the panel
             # Unfortunately I wasn't able to get consistent data for this display
             if recordProfile := camera.getRecordProfile():
                 self.lblRecordResolution.setText(f"( {recordProfile.width()} x {recordProfile.height()} )")
@@ -515,34 +514,15 @@ class SystemTab(QWidget):
 
             matchedProfiles = True
             if recordProfile := camera.getRecordProfile():
-                self.chkRecordAudio.disconnect()
+                self.chkRecordAudio.stateChanged.disconnect()
                 self.chkRecordAudio.setChecked(not recordProfile.getDisableAudio())
                 self.chkRecordAudio.stateChanged.connect(self.chkRecordAudioClicked)
                 if displayProfile := camera.getDisplayProfile():
                     if recordProfile.uri() != displayProfile.uri():
                         matchedProfiles = False
 
-            state = displayProfile.getDisableAudio()
-            rec = recordProfile.getDisableAudio()
-
-            # The record stream is the same as the display stream and audio is disabled
-            # the record stream has no audio either so sound cannot be written to the file
-            if state and matchedProfiles:
-                self.chkRecordAudio.setChecked(False)
-                self.chkRecordAudio.setEnabled(False)
-
-            # The record stream is the same as the display stream and audio is enabled
-            # the record stream has audio also and will write audio to the file
-            if not state and matchedProfiles:
-                self.chkRecordAudio.setChecked(True)
-                self.chkRecordAudio.setEnabled(False)
-
-            # The record stream is independent from the display stream
-            # the record stream defaults to audio disabled unfortunately
-            if not matchedProfiles:
-                self.chkRecordAudio.setChecked(not rec)
-                self.chkRecordAudio.setEnabled(True)
-
+            self.chkRecordAudio.setEnabled(not matchedProfiles)
+            self.chkRecordAudio.setChecked(not recordProfile.getDisableAudio())
 
     def btnRebootClicked(self):
         if camera := self.cp.getCurrentCamera():

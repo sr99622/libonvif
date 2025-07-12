@@ -1,9 +1,9 @@
-
+pyver=3.12.10
 cd $HOME
-curl -OL https://www.python.org/ftp/python/3.11.12/Python-3.11.12.tgz
-tar xzf Python-3.11.12.tgz
-cd Python-3.11.12
-GDBM_CFLAGS="-I/app/bin/gdbm/include" GDBM_LIBS="-L/app/bin/gdbm/lib -lgdbm"
-./configure --prefix=/app/bin/python --with-openssl=/app/bin/ssl --with-openssl-rpath=/app/bin/ssl/lib
+curl -OL "https://www.python.org/ftp/python/$pyver/Python-$pyver.tgz"
+tar xzf "Python-$pyver.tgz"
+cd "Python-$pyver"
+GDBM_CFLAGS="-I$HOME/bin/gdbm/include" GDBM_LIBS="-L$HOME/bin/gdbm/lib -lgdbm"
+./configure --prefix=$HOME/bin/python --with-openssl=$HOME/bin/ssl --with-openssl-rpath=$HOME/bin/ssl/lib
 make -j$(nproc)
-sudo make install
+make install

@@ -43,8 +43,7 @@ class CameraList(QListWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Return:
-            camera = self.currentItem()
-            if camera:
+            if camera := self.currentItem():
                 if not camera.editing():
                     self.itemDoubleClicked.emit(camera)
 
@@ -98,9 +97,8 @@ class CameraList(QListWidget):
         self.mw.cameraPanel.saveCameraList()
 
     def info(self):
-        camera = self.currentItem()
         msg = ""
-        if camera:
+        if camera := self.currentItem():
             players = self.mw.pm.getStreamPairPlayers(camera.uri())
             if not len(players):
                 msg = "Start camera to get stream info"
@@ -120,8 +118,7 @@ class CameraList(QListWidget):
         msgBox.exec()
     
     def rename(self):
-        camera = self.currentItem()
-        if camera:
+        if camera := self.currentItem():
             camera.setFlags(camera.flags() | Qt.ItemFlag.ItemIsEditable)
             index = self.currentIndex()
             if index.isValid():
@@ -134,13 +131,20 @@ class CameraList(QListWidget):
             logger.debug(f'Alternate password set for camera {camera.name()}')
 
     def closeEditor(self, editor, hint):
-        camera = self.currentItem()
-        if camera:
+        if camera := self.currentItem():
             camera.onvif_data.alias = editor.text()
             self.mw.settings.setValue(f'{camera.serial_number()}/Alias', editor.text())
             camera.setFlags(camera.flags() & ~Qt.ItemFlag.ItemIsEditable)
         return super().closeEditor(editor, hint)
     
+    def startCamera(self):
+        if camera := self.currentItem():
+            self.mw.cameraPanel.onItemDoubleClicked(camera)
+
+    def stopCamera(self):
+        if camera := self.currentItem():
+            self.mw.cameraPanel.onItemDoubleClicked(camera)
+
 class CameraPanelSignals(QObject):
     fill = pyqtSignal(onvif.Data)
     login = pyqtSignal(onvif.Data)
@@ -243,14 +247,20 @@ class CameraPanel(QWidget):
         self.rename = QAction("Rename", self)
         self.info = QAction("Info", self)
         self.password = QAction("Password", self)
+        self.start = QAction("Start", self)
+        self.stop = QAction("Stop", self)
         self.remove.triggered.connect(self.onMenuRemove)
         self.rename.triggered.connect(self.onMenuRename)
         self.info.triggered.connect(self.onMenuInfo)
         self.password.triggered.connect(self.onMenuPassword)
+        self.start.triggered.connect(self.onMenuStart)
+        self.stop.triggered.connect(self.onMenuStop)
         self.menu.addAction(self.remove)
         self.menu.addAction(self.rename)
         self.menu.addAction(self.info)
         self.menu.addAction(self.password)
+        self.menu.addAction(self.start)
+        self.menu.addAction(self.stop)
 
         self.syncGUI()
         self.setTabsEnabled(False)
@@ -273,6 +283,12 @@ class CameraPanel(QWidget):
 
     def onMenuPassword(self):
         self.lstCamera.password()
+
+    def onMenuStart(self):
+        self.lstCamera.startCamera()
+
+    def onMenuStop(self):
+        self.lstCamera.stopCamera()
 
     def btnDiscoverClicked(self):
         if self.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
@@ -323,13 +339,19 @@ class CameraPanel(QWidget):
                     data.startManualFill()
 
     def errorCallback(self, msg):
-        self.mw.signals.error.emit(msg)
+        try:
+            self.mw.signals.error.emit(msg)
+        except Exception as ex:
+            logger.error("camera panel error callback exception: {ex}")
 
     def infoCallback(self, msg):
-        if msg.startswith("Set System Date and Time Error"):
-            logger.error(msg)
-        else:
-            logger.debug(msg)
+        try:
+            if msg.startswith("Set System Date and Time Error"):
+                logger.error(msg)
+            else:
+                logger.debug(msg)
+        except Exception as ex:
+            logger.error("camera panel info callback exception: {ex}")
 
     def discoveryTimeout(self):
         self.setEnabled(True)
@@ -627,12 +649,15 @@ class CameraPanel(QWidget):
             if player.isRecording():
                 player.pipe_output_start_time = None
                 player.toggleRecording("")
+                self.mw.diskManager.getDirectorySize(self.mw.settingsPanel.storage.dirArchive.txtDirectory.text())
                 if camera:
                     camera.manual_recording = False
             else:
                 d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                 if self.mw.settingsPanel.storage.chkManageDiskUsage.isChecked():
                     self.mw.diskManager.manageDirectory(d, player.uri)
+                #else:
+                #    self.mw.diskManager.getDirectorySize(d)
                 if filename := player.getPipeOutFilename():
                     player.toggleRecording(filename)
                     if camera:
@@ -684,7 +709,7 @@ class CameraPanel(QWidget):
                 if player.running:
                     self.tabVideo.btnSnapshot.setEnabled(True)
 
-                if ps := player.systemTabSettings:
+                if ps := player.systemTabSettings():
                     self.btnRecord.setEnabled(not (ps.record_enable and ps.record_always))
 
                 if player.hasAudio() and not player.disable_audio:
@@ -702,9 +727,9 @@ class CameraPanel(QWidget):
                 self.btnRecord.setEnabled(True)
                 if camera.isRecording():
                     self.btnRecord.setStyleSheet(self.getButtonStyle("recording"))
-                    record_always = player.systemTabSettings.record_always if player.systemTabSettings else False
-                    record_alarm = player.systemTabSettings.record_alarm if player.systemTabSettings else False
-                    record_enable = player.systemTabSettings.record_enable if player.systemTabSettings else False
+                    record_always = player.systemTabSettings().record_always if player.systemTabSettings() else False
+                    record_alarm = player.systemTabSettings().record_alarm if player.systemTabSettings() else False
+                    record_enable = player.systemTabSettings().record_enable if player.systemTabSettings() else False
                     if record_enable and ((camera.isAlarming() and record_alarm) or record_always):
                         self.btnRecord.setEnabled(False)
                 else:

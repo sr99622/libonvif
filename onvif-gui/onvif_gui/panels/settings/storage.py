@@ -34,11 +34,6 @@ class StorageOptions(QWidget):
         self.pictureKey = "settings/picture"
         self.diskLimitKey = "settings/diskLimit"
         self.mangageDiskUsagekey = "settings/manageDiskUsage"
-        self.enableBulkStorageKey = "settings/enableBulkStorage"
-        self.bulkArchiveKey = "settings/bulkArchive"
-        self.bulkPictureKey = "settings/bulkPicture"
-        self.manageBulkUsageKey = "settings/manageBulkUsage"
-        self.bulkLimitKey = "settings/bulkLimit"
 
         video_dirs = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.MoviesLocation)
         self.dirArchive = DirectorySelector(mw, self.archiveKey, "Archive Dir", video_dirs[0])
@@ -48,10 +43,10 @@ class StorageOptions(QWidget):
         self.dirPictures = DirectorySelector(mw, self.pictureKey, "Picture Dir", picture_dirs[0])
         self.dirPictures.signals.dirChanged.connect(self.dirPicturesChanged)
 
-        dir_size = "{:.2f}".format(self.getDirectorySize(self.dirArchive.text()) / 1000000000)
+        dir_size = "{:.2f}".format(self.getDirectorySizeLocally(self.dirArchive.text()) / 1000000000)
         self.grpDiskUsage = QGroupBox(f'Disk Usage (currently {dir_size} GB)')
         self.spnDiskLimit = QSpinBox()
-        max_size = int(self.getMaximumDirectorySize())
+        max_size = int(self.getMaximumDirectorySizeLocally(self.dirArchive.txtDirectory.text()))
         self.spnDiskLimit.setMaximum(max_size)
         disk_limit = min(int(self.mw.settings.value(self.diskLimitKey, 100)), max_size)
         self.spnDiskLimit.setValue(disk_limit)
@@ -70,51 +65,20 @@ class StorageOptions(QWidget):
         lytDiskUsage.addWidget(self.dirPictures,        2, 0, 1, 4)
         lytDiskUsage.setColumnStretch(2, 10)
 
-        '''
-        self.dirBulkArchive = DirectorySelector(mw, self.bulkArchiveKey, "Archive Dir", "")
-        self.dirBulkPicture = DirectorySelector(mw, self.bulkPictureKey, "Picture Dir", "") 
-
-        self.chkManageBulkUsage = QCheckBox(lbl)
-        self.spnBulkLimit = QSpinBox()
-        self.spnBulkLimit.setMaximum(max_size)
-        bulk_limit = min(int(self.mw.settings.value(self.bulkLimitKey, 100)), max_size)
-        self.spnBulkLimit.setValue(bulk_limit)
-        self.spnBulkLimit.valueChanged.connect(self.spnBulkLimitChanged)
-
-        self.grpBulkUsage = QGroupBox(f'Bulk Storage (currently {10} GB)')
-        self.grpBulkUsage.setCheckable(True)
-        self.grpBulkUsage.setChecked(bool(int(self.mw.settings.value(self.enableBulkStorageKey, 0))))
-        self.grpBulkUsage.clicked.connect(self.grpBulkUsageChecked)
-
-        lytBulkUsage = QGridLayout(self.grpBulkUsage)
-        lytBulkUsage.addWidget(self.chkManageBulkUsage,  0, 0, 1, 1)
-        lytBulkUsage.addWidget(self.spnBulkLimit,        0, 2, 1, 1)
-        lytBulkUsage.addWidget(QLabel("GB"),             0, 3, 1, 1)
-        lytBulkUsage.addWidget(self.dirBulkArchive,      1, 0, 1, 4)
-        lytBulkUsage.addWidget(self.dirBulkPicture,      2, 0, 1, 4)
-        '''
-
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.grpDiskUsage, 0, 0, 1, 1)
         lytMain.addWidget(QLabel(),          1, 0, 1, 1)
-        #lytMain.addWidget(self.grpBulkUsage, 2, 0, 1, 1)
-        lytMain.addWidget(QLabel(),          3, 0, 1, 1)
-        lytMain.setRowStretch(3, 10)
+        lytMain.addWidget(QLabel(),          2, 0, 1, 1)
+        lytMain.setRowStretch(2, 10)
 
     def spnDiskLimitChanged(self, value):
         self.mw.settings.setValue(self.diskLimitKey, value)
 
-    def spnBulkLimitChanged(self, value):
-        self.mw.settings.setValue(self.bulkLimitKey, value)
-
-    def grpBulkUsageChecked(self, value):
-        self.mw.settings.setValue(self.enableBulkStorageKey, int(value))
-
     def chkManageDiskUsageChanged(self):
         if self.chkManageDiskUsage.isChecked():
             ret = QMessageBox.warning(self, "** WARNING **",
-                                        "You are giving full control of the archive directory to this program.  "
-                                        "Any files contained within this directory or its sub-directories are subject to deletion.  "
+                                        "You are giving full control of both the video and picture archive directories to this program.  "
+                                        "Any files contained within those directories or their sub-directories are subject to deletion.  "
                                         "You should only enable this feature if you are sure that this is ok.\n\n"
                                         "Are you sure you want to continue?",
                                         QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
@@ -124,22 +88,27 @@ class StorageOptions(QWidget):
 
     def dirArchiveChanged(self, path):
         logger.debug(f'Video archive directory changed to {path}')
+        self.dirArchive.txtDirectory.setText(path)
         self.mw.settings.setValue(self.archiveKey, path)
-        max_size = int(self.getMaximumDirectorySize())
+        max_size = int(self.getMaximumDirectorySizeLocally(path))
         self.spnDiskLimit.setMaximum(max_size)
         lbl = f'Auto Manage (max {max_size} GB)'
         self.chkManageDiskUsage.setText(lbl)
         disk_limit = min(int(self.mw.settings.value(self.diskLimitKey, 100)), max_size)
         self.spnDiskLimit.setValue(disk_limit)
         self.chkManageDiskUsageChanged()
+        self.mw.filePanel.dirArchive.txtDirectory.setText(path)
+        self.mw.filePanel.dirChanged(path)
 
     def dirPicturesChanged(self, path):
         logger.debug(f'Picture directory changed to {path}')
+        self.dirPictures.txtDirectory.setText(path)
         self.mw.settings.setValue(self.pictureKey, path)
+        self.mw.filePanel.control.dlgPicture.dirPictures.txtDirectory.setText(path)
+        self.mw.filePanel.control.dlgPicture.dirChanged(path)
 
-    def getMaximumDirectorySize(self):
+    def getMaximumDirectorySizeLocally(self, d):
         # compute disk space available for archive directory in GB
-        d = self.dirArchive.txtDirectory.text()
         if not os.path.isdir(d):
             return 0
         d_size = 0
@@ -157,7 +126,7 @@ class StorageOptions(QWidget):
             logger.error(f'Exception occurred during disk space calculation: {ex}')
         return max_available
 
-    def getDirectorySize(self, d):
+    def getDirectorySizeLocally(self, d):
         total_size = 0
         for dirpath, dirnames, filenames in os.walk(d):
             for f in filenames:

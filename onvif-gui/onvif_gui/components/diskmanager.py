@@ -3,6 +3,7 @@ import shutil
 from time import sleep
 from pathlib import Path
 from loguru import logger
+from PyQt6.QtCore import QFileInfo
 
 class DiskManager():
     def __init__(self, mw):
@@ -17,7 +18,6 @@ class DiskManager():
 
     def unlock(self):
         self.thread_lock = False
-
 
     def estimateFileSize(self, uri):
         # duration is in seconds, cameras report bitrate in kbps (usually), result in bytes
@@ -76,6 +76,27 @@ class DiskManager():
                             pass
         return oldest_file
     
+    def removeAssociatedPictureFiles(self, filename):
+        try:
+            info = QFileInfo(filename)
+            alarm_buffer_size = self.mw.settingsPanel.alarm.spnBufferSize.value()
+            start = info.birthTime().addSecs(-alarm_buffer_size)
+            finish = info.lastModified()
+            dir = info.absoluteDir().dirName()
+            pic_dir = os.path.join(self.mw.settingsPanel.storage.dirPictures.txtDirectory.text(), dir)
+            files = os.listdir(pic_dir)
+            for file in files:
+                pic_info = QFileInfo(os.path.join(pic_dir, file))
+                stem = Path(file).stem
+                if len(stem) == 14 and stem.isnumeric():
+                    target = pic_info.birthTime()
+                    #if (target >= start and target <= finish):
+                    # just wipe all the older pictures
+                    if target <= finish:
+                        os.remove(os.path.join(pic_dir, file))
+        except Exception as ex:
+            logger.error(f'Exception occurred during removal of associated picture files: {ex}')
+
     def getMaximumDirectorySize(self, d, uri):
         estimated_file_size = self.estimateFileSize(uri)
         space_committed = self.getCommittedSize()
@@ -86,8 +107,8 @@ class DiskManager():
         self.lock()
         try:
             while self.getDirectorySize(d) > self.getMaximumDirectorySize(d, uri):
-                oldest_file = self.getOldestFile(d)
-                if oldest_file:
+                if oldest_file := self.getOldestFile(d):
+                    self.removeAssociatedPictureFiles(oldest_file)
                     os.remove(oldest_file)
                     #logger.debug(f'File has been deleted by auto process: {oldest_file}')
                 else:

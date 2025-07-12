@@ -20,7 +20,7 @@
 from PyQt6.QtWidgets import QWidget, QLineEdit, QPushButton, \
     QLabel, QGridLayout, QFileDialog
 from PyQt6.QtCore import pyqtSignal, QObject
-import platform
+import sys
 
 class DirectorySelectorSignals(QObject):
     dirChanged = pyqtSignal(str)
@@ -41,7 +41,8 @@ class DirectorySelector(QWidget):
 
         lytMain = QGridLayout(self)
         lytMain.setContentsMargins(0, 0, 0, 0)
-        lytMain.addWidget(lblSelect,           0, 0, 1, 1)
+        if len(label):
+            lytMain.addWidget(lblSelect,       0, 0, 1, 1)
         lytMain.addWidget(self.txtDirectory,   0, 1, 1, 1)
         lytMain.addWidget(self.btnSelect,      0, 2, 1, 1)
         lytMain.setColumnStretch(1, 10)
@@ -49,7 +50,7 @@ class DirectorySelector(QWidget):
 
     def btnSelectClicked(self):
         path = None
-        if platform.system() == "Linux":
+        if sys.platform == "linux":
             path = QFileDialog.getExistingDirectory(self, "Select Directory", self.txtDirectory.text(), QFileDialog.Option.DontUseNativeDialog)
         else:
             path = QFileDialog.getExistingDirectory(self, "Select Directory", self.txtDirectory.text())

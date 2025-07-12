@@ -42,3 +42,8 @@ class Occurence(Enum):
     BEFORE = 0
     DURING = 1
     AFTER = 2
+
+class PkgType(Enum):
+    NATIVE = 0
+    FLATPAK = 1
+    SNAP = 2

@@ -107,9 +107,9 @@ class GLWidget(QOpenGLWidget):
             else:
                 player.image = QImage(ary.data, w, h, w, QImage.Format.Format_Grayscale8)
 
-            if player.save_image_filename:
-                player.image.save(player.save_image_filename)
-                player.save_image_filename = None
+            #if player.save_image_filename:
+            #    player.image.save(player.save_image_filename)
+            #    player.save_image_filename = None
 
             if player.packet_drop_frame_counter > 0:
                 player.packet_drop_frame_counter -= 1
@@ -152,6 +152,8 @@ class GLWidget(QOpenGLWidget):
                         d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                         if self.mw.settingsPanel.storage.chkManageDiskUsage.isChecked():
                             self.mw.diskManager.manageDirectory(d, player.uri)
+                        #else:
+                        #    self.mw.diskManager.getDirectorySize(d)
 
                         if filename := player.getPipeOutFilename():
                             player.startFileBreakPipe(filename)
@@ -303,7 +305,7 @@ class GLWidget(QOpenGLWidget):
                     painter.fillRect(self.rect(), QColorConstants.Black)
                     painter.drawImage(self.rect(), self.buffer)
         except Exception as ex:
-            logger.error(f'GLWidget render callback exception: {str(ex)}')
+            logger.error(f'GLWidget paintGL exception: {str(ex)}')
 
     def buildImage(self):
         try:
@@ -352,7 +354,7 @@ class GLWidget(QOpenGLWidget):
                 h = rect.height()
 
                 painter.drawImage(rect, player.image)
-                if not player.analyze_video and player.alarm_state:
+                if not (player.analyze_video or player.analyze_audio) and player.alarm_state:
                     player.setAlarmState(0)
 
                 b = 26
@@ -364,7 +366,7 @@ class GLWidget(QOpenGLWidget):
                         if camera.isAlarming():
                             if enabled: painter.drawImage(rectBlinker, self.alarm_recording.currentImage())
                         else:
-                            if not player.systemTabSettings.record_always or not player.systemTabSettings.record_enable:
+                            if not player.systemTabSettings().record_always or not player.systemTabSettings().record_enable:
                                 if enabled: painter.drawImage(rectBlinker, self.plain_recording.currentImage())
                     else:
                         if camera.isAlarming():
@@ -406,6 +408,22 @@ class GLWidget(QOpenGLWidget):
                         r = (box[2] - box[0]) * scalex
                         s = (box[3] - box[1]) * scaley
                         painter.drawRect(QRectF(p, q, r, s))
+
+                if player.save_image_filename:
+                    #if show and player.analyze_video:
+                    #    img = player.image.copy()
+                    #    painter_img = QPainter(img)
+                    #    painter_img.setPen(QColorConstants.Red)
+                    #    for box in player.boxes:
+                    #        p = (box[0])
+                    #        q = (box[1])
+                    #        r = (box[2] - box[0])
+                    #        s = (box[3] - box[1])
+                    #        painter_img.drawRect(QRectF(p, q, r, s))
+                    #img.save(player.save_image_filename)
+                    player.image.save(player.save_image_filename)
+                    player.save_image_filename = None
+
 
                 player.unlock()
 

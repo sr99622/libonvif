@@ -114,18 +114,6 @@ class VideoConfigure(QWidget):
             if profile:
                 self.enableControls(profile.getAnalyzeVideo())
 
-    def setFile(self, file):
-        self.source = MediaSource.FILE
-        self.media = file
-        if file:
-            if not self.isModelSettings(self.mw.filePanel.videoModelSettings):
-                self.mw.filePanel.videoModelSettings = MotionSettings(self.mw)
-            self.mw.videoPanel.lblCamera.setText(f'File - {os.path.split(file)[1]}')
-            self.sldGain.setValue(self.mw.filePanel.videoModelSettings.gain)
-            self.barLevel.setLevel(0)
-            self.indAlarm.setState(0)
-            self.enableControls(self.mw.videoPanel.chkEnableFile.isChecked())
-
     def isModelSettings(self, arg):
         return type(arg) == MotionSettings
     
@@ -165,10 +153,6 @@ class VideoWorker:
                         if not self.mw.videoConfigure.isModelSettings(camera.videoModelSettings):
                             camera.videoModelSettings = MotionSettings(self.mw, camera)
                         player.videoModelSettings = camera.videoModelSettings
-                else:
-                    if not self.mw.videoConfigure.isModelSettings(self.mw.filePanel.videoModelSettings):
-                        self.mw.filePanel.videoModelSettings = MotionSettings(self.mw)
-                    player.videoModelSettings = self.mw.filePanel.videoModelSettings
 
             if not player.videoModelSettings:
                 raise Exception("Unable to set video model parameters for player")

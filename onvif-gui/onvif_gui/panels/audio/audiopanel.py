@@ -18,10 +18,9 @@
 #*********************************************************************/
 
 import os
-from PyQt6.QtWidgets import QGridLayout, QWidget, QCheckBox, \
+from PyQt6.QtWidgets import QGridLayout, QWidget, \
     QLabel, QComboBox, QVBoxLayout
 from PyQt6.QtCore import Qt
-from onvif_gui.enums import MediaSource
 
 class AudioPanel(QWidget):
     def __init__(self, mw):
@@ -30,7 +29,6 @@ class AudioPanel(QWidget):
         self.panel = None
         self.layout = QVBoxLayout(self)
         self.workerKey = "AudioPanel/worker"
-        self.enableFileKey = "AudioPanel/enableFile"
         self.cmbWorkerConnected = True
 
         self.stdLocation = mw.getLocation() + "/onvif_gui/panels/audio/modules"
@@ -39,20 +37,18 @@ class AudioPanel(QWidget):
         self.fillModules()
         self.cmbWorker.setCurrentText(mw.settings.value(self.workerKey, "sample.py"))
         self.cmbWorker.currentTextChanged.connect(self.cmbWorkerChanged)
-        lblWorkers = QLabel("Python Worker")
-
-        self.chkEnableFile = QCheckBox("Enable File")
-        self.chkEnableFile.setChecked(self.mw.filePanel.getAnalyzeAudio())
-        self.chkEnableFile.stateChanged.connect(self.chkEnableFileChanged)
+        lblWorkers = QLabel("Audio Analyzer")
 
         self.lblCamera = QLabel("Please select a camera to enable this panel")
+        self.lblMessage = QLabel()
 
         fixedPanel = QWidget()
         lytFixed = QGridLayout(fixedPanel)
         lytFixed.addWidget(lblWorkers,         1, 0, 1, 1)
         lytFixed.addWidget(self.cmbWorker,     1, 1, 1, 1)
-        lytFixed.addWidget(self.chkEnableFile, 2, 0, 1, 1)
+        lytFixed.addWidget(QLabel(),           2, 0, 1, 1)
         lytFixed.addWidget(self.lblCamera,     3, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
+        lytFixed.addWidget(self.lblMessage,    4, 0, 1, 2)
         lytFixed.setColumnStretch(1, 10)
         self.layout.addWidget(fixedPanel)
 
@@ -74,7 +70,6 @@ class AudioPanel(QWidget):
         if self.panel is not None:
             self.layout.removeWidget(self.panel)
         self.panel = panel
-        #self.panel.setMaximumWidth(self.mw.tab.width())
         self.layout.addWidget(panel)
         self.layout.setStretch(1, 10)
 
@@ -84,11 +79,3 @@ class AudioPanel(QWidget):
         self.mw.audioRuntimes.clear()
         self.mw.loadAudioConfigure(worker)
         self.mw.loadAudioWorker(worker)
-
-    def chkEnableFileChanged(self, state):
-        self.mw.filePanel.setAnalyzeAudio(state)
-        for player in self.mw.pm.players:
-            if not player.isCameraStream():
-                player.analyze_audio = bool(state)
-        if self.mw.audioConfigure.source == MediaSource.FILE:
-            self.mw.audioConfigure.enableControls(state)

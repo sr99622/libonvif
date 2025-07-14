@@ -2,11 +2,7 @@
 
 sudo apt install -y git
 
-cd $HOME
-git -C libonvif pull --recurse-submodules 2> /dev/null || git clone --recursive http://10.1.1.14:3000/stephen/libonvif
-cd libonvif
-
-cd assets/scripts/components/linux
+cd $HOME/libonvif/assets/scripts/components/linux
 
 versions=("3.10" "3.11" "3.12" "3.13")
 for version in "${versions[@]}"; do

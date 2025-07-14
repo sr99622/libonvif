@@ -20,6 +20,7 @@ assets/scripts/components/libxml2/
 assets/scripts/components/windows/python/*.exe
 assets/scripts/components/windows/installer/*.exe
 assets/scripts/components/mac/*.pkg
+assets/scripts/components/mac/changes*.plist
 runs/
 .DS_Store
 cache/

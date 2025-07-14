@@ -19,12 +19,9 @@ if not exist onvif-gui-win-libs\ (
 )
 cd %HOMEPATH%\onvif-gui-win-libs
 git pull
-rem cd %HOMEPATH%
-rem if not exist libonvif\ (
-rem     git clone --recursive http://10.1.1.14:3000/stephen/libonvif
-rem )
+
 cd %HOMEPATH%\libonvif
-rem git pull --recurse-submodules
+
 if exist dist\ (
     del /q dist\*
 )

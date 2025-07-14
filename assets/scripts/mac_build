@@ -6,11 +6,8 @@ echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
 brew install wget automake nasm libtool pkgconfig
 
-cd $HOME
-git -C libonvif pull --recurse-submodules 2> /dev/null || git clone --recursive http://10.1.1.14:3000/stephen/libonvif
-cd libonvif
+cd $HOME/libonvif/assets/scripts/components/mac
 
-cd assets/scripts/components/mac
 versions=("3.10.11" "3.11.9" "3.12.9" "3.13.2")
 for version in "${versions[@]}"; do
     ./install_python $version

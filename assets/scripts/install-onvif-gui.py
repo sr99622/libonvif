@@ -104,6 +104,14 @@ class Install():
         if pkg_mgr == "pacman":
             print("The installation program does not install packages on systems that use pacman")
 
+        if pkg_mgr == "zypper":
+            print(f"Installing {name} using zypper")
+            self.run_command(f'sudo zypper install -y {name}')
+            if self.status:
+                print(f"An error occurred installing the package: {name}, error code: {self.status}")
+            return ERROR
+
+
     def check_python(self, pkg_mgr):
         major, minor, micro = platform.python_version_tuple()
         print(f"The Python version for this installation is {major}.{minor}.{micro}")       
@@ -161,6 +169,11 @@ class Install():
             packages = ["gcc", "openssl-devel", "bzip2-devel", "libffi-devel", "wget", "tar", 
                         "make", "zlib-devel", "sqlite-devel", "xz-devel", "ncurses-devel", 
                         "readline-devel", "tk-devel", "libuuid-devel"]
+
+        elif pkg_mgr == "zypper":
+            packages = ["gcc", "make", "libssl-devel", "zlib-devel", "libbz2-devel",
+                        "libffi-devel", "libreadline-devel", "libsqlite3-devel",
+                        "tk-devel", "wget", "curl"]
 
         else:
             print("Unsupported package manager for Python compile")
@@ -230,6 +243,8 @@ class Install():
                     ...
                 if pkg_mgr == "pacman":
                     ...
+                if pkg_mgr == "zypper":
+                    self.install_package(pkg_mgr, "libxcb-cursor-devel")
 
             else:
                 print(f"Unsupported display protocol: {protocol}")
@@ -252,6 +267,10 @@ class Install():
             print("The package manager for this platform is pacman")
             #print(self.run_command('sudo pacman -Syy'))
             return "pacman"
+        self.run_command("zypper refresh")
+        if not self.status:
+            print("The package manager for this platform is zypper")
+        return "zypper"
         
         print("Unable to determine the package manager for this platform")
         return None
@@ -405,8 +424,10 @@ class Install():
         if self.rcwec("wget https://github.com/intel/linux-npu-driver/releases/download/v1.16.0/intel-level-zero-npu_1.16.0.20250328-14132024782_ubuntu24.04_amd64.deb"): return
         if self.rcwec("wget https://github.com/intel/linux-npu-driver/releases/download/v1.16.0/intel-fw-npu_1.16.0.20250328-14132024782_ubuntu24.04_amd64.deb"): return
         if self.rcwec("wget https://github.com/intel/linux-npu-driver/releases/download/v1.16.0/intel-driver-compiler-npu_1.16.0.20250328-14132024782_ubuntu24.04_amd64.deb"): return
+
         if self.rcwec("sudo apt install -y libtbb12"): return
         if self.rcwec("sudo dpkg -i *.deb"): return
+
         if self.rcwec("sudo chown root:render /dev/accel/accel0"): return
         if self.rcwec("sudo chmod g+rw /dev/accel/accel0"): return
         if self.rcwec("sudo usermod -a -G render $USER"): return
@@ -432,6 +453,7 @@ class Install():
                     key, val = line.split("=")
                     if key == "PRETTY_NAME":
                         result = val.strip('"')
+                        return result
         except Exception as ex:
             print(f"File read error /etc/os-release: {ex}")
         return result

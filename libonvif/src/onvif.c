@@ -78,6 +78,8 @@ char preferred_network_address[16];
 static bool dump_reply = false;
 static void dumpReply(xmlDocPtr reply);
 
+static bool rand_seeded = false;
+
 int getNetworkInterfaces(struct OnvifData *onvif_data) {
     memset(onvif_data->ip_address_buf, 0, sizeof(onvif_data->ip_address_buf));
     memset(onvif_data->networkInterfaceToken, 0, sizeof(onvif_data->networkInterfaceToken));
@@ -2582,7 +2584,10 @@ int checkForXmlErrorMsg(xmlDocPtr doc, char error_msg[1024]) {
 }
 
 void addUsernameDigestHeader(xmlNodePtr root, xmlNsPtr ns_env, char *user, char *password, time_t offset) {
-    srand (time(NULL));
+    if (!rand_seeded) {
+        srand (time(NULL));
+        rand_seeded = true;
+    }
 
 #ifdef _WIN32
     _setmode(0, O_BINARY);
@@ -2781,7 +2786,10 @@ void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char *xaddrs, char *post_type
 }
 
 void getUUID(char uuid_buf[47]) {
-    srand(time(NULL));
+    if (!rand_seeded) {
+        srand(time(NULL));
+        rand_seeded = true;
+    }
     strcpy(uuid_buf, "urn:uuid:");
     for (int i=0; i<16; i++) {
         char buf[3];

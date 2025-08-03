@@ -258,6 +258,7 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 * ### Step 2. Create Virtual Environment
 
   ```
+  cd $HOME
   virtualenv onvif-gui-env
   source onvif-gui-env/bin/activate
   ```
@@ -279,6 +280,12 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 
   ```
   onvif-gui
+  ```
+* ### Step 6. Add Icon
+
+  ```
+  deactivate
+  $HOME/onvif-gui-env/bin/onvif-gui --icon
   ```
 
 </details>
@@ -297,6 +304,7 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 * ### Step 2. Create Virtual Environment
 
   ```
+  cd $HOME
   virtualenv onvif-gui-env
   source onvif-gui-env/bin/activate
   ```
@@ -319,6 +327,14 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
   ```
   onvif-gui
   ```
+
+* ### Step 6. Add Icon
+
+  ```
+  deactivate
+  $HOME/onvif-gui-env/bin/onvif-gui --icon
+  ```
+
 </details>
 
 <details>
@@ -333,6 +349,7 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 
   ```
   sudo pacman -S pythonX.XX  # where X.XX is the system python version, which must be 3.10 or higher
+  cd $HOME
   pythonX.XX -m venv onvif-gui-env
   source onvif-gui-env/bin/activate
   ```
@@ -355,6 +372,14 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
   ```
   onvif-gui
   ```
+
+* ### Step 6. Add Icon
+
+  ```
+  deactivate
+  $HOME/onvif-gui-env/bin/onvif-gui --icon
+  ```
+
 </details>
 
 ---
@@ -364,54 +389,47 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 <details>
 <summary>Mac</summary>
 
-* ### Step 1. Install Python
+* ### Step 1. Install Homebrew
 
-  Python minimum version 3.10 is required for the application. There are several approaches that can be used to achieve this requirement. Anaconda is recommended here, but other techniques may be preferred depending on the situation. Please refer to the [Anaconda Installation Instructions](https://www.anaconda.com/download#downloads). There is an alternate method using pyenv described in the Operation / Notes section of this document.
+  Please refer to the [Homebrew Installation Instructions](https://brew.sh/).
 
-* ### Step 2. Install Xcode
-
-  Please refer to the [Xcode Installation Instructions](https://developer.apple.com/xcode/).
-
-* ### Step 3. Install Homebrew
-
-  Please refer to the [Homebrew Installation Instructions](https://docs.brew.sh/Installation).
-
-* ### Step 4. Install Dependencies
+* ### Step 2. Install Dependencies
 
   ```
   brew update
   brew upgrade
+  brew install python
   brew install cmake
   brew install git
   brew tap homebrew-ffmpeg/ffmpeg
   brew install homebrew-ffmpeg/ffmpeg/ffmpeg
   ```
 
-  <i>  Please note that the standard Homebrew core ffmpeg version 7 is incompatible with onvif-gui. For this reason, the install procedure calls for the 3rd party tap [homebrew-ffmpeg](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg). If you already have another version of ffmpeg installed, this will create a conflict. In order to install this version, it is necessary to run </i>```brew uninstall ffmpeg``` <i>before this tap can be installed.</i>
+  <i>  Please note that the standard Homebrew core ffmpeg version 7 is incompatible with onvif-gui. For this reason, the install procedure calls for the 3rd party tap [homebrew-ffmpeg](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg). <b>If you already have another version of ffmpeg installed, this will create a conflict.</b> In order to install this version, it is necessary to run </i>```brew uninstall ffmpeg``` <i>before this tap can be installed.</i>
 
-  <i> Modern Mac OS versions of XCode come with libxml2 pre-installed. If you have difficulty installing the libonvif module, you may see errors similar to AttributeError: module 'libonvif' has no attribute 'Data'. This may result from a missing libxml2 library, which can be installed using the command </i> ```brew install libxml2``` <i> and then re-installing the program.</i>
+* ### Step 3. Create Virtual Environment
 
-* ### Step 5. Create Virtual Environment
+  <i> Homebrew will install the latest version of python. You can see the version installed using the command</i> `brew list python`.<i> Use the full python name with version to build the virtual environment</i>
 
   ```
-  conda create --name onvif python
-  conda activate onvif
+  python3.13 -m venv onvif-gui-env
+  source activate onvif-gui-env
   ```
 
-* ### Step 6. Clone Repository
+* ### Step 4. Clone Repository
 
   ```
   git clone --recursive https://github.com/sr99622/libonvif
   ```
 
-* ### Step 7. Install
+* ### Step 5. Compile
 
   ```
   cd libonvif
   assets/scripts/compile
   ```
 
-* ### Step 8. Launch Program
+* ### Step 6. Launch Program
 
   ```
   onvif-gui
@@ -2428,6 +2446,67 @@ Once the mount is established, you can use the directory browser from the Files 
 
 </details>
 
+<details>
+<summary>Compile FFmpeg with VAAPI Support</summary>
+
+&nbsp;
+
+---
+
+Install Dependencies
+
+```
+sudo apt install -y \
+  yasm nasm cmake meson ninja-build \
+  libva-dev libdrm-dev libvdpau-dev libx11-dev \
+  libx264-dev libx265-dev libvpx-dev libfdk-aac-dev \
+  libfreetype6-dev libfontconfig1-dev libass-dev \
+  libopus-dev libvorbis-dev libmp3lame-dev pkg-config \
+  git build-essential
+
+```
+
+Clone FFmpeg
+
+```
+git clone https://git.ffmpeg.org/ffmpeg.git
+cd ffmpeg
+```
+
+Configure
+
+```
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib/x86_64-linux-gnu \
+  --incdir=/usr/include \
+  --pkgconfigdir=/usr/lib/x86_64-linux-gnu/pkgconfig \
+  --enable-nonfree \
+  --enable-gpl \
+  --enable-libx264 \
+  --enable-libx265 \
+  --enable-libvpx \
+  --enable-libfdk-aac \
+  --enable-libopus \
+  --enable-libmp3lame \
+  --enable-libass \
+  --enable-libfreetype \
+  --enable-vaapi \
+  --enable-libdrm \
+  --enable-shared
+```
+
+Build and Install
+
+```
+make -j$(nproc)
+sudo make install
+```
+
+---
+
+</details>
+
 &nbsp;
 
 ---
@@ -3771,6 +3850,48 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ---
 
 Please refer to the [Python license page](https://docs.python.org/3/license.html) for more details
+
+---
+
+&nbsp;
+
+</details>
+
+<details>
+<summary>pybind11 - <i>Custom</i></summary>
+&nbsp;
+
+---
+
+Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Please also refer to the file .github/CONTRIBUTING.md, which clarifies licensing of
+external contributions to this project including patches, pull requests, etc.
 
 ---
 

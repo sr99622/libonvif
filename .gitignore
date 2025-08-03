@@ -23,6 +23,7 @@ assets/scripts/components/mac/*.pkg
 assets/scripts/components/mac/changes*.plist
 runs/
 .DS_Store
+._.DS_Store
 cache/
 logs/
 repo/

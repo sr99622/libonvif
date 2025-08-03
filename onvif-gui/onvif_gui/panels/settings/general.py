@@ -35,6 +35,8 @@ from onvif_gui.enums import Style, ProxyType, PkgType
 import threading
 import time
 
+from onvif_gui.components import DiskManager
+
 class LogText(QTextEdit):
     def __init__(self, parent):
         super().__init__(parent)
@@ -452,7 +454,7 @@ class GeneralOptions(QWidget):
         
         #if self.isUpdatable:
         #    lytButtons.addWidget(self.btnUpdate,  1, 2, 1, 1)
-        #lytButtons.addWidget(self.btnTest,   1, 1, 1, 1)
+        lytButtons.addWidget(self.btnTest,   1, 1, 1, 1)
 
         self.lblMemory = QLabel()
 
@@ -663,9 +665,34 @@ class GeneralOptions(QWidget):
         else:
             QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI is currently the latest version")
 
+    def sizeGB(self, raw):
+        return "{:.2f}".format(raw / 1000000000)
+
     def btnTestClicked(self):
         print("test button clicked")
-        for key in os.environ:
-            #if "SNAP" in key:
-            #    print(f'key: {key}, value: {os.environ[key]}')
-            print(f'key: {key}, value: {os.environ[key]}')
+        d = self.mw.settingsPanel.storage.dirArchive.text()
+        print("d", d)
+        mgr = DiskManager(self.mw)
+
+        _, total_size = mgr.list_files(d)
+        #for file_info in file_infos:
+        #    print(file_info.path)
+
+        print("total size", self.sizeGB(total_size))
+
+        total = 0
+        lstCamera = self.mw.cameraPanel.lstCamera
+        cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
+        for camera in cameras:
+            print(camera.name())
+            if profile := camera.getRecordProfile():
+                est_size = mgr.estimateFileSize(profile.uri())
+                total += est_size
+                print("est size", self.sizeGB(est_size))
+        print("total estimated size", self.sizeGB(total))
+
+        #allowed = self.mw.settingsPanel.storage.spnDiskLimit.value() * 1000000000
+        #print("allowed", self.sizeGB(allowed))
+
+        #target = allowed - total
+        #print("target", self.sizeGB(target))

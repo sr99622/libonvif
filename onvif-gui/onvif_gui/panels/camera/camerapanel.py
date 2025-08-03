@@ -649,15 +649,15 @@ class CameraPanel(QWidget):
             if player.isRecording():
                 player.pipe_output_start_time = None
                 player.toggleRecording("")
-                self.mw.diskManager.getDirectorySize(self.mw.settingsPanel.storage.dirArchive.txtDirectory.text())
+                self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
                 if camera:
                     camera.manual_recording = False
             else:
                 d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                 if self.mw.settingsPanel.storage.chkManageDiskUsage.isChecked():
-                    self.mw.diskManager.manageDirectory(d, player.uri)
-                #else:
-                #    self.mw.diskManager.getDirectorySize(d)
+                    self.mw.diskManager.manageDirectory(d)
+                else:
+                    self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
                 if filename := player.getPipeOutFilename():
                     player.toggleRecording(filename)
                     if camera:
@@ -834,15 +834,13 @@ class CameraPanel(QWidget):
     
     def getProfile(self, uri):
         result = None
-        camera = self.getCamera(uri)
-        if camera:
+        if camera := self.getCamera(uri):
             result = camera.getProfile(uri)
         return result
     
     def getCurrentProfile(self):
         result = None
-        camera = self.getCurrentCamera()
-        if camera:
+        if camera := self.getCurrentCamera():
             result = camera.getProfile(camera.uri())
         return result
     

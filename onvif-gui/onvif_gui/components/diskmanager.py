@@ -1,9 +1,22 @@
 import os
 import shutil
 from time import sleep
+from datetime import datetime
 from pathlib import Path
 from loguru import logger
 from PyQt6.QtCore import QFileInfo
+
+class FileInfo:
+    def __init__(self, path: Path):
+        self.path = path
+        self.name = path.name
+        self.size = path.stat().st_size
+        self.modified_time = datetime.fromtimestamp(path.stat().st_mtime)
+        self.created_time = datetime.fromtimestamp(path.stat().st_ctime)
+
+def __repr__(self):
+        return (f"FileInfo(path='{self.path}', name='{self.name}', created='{self.created_time}', "
+                f"modified='{self.modified_time}', size={self.size})")
 
 class DiskManager():
     def __init__(self, mw):
@@ -19,14 +32,29 @@ class DiskManager():
     def unlock(self):
         self.thread_lock = False
 
+    def list_files(self, directory: str) -> tuple[list[FileInfo], int]:
+        total_size = 0
+        file_infos = []
+        for dirpath, dirnames, filenames in os.walk(directory):
+            for f in filenames:
+                try:
+                    file_info = FileInfo(Path(os.path.join(dirpath, f)))
+                    total_size += file_info.size
+                    file_infos.append(file_info)
+                except Exception as ex:
+                    print(f"file listing exception: {ex}")
+                    pass
+
+        file_infos.sort(key=lambda x: x.created_time)
+        return file_infos, total_size
+
     def estimateFileSize(self, uri):
         # duration is in seconds, cameras report bitrate in kbps (usually), result in bytes
         result = 0
         bitrate = 0
-        profile = self.mw.cameraPanel.getProfile(uri)
-        if profile:
-            audio_bitrate = min(profile.audio_bitrate(), 128)
-            video_bitrate = min(profile.bitrate(), 16384)
+        if profile := self.mw.cameraPanel.getProfile(uri):
+            audio_bitrate = max(min(profile.audio_bitrate(), 128), 16)
+            video_bitrate = max(min(profile.bitrate(), 16384), 512)
             bitrate = video_bitrate + audio_bitrate
         result = (bitrate * 1000 / 8) * self.mw.STD_FILE_DURATION
         return result
@@ -38,49 +66,11 @@ class DiskManager():
                 committed += self.estimateFileSize(player.uri) - player.pipeBytesWritten()
         return committed
 
-    def getDirectorySize(self, d):
-        total_size = 0
-        for dirpath, dirnames, filenames in os.walk(d):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                if not os.path.islink(fp):
-                    try:
-                        total_size += os.path.getsize(fp)
-                    except FileNotFoundError:
-                        pass
-
-        dir_size = "{:.2f}".format(total_size / 1000000000)
-        self.mw.settingsPanel.storage.grpDiskUsage.setTitle(f'Disk Usage (currently {dir_size} GB)')
-        return total_size
-    
-    def getOldestFile(self, d):
-        oldest_file = None
-        oldest_time = None
-        for dirpath, dirnames, filenames in os.walk(d):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                if not os.path.islink(fp):
-
-                    stem = Path(fp).stem
-                    if len(stem) == 14 and stem.isnumeric():
-                        try:
-                            if oldest_file is None:
-                                oldest_file = fp
-                                oldest_time = os.path.getmtime(fp)
-                            else:
-                                file_time = os.path.getmtime(fp)
-                                if file_time < oldest_time:
-                                    oldest_file = fp
-                                    oldest_time = file_time
-                        except FileNotFoundError:
-                            pass
-        return oldest_file
-    
     def removeAssociatedPictureFiles(self, filename):
         try:
             info = QFileInfo(filename)
-            alarm_buffer_size = self.mw.settingsPanel.alarm.spnBufferSize.value()
-            start = info.birthTime().addSecs(-alarm_buffer_size)
+            #alarm_buffer_size = self.mw.settingsPanel.alarm.spnBufferSize.value()
+            #start = info.birthTime().addSecs(-alarm_buffer_size)
             finish = info.lastModified()
             dir = info.absoluteDir().dirName()
             pic_dir = os.path.join(self.mw.settingsPanel.storage.dirPictures.txtDirectory.text(), dir)
@@ -97,23 +87,44 @@ class DiskManager():
         except Exception as ex:
             logger.error(f'Exception occurred during removal of associated picture files: {ex}')
 
-    def getMaximumDirectorySize(self, d, uri):
-        estimated_file_size = self.estimateFileSize(uri)
-        space_committed = self.getCommittedSize()
-        allowed_space = min(self.mw.settingsPanel.storage.spnDiskLimit.value() * 1000000000, shutil.disk_usage(d)[2])
-        return allowed_space - (space_committed + estimated_file_size)
+    def getMaximumDirectorySize(self, d):
+        return min(self.mw.settingsPanel.storage.spnDiskLimit.value() * 1_000_000_000, self.getMaximumAvailableForDirectory(d))
     
-    def manageDirectory(self, d, uri):
+    def getMaximumAvailableForDirectory(self, d):
+        current_size = self.getDirectorySize(d)
+        committed_size = self.getCommittedSize()
+        buffer_size = 10_000_000_000
+        _, _, free = shutil.disk_usage(d)
+        return free + current_size - (committed_size + buffer_size)
+
+    def getDirectorySize(self, d):
+        _, size = self.list_files(d)
+        return size        
+
+    def manageDirectory(self, d):
         self.lock()
-        try:
-            while self.getDirectorySize(d) > self.getMaximumDirectorySize(d, uri):
-                if oldest_file := self.getOldestFile(d):
-                    self.removeAssociatedPictureFiles(oldest_file)
-                    os.remove(oldest_file)
-                    #logger.debug(f'File has been deleted by auto process: {oldest_file}')
-                else:
-                    logger.debug("Unable to find the oldest file for deletion during disk management")
+
+        files, size = self.list_files(d)
+        max_size = self.getMaximumDirectorySize(d)
+
+        files_to_be_deleted = []
+        total = 0
+        diff = size - max_size
+        if diff > 0:
+            for file in files:
+                total += file.size
+                files_to_be_deleted.append(file)
+                if total > diff:
                     break
-        except Exception as ex:
-            logger.error(f'Directory Manager exception: {ex}')
+
+        for file in files_to_be_deleted:
+            try:
+                self.removeAssociatedPictureFiles(str(file.path))
+                os.remove(file.path)
+                #logger.debug(f'File has been deleted {file.path}')
+            except Exception as ex:
+                logger.error(f'File delete error: {ex}')
+                pass
+        
+        self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
         self.unlock()

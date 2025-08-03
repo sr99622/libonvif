@@ -107,10 +107,6 @@ class GLWidget(QOpenGLWidget):
             else:
                 player.image = QImage(ary.data, w, h, w, QImage.Format.Format_Grayscale8)
 
-            #if player.save_image_filename:
-            #    player.image.save(player.save_image_filename)
-            #    player.save_image_filename = None
-
             if player.packet_drop_frame_counter > 0:
                 player.packet_drop_frame_counter -= 1
             else:
@@ -151,9 +147,9 @@ class GLWidget(QOpenGLWidget):
                     if interval.total_seconds() > self.mw.STD_FILE_DURATION:
                         d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                         if self.mw.settingsPanel.storage.chkManageDiskUsage.isChecked():
-                            self.mw.diskManager.manageDirectory(d, player.uri)
-                        #else:
-                        #    self.mw.diskManager.getDirectorySize(d)
+                            self.mw.diskManager.manageDirectory(d)
+                        else:
+                            self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
 
                         if filename := player.getPipeOutFilename():
                             player.startFileBreakPipe(filename)
@@ -410,17 +406,6 @@ class GLWidget(QOpenGLWidget):
                         painter.drawRect(QRectF(p, q, r, s))
 
                 if player.save_image_filename:
-                    #if show and player.analyze_video:
-                    #    img = player.image.copy()
-                    #    painter_img = QPainter(img)
-                    #    painter_img.setPen(QColorConstants.Red)
-                    #    for box in player.boxes:
-                    #        p = (box[0])
-                    #        q = (box[1])
-                    #        r = (box[2] - box[0])
-                    #        s = (box[3] - box[1])
-                    #        painter_img.drawRect(QRectF(p, q, r, s))
-                    #img.save(player.save_image_filename)
                     player.image.save(player.save_image_filename)
                     player.save_image_filename = None
 

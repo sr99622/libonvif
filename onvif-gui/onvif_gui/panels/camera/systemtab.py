@@ -270,7 +270,7 @@ class SystemTabSettings():
             for player in players:
                 if player.isRecording():
                     player.toggleRecording("")
-                    self.mw.diskManager.getDirectorySize(self.mw.settingsPanel.storage.dirArchive.txtDirectory.text())
+                    self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
                 
         self.mw.cameraPanel.syncGUI()
 

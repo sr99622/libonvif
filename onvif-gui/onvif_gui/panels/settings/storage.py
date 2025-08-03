@@ -23,7 +23,11 @@ from PyQt6.QtWidgets import QMessageBox, QSpinBox, \
 from PyQt6.QtCore import QStandardPaths
 from loguru import logger
 from onvif_gui.components import DirectorySelector
+from PyQt6.QtCore import pyqtSignal, QObject
 import shutil
+
+class StorageSignals(QObject):
+    updateDiskUsage =pyqtSignal()
 
 class StorageOptions(QWidget):
     def __init__(self, mw):
@@ -33,7 +37,11 @@ class StorageOptions(QWidget):
         self.archiveKey = "settings/archive"
         self.pictureKey = "settings/picture"
         self.diskLimitKey = "settings/diskLimit"
+        self.maxFileDurationKey = "settings/maxFileDuration"
         self.mangageDiskUsagekey = "settings/manageDiskUsage"
+
+        self.signals = StorageSignals()
+        self.signals.updateDiskUsage.connect(self.updateDiskUsage)
 
         video_dirs = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.MoviesLocation)
         self.dirArchive = DirectorySelector(mw, self.archiveKey, "Archive Dir", video_dirs[0])
@@ -43,19 +51,27 @@ class StorageOptions(QWidget):
         self.dirPictures = DirectorySelector(mw, self.pictureKey, "Picture Dir", picture_dirs[0])
         self.dirPictures.signals.dirChanged.connect(self.dirPicturesChanged)
 
-        dir_size = "{:.2f}".format(self.getDirectorySizeLocally(self.dirArchive.text()) / 1000000000)
-        self.grpDiskUsage = QGroupBox(f'Disk Usage (currently {dir_size} GB)')
+        #dir_size = "{:.2f}".format(self.getDirectorySizeLocally(self.dirArchive.text()) / 1000000000)
+        self.grpDiskUsage = QGroupBox()
         self.spnDiskLimit = QSpinBox()
-        max_size = int(self.getMaximumDirectorySizeLocally(self.dirArchive.txtDirectory.text()))
+        max_size = int(self.mw.diskManager.getMaximumAvailableForDirectory(self.dirArchive.txtDirectory.text())/1_000_000_000)
         self.spnDiskLimit.setMaximum(max_size)
         disk_limit = min(int(self.mw.settings.value(self.diskLimitKey, 100)), max_size)
         self.spnDiskLimit.setValue(disk_limit)
         self.spnDiskLimit.valueChanged.connect(self.spnDiskLimitChanged)
+        self.updateDiskUsage()
 
         lbl = f'Auto Manage (max {max_size} GB)'
         self.chkManageDiskUsage = QCheckBox(lbl)
         self.chkManageDiskUsage.setChecked(bool(int(self.mw.settings.value(self.mangageDiskUsagekey, 0))))
         self.chkManageDiskUsage.clicked.connect(self.chkManageDiskUsageChanged)
+
+        self.spnMaxFileDuration = QSpinBox()
+        self.spnMaxFileDuration.setMaximum(60)
+        self.spnMaxFileDuration.setValue(int(self.mw.settings.value(self.maxFileDurationKey, 15)))
+        self.spnMaxFileDuration.valueChanged.connect(self.spnMaxFileDurationChanged)
+        lblMaxFileDuration = QLabel("Max File Duration (minutes)")
+
 
         lytDiskUsage = QGridLayout(self.grpDiskUsage)
         lytDiskUsage.addWidget(self.chkManageDiskUsage, 0, 0, 1, 1)
@@ -63,6 +79,8 @@ class StorageOptions(QWidget):
         lytDiskUsage.addWidget(QLabel("GB"),            0, 3, 1, 1)
         lytDiskUsage.addWidget(self.dirArchive,         1, 0, 1, 4)
         lytDiskUsage.addWidget(self.dirPictures,        2, 0, 1, 4)
+        lytDiskUsage.addWidget(lblMaxFileDuration,      3, 0, 1, 2)
+        lytDiskUsage.addWidget(self.spnMaxFileDuration, 3, 1, 1, 2)
         lytDiskUsage.setColumnStretch(2, 10)
 
         lytMain = QGridLayout(self)
@@ -73,6 +91,9 @@ class StorageOptions(QWidget):
 
     def spnDiskLimitChanged(self, value):
         self.mw.settings.setValue(self.diskLimitKey, value)
+
+    def spnMaxFileDurationChanged(self, value):
+        self.mw.settings.setValue(self.maxFileDurationKey, value)
 
     def chkManageDiskUsageChanged(self):
         if self.chkManageDiskUsage.isChecked():
@@ -90,7 +111,7 @@ class StorageOptions(QWidget):
         logger.debug(f'Video archive directory changed to {path}')
         self.dirArchive.txtDirectory.setText(path)
         self.mw.settings.setValue(self.archiveKey, path)
-        max_size = int(self.getMaximumDirectorySizeLocally(path))
+        max_size = int(self.mw.diskManager.getMaximumAvailableForDirectory(path)/1_000_000_000)
         self.spnDiskLimit.setMaximum(max_size)
         lbl = f'Auto Manage (max {max_size} GB)'
         self.chkManageDiskUsage.setText(lbl)
@@ -107,32 +128,8 @@ class StorageOptions(QWidget):
         self.mw.filePanel.control.dlgPicture.dirPictures.txtDirectory.setText(path)
         self.mw.filePanel.control.dlgPicture.dirChanged(path)
 
-    def getMaximumDirectorySizeLocally(self, d):
-        # compute disk space available for archive directory in GB
-        if not os.path.isdir(d):
-            return 0
-        d_size = 0
-        max_available = 0
-        try:
-            for dirpath, dirnames, filenames in os.walk(d):
-                for f in filenames:
-                    fp = os.path.join(dirpath, f)
-                    if os.path.exists(fp):
-                        if not os.path.islink(fp):
-                            d_size += os.path.getsize(fp)
-            total, used, free = shutil.disk_usage(d)
-            max_available = (free + d_size - 10000000000) / 1000000000
-        except Exception as ex:
-            logger.error(f'Exception occurred during disk space calculation: {ex}')
-        return max_available
-
-    def getDirectorySizeLocally(self, d):
-        total_size = 0
-        for dirpath, dirnames, filenames in os.walk(d):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                if not os.path.islink(fp):
-                    total_size += os.path.getsize(fp)
-        
-        return total_size
-    
+    def updateDiskUsage(self):
+        _, size = self.mw.diskManager.list_files(self.dirArchive.text())
+        str_size_in_GB = "{:.2f}".format(size / 1_000_000_000)
+        self.grpDiskUsage.setTitle(f'Disk Usage (currently {str_size_in_GB} GB)')
+        # ADD A CHECK FOR DIR SIZE EXCEEDING AVAILABLE SPACE AND REDUCE LIMIT IF NECESSARY

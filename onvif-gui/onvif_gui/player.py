@@ -123,9 +123,9 @@ class Player(avio.Player):
                         if not player.isRecording():
                             d = self.mw.settingsPanel.storage.dirArchive.txtDirectory.text()
                             if self.mw.settingsPanel.storage.chkManageDiskUsage.isChecked():
-                                self.mw.diskManager.manageDirectory(d, player.uri)
+                                self.mw.diskManager.manageDirectory(d)
                             else:
-                                self.mw.diskManager.getDirectorySize(d)
+                                self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
                             if filename := player.getPipeOutFilename():
                                 player.toggleRecording(filename)
                                 if current_camera := self.mw.cameraPanel.getCurrentCamera():
@@ -138,7 +138,7 @@ class Player(avio.Player):
                         if player.isRecording():
                             player.toggleRecording("")
                             #if sys.platform != "win32":
-                            #    self.mw.diskManager.getDirectorySize(self.mw.settingsPanel.storage.dirArchive.txtDirectory.text())
+                            self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
                             if current_camera := self.mw.cameraPanel.getCurrentCamera():
                                 if camera.serial_number() == current_camera.serial_number():
                                     self.mw.cameraPanel.syncGUI()

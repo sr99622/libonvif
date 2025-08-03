@@ -52,7 +52,7 @@ if sys.platform == "win32":
 else:
     import tarfile
 
-VERSION = "3.1.9"
+VERSION = "3.1.10"
 
 class TimerSignals(QObject):
     timeoutPlayer = pyqtSignal(str)
@@ -161,7 +161,6 @@ class MainWindow(QMainWindow):
         self.parent_window = parent_window
 
         QDir.addSearchPath("image", self.getLocation() + "/onvif_gui/resources/")
-        self.STD_FILE_DURATION = 900 # duration in seconds (15 * 60)
         self.focus_window = None
         self.reader_window = None
         self.external_windows = []
@@ -172,7 +171,6 @@ class MainWindow(QMainWindow):
         self.alarm_ordinals = {}
         self.alarm_states = []
         self.last_alarm = None
-        self.diskManager = DiskManager(self)
 
         self.program_name = f'Onvif GUI version {VERSION}'
         self.setWindowTitle(self.program_name)
@@ -195,6 +193,7 @@ class MainWindow(QMainWindow):
         self.signals = MainWindowSignals()
 
         self.pm = Manager(self)
+        self.diskManager = DiskManager(self)
         self.timers = {}
 
         self.proxies = {}
@@ -228,6 +227,8 @@ class MainWindow(QMainWindow):
         self.signals.stopReconnect.connect(self.stopReconnectTimer)
         self.signals.showWaitDialog.connect(self.showWaitDialog)
         self.signals.hideWaitDialog.connect(self.hideWaitDialog)
+
+        self.STD_FILE_DURATION = self.settingsPanel.storage.spnMaxFileDuration.value() * 60
 
         self.tab = QTabWidget()
         hideCameras = bool(int(self.settings.value(self.filePanel.control.hideCameraKey, 0)))
@@ -636,8 +637,7 @@ class MainWindow(QMainWindow):
                     player.clearCache()
                     if player.systemTabSettings():
                         if player.systemTabSettings().record_enable and player.systemTabSettings().record_always:
-                            camera = self.cameraPanel.getCamera(uri)
-                            if camera:
+                            if camera := self.cameraPanel.getCamera(uri):
                                 record = False
                                 if camera.displayProfileIndex() != camera.recordProfileIndex():
                                     if camera.isRecordProfile(uri):
@@ -648,9 +648,9 @@ class MainWindow(QMainWindow):
                                 if record:
                                     d = self.settingsPanel.storage.dirArchive.txtDirectory.text()
                                     if self.settingsPanel.storage.chkManageDiskUsage.isChecked():
-                                        self.diskManager.manageDirectory(d, player.uri)
-                                    #else:
-                                    #    self.diskManager.getDirectorySize(d)
+                                        self.diskManager.manageDirectory(d)
+                                    else:
+                                        self.settingsPanel.storage.signals.updateDiskUsage.emit()
                                     if filename := player.getPipeOutFilename():
                                         player.toggleRecording(filename)
 

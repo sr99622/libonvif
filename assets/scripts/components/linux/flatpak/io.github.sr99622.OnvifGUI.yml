@@ -54,10 +54,10 @@ modules:
       - type: file
         path: io.github.sr99622.OnvifGUI.png
       #- type: file
-      #  path: onvif_gui-3.1.9-py3-none-any.whl
+      #  path: onvif_gui-3.1.10-py3-none-any.whl
       - type: file
-        url: https://files.pythonhosted.org/packages/8e/26/66a82b51224613a7216cf4b3ce090bc449810365bd7abe1303d08532ef34/onvif_gui-3.1.9-py3-none-any.whl
-        sha256: dad41739393604a6fe24a326fb35708559e21b5f76f8d506f4bd30f5e9da7994
+        url: https://files.pythonhosted.org/packages/67/9b/ebeded8cc6f495ac968a9a917b5af48a55ff6e1c3d15eb565d73d9138f14/onvif_gui-3.1.10-py3-none-any.whl
+        sha256: fbdd70b4660a8cc22b0b1c3514bbab7a073bc4d94f74d05e543d93b55b1c6883
         x-checker-data:
           type: pypi
           name: onvif-gui
@@ -116,8 +116,8 @@ modules:
           type: pypi
           name: kankakee
       - type: file
-        url: https://files.pythonhosted.org/packages/04/93/d8aa206985682d3b225b7e7ad891a5032e34aa4044ea51f624d0b04f7e3f/libonvif-3.2.6-cp312-cp312-manylinux_2_31_x86_64.whl
-        sha256: 0dcb844703bcdc320a4dfb1213f5491a4941f7dfec1b9511ba7cd7d6fa925b53
+        url: https://files.pythonhosted.org/packages/53/c4/b6e07fe43c2d6e3441da4a584be29dfc129fbbe923484ed208ded2d6d3c2/libonvif-3.2.7-cp312-cp312-manylinux_2_31_x86_64.whl
+        sha256: e4d995bd9324d5b0e3f207c858741d8d62485f8e2927c342887bc6cfbf091e41
         x-checker-data:
           type: pypi
           name: libonvif

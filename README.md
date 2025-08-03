@@ -114,7 +114,7 @@ Windows computers will work well, but do require more computing power to achieve
 Download the [Flatpak installer](https://github.com/sr99622/libonvif/releases/download/v3.1.10/OnvifGUI-3.1.10.flatpak), then open a terminal and navigate to the Downloads folder. Use the following command to install.
 
 ```
-flatpak install OnvifGUI-3.1.9.flatpak
+flatpak install OnvifGUI-3.1.10.flatpak
 ```
 
 The program can then be launched from the Applications menu. To uninstall use the command.
@@ -3899,3 +3899,4 @@ external contributions to this project including patches, pull requests, etc.
 
 
 </details>
+

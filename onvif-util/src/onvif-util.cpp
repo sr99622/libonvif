@@ -369,6 +369,12 @@ int main(int argc, char **argv)
 		strcpy(onvif_data->xaddrs, xaddrs.str().c_str());
 		strcpy(onvif_data->device_service, xaddrs.str().c_str());
 
+		char host[128];
+		extractHost(onvif_data->xaddrs, host);
+		getHostname(onvif_data);
+	    extractOnvifService(onvif_data->device_service, true);
+		strcpy(onvif_data->camera_name, host);
+
 		getTimeOffset(onvif_data);
 		time_t initial_offset = onvif_data->time_offset;
 		int count = 1;
@@ -381,6 +387,7 @@ int main(int argc, char **argv)
 			if (count > 2) {
 				std::stringstream str;
 				str << "Get capabilities error: " << onvif_data->camera_name << " : " << onvif_data->last_error << " camera interrogation failed";
+				std::cout << str.str() << std::endl;
 				exit(1);
 			}
 			else {
@@ -389,9 +396,10 @@ int main(int argc, char **argv)
 		}
 
 		if (getDeviceInformation(onvif_data)  == 0) {
-			std::cout << "  successfully connected to host" << "\n";
+			std::cout << "\n  successfully connected to host" << "\n";
 			std::cout << "    name:   " << onvif_data->camera_name << "\n";
-			std::cout << "    serial: " << onvif_data->serial_number << "\n" << std::endl;
+			std::cout << "    serial: " << onvif_data->serial_number << "\n";
+			std::cout << "    xaddrs: " << onvif_data->xaddrs << "\n" << std::endl;
 			found = true;
 			if (time_sync) {
 				std::cout << "  Time sync requested" << std::endl;

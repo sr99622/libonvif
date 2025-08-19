@@ -354,7 +354,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!found) {
-		std::cout << "\nDid not find camera with onvif, the program will attempt to connect to the device using the default port 80. If you need to use a different port, please add the port to the end of the input IP address using a semi colom e.g. 10.1.1.1:8000" << std::endl;
+		std::cout << "\nDid not find camera with onvif, the program will attempt to connect to the device using the default port 80. If you need to use a different port, please add the port to the end of the input IP address using a semi colon e.g. 10.1.1.1:8000" << std::endl;
 		std::stringstream xaddrs;
 		size_t position = std::string(wanted).find(":");
 		if (position != std::string::npos)

@@ -244,7 +244,8 @@ class Install():
                 if pkg_mgr == "pacman":
                     ...
                 if pkg_mgr == "zypper":
-                    self.install_package(pkg_mgr, "libxcb-cursor-devel")
+                    self.install_package(pkg_mgr, "libxcb-cursor0")
+                    self.install_package(pkg_mgr, "libgthread-2_0-0")
 
             else:
                 print(f"Unsupported display protocol: {protocol}")

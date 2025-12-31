@@ -77,8 +77,17 @@ const int SHA1_DIGEST_SIZE = 20;
 char preferred_network_address[16];
 static bool dump_reply = false;
 static void dumpReply(xmlDocPtr reply);
-
 static bool rand_seeded = false;
+static bool show_camera_reponse = false;
+static bool show_command_sent = false;
+
+void setShowCameraResponse(bool arg) {
+    show_camera_reponse = arg;
+}
+
+void setShowCommandSent(bool arg) {
+    show_command_sent = arg;
+}
 
 int getNetworkInterfaces(struct OnvifData *onvif_data) {
     memset(onvif_data->ip_address_buf, 0, sizeof(onvif_data->ip_address_buf));
@@ -564,9 +573,8 @@ int getCapabilities(struct OnvifData *onvif_data) {
     xmlNewTextChild(capabilities, ns_tds, BAD_CAST "Category", BAD_CAST "All");
     char cmd[4096] = {0};
 
-
     strcpy(onvif_data->device_service, onvif_data->xaddrs);
-    extractOnvifService(onvif_data->device_service, true);
+    //extractOnvifService(onvif_data->device_service, true);
 
     addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->device_service, cmd, 4096);
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);
@@ -574,20 +582,60 @@ int getCapabilities(struct OnvifData *onvif_data) {
         xmlChar *xpath;
 
         xpath = BAD_CAST "//s:Body//tds:GetCapabilitiesResponse//tds:Capabilities//tt:Events//tt:XAddr";
-        if (getXmlValue(reply, xpath, onvif_data->event_service, 1024) == 0)
-            extractOnvifService(onvif_data->event_service, true);
+        if (getXmlValue(reply, xpath, onvif_data->event_service, 1024) == 0) {
+            //extractOnvifService(onvif_data->event_service, true);
+            if (!strstr(onvif_data->event_service+7, "/")) {
+                char host[128] = {0};
+                extractHostWithPort(onvif_data->xaddrs, host);
+                memset(onvif_data->event_service, 0, sizeof(onvif_data->event_service));
+                strcat(onvif_data->event_service, "http://");
+                strcat(onvif_data->event_service, host);
+                strcat(onvif_data->event_service, "/onvif/event_service");
+                printf("modified event service: %s\n", onvif_data->event_service);
+            }
+        }
 
         xpath = BAD_CAST "//s:Body//tds:GetCapabilitiesResponse//tds:Capabilities//tt:Imaging//tt:XAddr";
-        if (getXmlValue(reply, xpath, onvif_data->imaging_service, 1024) == 0)
-            extractOnvifService(onvif_data->imaging_service, true);
+        if (getXmlValue(reply, xpath, onvif_data->imaging_service, 1024) == 0) {
+            //extractOnvifService(onvif_data->imaging_service, true);
+            if (!strstr(onvif_data->imaging_service+7, "/")) {
+                char host[128] = {0};
+                extractHostWithPort(onvif_data->xaddrs, host);
+                memset(onvif_data->imaging_service, 0, sizeof(onvif_data->imaging_service));
+                strcat(onvif_data->imaging_service, "http://");
+                strcat(onvif_data->imaging_service, host);
+                strcat(onvif_data->imaging_service, "/onvif/imaging_service");
+                printf("modified imaging service: %s\n", onvif_data->imaging_service);
+            }
+        }
 
         xpath = BAD_CAST "//s:Body//tds:GetCapabilitiesResponse//tds:Capabilities//tt:Media//tt:XAddr";
-        if (getXmlValue(reply, xpath, onvif_data->media_service, 1024) == 0)
-            extractOnvifService(onvif_data->media_service, true);
+        if (getXmlValue(reply, xpath, onvif_data->media_service, 1024) == 0) {
+            //extractOnvifService(onvif_data->media_service, true);
+            if (!strstr(onvif_data->media_service+7, "/")) {
+                char host[128] = {0};
+                extractHostWithPort(onvif_data->xaddrs, host);
+                memset(onvif_data->media_service, 0, sizeof(onvif_data->media_service));
+                strcat(onvif_data->media_service, "http://");
+                strcat(onvif_data->media_service, host);
+                strcat(onvif_data->media_service, "/onvif/media_service");
+                printf("modified media service: %s\n", onvif_data->media_service);
+            }
+        }
 
         xpath = BAD_CAST "//s:Body//tds:GetCapabilitiesResponse//tds:Capabilities//tt:PTZ//tt:XAddr";
-        if (getXmlValue(reply, xpath, onvif_data->ptz_service, 1024) == 0)
-            extractOnvifService(onvif_data->ptz_service, true);
+        if (getXmlValue(reply, xpath, onvif_data->ptz_service, 1024) == 0) {
+            //extractOnvifService(onvif_data->ptz_service, true);
+            if (!strstr(onvif_data->ptz_service+7, "/")) {
+                char host[128] = {0};
+                extractHostWithPort(onvif_data->xaddrs, host);
+                memset(onvif_data->ptz_service, 0, sizeof(onvif_data->ptz_service));
+                strcat(onvif_data->ptz_service, "http://");
+                strcat(onvif_data->ptz_service, host);
+                strcat(onvif_data->ptz_service, "/onvif/ptz_service");
+                printf("modified ptz service: %s\n", onvif_data->ptz_service);
+            }
+        }
 
         result = checkForXmlErrorMsg(reply, onvif_data->last_error);
         if (result < 0)
@@ -2559,6 +2607,10 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
         dumpReply(reply);
     }
 
+    if (show_camera_reponse) {
+        printf("\n---RESPONSE---\n%s\n", xml_reply);
+    }
+
     return reply;
 }
 
@@ -2680,6 +2732,11 @@ void getBase64(unsigned char * buffer, int chunk_size, unsigned char * result) {
 }
 
 void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char *xaddrs, char *post_type, char cmd[], int cmd_length) {
+
+    char service[1024] = {0};
+    strcpy(service, post_type);
+    extractOnvifService(service, true);
+
     xmlOutputBufferPtr outputbuffer = xmlAllocOutputBuffer(NULL);
     xmlNodeDumpOutput(outputbuffer, doc, root, 0, 0, NULL);
     int size = xmlOutputBufferGetSize(outputbuffer);
@@ -2744,7 +2801,8 @@ void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char *xaddrs, char *post_type
     "User-Agent: Generic\r\n"
     "Connection: Close\r\n"
     "Accept-Encoding: gzip, deflate\r\n"
-    "Content-Type: application/soap+xml; charset=utf-8;\r\n"
+    //"Content-Type: application/soap+xml; charset=utf-8; action=\"http://www.onvif.org/ver10/device/wsdl/GetCapabilities\"\r\n"
+    "Content-Type: application/soap+xml; charset=utf-8\r\n"
     "Host: ";
     char content_length[] = "\r\nContent-Length: ";
 
@@ -2755,7 +2813,7 @@ void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char *xaddrs, char *post_type
     http_terminate[3] = '\n';
     http_terminate[4] = '\0';
 
-    int p = strlen(post_type)+1;
+    int p = strlen(service)+1;
     int h = strlen(host)+1;
     int c = sizeof(content);
     int cl = sizeof(content_length);
@@ -2763,7 +2821,7 @@ void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char *xaddrs, char *post_type
     int i;
     int s;
     for (i=0; i<p-1; i++)
-        cmd[i] = post_type[i];
+        cmd[i] = service[i];
     s = i;
     for (i=0; i<c-1; i++)
         cmd[s+i] = content[i];
@@ -2783,6 +2841,10 @@ void addHttpHeader(xmlDocPtr doc, xmlNodePtr root, char *xaddrs, char *post_type
     for (i=0; i<size; i++)
         cmd[s+i] = xml[i];
     cmd[cmd_size] = '\0';
+
+    if (show_command_sent) {
+        printf("\n---COMMAND---\n%s\n", cmd);
+    }
 }
 
 void getUUID(char uuid_buf[47]) {
@@ -3225,6 +3287,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
 
 
 void extractOnvifService(char service[1024], bool post) {
+    //printf("SERVICE: %s\n", service);
     int length = strlen(service);
     char *sub = strstr(service, "//");
     if (sub != NULL) {
@@ -3252,6 +3315,8 @@ void extractOnvifService(char service[1024], bool post) {
             }
             service[i] = 0;
 
+            //printf("SERVICE TOO: %s\n", service);
+
             if (post) {
                 char temp_buf[128] = {0};
                 strcat(temp_buf, "POST ");
@@ -3264,6 +3329,27 @@ void extractOnvifService(char service[1024], bool post) {
     }
 }
 
+void extractHostWithPort(char *xaddrs, char host[128]) {
+    char tmp[128] = {0};
+    char *mark = NULL;
+    
+    if (mark = strstr(xaddrs, "//")) {
+        int start = mark-xaddrs+2;
+        for (int j=0; j < strlen(xaddrs)-start; j++) {
+            if (j < 128)
+                tmp[j] = xaddrs[j+start];
+        }
+    }
+
+    if (mark = strstr(tmp, "/")) {
+        int end = mark-tmp;
+        for (int j = end; j < strlen(tmp); j++)
+            tmp[j] = '\0';
+    }
+
+    memset(host, 0, 128);
+    strcpy(host, tmp);
+}
 
 void extractHost(char *xaddrs, char host[128]) {
     char tmp[128] = {0};
@@ -3449,6 +3535,7 @@ void clearData(struct OnvifData *onvif_data) {
         onvif_data->snapshot_uri[i] = '\0';
         onvif_data->camera_name[i] = '\0';
         onvif_data->host_name[i] = '\0';
+        onvif_data->user_data[i] = '\0';
     }
     onvif_data->gov_length_min = 0;
     onvif_data->gov_length_max = 0;
@@ -3561,6 +3648,7 @@ void copyData(struct OnvifData *dst, struct OnvifData *src) {
         dst->camera_name[i] = src->camera_name[i];
         dst->host_name[i] = src->host_name[i];
         dst->last_error[i] = src->last_error[i];
+        dst->user_data[i] = src->user_data[i];
     }
     dst->gov_length_min = src->gov_length_min;
     dst->gov_length_max = src->gov_length_max;
@@ -3647,7 +3735,7 @@ bool prepareOnvifData(int ordinal, struct OnvifSession *onvif_session, struct On
     getCameraName(ordinal, onvif_session, onvif_data);
     if (!extractXAddrs(ordinal, onvif_session, onvif_data))
         return false;
-    extractOnvifService(onvif_data->device_service, true);
+    //extractOnvifService(onvif_data->device_service, true);
     extractHost(onvif_data->xaddrs, onvif_data->host);
     //getTimeOffset(onvif_data);
     return true;

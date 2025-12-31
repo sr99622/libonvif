@@ -3068,6 +3068,12 @@ onvif-util
 -p, --password
     set the password for the camera login
 
+-c --command
+    show commands sent to camera
+
+-r --response
+    show responses from the camera 
+
 -t, --time_sync
     synchronize the camera time with the host
 ```
@@ -3082,9 +3088,14 @@ To login to a particular camera:
 onvif-util -u username -p password ip_address
 ```
 
-To login to a camera with safe mode disabled:
+To login to a camera using a non-standard port:
 ```
-onvif-util -s -u username -p password ip_address
+onvif-util -u username -p password ip_address:port
+```
+
+To login to a camera showing commands sent to and responses from the camera
+```
+onvif-util -u username -p password -c -r ip_address:port
 ```
 
 ---

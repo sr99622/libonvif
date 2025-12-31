@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 
-project(onvif-util VERSION 1.4.7)
+project(onvif-util VERSION 1.4.9)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)

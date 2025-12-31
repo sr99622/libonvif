@@ -35,12 +35,14 @@
 #endif
 
 int longopt = 0;
-#define VERSION "1.4.8"
+#define VERSION "1.4.9"
 
 static struct option longopts[] = {
 	{ "user",       required_argument, NULL,      'u'},
 	{ "password",   required_argument, NULL,      'p'},
 	{ "all",        no_argument,       NULL,      'a'},
+	{ "command",    no_argument,       NULL,      'c'},
+	{ "response",   no_argument,       NULL,      'r'},
 	{ "safe_off",   no_argument,       NULL,      's'},
 	{ "help",       required_argument, NULL,      'h'},
 	{ "version",    no_argument,       NULL,      'v'},
@@ -53,7 +55,7 @@ static const char *password = nullptr;
 
 static void usage()
 {
-	std::cout << "Usage: onvif-util [-ahsv] [-u <user>] [-p <password>] [command]" << std::endl;
+	std::cout << "Usage: onvif-util [-ahsvrc] [-u <user>] [-p <password>] [command]" << std::endl;
 }
 
 static void showAll()
@@ -110,6 +112,8 @@ static void showHelp()
 			  << "      -a  poll all cameras on network and reply with host name\n"
 			  << "      -u  username\n"
 			  << "      -p  password\n"
+			  << "      -c  show command sent to camera\n"
+			  << "      -r  show camera response\n"
 			  << "      -s  safe mode off, enable applications for viewer and browser to run\n\n"
 			  << "  To view all cameras on the network:\n"
 			  << "  onvif-util -a\n\n"
@@ -195,6 +199,16 @@ void show(const std::vector<std::string>& args)
 	}
 }
 
+void show_camera_response()
+{
+	setShowCameraResponse(true);
+}
+
+void show_command_sent()
+{
+	setShowCommandSent(true);
+}
+
 void profileCheck(OnvifData* onvif_data, const std::vector<std::string>& args)
 {
 	int index = 0;
@@ -223,7 +237,7 @@ int main(int argc, char **argv)
 	bool time_sync = false;
 
 	int ch;
-	while ((ch = getopt_long(argc, argv, "u:p:ahsvt", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "u:p:ahsvtrc", longopts, NULL)) != -1) {
 		switch (ch) {
             case 'u':
 				username = optarg;
@@ -234,6 +248,12 @@ int main(int argc, char **argv)
 			case 'a':
 				showAll();
 				exit(0);
+			case 'r':
+				show_camera_response();
+				break;
+			case 'c':
+				show_command_sent();
+				break;
 			case 'h':
 				usage();
 				showHelp();
@@ -473,7 +493,7 @@ int main(int argc, char **argv)
 					}
 					profileCheck(onvif_data, args);
 					if (getSnapshotUri(onvif_data)) throw std::runtime_error(cat("get snapshot - ", onvif_data->last_error));
-					std::string uri(onvif_data->stream_uri);
+					std::string uri(onvif_data->snapshot_uri);
 					if (add_pass) {
 						uri = snapshot_with_pass(onvif_data);
 					}
@@ -482,8 +502,8 @@ int main(int argc, char **argv)
 				else if (args[0] == "capabilities") {
 					std::cout << "  event_service:   " << onvif_data->event_service << "\n";
 					std::cout << "  imaging_service: " << onvif_data->imaging_service << "\n";
-					std::cout << "  media_service:   " << onvif_data->imaging_service << "\n";
-					std::cout << "  ptz_service:     " << onvif_data->imaging_service << "\n" << std::endl;
+					std::cout << "  media_service:   " << onvif_data->media_service << "\n";
+					std::cout << "  ptz_service:     " << onvif_data->ptz_service << "\n" << std::endl;
 				}
 				else if (args[0] == "profiles") {
 					int index = 0;

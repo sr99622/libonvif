@@ -118,6 +118,7 @@ struct OnvifData {
     char serial_number[128];
     char host_name[1024];
     char host[128];
+    char user_data[1024];
     /*error*/
     char last_error[1024];
 	/*date/time*/
@@ -237,6 +238,7 @@ LIBRARY_API void getCameraName(int ordinal, struct OnvifSession *onvif_session, 
 LIBRARY_API bool extractXAddrs(int ordinal, struct OnvifSession *onvif_session, struct OnvifData *onvif_data);
 LIBRARY_API void extractOnvifService(char service[1024], bool post);
 LIBRARY_API void extractHost(char * xaddrs, char host[128]);
+LIBRARY_API void extractHostWithPort(char * xaddrs, char host[128]);
 
 LIBRARY_API int setSocketOptions(int socket);
 LIBRARY_API void prefix2mask(int prefix, char mask_buf[128]);
@@ -246,6 +248,8 @@ LIBRARY_API void copyData(struct OnvifData* dts, struct OnvifData* src);
 LIBRARY_API bool hasPTZ(struct OnvifData* onvif_data);
 LIBRARY_API void getActiveNetworkInterfaces(struct OnvifSession* onvif_session);
 LIBRARY_API void dumpConfigAll (struct OnvifData *onvif_data);
+LIBRARY_API void setShowCameraResponse(bool arg);
+LIBRARY_API void setShowCommandSent(bool arg);
 
 #ifdef __MINGW32__
     int inet_pton(int af, const char *src, void *dst);

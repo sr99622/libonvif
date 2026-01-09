@@ -2874,10 +2874,9 @@ The finshed python installs will be collected in the libonvif/dist directory and
 </details>
 
 <details>
+<summary>Migration from dev to remote git server</summary>
 
 &nbsp;
-
-<summary>Migration from dev to remote git server</summary>
 
 Set up a directory named `migrate` with two subdirectories `local` and `remote`. Clone without recursion the three libraries (kankakee, libavio, libonvif) separately into their respective subdirectory, local and remote. Using git rm, remove pybind11 from the respective submodules. Also git rm the kankakee and libavio submodules from the root libonvif directory. This is done for both the local and remote repository collections.
 
@@ -4261,4 +4260,5 @@ external contributions to this project including patches, pull requests, etc.
 
 
 </details>
+
 

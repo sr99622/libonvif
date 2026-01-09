@@ -2873,9 +2873,9 @@ The finshed python installs will be collected in the libonvif/dist directory and
 
 </details>
 
-&nbsp;
-
 <details>
+
+&nbsp;
 
 <summary>Migration from dev to remote git server</summary>
 
@@ -4261,3 +4261,4 @@ external contributions to this project including patches, pull requests, etc.
 
 
 </details>
+

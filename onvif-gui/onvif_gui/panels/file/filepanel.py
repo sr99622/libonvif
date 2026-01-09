@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/file/filepanel.py 
+# onvif-gui/onvif_gui/panels/file/filepanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -20,10 +20,10 @@
 import os
 import sys
 from PyQt6.QtWidgets import QGridLayout, QWidget, QLabel, \
-    QMessageBox, QMenu, QApplication
+    QMessageBox, QMenu, QApplication, QDialog, QPushButton
 from PyQt6.QtGui import QAction, QFileSystemModel
 from PyQt6.QtCore import Qt, QStandardPaths
-from onvif_gui.components import Progress
+from onvif_gui.components import Progress, InfoDialog
 from loguru import logger
 import avio
 from . import FileControlPanel
@@ -34,20 +34,20 @@ class FilePanel(QWidget):
     def __init__(self, mw):
         super().__init__()
         self.mw = mw
-        self.videoModelSettings = None
-        self.audioModelSettings = None
         self.alarmSoundVolume = 80
         self.expandedPaths = []
         self.loadedCount = 0
         self.restorationPath = None
         self.verticalScrollBarPosition = 0
+        self.dlgInfo = InfoDialog(mw)
 
         if self.mw.parent_window:
             video_dir = self.mw.parent_window.settingsPanel.storage.dirArchive.text()
         else:
             video_dir = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.MoviesLocation)[0]
         self.dirArchive = DirectorySelector(mw, self.mw.settingsPanel.storage.archiveKey, "", video_dir)
-        self.dirArchive.signals.dirChanged.connect(self.mw.settingsPanel.storage.dirArchiveChanged)
+        #self.dirArchive.signals.dirChanged.connect(self.mw.settingsPanel.storage.dirArchiveChanged)
+        self.dirArchive.signals.dirChanged.connect(self.dirChanged)
 
         self.model = QFileSystemModel()
         self.model.fileRenamed.connect(self.onFileRenamed)
@@ -59,7 +59,7 @@ class FilePanel(QWidget):
         self.tree.customContextMenuRequested.connect(self.showContextMenu)
 
         self.progress = Progress(mw)
-        self.control = FileControlPanel(mw)
+        self.control = FileControlPanel(mw, self)
 
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.dirArchive,  0, 0, 1, 1)
@@ -144,11 +144,8 @@ class FilePanel(QWidget):
             if fileInfo.isDir():
                 self.tree.setExpanded(index, self.tree.isExpanded(index))
             else:
-                for player in self.mw.pm.players:
-                    if not player.isCameraStream():
-                        self.mw.pm.playerShutdownWait(player.uri)
-                uri = self.getCurrentFileURI()
-                if uri:
+                self.mw.closeAnyPlayingFiles()
+                if uri := self.getCurrentFileURI():
                     self.mw.playMedia(uri)
                     self.mw.glWidget.focused_uri = uri
 
@@ -163,24 +160,25 @@ class FilePanel(QWidget):
         self.control.setBtnPlay()
         self.progress.updateProgress(0.0)
 
+        # this is needed to prevent overwriting another file duration
         another = None
-        for player in self.mw.pm.players:
+        self.mw.pm.lock()
+        for player in self.mw.pm.players.values():
             if not player.isCameraStream():
                 another = player
-
+                break
+        self.mw.pm.unlock()
         if not another:
             self.progress.lblDuration.setText("0:00")
 
     def onMediaProgress(self, pct, uri):
-        player = self.mw.pm.getPlayer(uri)
-        if player is not None:
+        if player := self.mw.pm.getPlayer(uri):
             player.file_progress = pct
+            self.progress.updateDuration(player.duration())
 
+        #if pct >= 0.0 and pct <= 1.0 and uri == self.mw.glWidget.focused_uri:
         if pct >= 0.0 and pct <= 1.0:
-            if uri == self.mw.glWidget.focused_uri:
-                if player is not None:
-                    self.progress.updateDuration(player.duration)
-                self.progress.updateProgress(pct)
+            self.progress.updateProgress(pct)
 
     def showContextMenu(self, pos):
         player = self.mw.pm.getPlayer(self.getCurrentFileURI())
@@ -249,16 +247,16 @@ class FilePanel(QWidget):
                 strInfo += "\nCreated: " + info.birthTime().toString()
                 strInfo += "\nModified: " + info.lastModified().toString()
 
-                reader = avio.Reader(info.absoluteFilePath(), None)
+                reader = avio.Reader(info.absoluteFilePath())
                 duration = reader.duration()
                 time_in_seconds = int(duration / 1000)
                 hours = int(time_in_seconds / 3600)
                 minutes = int((time_in_seconds - (hours * 3600)) / 60)
                 seconds = int((time_in_seconds - (hours * 3600) - (minutes * 60)))
                 strInfo += "\nDuration: " + str(minutes) + ":" + "{:02d}".format(seconds)
-                title = reader.metadata("title")
-                if len(title):
-                    strInfo += "\nTitle: " + reader.metadata("title")
+                #title = reader.metadata("title")
+                #if len(title):
+                #    strInfo += "\nTitle: " + reader.metadata("title")
 
                 if (reader.has_video()):
                     strInfo += "\n\nVideo Stream:"
@@ -285,10 +283,12 @@ class FilePanel(QWidget):
         except Exception as ex:
             strInfo = f'Unable to read file info: {ex}'
 
-        msgBox = QMessageBox(self)
-        msgBox.setWindowTitle("File Info")
-        msgBox.setText(strInfo)
-        msgBox.exec()
+        #msgBox = QMessageBox(self)
+        #msgBox.setWindowTitle("File Info")
+        #msgBox.setText(strInfo)
+        #msgBox.exec()
+        self.dlgInfo.lblMessage.setText(strInfo)
+        self.dlgInfo.exec()
 
     def onMenuPlay(self):
         self.mw.filePanel.control.btnPlayClicked()
@@ -297,21 +297,27 @@ class FilePanel(QWidget):
         self.mw.filePanel.control.btnStopClicked()
 
     def fastForward(self):
-        pct = self.progress.sldProgress.value() / 1000
-        if duration := self.progress.duration:
-            interval = 10000 / duration
-            tgt = pct + interval
-            if tgt < 1.0:
-                if player := self.getCurrentlyPlayingFile():
-                    player.seek(tgt)
+        try:
+            pct = self.progress.sldProgress.value() / 1000
+            if duration := self.progress.duration:
+                interval = 10000 / duration
+                tgt = pct + interval
+                if tgt < 1.0:
+                    if player := self.getCurrentlyPlayingFile():
+                        player.seek(tgt)
+        except Exception as ex:
+            logger.error(f"FilePanel fastForward exception: {ex}")
 
     def rewind(self):
-        pct = self.progress.sldProgress.value() / 1000
-        if duration := self.progress.duration:
-            interval = 10000 / duration
-            tgt = max(pct - interval, 0.0)
-            if player := self.getCurrentlyPlayingFile():
-                player.seek(tgt)
+        try:
+            pct = self.progress.sldProgress.value() / 1000
+            if duration := self.progress.duration:
+                interval = 10000 / duration
+                tgt = max(pct - interval, 0.0)
+                if player := self.getCurrentlyPlayingFile():
+                    player.seek(tgt)
+        except Exception as ex:
+            logger.error(f"FilePanel rewind exception: {ex}")
 
     def getCurrentFileURI(self):
         result = None
@@ -324,10 +330,11 @@ class FilePanel(QWidget):
     
     def getCurrentlyPlayingFile(self):
         result = None
-        for player in self.mw.pm.players:
+        self.mw.pm.lock()
+        for player in self.mw.pm.players.values():
             if not player.isCameraStream():
                 result = player
-                break
+        self.mw.pm.unlock()
         return result
             
     def setCurrentFile(self, uri):
@@ -336,8 +343,7 @@ class FilePanel(QWidget):
         self.control.setBtnPlay()
         self.control.setBtnMute()
         self.control.setSldVolume()
-        player = self.mw.pm.getPlayer(uri)
-        if player:
+        if player := self.mw.pm.getPlayer(uri):
             self.onMediaProgress(player.file_progress, uri)
 
     def showEvent(self, event):

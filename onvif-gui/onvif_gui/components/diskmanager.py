@@ -21,16 +21,6 @@ def __repr__(self):
 class DiskManager():
     def __init__(self, mw):
         self.mw = mw
-        self.thread_lock = False
-
-    def lock(self):
-        # the lock protects the players during size calculations *maybe not necessary
-        while self.thread_lock:
-            sleep(0.001)
-        self.thread_lock = True
-
-    def unlock(self):
-        self.thread_lock = False
 
     def list_files(self, directory: str) -> tuple[list[FileInfo], int]:
         total_size = 0
@@ -48,29 +38,9 @@ class DiskManager():
         file_infos.sort(key=lambda x: x.created_time)
         return file_infos, total_size
 
-    def estimateFileSize(self, uri):
-        # duration is in seconds, cameras report bitrate in kbps (usually), result in bytes
-        result = 0
-        bitrate = 0
-        if profile := self.mw.cameraPanel.getProfile(uri):
-            audio_bitrate = max(min(profile.audio_bitrate(), 128), 16)
-            video_bitrate = max(min(profile.bitrate(), 16384), 512)
-            bitrate = video_bitrate + audio_bitrate
-        result = (bitrate * 1000 / 8) * self.mw.STD_FILE_DURATION
-        return result
-
-    def getCommittedSize(self):
-        committed = 0
-        for player in self.mw.pm.players:
-            if player.isRecording():
-                committed += self.estimateFileSize(player.uri) - player.pipeBytesWritten()
-        return committed
-
     def removeAssociatedPictureFiles(self, filename):
         try:
             info = QFileInfo(filename)
-            #alarm_buffer_size = self.mw.settingsPanel.alarm.spnBufferSize.value()
-            #start = info.birthTime().addSecs(-alarm_buffer_size)
             finish = info.lastModified()
             dir = info.absoluteDir().dirName()
             pic_dir = os.path.join(self.mw.settingsPanel.storage.dirPictures.txtDirectory.text(), dir)
@@ -87,25 +57,11 @@ class DiskManager():
         except Exception as ex:
             logger.error(f'Exception occurred during removal of associated picture files: {ex}')
 
-    def getMaximumDirectorySize(self, d):
-        return min(self.mw.settingsPanel.storage.spnDiskLimit.value() * 1_000_000_000, self.getMaximumAvailableForDirectory(d))
-    
-    def getMaximumAvailableForDirectory(self, d):
-        current_size = self.getDirectorySize(d)
-        committed_size = self.getCommittedSize()
-        buffer_size = 10_000_000_000
-        _, _, free = shutil.disk_usage(d)
-        return free + current_size - (committed_size + buffer_size)
-
-    def getDirectorySize(self, d):
-        _, size = self.list_files(d)
-        return size        
-
     def manageDirectory(self, d):
-        self.lock()
+        print("manage directory")
 
         files, size = self.list_files(d)
-        max_size = self.getMaximumDirectorySize(d)
+        max_size = self.mw.settingsPanel.storage.spnDiskLimit.value() * 1_000_000_000
 
         files_to_be_deleted = []
         total = 0
@@ -121,10 +77,9 @@ class DiskManager():
             try:
                 self.removeAssociatedPictureFiles(str(file.path))
                 os.remove(file.path)
-                #logger.debug(f'File has been deleted {file.path}')
             except Exception as ex:
                 logger.error(f'File delete error: {ex}')
                 pass
         
         self.mw.settingsPanel.storage.signals.updateDiskUsage.emit()
-        self.unlock()
+        print("DONE MANAGING DIRECTORY")

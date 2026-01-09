@@ -111,10 +111,10 @@ Windows computers will work well, but do require more computing power to achieve
 
 &nbsp;
 
-Download the [Flatpak installer](https://github.com/sr99622/libonvif/releases/download/v3.1.10/OnvifGUI-3.1.10.flatpak), then open a terminal and navigate to the Downloads folder. Use the following command to install.
+Download the [Flatpak installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/OnvifGUI-3.1.9.flatpak), then open a terminal and navigate to the Downloads folder. Use the following command to install.
 
 ```
-flatpak install OnvifGUI-3.1.10.flatpak
+flatpak install OnvifGUI-3.1.9.flatpak
 ```
 
 The program can then be launched from the Applications menu. To uninstall use the command.
@@ -132,10 +132,10 @@ flatpak uninstall io.github.sr99622.OnvifGUI
 
 &nbsp;
 
-Download the [snap installer](https://github.com/sr99622/libonvif/releases/download/v3.1.10/onvif-gui_3.1.10_amd64.snap), then open a terminal and navigate to the Downloads folder. Use the following command to install.
+Download the [snap installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/onvif-gui_3.1.9_amd64.snap), then open a terminal and navigate to the Downloads folder. Use the following command to install.
 
 ```
-sudo snap install onvif-gui_3.1.10_amd64.snap --dangerous
+sudo snap install onvif-gui_3.1.9_amd64.snap --dangerous
 ```
 
 The program can then be launched from the Applications menu. In order to get audio, you need to connect the pulseaudio driver.
@@ -201,7 +201,7 @@ python3 install-onvif-gui.py -u
 
 An installer is available for Apple Silicon running Mac OS version Sequoia (15).
 
-Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.1.10/OnvifGUI-3.1.10.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. Once the installation is complete, the program can then be started from the Launchpad. To uninstall the program, use Finder to go to the Applications directory, then right click over the icon and select Move to Trash.
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/OnvifGUI-3.1.9.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. Once the installation is complete, the program can then be started from the Launchpad. To uninstall the program, use Finder to go to the Applications directory, then right click over the icon and select Move to Trash.
 
 For other Mac OS versions, please build from source.
 
@@ -221,7 +221,7 @@ For other Mac OS versions, please build from source.
 
 An installer is available for Windows.
 
-Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.1.10/OnvifGUI-installer-3.1.10.exe) and double click on it. You will receive a warning message from the Operating System. Follow the prompts on the screen to install the program. It can be launched from the icon found in the Applications menu. To uninstall the program, go to Settings -> Apps -> Installed Apps and find the icon, then use the three dot button on the right to select action.
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/OnvifGUI-installer-3.1.9.exe) and double click on it. You will receive a warning message from the Operating System. Follow the prompts on the screen to install the program. It can be launched from the icon found in the Applications menu. To uninstall the program, go to Settings -> Apps -> Installed Apps and find the icon, then use the three dot button on the right to select action.
 
 ---
 
@@ -229,9 +229,27 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 
 </details>
 
+<details>
+<summary>NVIDIA GPU</summary>
+
+&nbsp;
+
+The installers for the application are configured for iGPU usage during YOLO operation. By default, Intel processors with iGPU are supported, as well as Mac Silicon. AMD iGPU is not supported, but can run in CPU only mode. If Yolo operation is desired for systems equipped with NVIDIA GPU, an alternate installation method is required. This is due to the large size of the files required for NVIDIA operation. To use the application with NVIDIA GPU on Linux or Windows, create a python virtual environment, then
+
+```
+pip install onvif-gui openvino
+```
+
+Then follow the directions at [PyTorch](https://pytorch.org/get-started/locally/) to complete the installation based on your operating system.
+
+To use an icon with this configuration, please consult the Build From Source instructions.
+
+</details>
+
 &nbsp;
 
 </details>
+
 
 <details>
 
@@ -252,88 +270,235 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 
 * ### Step 1. Install Dependencies
   ```
-  sudo apt install git cmake g++ python3-pip virtualenv libxml2-dev libavdevice-dev libsdl2-dev '^libxcb.*-dev' libxkbcommon-x11-dev
+  sudo apt install git cmake g++ python3-pip virtualenv libxml2-dev libavdevice-dev libsdl2-dev libxcb-cursor-dev
   ```
 
-* ### Step 2. Create Virtual Environment
+  Note: <i>The dependency</i> ```libxcb-cursor-dev``` <i>is needed for X11 platform compatibility. It is optional for Wayland only configuration.</i> 
 
+* ### Step 2. Clone Repository
   ```
-  cd $HOME
-  virtualenv onvif-gui-env
-  source onvif-gui-env/bin/activate
+  git clone --recurse-submodules https://github.com/sr99622/libonvif
+  cd libonvif
+  git submodule update --init --recursive
   ```
 
-* ### Step 3. Clone Repository
+  Note: <i>When updating the repository, using the command</i> ```git pull --recurse-submodules``` <i>will update the submodule directories as well.</i>
 
+* ### Step 3. Create Virtual Environment
   ```
-  git clone --recursive https://github.com/sr99622/libonvif
+  virtualenv env
+  source env/bin/activate
   ```
+
+  Note: <i>The instructions that follow all assume that the Python virtual environment is located in the</i> ```env``` <i>subdirectory of the</i> ```libonvif``` <i>directory, and that the environment has been activated. The commands shown are intended to be run from within the</i> ```libonvif``` <i>directory</i>
 
 * ### Step 4. Install
-
   ```
-  cd libonvif
   assets/scripts/compile
   ```
 
 * ### Step 5. Launch Program
-
   ```
   onvif-gui
   ```
-* ### Step 6. Add Icon
 
+* ### Step 6. Add Icon
   ```
-  deactivate
-  $HOME/onvif-gui-env/bin/onvif-gui --icon
+  sudo env/bin/onvif-gui --icon
   ```
+
+  At this point, the program can be launched by clicking the icon in Applications. See step 8 for more instructions on running from the command line.
+
+* ### Step 7. Add Optional Modules for YoloX
+
+  * #### Pytorch with NVIDIA Drivers
+
+    <b>Please Note:</b> The instructions below will install a recent generic version of PyTorch. In some cases, there may be version specific idiosyncrasies that require a specfic version of PyTorch to match the version of the NVIDIA driver, which can be ascertained using the command ```nvidia-smi```. The installation version matrix can be found at [Getting Started](https://pytorch.org/get-started/locally/).
+    
+    ```
+    pip install torch torchvision
+    ```
+
+  * #### OpenVINO with Intel GPU & NPU drivers
+    ```
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    pip install openvino
+    ```
+
+    [GPU Driver Installation](https://github.com/intel/compute-runtime/releases)
+
+    [NPU Driver Installation](https://github.com/intel/linux-npu-driver/releases)
+
+* ### Step 8. Run onvif-gui from Command Line
+
+  * #### Run installed version
+    ```
+    onvif-gui
+    ```
+  * #### Run from code directly
+    ```
+    python onvif-gui/run.py
+    ```
 
 </details>
 
 <details>
 <summary>Fedora</summary>
 
+<details>
+<summary>Fedora Version 43</summary>
+
 * ### Step 1. Install Dependencies
   ```
-  sudo dnf install cmake g++ libxml2-devel python3-devel python3-pip SDL2-devel virtualenv git
-  sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-  sudo dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-  sudo dnf -y install ffmpeg-devel --allowerasing
+  sudo dnf install cmake g++ libxml2-devel python3.13 python3.13-devel python3-pip SDL2-devel git
+  sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf install ffmpeg-devel --allowerasing
   ```
 
-* ### Step 2. Create Virtual Environment
+* ### Step 2. Clone Repository
+  ```
+  git clone --recurse-submodules https://github.com/sr99622/libonvif
+  cd libonvif
+  git submodule update --init --recursive
+  ```
+
+  Note: <i>When updating the repository, using the command</i> ```git pull --recurse-submodules``` <i>will update the submodule directories as well.</i>
+
+* ### Step 3. Create Virtual Environment
 
   ```
-  cd $HOME
-  virtualenv onvif-gui-env
-  source onvif-gui-env/bin/activate
+  python3.13 -m venv env
+  source env/bin/activate
   ```
 
-* ### Step 3. Clone Repository
-
-  ```
-  git clone --recursive https://github.com/sr99622/libonvif
-  ```
+  Note: <i>The instructions that follow all assume that the Python virtual environment is located in the</i> ```env``` <i>subdirectory of the</i> ```libonvif``` <i>directory, and that the environment has been activated. The commands shown are intended to be run from within the</i> ```libonvif``` <i>directory</i>
 
 * ### Step 4. Install
-
   ```
-  cd libonvif
   assets/scripts/compile
   ```
 
 * ### Step 5. Launch Program
-
   ```
   onvif-gui
   ```
 
 * ### Step 6. Add Icon
+  ```
+  sudo env/bin/onvif-gui --icon
+  ```
 
+  At this point, the program can be launched by clicking the icon in Applications. See step 8 for more instructions on running from the command line.
+
+* ### Step 7. Add Optional Modules for YoloX
+
+  * #### Pytorch with NVIDIA Drivers
+
+    <b>Please Note:</b> The instructions below will install a recent generic version of PyTorch. In some cases, there may be version specific idiosyncrasies that require a specfic version of PyTorch to match the version of the NVIDIA driver, which can be ascertained using the command ```nvidia-smi```. The installation version matrix can be found at [Getting Started](https://pytorch.org/get-started/locally/).
+    
+    ```
+    pip install torch torchvision
+    ```
+
+  * #### OpenVINO with Intel GPU drivers
+    ```
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    pip install openvino
+    sudo dnf install intel-compute-runtime
+    ```
+
+  A reboot after installing these libraries may avoid a crash on the initial run of the program with Yolo enabled.
+
+* ### Step 8. Run onvif-gui from Command Line
+
+  * #### Run installed version
+    ```
+    onvif-gui
+    ```
+  * #### Run from code directly
+    ```
+    python onvif-gui/run.py
+    ```
+</details>
+
+<details>
+<summary>Fedora Version 42 and Earlier</summary>
+
+* ### Step 1. Install Dependencies
   ```
-  deactivate
-  $HOME/onvif-gui-env/bin/onvif-gui --icon
+  sudo dnf install cmake g++ libxml2-devel python3-devel python3-pip SDL2-devel virtualenv git
+  sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+  sudo dnf install ffmpeg-devel --allowerasing
   ```
+
+* ### Step 2. Clone Repository
+  ```
+  git clone --recurse-submodules https://github.com/sr99622/libonvif
+  cd libonvif
+  git submodule update --init --recursive
+  ```
+
+  Note: <i>When updating the repository, using the command</i> ```git pull --recurse-submodules``` <i>will update the submodule directories as well.</i>
+
+* ### Step 3. Create Virtual Environment
+  ```
+  python -m venv env
+  source env/bin/activate
+  ```
+
+  Note: <i>The instructions that follow all assume that the Python virtual environment is located in the</i> ```env``` <i>subdirectory of the</i> ```libonvif``` <i>directory, and that the environment has been activated. The commands shown are intended to be run from within the</i> ```libonvif``` <i>directory</i>
+
+* ### Step 4. Install
+  ```
+  assets/scripts/compile
+  ```
+
+* ### Step 5. Launch Program
+  ```
+  onvif-gui
+  ```
+
+* ### Step 6. Add Icon
+  ```
+  sudo env/bin/onvif-gui --icon
+  ```
+
+  At this point, the program can be launched by clicking the icon in Applications. See step 8 for more instructions on running from the command line.
+
+* ### Step 7. Add Optional Modules for YoloX
+
+  * #### Pytorch with NVIDIA Drivers
+
+    <b>Please Note:</b> The instructions below will install a recent generic version of PyTorch. In some cases, there may be version specific idiosyncrasies that require a specfic version of PyTorch to match the version of the NVIDIA driver, which can be ascertained using the command ```nvidia-smi```. The installation version matrix can be found at [Getting Started](https://pytorch.org/get-started/locally/).
+    
+    ```
+    pip install torch torchvision
+    ```
+
+  * #### OpenVINO with Intel GPU drivers
+    ```
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    pip install openvino
+    sudo dnf install intel-compute-runtime
+    ```
+
+  A reboot after installing these libraries may avoid a crash on the initial run of the program with Yolo enabled.
+
+* ### Step 8. Run onvif-gui from Command Line
+
+  * #### Run installed version
+    ```
+    onvif-gui
+    ```
+  * #### Run from code directly
+    ```
+    python onvif-gui/run.py
+    ```
+</details>
+
+&nbsp;
 
 </details>
 
@@ -345,40 +510,68 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
   sudo pacman -S cmake base-devel ffmpeg
   ```
 
-* ### Step 2. Create Virtual Environment
-
+* ### Step 2. Clone Repository
   ```
-  sudo pacman -S pythonX.XX  # where X.XX is the system python version, which must be 3.10 or higher
-  cd $HOME
-  pythonX.XX -m venv onvif-gui-env
-  source onvif-gui-env/bin/activate
+  git clone --recurse-submodules https://github.com/sr99622/libonvif
+  cd libonvif
+  git submodule update --init --recursive
   ```
 
-* ### Step 3. Clone Repository
+  Note: <i>When updating the repository, using the command</i> ```git pull --recurse-submodules``` <i>will update the submodule directories as well.</i>
 
+* ### Step 3. Create Virtual Environment
   ```
-  git clone --recursive https://github.com/sr99622/libonvif
+  python -m venv env
+  source env/bin/activate
   ```
+
+  Note: <i>The instructions that follow all assume that the Python virtual environment is located in the</i> ```env``` <i>subdirectory of the</i> ```libonvif``` <i>directory, and that the environment has been activated. The commands shown are intended to be run from within the</i> ```libonvif``` <i>directory</i>
 
 * ### Step 4. Install
-
   ```
-  cd libonvif
   assets/scripts/compile
   ```
 
 * ### Step 5. Launch Program
-
   ```
   onvif-gui
   ```
 
 * ### Step 6. Add Icon
+  ```
+  sudo env/bin/onvif-gui --icon
+  ```
 
-  ```
-  deactivate
-  $HOME/onvif-gui-env/bin/onvif-gui --icon
-  ```
+  At this point, the program can be launched by clicking the icon in Applications. See step 8 for more instructions on running from the command line. 
+
+* ### Step 7. Add Optional Modules for YoloX
+
+  * ### Pytorch with NVIDIA Drivers
+
+    <b>Please Note:</b> The instructions below will install a recent generic version of PyTorch. In some cases, there may be version specific idiosyncrasies that require a specfic version of PyTorch to match the version of the NVIDIA driver, which can be ascertained using the command ```nvidia-smi```. The installation version matrix can be found at [Getting Started](https://pytorch.org/get-started/locally/).
+    
+    ```
+    pip install torch torchvision
+    ```
+
+  * ### OpenVINO with Intel GPU drivers
+    ```
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    pip install openvino
+    sudo pacman -S intel-compute-runtime
+    ```
+
+* ### Step 8. Run onvif-gui from Command Line
+
+  * #### Run installed version
+    ```
+    onvif-gui
+    ```
+  * #### Run from code directly
+    ```
+    python onvif-gui/run.py
+    ```
+
 
 </details>
 
@@ -405,7 +598,7 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
   brew install homebrew-ffmpeg/ffmpeg/ffmpeg
   ```
 
-  <i>  Please note that the standard Homebrew core ffmpeg version 7 is incompatible with onvif-gui. For this reason, the install procedure calls for the 3rd party tap [homebrew-ffmpeg](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg). <b>If you already have another version of ffmpeg installed, this will create a conflict.</b> In order to install this version, it is necessary to run </i>```brew uninstall ffmpeg``` <i>before this tap can be installed.</i>
+  <i>  Please note that the standard Homebrew core ffmpeg version is incompatible with onvif-gui. For this reason, the install procedure calls for the 3rd party tap [homebrew-ffmpeg](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg). <b>If you already have another version of ffmpeg installed, this will create a conflict.</b> In order to install this version, it is necessary to run </i>```brew uninstall ffmpeg``` <i>before this tap can be installed.</i>
 
 * ### Step 3. Create Virtual Environment
 
@@ -419,13 +612,14 @@ Download the [installer](https://github.com/sr99622/libonvif/releases/download/v
 * ### Step 4. Clone Repository
 
   ```
-  git clone --recursive https://github.com/sr99622/libonvif
+  git clone --recurse-submodules https://github.com/sr99622/libonvif
+  cd libonvif
+  git submodule update --init --recursive
   ```
 
 * ### Step 5. Compile
 
   ```
-  cd libonvif
   assets/scripts/compile
   ```
 
@@ -467,52 +661,42 @@ In order to build from source on Windows, development tools and python are requi
   python -m venv onvif-gui-env
   onvif-gui-env\Scripts\activate
   ```
-* ### Step 3. Clone Repository
-
-  ```
-  git clone --recursive https://github.com/sr99622/libonvif
-  ```
-
-* ### Step 4. Clone Dependencies
+* ### Step 3. Clone Dependencies
 
   ```
   git clone https://github.com/sr99622/onvif-gui-win-libs
   ```
 
+* ### Step 4. Clone Repository
+
+  ```
+  git clone --recurse-submodules https://github.com/sr99622/libonvif
+  cd libonvif
+  git submodule update --init --recursive
+  ```
+
 * ### Step 5. Set Environment Variables
 
   ```
-  set FFMPEG_INSTALL_DIR=%HOMEPATH%\onvif-gui-win-libs\ffmpeg
-  set SDL2_INSTALL_DIR=%HOMEPATH%\onvif-gui-win-libs\sdl
-  set LIBXML2_INCLUDE_DIRS=%HOMEPATH%\onvif-gui-win-libs\libxml2\include\libxml2
-  set LIBXML2_LIBRARIES=%HOMEPATH%\onvif-gui-win-libs\libxml2\lib\libxml2.lib
+  assets\scripts\components\windows\env_variables
   ```
 
-* ### Step 7. Move to Source Directory
+* ### Step 6. Copy Run Time Libs to Install Path
 
   ```
-  cd libonvif
+  assets\scripts\components\windows\copy_libs
   ```
 
-* ### Step 8. Copy Run Time Libs to Install Path
-
-  ```
-  copy %HOMEPATH%\onvif-gui-win-libs\ffmpeg\bin\*.dll libavio\avio
-  copy %HOMEPATH%\onvif-gui-win-libs\sdl\bin\*.dll libavio\avio
-  copy %HOMEPATH%\onvif-gui-win-libs\libxml2\bin\*.dll libonvif\libonvif
-  ```
-
-* ### Step 9. Install
+* ### Step 7. Install
 
   ```
   assets\scripts\compile
   ```
 
-* ### Step 10. Launch Program
+* ### Step 8. Launch Program
 
   ```
-  cd onvif-gui
-  python run.py
+  python onvif-gui\run.py
   ```
 
 </details>
@@ -520,6 +704,66 @@ In order to build from source on Windows, development tools and python are requi
 ---
 
 &nbsp;
+
+</details>
+
+<details><summary>Firewall Rules</summary>
+
+&nbsp;
+
+Onvif GUI requires network access to communicate with cameras in Stand Alone or Server mode. If the host computer uses a firewall, it may be necessary to enable some communciations ports so that cameras can use the WS-Discovery protocol to announce their presence to the program.
+
+Some Distributions come with ```firewalld``` pre-installed and configured. These commands will work with firewalld and present a common operation that other firewalls will implement in a similar fashion.
+
+The firewalld package in some distributions includes pre-defined services for WS-Discovery which might manage this port automatically. If the service definition exists on your system, you can use the simpler command: 
+
+```
+sudo firewall-cmd --permanent --zone=public --add-service=ws-discovery-client
+sudo firewall-cmd --reload
+```
+
+You can check for available WS-Discovery services with:
+
+```
+firewall-cmd --get-services | grep ws-discovery
+```
+
+To configure the service manually in the event that it is not included in the firewall services package.
+
+To allow inbound traffic with a specific source port (source-port) in firewalld, you must use a rich rule. Standard port rules in firewalld filter traffic based on the destination port, so a more specific rule is needed to inspect the source port. The common use case for source port 3702/UDP is for WS-Discovery (Web Services Dynamic Discovery) protocols. 
+
+Command to Allow Inbound Source Port 3702 
+
+Run the following commands in your terminal to allow inbound UDP traffic from source port 3702 permanently: Add a rich rule to the desired zone (e.g., public) that accepts traffic where the source port is 3702.
+
+
+```
+sudo firewall-cmd --permanent --zone=public --add-rich-rule='rule family="ipv4" source-port port="3702" protocol="udp" accept'
+sudo firewall-cmd --reload
+```
+
+```
+sudo firewall-cmd --zone=public --list-rich-rules
+```
+
+The output should include the rule you just added. 
+
+Onvif GUI in server configuration also requires ports to be opened for Onvif, RTSP and HTTP servers. The following commands should achieve this
+
+```
+sudo firewall-cmd --permanent --add-port=8554/tcp
+sudo firewall-cmd --permanent --add-port=8550/tcp
+sudo firewall-cmd --permanent --add-port=8800/tcp
+sudo firewall-cmd --reload
+```
+
+For client configuration to be able to listen for alarms from the server, open port 8080 on the multicast address 239.255.255.247 using rich rule
+
+```
+sudo firewall-cmd --permanent --zone=public --add-rich-rule='rule family="ipv4" destination address="239.255.255.247" port port="8080" protocol="udp" accept'
+sudo firewall-cmd --reload
+```
+
 </details>
 
 </details>
@@ -549,11 +793,23 @@ Multiple cameras can stream simultaneously. The application will add camera outp
 
 Network conditions, compute load or internal camera issues may cause buffer overflow in the application pipeline. The result may be that packets are dropped, which can degrade the quality of the stream. If packets are being dropped, the camera display will show a yellow border.
 
+<image src="onvif-gui/onvif_gui/resources/play_all.png">
+
+Play All
+
+The play action can be applied to all cameras simultaneously.
+
 <image src="onvif-gui/onvif_gui/resources/stop.png">
 
 Stop
 
 When the camera stream is running, the play button for that camera will change appearance to the stop icon. Clicking the button will stop the stream.  The stream can also be stopped from the camera list by double clicking or typing the enter key.
+
+<image src="onvif-gui/onvif_gui/resources/stop_all.png">
+
+Stop All
+
+The stop action can be applied to all cameras simultaneously.
 
 <image src="onvif-gui/onvif_gui/resources/record.png">
 
@@ -565,17 +821,87 @@ During manually initiated recording, a rotating red colored tick mark will show 
 
 Files created by the application are limited in length to 15 minutes. Recordings that require a longer time will be broken up into several parts that are each 15 minutes long. There will be a slight overlap between files broken up this way corresponding to the length of the Pre Record Buffer setting.
 
+<image src="onvif-gui/onvif_gui/resources/history.png">
+
+File Operations
+
+Picture and Video files generated by the system can be viewed and managed with a built in file browser. See the File Operations section of this document for more details.
+
+<image src="onvif-gui/onvif_gui/resources/snapshot.png">
+
+Snapshot
+
+A snapshot of the currently selected camera cna be saved as jpg file. The snapshot will be named by the system using YYYYMMMDDHHmmSS.jpg format, unless otherwise specified in the file save dialog. The file save dialog can be suppressed using the checkbox labelled "Snapshot File Dlg" on the Settings->General tab. There are two modes under which files may be saved, Local and Remote. The Local mode will use the stream currently displayed and convert that to a picture format. This mode will preserve the aspect ratio of the stream and any artifacts such as AI boxes drawn on the image. The Remote mode will address the camera directly through the network and request a snapshot of the Record Profile for the camera. This will generally be a higher resolution image and may be subject to latency or camera network errors. In the event that the camera fails to deliver the image, the Local mode will be used as a fallback.
+
 <image src="onvif-gui/onvif_gui/resources/apply.png">
 
 Apply
 
 Camera parameters are available on the tabs on the lower right side of the application. Initially, the Apply button will be disabled with a dimmed icon. Once a parameter has been changed, the Apply button will be enabled, which can be used to commit the change to the camera. The camera may re-start the stream in order to make the changes.
 
+<image src="onvif-gui/onvif_gui/resources/full_screen.png">
+
+Full Screen
+
+Toggle the application between full screen and normal mode.
+
 <image src="onvif-gui/onvif_gui/resources/audio.png">
 
 Mute
 
 Camera audio can be controlled from the panel. The mute button can be clicked to mute the audio. The mute button appearance indicates the state of the audio. The volume slider can be used to control the volume. Note that the mute and volume controls are applied to each camera individually.
+
+<image src="onvif-gui/onvif_gui/resources/help.png">
+
+Help
+
+Opens the system web browser to this page.
+
+<h2>Keyboard Bindings</h2>
+
+Many of the above functions can be executed without using the mouse via keyboard bindings. Below is a list of the bindings
+
+<b>Enter</b>
+
+This will start the currently selected camera. If the camera is already running, the Focus window will show with the high resolution camera stream. Please note that the first time the Focus window launches, the application focus will transfer to that window.
+
+<b>Escape</b>
+
+If the Focus window is visible, the Escape key will hide it. If Focus window is not visible, the camera stream is stopped.
+
+<b>Ctl+D</b>
+
+Start Discovery
+
+<b>Ctl+A</b>
+
+Start/Stop all cameras
+
+<b>Ctl+F</b>
+
+Open the File Browser
+
+<b>Ctl+S</b>
+
+Take a snapshot for the currently selected camera if running
+
+<b>Ctl+R</b>
+
+Toggle recording for the currently selected camera if running
+
+<b>F1</b>
+
+Show stream information for a running camera
+
+<b>F2</b>
+
+Rename the currently selected camera
+
+<b>Delete</b>
+
+Remove the currently selected camera from the list. This will remove the camera from the Cached Addresses for discovery. Use broadcast discovery to re-enlist the camera.
+
+
 
 ---
 &nbsp;
@@ -651,11 +977,6 @@ Camera audio can be controlled from the panel. The mute button can be clicked to
 * ### Audio Alarm
  
     This check box enables audio analytic processing for alarm generation. See the section on Audio Panel for reference to audio alarm functions.  Note that the Audio Alarm check box must be selected in order to enable the Audio Panel for that camera. The Apply button is not used for this box. During Alarm condition, a solid red circle will show in the stream display if not recording, or a blinking red circle if the stream is being recorded.
-
-* ### Snapshot
-
-    This button will write a jpeg file of the current camera screen to the directory specified on the Settings Panel.
-
 
 
 </details>
@@ -738,6 +1059,12 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
     In many cases, the audio of the Display Profile will be disabled. By default, audio is disabled for camera streams. This is particulaly relevant when displaying multiple streams, as the audio from multiple cameras playing simultaneously may cause confusion. This checkbox allows the display audio to be disabled while preserving audio on the recorded stream.  
 
+* ### Remote Snapshot Image
+
+  By default, this option is disabled, which means that the system will use the currently playing camera display stream as the source for snapshot images. If the display stream is a low resolution stream, the snapshot will also be the same low resolution. If the Yolo detector is running and the Show Alarms on Display is enabled from Settings -> Alarms, detection boxes shown on the stream will be present on the snapshot image. This may be useful behavior when initially configuring the system when false positive detections are occurring, as the detection boxes will show the origin of the alarm.
+
+  If a high resolution snapshot image is desired, this might be possible depending on the camera capabilities. Most, but not all cameras will expose a high resolution still image source available over the network. Some cameras will provide this capability in the spec, but in practice the image may not be usable. Experimentation is required to determine if the camera output is acceptable. In the event that the camera fails to deliver the image during runtime, the system will fall back to stream image capture. 
+
 * ### Reboot
 
     Click to reboot the camera.
@@ -785,15 +1112,23 @@ Settings pertain to preset selections or current camera position. The arrow butt
 <summary>File Operations</summary>
 &nbsp;
 
-<i>Camera recordings can be viewed from within the application. A playback can be viewed alongside running cameras or in a separate window. Files can be searched for a particular moment in time. A server can share recordings using Samba or NFS so that clients can view previously recorded streams.</i>
+<i>Camera recordings can be viewed from within the application. Files can be searched for a particular moment in time. A server can share recordings using Samba so that Windows, Mac and Linux clients can view previously recorded streams from the server.</i>
+
+<i>Snapshots generated by Yolo alarms or taken manually by the user are automatically linked to existing Video files such that activating play from the Picture panel will show the associated Video file starting at the time at which the snapshot was taken.</i>
+
+<i>Keyboard bindings make file review effortless and responsive so that pictures and relevant videos can be searched and viewed quickly and easily.</i>
 
 ---
 
 &nbsp;
 
-The application maintains a folder for the storage of camera recordings. The folder by default is the OS video storage location, and can be changed using the directory setting at the top of the panel. There is a subfolder for each camera that has previously made recordings in the application. If you are using Onvif GUI as a client, and the server is configured to share files using either Samba or NFS, you can use the shared server folder to access recordings made on the server by navigating with the three dot button. Inside the camera folders are the individual files recorded by the camera. The files are named using a datetime convention which represents the start time of the recording. The recording is prepended in the front by a time interval specified on the Settings -> Alarm panel as Pre-Alarm Buffer Size. The file creation time in the OS represents the end time of the file, which occurs as a result of the file being committed to disk at the conclusion of the recording process.
+The application maintains folders for the storage of camera snapshots and recordings. The folder locations by default are the OS picture and video storage locations, and can be changed using the directory setting at the top of the panel. There is a subfolder for each camera that has previously made pictures or recordings in the application. If you are using Onvif GUI as a client, and the server is configured to share files using Samba, you can use the server shared folder to access recordings made on the server. 
 
-Please note that the initial appearance of the file panel may not display all file info fields, hence the scroll bar at the bottom of the file list. The view can be expanded dragging from left side of the file list panel. For convenience, it is possible to set up a window profile in Settings -> General-> Open New Window for viewing files and expand the file list panel, which will preserve the size of the panel for future use. It is also possible to hide the camera panel so that the file viewer window will open directly into the file panel.
+Inside the camera folders are the individual picture or video files recorded by the camera. The files are named using a datetime convention which represents the time that the snapshot images was taken or the start time of the video recording. Video recordings are prepended by a time interval specified on the Settings -> Alarm panel as Pre-Alarm Buffer Size. This insures that the moments immediately prior to the beginning of the recording are captured.
+
+&nbsp;
+
+<image src="assets/images/picture_panel.png" width="500">
 
 &nbsp;
 
@@ -801,13 +1136,15 @@ Please note that the initial appearance of the file panel may not display all fi
 
 &nbsp;
 
-File playback is configured such that one file is played at a time. Keyboard shortcuts are available for faster navigation. A file may be played along side cameras in the main display if desired, or a separate window profile can be configure on the Settings -> General tab for file viewing. The Hide Camera Panel check box can be useful for this separate window profile for file viewing.
+Double clicking on a picture file will start the associated video playing at the time stamp of the picture. The same action can be started using the Enter key when a picture file is highlighted. In the event that there is not video coverage for the picture timestamp, the playback will fail silently. While a video is playing, using the Escape key will return operation to picture browse mode. Using the up and down arrow keys will traverse the picture directory contents, showing each picture as the selection changes. Folders can be opened and closed using the Enter key. Right clicking over the file will bring up a context menu with various options.
+
+File playback is configured such that one file is played at a time. Keyboard shortcuts are available for faster navigation. Video playback controls are available on either the Picture or Videos panel.
 
 <h3>File Playback Controls For Mouse</h3>
 
-<image src="onvif-gui/onvif_gui/resources/search.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/refresh.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/event.png">
+<image src="onvif-gui/onvif_gui/resources/search.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/refresh.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/snapshot.png">
 
-Search&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Refresh&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Events
+Search&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Refresh&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snapshot
 
 <image src="onvif-gui/onvif_gui/resources/play.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/pause.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/stop.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/previous.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/next.png"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <image src="onvif-gui/onvif_gui/resources/audio.png">
 
@@ -817,7 +1154,7 @@ Play&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pause&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 
 ### Keyboard Shortcuts
 
-Keyboard shortcuts are available when the file list of the File Panel has the application focus. A single click on any file or folder in the list will achieve this focus. Keyboard operations may be significantly faster than using the mouse when browsing through files.
+Keyboard shortcuts are available when the file list of either the Picture Panel or the Video Panel has the application focus. A single click on any file or folder in the list will achieve this focus. Keyboard operations may be significantly faster than using the mouse when browsing through files.
 
 * <h3>Enter</h3>
 
@@ -833,7 +1170,7 @@ Keyboard shortcuts are available when the file list of the File Panel has the ap
     
 * <h3>Delete</h3>
 
-  Files may be deleted by typing the Delete key. Multiple files may be deleted simultaneously by selecting multiple files using the Shift or Control keys while selecting.
+  Files may be deleted by typing the Delete key.
 
 * <h3>F1</h3>
 
@@ -861,7 +1198,7 @@ Keyboard shortcuts are available when the file list of the File Panel has the ap
 
 ### Progress / Seek Indicator
 
-The File Panel has a progress bar that will show the state of the playback. The total duration of the file is shown on the right hand side of the progress bar, and the left hand side will show the current file position which is indicated by the progress bar handle. If the mouse hovers over the bar, the position within the file will be shown above. The seek function will set the file position to the mouse location if the mouse is clicked on the progress bar. Sliding operation is not supported.
+Both File Panels have a progress bar that will show the state of the playback. The total duration of the file is shown on the right hand side of the progress bar, and the left hand side will show the current file position which is indicated by the progress bar handle. If the mouse hovers over the bar, the position within the file will be shown above. The seek function will set the file position to the mouse location if the mouse is clicked on the progress bar. Sliding operation is not supported.
 
 ### Pop Up Menu
 
@@ -938,13 +1275,13 @@ Selecting this check box will cause the application to start in full screen mode
 
 This selection will send a time sync message to each of the cameras once an hour. The camera time is set according to the parameters defined in the Sync Time dialog box described in Camera Parameters shown above.
 
+### Snapshot File Dlg
+
+When selected, a dialog box will appear when a snapshot is requested so that the picture file name can be changed for saving. Deselecting this checkbox will cause the system to automatically accept the generated file name without showing the dialog. Please note that the system uses the automatically generated filename to determine the snapshot time when searching video files, so changing the filename will disable the search functionality.
+
 ### Display Refresh Interval
 
 Performance on some lower powered systems may be improved by increasing the display refresh interval.
-
-### Maximum Input Stream Cache Size
-
-Adjust the maximum number of frames held in the cache before frames are dropped. This is the same cache referred to by the Video Tab of the Camera Panel.
 
 ### Open New Window
 
@@ -965,10 +1302,6 @@ Additional profiles can be added using the three dot button to the right of the 
 New Windows can be configured to show specific groups of cameras, which can be useful if the host computer is driving several monitors such that different groups of cameras are shown on different monitors. The Open button will launch a window with the profile selected in the drop down box. Each profile will have a separate configuration that is set by the user.
 
 It may be useful to create a profile excusively for viewing camera recordings from the File tab. This way the window can be configured with a larger navigation panel showing more complete file information. Additionally, the camera panel can be hidden in this profile so that the window opens directly to the file list.
-
-### Start All / Close All
-
-This button will change appearance depending on whether there are streams playing or not. It can be used to batch control cameras to start or stop as a group. It will start all cameras on the Camera List. It will stop all streams, including files if playing.
 
 ### Show Logs
 
@@ -1037,6 +1370,22 @@ The application has the ability to manage the disk space used by the recorded me
 
   The spin box can be used to limit the application disk usage in GB. Note that the application is conservative in it's estimate of required file size and the actual space occupied by the media files will be a few GB less than the allocated space.
 
+* Archive Directory
+
+  This widget sets the storage location for Video files generated by the system. Note that the location here is independent from the Videos panel of the File browser.
+
+* Picture Directory
+
+  This widget sets the storage location for Picture files generated by the system. Note that the location here is independent from the Pictures panel of the File browser.
+
+### Max File Duration
+
+  Video file duration is limited to this length. This is done so that Video files do not become excessively large. Video files will be padded at the start by the duration configured on the Settings -> Alarm tab Pre-Alarm buffer size, which by default is ten seconds. This insures some overlap between adjacent files so that information is not lost when files are truncated.
+
+### File Write Buffer Size
+
+  File management will remove oldest files based on the total size limit set in the Auto Management field. Because the calculation used by the manager is not exact, an additional buffer space is allocated for safety. The default value should be sufficient, but can be ajusted based on conditions if warranted.
+
 ## Proxy Settings
 
 &nbsp;
@@ -1061,6 +1410,14 @@ The application has the ability to manage the disk space used by the recorded me
   
   The application will host a proxy server and allow other instances of the application configured as clients to connect over the local network to the cameras proxied by the server. The server backend is provided by [Media MTX](https://github.com/bluenviron/mediamtx). The application will download the appropriate binary executable file from the developer github page and copy it to the python environment bin folder. If you prefer to use your own Media MTX binary, the location can be set with the directory control.
 
+  Diagnostic messages from the MediaMTX server may be visible in the terminal if the application is started from the command line. The Log Level selector can be used to tailor the verbosity of the messages.
+
+* HTTP Server
+
+  The application can host links to Video streams that can be accessed using a Web browser. The port number 8800.
+
+* Alarm Broadcasting
+
   Alarm broadcasting by the server can be controlled using the 'Alarm Broadcasting' group box. This function will broadcast a single UDP packet containing the alarm states for all cameras on the server at an interval of once per second. The UDP packet can be received by any machine on the broadcast network.
   
   For server hosts running Windows, broadcasting is limited to the network with the highest priority. The Network combo box in this case will have only one entry which corresponds to the highest priority network. Please see the section in Notes -> Network Priority on Multi Homed Hosts to view instructions on how to set network priority. Linux and Mac OS hosts are able to select the network on which to broadcast alarms.
@@ -1075,11 +1432,11 @@ The application has the ability to manage the disk space used by the recorded me
 
 ### Pre-Alarm Buffer Size
 
-When a camera is recording, this length of media is prepended to the file so that the moments prior to the alarm are preserved. If always recording, or the file length is limited by the system to 15 minutes, this feature will insure that there is a small overlap between adjacent files.
+When a camera is recording, this length of media is prepended to the file so that the moments prior to the alarm are preserved. If always recording, or the file length is limited by the system, this feature will insure that there is a small overlap between adjacent files.
 
 ### Post-Alarm Lag Time
 
-In the case where a camera is configured to record during alarms, this length of time must pass after the cessation of the alarm before the file recording is turned off.  This helps to prevent excessive file creation.
+In the case where a camera is configured to record during alarms, this length of time must pass after the cessation of the alarm before the file recording is turned off.  This helps to prevent excessive file creation. Alarm display and alarm sound functions are affected by this setting as well.
 
 ### Alarm Sounds
 
@@ -1485,9 +1842,9 @@ It is possible for Windows clients to access camera recordings residing on a Lin
 
 * #### Linux Server Configuration
 
-  <h3>Step 1. <b>Set Fixed IP Address</b></h3> The server should have a fixed IP address. This is not completely necessary for system operation, but will prevent mishaps later that can occur if the server address changes. For Ubuntu and similar systems, there is a GUI control dialog that can be used to assign a fixed IP address. The address chosen will depend on the router settings, which will set aside a range of addresses that are available for fixed IP. Usually this will be at the bottom and/or top of the IP range controlled by the router. The router setting that defines these ranges is set by DHCP. Check ahead of time that the desired IP address is not already taken and is available per the router configuration.
+  <h4>Step 1. <b>Set Fixed IP Address</b></h4> The server should have a fixed IP address. This is not completely necessary for system operation, but will prevent mishaps later that can occur if the server address changes. For Ubuntu and similar systems, there is a GUI control dialog that can be used to assign a fixed IP address. The address chosen will depend on the router settings, which will set aside a range of addresses that are available for fixed IP. Usually this will be at the bottom and/or top of the IP range controlled by the router. The router setting that defines these ranges is set by DHCP. Check ahead of time that the desired IP address is not already taken and is available per the router configuration.
 
-  <h3>Step 2. <b>Install and Configure Samba</b></h3> On Ubuntu, the Samba server is installed using the apt command
+  <h4>Step 2. <b>Install and Configure Samba</b></h4> On Ubuntu, the Samba server is installed using the apt command
 
   ```
   sudo apt install samba
@@ -1507,7 +1864,7 @@ It is possible for Windows clients to access camera recordings residing on a Lin
   [global]
     workgroup = WORKGROUP
 
-   [Videos]
+  [Videos]
     comment = Shared Videos Folder
     path = /home/onvif-gui/Videos
     browasble = yes
@@ -1518,15 +1875,21 @@ It is possible for Windows clients to access camera recordings residing on a Lin
     path = /home/onvif-gui/Pictures
     browsable = yes
     read only = yes
+
+  [Documents]
+    comment = Shared Documents Folder
+    path = /home/onvif-gui/Documents
+    browsable = yes
+    read only = no
   ```
 
-  <h3>Step 3. Re-start the Samba service</h3> After changing the configuration file, it is necessary to re-start the service in order to enact the changes made. This should be done any time changes are made to the smb.conf file.
+  <h4>Step 3. Re-start the Samba service</h4> After changing the configuration file, it is necessary to re-start the service in order to enact the changes made. This should be done any time changes are made to the smb.conf file.
 
   ```
   sudo systemctl restart smbd
   ```
   
-  <h3>Step 4. <b>Add User and Set Samba Password</b></h3>
+  <h4>Step 4. <b>Add User and Set Samba Password</b></h4>
 
   The command to add a user is
 
@@ -1621,7 +1984,50 @@ Click the Apple icon in the upper left corner of the screen and select System Se
 
 </details>
 
+<details>
+<summary>Using MacOS as a Server</summary>
+
 &nbsp;
+
+### Introduction
+
+MacOS has a number of qualities that make it desirable as a server platform. It has a capable NPU that can process YOLO models for inference in a very power-efficient manner. It has a good built in DHCP server that can easily be used for the camera network. It has a polished graphical interface capable of driving multiple monitors. It will also run silent in most conditions without creating a lot of fan noise which can be problematic with some systems. 
+
+### Power Management
+
+Apple Silicon is very power efficient, and features have been added to the operating system to further enhance efficiency. These features can have the effect of making the server sleep or get behind in processing video frames that are sent by the cameras. This is undesirable when depending upon the alarm function as the data is not processed in a timely manner. The settings for Energy should be adjusted to disable the low power mode for the device during periods of no user interaction. The setting "Prevent automatic sleeping when the display is off" should be set to on. 
+
+### File Handle Management
+
+The operating system will limit the number of file handles that can be open simoultaneously. These handles are also associated with network socket creation. This has the effect of limiting the number of clients that can connect to the server. In order to increase the number of handles, the ```ulimit``` command can be used.
+
+```
+ulimit -n 8192
+```
+
+This command can be added to the shell resource file, e.g. .zshrc in the user home directory. This will then set the limit for each terminal session as it is opened on a persistent basis.
+
+</details>
+
+<details>
+<summary>File Sharing on Mac OS</summary>
+
+&nbsp;
+
+Open Sharing Settings: Go to the Apple menu > System Settings > General > Sharing (scroll down if needed).
+
+Enable File Sharing: Turn on the toggle for File Sharing.
+
+Configure SMB: Click the info button (i) or Options next to File Sharing.
+
+Turn on SMB Sharing: Check the box for "Share files and folders using SMB".
+
+Select Users: Under "Windows File Sharing," check the box for each user account that needs access and enter their password.
+
+(Optional) Add Folders: In the main Sharing window, use the "+" button to add specific folders to share and set their permissions (read/write for users). 
+
+</details>
+
 
 ---
 
@@ -1935,185 +2341,22 @@ export PATH=$PATH:/usr/sbin
 
 </details>
 
-<details>
-<summary>Docker</summary>
-
-&nbsp;
-
-<i>Docker scripts are included in the project for reference purposes only. Installing the program in a container was not found to produce significant benefits. Docker scripts are not maintained and will probably be removed in a future release.</i>
-
-<details><summary>Install Docker on Linux</summary>
-
-&nbsp;
-
-These instructions are for a simple installation on a clean system of recent vintage. If you are working on a legacy system, upgrading an existing Docker installation or have other special considerations, please refer to the [official Docker instructions](https://docs.docker.com/engine/install). Please note that there are a number of unofficial Docker packages that do not have proper hardware interface and will not work with Onvif GUI. A recent official Docker package is required for proper operation. 
-
-Please note that if you have an NVIDIA GPU, the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) must be installed on top of Docker. You should be aware that the Toolkit has a number of associated bugs that you may encounter. Most of these bugs are well known and you will find many references and suggested fixes of various quality that you can try to get the card operational in a Docker container. Please make sure that you are able to run the [sample workload](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/sample-workload.html) after installing the toolkit. It may be necessary to adjust the Docker run scripts based on the results of troubleshooting efforts on the toolkit.
-
----
-
-<details><summary>Ubuntu</summary>
-
-&nbsp;
-
-Step 0. Remove Existing Packages
-
-<b>Important</b> Some distributions may include unofficial Docker packages. These unoffical packages are unlikely to work with Onvif GUI due to the lack of proper display server protocol handling. Run the following command to uninstall if necessary.
-
-```
-for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
-```
-
-Step 1. Setup Docker <b>apt</b> repository.
-
-```
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-```
-
-Step 2. Install the Docker packages.
-
-```
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-Step 3. Start the Docker service 
-
-```
-sudo service docker start
-```
-
-Step 4. Configure Rootless Mode
-
-```
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-Step 5. Test Installation
-
-```
-docker run hello-world
-```
-
-</details>
-
-<details><summary>Fedora</summary>
-
-&nbsp;
-
-Step 0. Remove Existing Packages
-
-<b>Important</b>  Onvif GUI requires a current official Docker version for operation. If an older or unofficial Docker version is installed, the following error messages may be observed when trying to run the onvif-gui Docker container. 
-
-```
-qt.qpa.xcb: could not connect to display :0
-qt.qpa.plugin: From 6.5.0, xcb-cursor0 or libxcb-cursor0 is needed to load the Qt xcb platform plugin.
-qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
-This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
-
-Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vkkhrdisplay, vnc, wayland-egl, wayland, xcb.
-```
-The current Docker installation can be viewed using the command 
-
-```
-dnf list | grep docker
-```
-
-If this is the case, it is necessary to remove the existing Docker installation and install the current official Docker version. To do this, run the following command to uninstall the default Fedora docker version if necessary.
-
-```
-sudo dnf remove docker*
-```
-
-Step 1. Setup the Repository
-
-```
-sudo dnf -y install dnf-plugins-core
-sudo dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-```
-
-Step 2. Install Docker Engine
-
-```
-sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-Step 3. Start Docker Engine
-
-```
-sudo systemctl enable --now docker
-```
-
-Step 4. Configure Rootless Mode
-
-```
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-Step 5. Test Installation
-
-```
-docker run hello-world
-```
-
-</details>
-
-<details><summary>Rocky Linux</summary>
-
-&nbsp;
-
-Very well explained in the [Documentation](https://docs.rockylinux.org/gemstones/containers/docker/)
-
-</details>
-
----
-
-&nbsp;
-
-</details>
-
-<details>
-<summary>Remove Docker containers and images</summary>
-
-&nbsp;
-
----
-
-```
-docker rm -vf $(docker ps -aq)
-docker rmi -f $(docker images -aq)
-docker system prune -a
-```
-
----
-
-&nbsp;
-
-</details>
-
----
-
-&nbsp;
-
-</details>
 
 <details>
 <summary>Operations</summary>
 
 &nbsp;
+
+<details>
+<summary>Install PyTorch CPU only on linux</summary>
+
+```
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+&nbsp;
+
+</details>
 
 <details>
 <summary>Linux Installation Script</summary>
@@ -2384,6 +2627,13 @@ You should now be able to sign into the folder from an SMB client with the user 
 &nbsp;
 
 ---
+
+It may be necessary to install cifs-utils on the machine. For example on Manjaro Linux, 
+
+```
+sudo pacman -S cifs-utils
+```
+
 Create a Mount Point. Please note that if you installed the application by snap or flatpak, you will not have access to the /mnt directory. The installers create a container environment that limits your access to directories on the host. In this case, you should create another mount point that is accessible from within the application container. 
 
 The application containers only allow connection to Videos and Pictures directories on the host. In this case, the easiest option is to create subdirectories in your Videos and Pictures folders. The mounting process will obscure files on the host system in favor of files on the mounted remote. If you have existing files in the Videos or Pictures folders, or if you need to preserve the location for use by other programs, using subdirectories as the mounting points will let you keep using the Videos and Pictures folders without disrupting other programs.
@@ -2394,39 +2644,46 @@ The examples that follow are based on general mounting instructions, and use the
 sudo mkdir -p <mount_point>
 ```
 
-Mount the share, you can get the uid and gid using the command `id $USER`
+Mount the share, you can get the uid and gid using the command `id $USER`, they are usually both 1000
 ```
 sudo mount -t cifs //<server_ip>/<share_path> <mount_point> -o username=<username>,password=<password>,uid=<user_id>,gid=<group_id>
 ```
 
 Once you are done testing the mount, you can unmount the remote server before setting it up permanently
 ```
-umount <mount_point>
-```
-
-If you are having trouble finding the share, you can use the smb client to query the server
-```
-smbclient -L <server_address>
+sudo umount <mount_point>
 ```
 
 For better security, you should use a credentials file
+
 ```
 sudo nano /root/.smbcredentials
+```
 
+Then add this information to the file
+```
 username=<username>
 password=<password>
 domain=<domain> (if applicable)
+```
 
+Set the access permisions of the file
+```
 sudo chmod 600 /root/.smbcredentials
+```
 
+If you would like to test the credentials file, you can mount 
+```
 sudo mount -t cifs //<server_ip>/<share_path> <mount_point> -o credentials=/root/.smbcredentials,uid=<user_id>,gid=<group_id>
-
 ```
 
 To make the mount persistent, edit the fstab file
 ```
 sudo nano /etc/fstab
+```
 
+Add this content to the file
+```
 //<server_ip>/<share_path> <mount_point> cifs x-systemd.automount,_netdev,credentials=/root/.smbcredentials,uid=<user_id>,gid=<group_id> 0 0
 ```
 
@@ -2504,6 +2761,21 @@ sudo make install
 ```
 
 ---
+
+</details>
+
+<details>
+<summary>Install Onvif GUI on Python 3.14</summary>
+
+&nbsp;
+
+It looks like numpy needs to compile something when installed on Python version 3.14, which is the default on Fedora 43. You can shoehorn it onto the system by installing some packages that numpy uses to compile.
+
+```
+sudo dnf install gcc g++ python3.14-devel
+```
+
+This seems to be a general theme for the time being, as a similar situation exists on Mac OS. In that situation, Xcode tools and Homebrew should be installed so that numpy can compile its libraries.
 
 </details>
 
@@ -2920,6 +3192,8 @@ step 5: export current drawing as an Icon by clicking on File menu and selecting
 &nbsp;
 
 ---
+These are the specs for the icons that appear on the push buttons in the gui.
+
 ```
 Color        State
 
@@ -2933,6 +3207,75 @@ C6D9F2       NORMAL
 ---
 
 &nbsp;
+
+</details>
+
+<details>
+<summary>Install LazyVim on Mint21 Vanessa</summary>
+
+```
+https://github.com/neovim/neovim/releases/download/v0.11.5/nvim-linux-arm64.tar.gz
+tar xzvf nvim-linux-arm64.tar.gz
+```
+
+Change the name to something better and place in a convenient location
+
+To start
+```
+bin/nvim
+```
+
+```
+git clone https://github.com/LazyVim/starter ~/.config/nvim
+```
+
+JetBrains Font
+
+```
+https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.tar.xz
+```
+
+Extract the .ttf files to $HOME/.local/share/fonts
+then run the command
+
+```
+rc-cache -f -v
+```
+
+Then exit the terminal and restart
+
+Install tmux
+
+```
+sudo apt update
+sudo apt install tmux
+```
+
+Change tmux prefix from Ctl+B to Ctl+a
+
+```
+nvim ~/.tmux.conf
+```
+
+```
+unbind C-b
+set-option -g prefix C-a
+bind-key C-a send-prefix
+```
+
+Then using old binding 
+
+```
+Ctl+B :
+```
+
+Then type in the status bar at the bottom
+
+```
+source-file ~/.tmux.conf
+```
+
+and hit Enter
 
 </details>
 
@@ -3908,7 +4251,4 @@ external contributions to this project including patches, pull requests, etc.
 
 &nbsp;
 
-
 </details>
-
-

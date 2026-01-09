@@ -1,5 +1,5 @@
 #********************************************************************
-# libonvif/onvif-gui/onvif_gui/protocols/listen.py
+# onvif-gui/onvif_gui/protocols/listen.py
 #
 # Copyright (c) 2025  Stephen Rhodes
 #
@@ -65,13 +65,11 @@ class ListenProtocols():
         arguments = msg.split("\n\n")
         timestamp = arguments.pop(0)
         if timestamp == self.last_timestamp:
-            #print("DUPLICATE PACKET FOUND")
             return
         
         self.last_timestamp = timestamp
         cmd = arguments.pop(0)
 
         if cmd == "ALARMS":
-            #print("ALARMS", arguments)
             self.mw.alarm_states = arguments
             self.mw.last_alarm = datetime.now()

@@ -126,6 +126,7 @@ public:
                             if (strlen(profile->profileToken) == 0)
                                 break;
                             getStreamUri(profile);
+                            getSnapshotUri(profile);
                             data.profiles.push_back(profile);
                             index++;
                         }

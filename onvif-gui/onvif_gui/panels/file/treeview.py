@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/file/treeview.py 
+# onvif-gui/onvif_gui/panels/file/treeview.py 
 #
 # Copyright (c) 2025  Stephen Rhodes
 #
@@ -37,9 +37,6 @@ class TreeView(QTreeView):
                     fileInfo = self.model().fileInfo(index)
                     if fileInfo.isFile():
                         if self.model().isReadOnly():
-                            for player in self.mw.pm.players:
-                                if not player.isCameraStream():
-                                    self.mw.pm.playerShutdownWait(player.uri)
                             self.mw.filePanel.control.btnPlayClicked()
                     else:
                         if self.isExpanded(index):
@@ -55,6 +52,7 @@ class TreeView(QTreeView):
                         if self.model().isReadOnly():
                             if player := self.mw.filePanel.getCurrentlyPlayingFile():
                                 player.togglePaused()
+                        self.mw.filePanel.control.setBtnPlay()
 
             case Qt.Key.Key_Escape:
                 if self.model().isReadOnly():

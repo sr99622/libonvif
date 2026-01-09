@@ -1,5 +1,5 @@
 #*******************************************************************************
-# libonvif/onvif-gui/onvif_gui/components/directoryselector.py
+# onvif-gui/onvif_gui/components/directoryselector.py
 #
 # Copyright (c) 2023 Stephen Rhodes 
 #

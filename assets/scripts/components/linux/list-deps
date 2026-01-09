@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 /path/to/executable"
+    exit 1
+fi
+
+command -v readelf >/dev/null || { echo "readelf not found"; exit 1; }
+
+binary="$1"
+declare -A seen
+
+# Gather all ldconfig paths
+readarray -t search_paths < <(ldconfig -XNv 2>/dev/null | grep -oP '^\/.*(?=:)' || true)
+
+# Add common fallback paths
+search_paths+=(
+    /lib
+    /lib64
+    /usr/lib
+    /usr/lib64
+    /lib/x86_64-linux-gnu
+    /usr/lib/x86_64-linux-gnu
+    /usr/local/lib
+)
+
+# Resolve a library name to its full path
+resolve_so() {
+    local lib="$1"
+    for dir in "${search_paths[@]}"; do
+        if [[ -e "$dir/$lib" ]]; then
+            echo "$dir/$lib"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Recursively process each binary/library
+process_binary() {
+    local file="$1"
+    [[ -n "${seen[$file]:-}" ]] && return
+    seen["$file"]=1
+    echo "$file"
+
+    local deps
+    deps=$(readelf -d "$file" 2>/dev/null | awk '/NEEDED/ {gsub(/\[|\]/, "", $5); print $5}')
+    for dep in $deps; do
+        local resolved
+        if resolved=$(resolve_so "$dep"); then
+            process_binary "$resolved"
+        else
+            echo "Warning: Could not resolve $dep" >&2
+        fi
+    done
+}
+
+# Run
+process_binary "$binary"

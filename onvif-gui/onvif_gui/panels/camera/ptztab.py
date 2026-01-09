@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/cameras/ptztab.py 
+# onvif-gui/onvif_gui/panels/cameras/ptztab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -92,14 +92,14 @@ class PTZTab(QWidget):
                 camera.onvif_data.preset = n
                 if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                     arg = "SET PRESET\n\n" + camera.onvif_data.toJSON() + "\r\n"
-                    self.cp.mw.client.transmit(arg)
+                    self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
                 else:
                     camera.onvif_data.startSetGotoPreset()
             else:
                 camera.onvif_data.preset = n
                 if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                     arg = "GOTO PRESET\n\n" + camera.onvif_data.toJSON() + "\r\n"
-                    self.cp.mw.client.transmit(arg)
+                    self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
                 else:
                     camera.onvif_data.startSet()
 
@@ -111,7 +111,7 @@ class PTZTab(QWidget):
             camera.onvif_data.z = z
             if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                 arg = "MOVE\n\n" + camera.onvif_data.toJSON() + "\r\n"
-                self.cp.mw.client.transmit(arg)
+                self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
             else:
                 camera.onvif_data.startMove()
 
@@ -121,7 +121,7 @@ class PTZTab(QWidget):
             camera.onvif_data.stop_type = 0
             if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                 arg = "STOP\n\n" + camera.onvif_data.toJSON() + "\r\n"
-                self.cp.mw.client.transmit(arg)
+                self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
             else:
                 camera.onvif_data.startStop()
 
@@ -131,7 +131,7 @@ class PTZTab(QWidget):
             camera.onvif_data.stop_type = 1
             if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                 arg = "STOP\n\n" + camera.onvif_data.toJSON() + "\r\n"
-                self.cp.mw.client.transmit(arg)
+                self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
             else:
                 camera.onvif_data.startStop()
 

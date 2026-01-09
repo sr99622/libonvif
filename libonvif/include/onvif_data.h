@@ -62,6 +62,9 @@ public:
     int displayProfile = 0;
     bool failedLogin = false;
 
+    // sorry about this, there's some wierd bug in windows that won't let me use the user_data set up in onvif.h
+    std::string m_user_data;
+
     std::vector<Data> profiles;
 
     Data() 
@@ -88,6 +91,7 @@ public:
         copyData(data, other.data);
         cancelled = other.cancelled;
         alias = other.alias;
+        m_user_data = other.m_user_data;
         preset = other.preset;
         stop_type = other.stop_type;
         synchronizeTime = other.synchronizeTime;
@@ -103,6 +107,7 @@ public:
         other.data = nullptr;
         cancelled = other.cancelled;
         alias = other.alias;
+        m_user_data = other.m_user_data;
         preset = other.preset;
         stop_type = other.stop_type;
         synchronizeTime = other.synchronizeTime;
@@ -118,6 +123,7 @@ public:
         copyData(data, other.data);
         cancelled = other.cancelled;
         alias = other.alias;
+        m_user_data = other.m_user_data;
         preset = other.preset;
         stop_type = other.stop_type;
         synchronizeTime = other.synchronizeTime;
@@ -134,6 +140,7 @@ public:
         data = other.data;
         cancelled = other.cancelled;
         alias = other.alias;
+        m_user_data = other.m_user_data;
         other.data = nullptr;
         preset = other.preset;
         stop_type = other.stop_type;
@@ -579,6 +586,7 @@ public:
                         if (profile.profile().length() == 0)
                             break;
                         getStreamUri(profile.data);
+                        getSnapshotUri(profile.data);
                         profiles.push_back(profile);
                         index++;
                     }
@@ -668,10 +676,16 @@ public:
     std::string camera_name() { return data->camera_name; } const
     void setCameraName(const std::string& arg) { strcpy(data->camera_name, arg.c_str()); }
     void setHost(const std::string& arg) { strcpy(data->host, arg.c_str()); }
-    std::string last_error() { return data->last_error; } const
     std::string profile() { return data->profileToken; } const
+
+    // was supposed to be like other string values from onvif.h, but windows problems
+    std::string user_data() { return m_user_data; } const
+    void setUserData(const std::string& arg) { m_user_data = arg; }
+
+    std::string last_error() { return data->last_error; } const
     void clearLastError() { memset(data->last_error, 0, 1024); }
     void setLastError(const std::string& arg) { strcpy(data->last_error, arg.c_str()); }
+
     time_t time_offset() { return data->time_offset; } const
     void setTimeOffset(time_t arg) { data->time_offset = arg; }
     std::string timezone() { return data->timezone; } const
@@ -973,6 +987,8 @@ public:
         w.String(data->password);
         w.Key("stream_uri");
         w.String(data->stream_uri);
+        w.Key("snapshot_uri");
+        w.String(data->snapshot_uri);
         w.Key("camera_name");
         w.String(data->camera_name);
         w.Key("serial_number");
@@ -983,6 +999,8 @@ public:
         w.String(data->host);
         w.Key("last_error");
         w.String(data->last_error);
+        w.Key("user_data");
+        w.String(m_user_data.c_str());
         w.Key("time_offset");
         w.Int(data->time_offset);
         w.Key("datetimetype");
@@ -1185,9 +1203,12 @@ public:
         if (key == "username") strncpy(data->username, str, length);
         if (key == "password") strncpy(data->password, str, length);
         if (key == "stream_uri") strncpy(data->stream_uri, str, length);
+        if (key == "snapshot_uri") strncpy(data->snapshot_uri, str, length);
         if (key == "camera_name") strncpy(data->camera_name, str, length);
         if (key == "serial_number") strncpy(data->serial_number, str, length);
         if (key == "host_name") strncpy(data->host_name, str, length);
+        //if (key == "user_data") strncpy(data->user_data, str, length);
+        if (key == "user_data") m_user_data = str;
         if (key == "host") strncpy(data->host, str, length);
         if (key == "last_error") strncpy(data->last_error, str, length);
         if (key == "timezone") strncpy(data->timezone, str, length);

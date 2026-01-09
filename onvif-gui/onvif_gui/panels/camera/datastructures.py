@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/cameras/datastructures.py 
+# onvif-gui/onvif_gui/panels/cameras/datastructures.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -22,7 +22,9 @@ from PyQt6.QtCore import Qt, pyqtSignal, QObject, QTimer
 from PyQt6.QtGui import QIcon, QColor
 import libonvif as onvif
 from onvif_gui.panels.camera.systemtab import SystemTabSettings
-from onvif_gui.enums import ProxyType, StreamState
+#from onvif_gui.panels.video.modules.common.yolosettings import YoloSettings
+from onvif_gui.panels.video.modules.settings import VideoModelSettings
+from onvif_gui.enums import ProxyType, StreamState, SnapshotAuth
 from loguru import logger
 
 class SessionSignals(QObject):
@@ -77,7 +79,11 @@ class Camera(QListWidgetItem):
 
         self.assignData(onvif_data)
 
-        self.videoModelSettings = None
+        module_name = "yolox"
+        #if self.mw.videoPanel:
+        #module_name = self.mw.videoPanel.panel.module_name    
+
+        self.videoModelSettings = VideoModelSettings(self.mw, self, module_name)
         self.audioModelSettings = None
         self.systemTabSettings = SystemTabSettings(self.mw, self)
         self.manual_recording = False
@@ -87,6 +93,8 @@ class Camera(QListWidgetItem):
         self.volume = self.getVolume()
         self.muteKey = f'{self.serial_number()}/Mute'
         self.mute = self.getMute()
+        self.snapshotAuthKey = f'{self.serial_number()}/SnapshotAuth'
+        self.snapshotAuth = self.getSnapshotAuth()
 
     def assignData(self, data):
         self.onvif_data = data
@@ -139,6 +147,13 @@ class Camera(QListWidgetItem):
         self.volume = volume
         self.mw.settings.setValue(self.volumeKey, volume)
 
+    def getSnapshotAuth(self):
+        return self.mw.settings.value(self.snapshotAuthKey, SnapshotAuth.UNKNOWN)
+
+    def setSnapshotAuth(self, auth):
+        self.snapshotAuth = auth
+        self.mw.settings.setValue(self.snapshotAuthKey, auth)
+
     def isRunning(self):
         result = False
         players = self.mw.pm.getStreamPairPlayers(self.uri())
@@ -165,11 +180,9 @@ class Camera(QListWidgetItem):
     def isCurrent(self):
         result = False
         for profile in self.profiles:
-            #if profile.uri() == self.mw.glWidget.focused_uri:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                #if player.uri == self.mw.glWidget.focused_uri:
-                if camera.getProfile(profile.uri()):
-                    result = True
+            camera = self.mw.cameraPanel.getCurrentCamera()
+            if camera.getProfile(profile.uri()):
+                result = True
         return result
 
     def editing(self):
@@ -205,10 +218,8 @@ class Camera(QListWidgetItem):
         result = StreamState.INVALID
         if len(self.profiles) <= index:
             return result
-        profile = self.profiles[index]
-        if profile:
-            player = self.mw.pm.getPlayer(profile.uri())
-            if player:
+        if profile := self.profiles[index]:
+            if player := self.mw.pm.getPlayer(profile.uri()):
                 if player.image:
                     result = StreamState.CONNECTED
                 else:
@@ -216,8 +227,7 @@ class Camera(QListWidgetItem):
             else:
                 result = StreamState.IDLE
 
-            timer = self.mw.timers.get(profile.uri(), None)
-            if timer:
+            if timer := self.mw.timers.get(profile.uri()):
                 if timer.isActive():
                     result = StreamState.CONNECTING
         return result

@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/settings/alarm.py 
+# onvif-gui/onvif_gui/panels/settings/alarm.py 
 #
 # Copyright (c) 2024  Stephen Rhodes
 #

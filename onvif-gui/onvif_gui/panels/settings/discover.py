@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/settings/discover.py 
+# onvif-gui/onvif_gui/panels/settings/discover.py 
 #
 # Copyright (c) 2024  Stephen Rhodes
 #
@@ -167,8 +167,6 @@ class DiscoverOptions(QWidget):
             data.getCredential = self.mw.cameraPanel.getCredential
             data.setXAddrs(xaddrs)
             data.alias = ip_address
-            #data.setDeviceService("POST /onvif/device_service HTTP/1.1\r\n")
-            #data.setDeviceService(xaddrs)
             data.manual_fill()
             if self.mw.settingsPanel.proxy == ProxyType.SERVER:
                 self.mw.settingsPanel.proxy.setMediaMTXProxies()

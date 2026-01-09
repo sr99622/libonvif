@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=2.5.4
-Name=Onvif GUI
-Comment=Onvif Camera System
-Exec=/home/stephen/source/libonvif/assets/docker/ubuntu-base/onvif-gui.sh
-Terminal=true
-Icon=/home/stephen/source/libonvif/onvif-gui/onvif_gui/resources/onvif-gui.png
-Type=Application
-Categories=Application;Network

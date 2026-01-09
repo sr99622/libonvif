@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/panels/video/modules/motion.py 
+# onvif-gui/panels/video/modules/motion.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -20,33 +20,13 @@
 import math
 import numpy as np
 import cv2
-import os
-from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QCheckBox, QGroupBox, QLabel
+from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QGroupBox, QLabel
 from PyQt6.QtCore import Qt
 from loguru import logger
 from onvif_gui.components import WarningBar, Indicator
-from onvif_gui.enums import MediaSource
+from onvif_gui.panels.video.modules.settings import VideoModelSettings
 
 MODULE_NAME = "motion"
-
-class MotionSettings():
-    def __init__(self, mw, camera=None):
-        self.camera = camera
-        self.mw = mw
-        self.id = "File"
-        if camera:
-            self.id = camera.serial_number()
-        self.show = False
-        self.gain = self.getModelOutputGain()
-
-    def getModelOutputGain(self):
-        key = f'{self.id}/{MODULE_NAME}/MotionGain'
-        return int(self.mw.settings.value(key, 50))
-    
-    def setModelOutputGain(self, value):
-        key = f'{self.id}/{MODULE_NAME}/MotionGain'
-        self.gain = value
-        self.mw.settings.setValue(key, value)
 
 class VideoConfigure(QWidget):
     def __init__(self, mw):
@@ -55,10 +35,9 @@ class VideoConfigure(QWidget):
             self.mw = mw
             self.name = MODULE_NAME
             self.source = None
-            self.media = None
+            self.camera = None
             self.initialized = False
             
-            self.chkShow = QCheckBox("Show Diff Image")
             self.barLevel = WarningBar()
             self.indAlarm = Indicator(self.mw)
             self.sldGain = QSlider(Qt.Orientation.Vertical)
@@ -76,9 +55,8 @@ class VideoConfigure(QWidget):
             lytSlide.setRowStretch(1, 10)
             
             lytMain = QGridLayout(self)
-            lytMain.addWidget(self.chkShow,  0, 0, 1, 1)
-            lytMain.addWidget(grpSlide,      0, 1, 1, 1)
-            lytMain.addWidget(QLabel(),      1, 0, 1, 2)
+            lytMain.addWidget(grpSlide,      0, 0, 1, 1)
+            lytMain.addWidget(QLabel(),      1, 0, 1, 1)
 
             self.enableControls(False)
             if camera := self.mw.cameraPanel.getCurrentCamera():
@@ -92,31 +70,24 @@ class VideoConfigure(QWidget):
             logger.exception("sample configuration failed to load")
 
     def sldGainValueChanged(self, value):
-        match self.source:
-            case MediaSource.CAMERA:
-                camera = self.mw.cameraPanel.getCurrentCamera()
-                if camera:
-                    camera.videoModelSettings.setModelOutputGain(value)
-            case MediaSource.FILE:
-                self.mw.filePanel.videoModelSettings.setModelOutputGain(value)
+        if camera := self.mw.cameraPanel.getCurrentCamera():
+            camera.videoModelSettings.setModelOutputGain(value)
 
     def setCamera(self, camera):
-        self.source = MediaSource.CAMERA
-        self.media = camera
-        if camera:
-            if not self.isModelSettings(camera.videoModelSettings):
-                camera.videoModelSettings = MotionSettings(self.mw, camera)
-            self.mw.videoPanel.lblCamera.setText(f'Camera - {camera.name()}')
-            self.sldGain.setValue(camera.videoModelSettings.gain)
-            self.barLevel.setLevel(0)
-            self.indAlarm.setState(0)
-            profile = self.mw.cameraPanel.getProfile(camera.uri())
-            if profile:
-                self.enableControls(profile.getAnalyzeVideo())
+        if not camera:
+            return
+        
+        self.camera = camera
+        if camera.videoModelSettings.module_name != MODULE_NAME:
+            camera.videoModelSettings = VideoModelSettings(self.mw, camera, "motion")
+        self.mw.videoPanel.lblCamera.setText(f'Camera - {camera.name()}')
+        self.sldGain.setValue(camera.videoModelSettings.gain)
+        self.barLevel.setLevel(0)
+        self.indAlarm.setState(0)
+        profile = self.mw.cameraPanel.getProfile(camera.uri())
+        if profile:
+            self.enableControls(profile.getAnalyzeVideo())
 
-    def isModelSettings(self, arg):
-        return type(arg) == MotionSettings
-    
     def enableControls(self, state):
         self.setEnabled(bool(state))
 
@@ -133,29 +104,29 @@ class VideoWorker:
         except:
             logger.exception("sample worker failed to load")
 
-    def __call__(self, F, player):
+    def __call__(self, F, uri):
         try:
             if not self.mw.videoConfigure:
                 return
 
-            if not F or not player or self.mw.videoConfigure.name != MODULE_NAME:
+            player = self.mw.pm.getPlayer(uri)
+            if not player:
+                return
+            
+            camera = self.mw.cameraPanel.getCamera(uri)
+            if not camera:
+                return
+
+            if not len(F) or not player or self.mw.videoConfigure.name != MODULE_NAME:
                 self.mw.videoConfigure.barLevel.setLevel(0)
                 self.mw.videoConfigure.indAlarm.setState(0)
                 return
+            
+            if camera.videoModelSettings.module_name != MODULE_NAME:
+                camera.videoModelSettings = VideoModelSettings(self.mw, camera, MODULE_NAME)
 
             img = np.array(F, copy = False)
             img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-            if not self.mw.videoConfigure.isModelSettings(player.videoModelSettings):
-                if player.isCameraStream():
-                    camera = self.mw.cameraPanel.getCamera(player.uri)
-                    if camera:
-                        if not self.mw.videoConfigure.isModelSettings(camera.videoModelSettings):
-                            camera.videoModelSettings = MotionSettings(self.mw, camera)
-                        player.videoModelSettings = camera.videoModelSettings
-
-            if not player.videoModelSettings:
-                raise Exception("Unable to set video model parameters for player")
 
             level = 0
             diff = img
@@ -167,7 +138,7 @@ class VideoWorker:
                 diff = cv2.morphologyEx(diff, cv2.MORPH_CLOSE, self.kernel, iterations=1)
 
                 motion = diff.sum() / (diff.shape[0] * diff.shape[1])
-                level = math.exp(0.2 * (player.videoModelSettings.gain - 50)) * motion
+                level = math.exp(0.2 * (camera.videoModelSettings.gain - 50)) * motion
 
             player.last_image = img
 
@@ -177,9 +148,6 @@ class VideoWorker:
                 self.mw.videoConfigure.barLevel.setLevel(level)
                 if alarmState:
                     self.mw.videoConfigure.indAlarm.setState(1)
-
-                if self.mw.videoConfigure.chkShow.isChecked():
-                    return diff
 
             player.handleAlarm(alarmState)
 

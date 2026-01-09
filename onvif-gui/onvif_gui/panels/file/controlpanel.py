@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/file/controlpanel.py 
+# onvif-gui/onvif_gui/panels/file/controlpanel.py 
 #
 # Copyright (c) 2025  Stephen Rhodes
 #
@@ -19,40 +19,39 @@
 
 import os
 from PyQt6.QtWidgets import QPushButton, QGridLayout, \
-    QWidget, QSlider, QCheckBox
-from PyQt6.QtCore import Qt
+    QWidget, QSlider, QFileDialog, QMessageBox
+from PyQt6.QtCore import Qt, QStandardPaths
 import sys
+import platform
+from datetime import datetime
+from loguru import logger
+from pathlib import Path
 from time import sleep
 from .searchdialog import FileSearchDialog
-from .pictures import PictureDialog
 
 class FileControlPanel(QWidget):
-    def __init__(self, mw):
+    def __init__(self, mw, panel):
         super().__init__()
         self.mw = mw
+        self.panel = panel
         self.hideCameraKey = "filePanel/hideCameraPanel"
 
         self.dlgSearch = FileSearchDialog(self.mw)
-        self.dlgPicture = PictureDialog(self.mw)
 
         self.btnSearch = QPushButton()
         self.btnSearch.setStyleSheet(self.getButtonStyle("search"))
         self.btnSearch.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnSearch.clicked.connect(self.btnSearchClicked)
 
-        self.btnPictures = QPushButton()
-        self.btnPictures.setStyleSheet(self.getButtonStyle("event"))
-        self.btnPictures.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.btnPictures.clicked.connect(self.btnPicturesClicked)
+        self.btnSnapshot = QPushButton()
+        self.btnSnapshot.setStyleSheet(self.getButtonStyle("snapshot"))
+        self.btnSnapshot.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.btnSnapshot.clicked.connect(self.btnSnapshotClicked)
 
         self.btnRefresh = QPushButton()
         self.btnRefresh.setStyleSheet(self.getButtonStyle("refresh"))
         self.btnRefresh.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btnRefresh.clicked.connect(self.btnRefreshClicked)
-
-        self.chkHideCameras = QCheckBox("Hide Camera Functions")
-        self.chkHideCameras.setChecked(bool(int(self.mw.settings.value(self.hideCameraKey, 0))))
-        self.chkHideCameras.stateChanged.connect(self.chkHideCamerasChecked)
 
         self.btnPlay = QPushButton()
         self.btnPlay.setStyleSheet(self.getButtonStyle("play"))
@@ -87,8 +86,7 @@ class FileControlPanel(QWidget):
         lytMain =  QGridLayout(self)
         lytMain.addWidget(self.btnSearch,       0, 0, 1, 1)
         lytMain.addWidget(self.btnRefresh,      0, 1, 1, 1)
-        lytMain.addWidget(self.btnPictures,     0, 2, 1 ,1)
-        lytMain.addWidget(self.chkHideCameras,  0, 3, 1, 3)
+        lytMain.addWidget(self.btnSnapshot,     0, 2, 1, 1)
         lytMain.addWidget(self.btnPrevious,     1, 0, 1, 1)
         lytMain.addWidget(self.btnPlay,         1, 1, 1, 1)
         lytMain.addWidget(self.btnNext,         1, 2, 1, 1)
@@ -99,29 +97,23 @@ class FileControlPanel(QWidget):
         lytMain.setContentsMargins(0, 0, 0, 0)
 
     def btnStopClicked(self):
-        for player in self.mw.pm.players:
-            if not player.isCameraStream():
-                player.requestShutdown()
+        self.mw.closeAnyPlayingFiles()
         self.setBtnPlay()
 
     def btnPlayClicked(self):
-        self.startPlayer()
+        if type(self.panel).__name__ == "FilePanel":
+            self.startPlayer()
+        else:
+            self.mw.picturePanel.playVideo()
 
     def startPlayer(self, file_start_from_seek=-1.0):
-        for player in self.mw.pm.players:
-            if not player.isCameraStream():
-                if player.uri != self.mw.filePanel.getCurrentFileURI():
-                    self.mw.pm.playerShutdownWait(player.uri)
-
-        found = False
-        for player in self.mw.pm.players:
-            if player.uri == self.mw.filePanel.getCurrentFileURI():
-                found = True
-                player.togglePaused()
-        if not found:
-            if uri := self.mw.filePanel.getCurrentFileURI():
-                self.mw.playMedia(uri, file_start_from_seek=file_start_from_seek)
-                self.mw.glWidget.focused_uri = uri
+        uri = self.mw.filePanel.getCurrentFileURI()
+        if player := self.mw.pm.getPlayer(uri):
+            player.togglePaused()
+        else:
+            self.mw.closeAnyPlayingFiles()
+            self.mw.playMedia(uri, file_start_from_seek=file_start_from_seek)
+            if uri: self.mw.glWidget.focused_uri = uri
 
         self.setBtnPlay()
 
@@ -145,25 +137,28 @@ class FileControlPanel(QWidget):
             self.btnMute.setStyleSheet(self.getButtonStyle("audio"))
 
     def btnPreviousClicked(self):
-        tree = self.mw.filePanel.tree
+        if type(self.panel).__name__ == "FilePanel":
+            tree = self.mw.filePanel.tree
+        else:
+            tree = self.mw.picturePanel.tree
         index = tree.currentIndex()
         if index.isValid():
             prevIndex = tree.indexAbove(index)
             if prevIndex.isValid():
                 tree.setCurrentIndex(prevIndex)
                 tree.scrollTo(prevIndex)
-
-                for player in self.mw.pm.players:
-                    if not player.isCameraStream():
-                        self.mw.pm.playerShutdownWait(player.uri)
-                
-                if tree.model().fileInfo(prevIndex).isFile():
-                    uri = tree.model().fileInfo(prevIndex).filePath()
-                    self.mw.playMedia(uri)
-                    self.mw.glWidget.focused_uri = uri
+                if type(self.panel).__name__ == "FilePanel":
+                    self.mw.closeAnyPlayingFiles()                
+                    if tree.model().fileInfo(prevIndex).isFile():
+                        uri = tree.model().fileInfo(prevIndex).filePath()
+                        self.mw.playMedia(uri)
+                        self.mw.glWidget.focused_uri = uri
 
     def btnNextClicked(self):
-        tree = self.mw.filePanel.tree
+        if type(self.panel).__name__ == "FilePanel":
+            tree = self.mw.filePanel.tree
+        else:
+            tree = self.mw.picturePanel.tree
         index = tree.currentIndex()
         if index.isValid():
             fileInfo = tree.model().fileInfo(index)
@@ -176,16 +171,13 @@ class FileControlPanel(QWidget):
             if nextIndex.isValid():
                 tree.setCurrentIndex(nextIndex)
                 tree.scrollTo(nextIndex)
-
-                for player in self.mw.pm.players:
-                    if not player.isCameraStream():
-                        self.mw.pm.playerShutdownWait(player.uri)
-
-                if tree.model().fileInfo(nextIndex).isFile():
-                    uri = tree.model().fileInfo(nextIndex).filePath()
-                    if uri:
-                        self.mw.playMedia(uri)
-                        self.mw.glWidget.focused_uri = uri
+                if type(self.panel).__name__ == "FilePanel":
+                    self.mw.closeAnyPlayingFiles()
+                    if tree.model().fileInfo(nextIndex).isFile():
+                        uri = tree.model().fileInfo(nextIndex).filePath()
+                        if uri:
+                            self.mw.playMedia(uri)
+                            self.mw.glWidget.focused_uri = uri
 
     def btnSearchClicked(self):
         camera_names = []
@@ -211,24 +203,30 @@ class FileControlPanel(QWidget):
             self.dlgSearch.move(x, y)
         self.dlgSearch.show()
 
-    def btnPicturesClicked(self):
-        self.dlgPicture.show()
-
     def btnRefreshClicked(self):
-        self.mw.filePanel.refresh()
+        self.panel.refresh()
 
-    def chkHideCamerasChecked(self, state):
-        self.mw.settings.setValue(self.hideCameraKey, state)
-        if state:
-            self.mw.tab.removeTab(4)
-            self.mw.tab.removeTab(3)
-            self.mw.tab.removeTab(2)
-            self.mw.tab.removeTab(0)
-        else:
-            self.mw.tab.insertTab(0, self.mw.cameraPanel, "Cameras")
-            self.mw.tab.insertTab(2, self.mw.settingsPanel, "Settings")
-            self.mw.tab.insertTab(3, self.mw.videoPanel, "Video")
-            self.mw.tab.insertTab(4, self.mw.audioPanel, "Audio")
+    def btnSnapshotClicked(self):
+        try:
+            if player := self.mw.filePanel.getCurrentlyPlayingFile():
+                picture_dir = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.PicturesLocation)[0]
+                filename = '{0:%Y%m%d%H%M%S.jpg}'.format(datetime.now())
+                filepath = Path(picture_dir) / filename
+                if platform.system() == "Linux":
+                    filename = QFileDialog.getSaveFileName(self, "Save File As", str(filepath), options=QFileDialog.Option.DontUseNativeDialog)[0]
+                else:
+                    filename = QFileDialog.getSaveFileName(self, "Save File As", str(filepath))[0]
+
+                answer = QMessageBox.StandardButton.Yes
+                if not filename.endswith(".jpg"):
+                    filename += ".jpg"
+                    if Path(filename).is_file():
+                        answer = QMessageBox.question(self.mw, "File Exists", "You are about to overwrite an existing file, are you sure you wnat to do this?")
+                if answer == QMessageBox.StandardButton.Yes:
+                    player.image.save(filename)
+                    logger.debug(f'Snapshot saved as {filename}')
+        except Exception as ex:
+            logger.error(f"ControlPanel btnSnapshotClicked exception: {ex}")
 
     def sldVolumeChanged(self, value):
         self.mw.filePanel.setVolume(value)
@@ -236,12 +234,7 @@ class FileControlPanel(QWidget):
             player.setVolume(value)
 
     def setSldVolume(self):
-        volume = 80
-        if player := self.mw.filePanel.getCurrentlyPlayingFile():
-            volume = player.getVolume()
-        else:
-            volume = self.mw.filePanel.getVolume()
-        self.sldVolume.setValue(volume)
+        self.sldVolume.setValue(self.mw.filePanel.getVolume())
 
     def getButtonStyle(self, name):
         strStyle = "QPushButton { image : url(image:%1.png); } QPushButton:hover { image : url(image:%1_hi.png); } QPushButton:pressed { image : url(image:%1_lo.png); }"

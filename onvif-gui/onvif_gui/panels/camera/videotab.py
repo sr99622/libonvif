@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/cameras/videotab.py 
+# onvif-gui/onvif_gui/panels/cameras/videotab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -94,14 +94,10 @@ class VideoTab(QWidget):
         self.cmbSampleRates.setMaximumWidth(50)
         self.lblSampleRates = QLabel("Samples")
 
-        #self.chkSyncAudio = QCheckBox("Sync Audio")
-        #self.chkSyncAudio.clicked.connect(self.chkSyncAudioChecked)
-        #self.chkSyncAudio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
-        self.btnSnapshot = QPushButton("Snapshot")
-        self.btnSnapshot.clicked.connect(self.btnSnapshotClicked)
-        self.btnSnapshot.setEnabled(False)
-        self.btnSnapshot.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        #self.btnSnapshot = QPushButton("Snapshot")
+        #self.btnSnapshot.clicked.connect(self.btnSnapshotClicked)
+        #self.btnSnapshot.setEnabled(False)
+        #self.btnSnapshot.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         pnlRow1 = QWidget()
         lytRow1 = QGridLayout(pnlRow1)
@@ -147,7 +143,7 @@ class VideoTab(QWidget):
         pnlRow5 = QWidget()
         lytRow5 = QGridLayout(pnlRow5)
         lytRow5.addWidget(self.chkAnalyzeVideo,  0, 0, 1, 1)
-        lytRow5.addWidget(self.btnSnapshot,      0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        #lytRow5.addWidget(self.btnSnapshot,      0, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytRow5.addWidget(QLabel("       "),     0, 2, 1, 1)
         lytRow5.addWidget(self.chkAnalyzeAudio,  0, 3, 1, 1)
         lytRow5.setColumnStretch(0, 10)
@@ -262,7 +258,7 @@ class VideoTab(QWidget):
                 onvif_data.setBitrate(self.spnBitrate.value())
                 if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                     arg = "UPDATE VIDEO\n\n" + onvif_data.toJSON() + "\r\n"
-                    self.cp.mw.client.transmit(arg)
+                    self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
                 else:
                     onvif_data.startUpdateVideo()
             if self.audioChanged:
@@ -270,7 +266,7 @@ class VideoTab(QWidget):
                 onvif_data.setAudioSampleRate(int(self.cmbSampleRates.currentText()))
                 if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                     arg = "UPDATE AUDIO\n\n" + onvif_data.toJSON() + "\r\n"
-                    self.cp.mw.client.transmit(arg)
+                    self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
                 else:
                     onvif_data.startUpdateAudio()
 
@@ -288,7 +284,6 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(True)
                 self.lblSampleRates.setEnabled(True)
                 self.chkAnalyzeAudio.setEnabled(True)
-                #self.chkSyncAudio.setEnabled(True)
             else:
                 self.chkDisableAudio.setChecked(False)
                 self.chkDisableAudio.setEnabled(False)
@@ -297,9 +292,7 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(False)
                 self.lblSampleRates.setEnabled(False)
                 self.chkAnalyzeAudio.setEnabled(False)
-                #self.chkSyncAudio.setEnabled(False)
 
-            #print("video tab profile", profile.camera_name(), profile.profile(), profile.getDisableAudio())
             self.chkDisableAudio.setChecked(profile.getDisableAudio())
             if self.chkDisableAudio.isChecked():
                 self.cmbAudio.setEnabled(False)
@@ -307,9 +300,7 @@ class VideoTab(QWidget):
                 self.cmbSampleRates.setEnabled(False)
                 self.lblSampleRates.setEnabled(False)
                 self.chkAnalyzeAudio.setEnabled(False)
-                #self.chkSyncAudio.setEnabled(False)
 
-            #self.chkSyncAudio.setChecked(profile.getSyncAudio())
             self.chkAnalyzeVideo.setChecked(profile.getAnalyzeVideo())
             self.chkAnalyzeAudio.setChecked(profile.getAnalyzeAudio())
 
@@ -375,10 +366,8 @@ class VideoTab(QWidget):
         desiredAspect = self.getSelectedAspect()
         if player := self.cp.getCurrentPlayer():
             player.desired_aspect = desiredAspect
-
         if profile := self.cp.getCurrentProfile():
             profile.setDesiredAspect(desiredAspect)
-
         self.syncGUI()
 
     def cmbProfilesChanged(self, index):
@@ -394,7 +383,6 @@ class VideoTab(QWidget):
     def chkDisableAudioChanged(self, state):
         if profile := self.cp.getCurrentProfile():
             profile.setDisableAudio(state)
-            #print("profile set state", profile.camera_name(), profile.profile(), profile.getDisableAudio())
         if player := self.cp.getCurrentPlayer():
             player.disable_audio = bool(state)
             self.cp.mw.pm.playerShutdownWait(player.uri)
@@ -402,13 +390,6 @@ class VideoTab(QWidget):
         self.cp.syncGUI()
         self.cp.tabSystem.syncGUI()
         self.syncGUI()
-
-    #def chkSyncAudioChecked(self, state):
-    #    if profile := self.cp.getCurrentProfile():
-    #        profile.setSyncAudio(state)
-    #
-    #    if player := self.cp.getCurrentPlayer():
-    #        player.sync_audio = bool(state)
 
     def chkAnalyzeVideoChecked(self, state):
         self.chkAnalyzeVideo.setChecked(state)
@@ -435,35 +416,6 @@ class VideoTab(QWidget):
         if camera := self.cp.getCurrentCamera():
             if self.cp.mw.settingsPanel.proxy.generateAlarmsLocally():
                 self.cp.mw.audioConfigure.setCamera(camera)
-
-    def chkRecordMainChanged(self, state):
-        if profile := self.cp.getCurrentProfile():
-            profile.setRecordMain(state)
-
-        if state:
-            if player := self.cp.getCurrentPlayer():
-                worker = self.cp.mw.videoPanel.cmbWorker.currentText()
-                self.cp.mw.loadVideoWorker(worker)
-                self.cp.mw.videoWorker = None
-
-    #def updateCacheSize(self, size):
-    #    arg = str(size)
-    #    if size == -1:
-    #        arg = "  "
-    #    self.lblCacheSize.setText("Cache: " + arg)
-
-    def btnClearCacheClicked(self):
-        if player := self.cp.getCurrentPlayer():
-            player.clearCache()
-
-    def btnSnapshotClicked(self):
-        if player := self.cp.getCurrentPlayer():
-            root = self.cp.mw.settingsPanel.storage.dirPictures.txtDirectory.text() + "/" + self.cp.getCamera(player.uri).text()
-            pathlib.Path(root).mkdir(parents=True, exist_ok=True)
-            filename = '{0:%Y%m%d%H%M%S.jpg}'.format(datetime.now())
-            filename = root + "/" + filename
-            player.save_image_filename = filename
-            logger.debug(f'Snapshot saved as {filename}')
 
     def cmbAudioChanged(self):
         if profile := self.cp.getCurrentProfile():

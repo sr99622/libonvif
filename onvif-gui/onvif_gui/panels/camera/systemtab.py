@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/cameras/systemtab.py 
+# onvif-gui/onvif_gui/panels/cameras/systemtab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -253,6 +253,7 @@ class SystemTabSettings():
         self.sound_alarm_once = self.getSoundAlarmOnce()
         self.sound_alarm_loop = self.getSoundAlarmLoop()
         self.record_profile = self.getRecordProfile()
+        self.remote_snapshot = self.getRemoteSnapshot()
 
     def managePlayers(self):
         record = False
@@ -263,7 +264,7 @@ class SystemTabSettings():
             if profile := self.camera.getRecordProfile():
                 if player := self.mw.pm.getPlayer(profile.uri()):
                     if not player.isRecording():
-                        if filename := player.getPipeOutFilename():
+                        if filename := player.getOutputFilename():
                             player.toggleRecording(filename)
         else:
             players = self.mw.pm.getStreamPairPlayers(self.camera.uri())
@@ -339,6 +340,15 @@ class SystemTabSettings():
         key = f'{self.camera.serial_number()}/SoundAlarmLoop'
         self.mw.settings.setValue(key, int(state))
 
+    def getRemoteSnapshot(self):
+        key = f'{self.camera.serial_number()}/RemoteSnapshot'
+        return bool(int(self.mw.settings.value(key, 0)))
+
+    def setRemoteSnapshot(self, state):
+        self.remote_snapshot= bool(state)
+        key = f'{self.camera.serial_number()}/RemoteSnapshot'
+        self.mw.settings.setValue(key, int(state))
+
 class SystemTab(QWidget):
     def __init__(self, cp):
         super().__init__()
@@ -375,20 +385,25 @@ class SystemTab(QWidget):
         lytGroupSounds.addWidget(self.radSoundLoop,   1, 0, 1, 1)
 
         self.cmbRecordProfile = QComboBox()
-        self.cmbRecordProfile.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.cmbRecordProfile.currentIndexChanged.connect(self.cmbRecordProfileChanged)
-        self.lblRecordResolution = QLabel("      ")
+        self.cmbRecordProfile.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        #self.lblRecordResolution = QLabel("      ")
         self.lblRecordProfile = QLabel("  Record Profile   ")
-        self.chkRecordAudio = QCheckBox("   Record Audio     ")
+        self.chkRecordAudio = QCheckBox("Record Audio")
         self.chkRecordAudio.stateChanged.connect(self.chkRecordAudioClicked)
+        self.chkRecordAudio.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.chkRemoteSnapshot = QCheckBox("Remote Snapshot Image")
+        self.chkRemoteSnapshot.stateChanged.connect(self.chkRemoteSnapshotChecked)
+        self.chkRemoteSnapshot.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
         pnlRecordProfile = QWidget()
         lytRecordProfile = QGridLayout(pnlRecordProfile)
         lytRecordProfile.addWidget(self.lblRecordProfile,     0, 0, 1, 1)
         lytRecordProfile.addWidget(self.cmbRecordProfile,     0, 1, 1, 1)
         lytRecordProfile.addWidget(QLabel("               "), 0, 2, 1, 1)
-        lytRecordProfile.addWidget(self.lblRecordResolution,  1, 0, 1, 1)
-        #lytRecordProfile.addWidget(self.chkRecordAudio,       1, 0, 1, 3, Qt.AlignmentFlag.AlignCenter)
-        lytRecordProfile.addWidget(self.chkRecordAudio,       1, 1, 1, 1)
+        #lytRecordProfile.addWidget(self.lblRecordResolution,  1, 0, 1, 1)
+        lytRecordProfile.addWidget(self.chkRecordAudio,       1, 0, 1, 1)
+        lytRecordProfile.addWidget(self.chkRemoteSnapshot,       1, 1, 1, 2)
         lytRecordProfile.setColumnStretch(1, 5)
         lytRecordProfile.setContentsMargins(0, 0, 0, 0)
 
@@ -418,6 +433,7 @@ class SystemTab(QWidget):
     def grpRecordClicked(self, state):
         if camera := self.cp.getCurrentCamera():
             camera.systemTabSettings.setRecordAlarmEnabled(state)
+            self.cp.mw.enable_disk_mgmt = self.cp.mw.pm.recording()
 
     def radRecordAlwaysClicked(self, state):
         if camera := self.cp.getCurrentCamera():
@@ -458,9 +474,15 @@ class SystemTab(QWidget):
             if profile := camera.getRecordProfile():
                 profile.setDisableAudio(not state)
                 if player := self.cp.mw.pm.getPlayer(profile.uri()):
-                    player.disable_audio = bool(not state)
-                    self.cp.mw.pm.playerShutdownWait(player.uri)
-                    self.cp.mw.playMedia(player.uri)
+                    if player.hasAudio():
+                        if player.disable_audio == bool(state):
+                            player.disable_audio = bool(not state)
+                            self.cp.mw.pm.playerShutdownWait(player.uri)
+                            self.cp.mw.playMedia(player.uri)
+
+    def chkRemoteSnapshotChecked(self, state):
+        if camera := self.cp.getCurrentCamera():
+            camera.systemTabSettings.setRemoteSnapshot(state)
 
     def fill(self, onvif_data):
         self.cmbRecordProfile.currentIndexChanged.disconnect()
@@ -477,6 +499,7 @@ class SystemTab(QWidget):
 
     def syncGUI(self):
         if camera := self.cp.getCurrentCamera():
+            self.chkRemoteSnapshot.setChecked(camera.systemTabSettings.remote_snapshot)
             self.grpRecord.setChecked(camera.systemTabSettings.record_enable)
             if camera.systemTabSettings.record_always:
                 self.radRecordAlways.setChecked(True)
@@ -497,15 +520,6 @@ class SystemTab(QWidget):
                 self.cp.btnRecord.setStyleSheet(self.cp.getButtonStyle("recording"))
             else:
                 self.cp.btnRecord.setStyleSheet(self.cp.getButtonStyle("record"))
-
-            '''
-            # attempted to put record resolution on the panel
-            # Unfortunately I wasn't able to get consistent data for this display
-            if recordProfile := camera.getRecordProfile():
-                self.lblRecordResolution.setText(f"( {recordProfile.width()} x {recordProfile.height()} )")
-            else:
-                self.lblRecordResolution.setText("      ")
-            '''
 
             if not camera.hasAudio():
                 self.chkRecordAudio.setChecked(False)
@@ -530,7 +544,7 @@ class SystemTab(QWidget):
             if result == QMessageBox.StandardButton.Yes:
                 if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                     arg = "REBOOT\n\n" + camera.onvif_data.toJSON() + "\r\n"
-                    self.cp.mw.client.transmit(arg)
+                    self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
                 else:
                     camera.onvif_data.startReboot()
 

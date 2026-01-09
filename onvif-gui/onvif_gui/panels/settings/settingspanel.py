@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/settings/settingspanel.py 
+# onvif-gui/onvif_gui/panels/settings/settingspanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -44,10 +44,10 @@ class SettingsPanel(QWidget):
         lytMain = QGridLayout(self)
         lytMain.addWidget(self.tab,   0, 0, 1, 1)
 
-    def onMediaStarted(self):
-        if len(self.mw.pm.players):
+    def onMediaStarted(self, uri):
+        if self.mw.pm.countPlayers():
             self.general.btnCloseAll.setText("Close All")
 
-    def onMediaStopped(self):
-        if not len(self.mw.pm.players):
+    def onMediaStopped(self, uri):
+        if not self.mw.pm.countPlayers():
             self.general.btnCloseAll.setText("Start All")

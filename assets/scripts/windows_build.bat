@@ -30,7 +30,7 @@ call assets\scripts\components\windows\python\install
 call assets\scripts\components\windows\env_variables
 call assets\scripts\components\windows\copy_libs
 
-set list=(310 311 312 313)
+set list=(310 311 312 313 314)
 for %%v in %list% do (
     cd %HOMEPATH%
     %LOCALAPPDATA%\Programs\Python\Python%%v\python -m venv py%%v

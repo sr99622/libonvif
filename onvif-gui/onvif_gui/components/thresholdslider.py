@@ -1,5 +1,5 @@
 #********************************************************************
-# libonvif/onvif-gui/onvif_gui/components/thresholdslider.py
+# onvif-gui/onvif_gui/components/thresholdslider.py
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -19,7 +19,6 @@
 
 from PyQt6.QtWidgets import QWidget, QSlider, QLabel, QGridLayout
 from PyQt6.QtCore import Qt
-from onvif_gui.enums import MediaSource
 from loguru import logger
 
 class ThresholdSlider(QWidget):
@@ -42,14 +41,11 @@ class ThresholdSlider(QWidget):
             self.lblValue.setText(str(value))
             if not self.mw.videoConfigure:
                 return
-            match self.mw.videoConfigure.source:
-                case MediaSource.CAMERA:
-                    if camera := self.mw.cameraPanel.getCurrentCamera():
-                        if camera.videoModelSettings:
-                            camera.videoModelSettings.setModelConfidence(value)
-                case MediaSource.FILE:
-                    if self.mw.filePanel.videoModelSettings:
-                        self.mw.filePanel.videoModelSettings.setModelConfidence(value)
+
+            if camera := self.mw.cameraPanel.getCurrentCamera():
+                if camera.videoModelSettings:
+                    camera.videoModelSettings.setModelConfidence(value)
+
         except Exception as ex:
             logger.error(f'Error setting threshold : {ex}')
 

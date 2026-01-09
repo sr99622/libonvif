@@ -68,6 +68,8 @@ PYBIND11_MODULE(libonvif, m)
         .def("last_error", &Data::last_error)
         .def("profile", &Data::profile)
         .def("setProfile", &Data::setProfile)
+        .def("user_data", &Data::user_data)
+        .def("setUserData", &Data::setUserData)
         .def("resolutions_buf", &Data::resolutions_buf)
         .def("width", &Data::width)
         .def("setWidth", &Data::setWidth)
@@ -213,10 +215,11 @@ PYBIND11_MODULE(libonvif, m)
         .def_readwrite("z", &Data::z)
         .def_readwrite("stop_type", &Data::stop_type)
         .def_readwrite("alias", &Data::alias)
+        //.def_readwrite("user_data", &Data::user_data)
         .def_readwrite("cancelled", &Data::cancelled)
         .def_readwrite("failedLogin", &Data::failedLogin);
 
-    m.attr("__version__") = "3.2.6";
+    m.attr("__version__") = "3.2.8";
 }
 
 

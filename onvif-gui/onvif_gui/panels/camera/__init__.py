@@ -5,3 +5,5 @@ from .systemtab import SystemTab
 from .logindialog import LoginDialog
 from .ptztab import PTZTab
 from .datastructures import Session, Camera
+from .cameralist import CameraList
+from .snapshot import Snapshot

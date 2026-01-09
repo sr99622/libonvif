@@ -12,6 +12,10 @@ if not exist "%LOCALAPPDATA%\Programs\Python\Python312\" (
     python-3.12.9-amd64.exe /passive /quiet
 )
 if not exist "%LOCALAPPDATA%\Programs\Python\Python313\" (
-    curl --output python-3.13.2-amd64.exe https://www.python.org/ftp/python/3.13.2/python-3.13.2-amd64.exe
-    python-3.13.2-amd64.exe /passive /quiet
+    curl --output python-3.13.11-amd64.exe https://www.python.org/ftp/python/3.13.11/python-3.13.11-amd64.exe
+    python-3.13.11-amd64.exe /passive /quiet
+)
+if not exist "%LOCALAPPDATA%\Programs\Python\Python314\" (
+    curl --output python-3.14.2-amd64.exe https://www.python.org/ftp/python/3.14.2/python-3.14.2-amd64.exe
+    python-3.14.2-amd64.exe /passive /quiet
 )

@@ -39,7 +39,9 @@ make install
 echo "-----------------START GDBM---------------------------------"
 
 cd $HOME
-curl -OL https://ftp.gnu.org/gnu/gdbm/gdbm-1.25.tar.gz
+if [ ! -f "gdbm-1.25.tar.gz"]; then
+    curl -OL https://ftp.gnu.org/gnu/gdbm/gdbm-1.25.tar.gz
+fi
 tar xzf gdbm-1.25.tar.gz
 cd gdbm-1.25
 sed -i.bak 's/if (clock_nanosleep (CLOCK_REALTIME, 0, iv, &r))/if (nanosleep (iv, \&r))/g' src/lock.c
@@ -125,11 +127,11 @@ curl -OL https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc
 
 mkdir -p $cache/proxy
 cd $cache/proxy
-curl -OL https://github.com/bluenviron/mediamtx/releases/download/v1.12.2/mediamtx_v1.12.2_darwin_arm64.tar.gz
-tar xzf mediamtx_v1.12.2_darwin_arm64.tar.gz
-rm mediamtx_v1.12.2_darwin_arm64.tar.gz
+curl -OL https://github.com/bluenviron/mediamtx/releases/download/v1.15.5/mediamtx_v1.15.5_darwin_arm64.tar.gz
+tar xzf mediamtx_v1.15.5_darwin_arm64.tar.gz
+rm mediamtx_v1.15.5_darwin_arm64.tar.gz
 sed -i.bak 's/srt: yes/srt: no/g' mediamtx.yml
-sed -i.bak 's/webrtc: yes/webrtc: no/g' mediamtx.yml
+#sed -i.bak 's/webrtc: yes/webrtc: no/g' mediamtx.yml
 sed -i.bak 's/hls: yes/hls: no/g' mediamtx.yml
 sed -i.bak 's/rtmp: yes/rtmp: no/g' mediamtx.yml
 rm mediamtx.yml.bak

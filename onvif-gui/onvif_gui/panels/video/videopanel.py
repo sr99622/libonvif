@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/video/videopanel.py 
+# onvif-gui/onvif_gui/panels/video/videopanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -21,7 +21,6 @@ import os
 from PyQt6.QtWidgets import QGridLayout, QWidget, \
     QLabel, QComboBox, QVBoxLayout
 from PyQt6.QtCore import Qt
-from onvif_gui.enums import MediaSource
 
 class VideoPanel(QWidget):
     def __init__(self, mw):
@@ -56,10 +55,11 @@ class VideoPanel(QWidget):
 
     def fillModules(self):
         d = self.stdLocation
-        workers = [f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f))]
-        for worker in workers:
-            if not worker.endswith(".py") or worker == "__init__.py":
-                workers.remove(worker)
+        file_list = [f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f))]
+        workers = []
+        for file in file_list:
+            if file != "__init__.py" and file != "settings.py":
+                workers.append(file)
 
         workers = sorted(workers, key=lambda s: s.casefold())
         self.cmbWorker.clear()
@@ -73,22 +73,13 @@ class VideoPanel(QWidget):
         self.layout.setStretch(1, 10)
 
     def cmbWorkerChanged(self, worker):
-        source = None
-        media = None
+        print("cmbWorkerChanged")
+        camera = None
         if self.panel:
-            source = self.panel.source
-            media = self.panel.media
+            camera = self.panel.camera
 
         self.mw.loadVideoConfigure(worker)
-
-        if source:
-            self.mw.videoConfigure.source = source
-            match source:
-                case MediaSource.CAMERA:
-                    self.mw.videoConfigure.setCamera(media)
-                case MediaSource.FILE:
-                    self.mw.videoConfigure.setFile(media)
-
+        self.mw.videoConfigure.setCamera(camera)
         self.mw.videoWorkerHook = None
         self.mw.videoWorker = None
 
@@ -97,13 +88,8 @@ class VideoPanel(QWidget):
             for camera in cameras:
                 self.mw.videoConfigure.setCamera(camera)
         
-        player = self.mw.pm.getCurrentPlayer()
-        if player:
-            if player.isCameraStream():
-                camera = self.mw.cameraPanel.getCamera(player.uri)
-                if camera:
-                    self.mw.videoConfigure.setCamera(camera)
-            else:
-                self.mw.videoConfigure.setFile(player.uri)
+        if player := self.mw.pm.getCurrentPlayer():
+            if camera := self.mw.cameraPanel.getCamera(player.uri):
+                self.mw.videoConfigure.setCamera(camera)
 
         self.mw.settings.setValue(self.workerKey, worker)

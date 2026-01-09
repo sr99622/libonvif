@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/pyproject.toml
+# onvif-gui/pyproject.toml
 #
 # Copyright (c) 2023, 2024  Stephen Rhodes
 #
@@ -19,7 +19,7 @@
 
 [project]
 name = "onvif-gui" 
-version = "3.1.10"
+version = "3.3.4"
 dynamic = ["gui-scripts"]
 description = "A client gui for Onvif"
 readme = "README.md"
@@ -37,7 +37,7 @@ classifiers = [
 ]
 
 dependencies = [
-  'libonvif==3.2.7', 'avio==3.2.6', 'kankakee==1.0.3',
+  'libonvif==3.2.8', 'avio==3.2.7', 'kankakee==1.0.4',
   'numpy', 'loguru', 'opencv-python-headless', 'PyQt6-Qt6', 'pyqt6', 'requests'
 ]
 

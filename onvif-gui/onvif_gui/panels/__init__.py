@@ -3,3 +3,4 @@ from .file.filepanel import FilePanel
 from .video.videopanel import VideoPanel
 from .settings.settingspanel import SettingsPanel
 from .audio.audiopanel import AudioPanel
+from .picture.picturepanel import PicturePanel

@@ -1,5 +1,5 @@
 #********************************************************************
-# libonvif/onvif-gui/onvif_gui/components/progress.py
+# onvif-gui/onvif_gui/components/progress.py
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

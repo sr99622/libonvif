@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/panels/video/modules/common/yolosettings.py 
+# onvif-gui/panels/video/modules/common/yolosettings.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -17,14 +17,12 @@
 #
 #*********************************************************************/
 
-class YoloSettings():
-    def __init__(self, mw, camera=None, module_name=None):
+class VideoModelSettings():
+    def __init__(self, mw, camera, module_name=None):
         self.camera = camera
         self.mw = mw
         self.module_name = module_name
-        self.id = "File"
-        if camera:
-            self.id = camera.serial_number()
+        self.id = camera.serial_number()
 
         self.targets = self.getTargetsForPlayer()
         self.limit = self.getModelOutputLimit()
@@ -33,7 +31,8 @@ class YoloSettings():
         self.skipFrames = self.getSkipFrames()
         self.skipCounter = 0
         self.sampleSize = self.getSampleSize()
-        self.orig_img = None
+        #self.orig_img = None
+        self.gain = self.getModelOutputGain()
 
     def getTargets(self):
         key = f'{self.id}/{self.module_name}/Targets'
@@ -101,4 +100,13 @@ class YoloSettings():
         key = f'{self.id}/{self.module_name}/SampleSize'
         self.sampleSize = int(value)
         self.mw.settings.setValue(key, int(value))        
+
+    def getModelOutputGain(self):
+        key = f'{self.id}/{self.module_name}/MotionGain'
+        return int(self.mw.settings.value(key, 50))
+    
+    def setModelOutputGain(self, value):
+        key = f'{self.id}/{self.module_name}/MotionGain'
+        self.gain = value
+        self.mw.settings.setValue(key, value)
 

@@ -1,5 +1,5 @@
 #********************************************************************
-# libonvif/onvif-gui/onvif_gui/components/target.py
+# onvif-gui/onvif_gui/components/target.py
 #
 # Copyright (c) 2024  Stephen Rhodes
 #
@@ -21,7 +21,6 @@ from PyQt6.QtWidgets import QDialog, QGridLayout, QListWidget, QListWidgetItem, 
     QDialogButtonBox, QWidget, QLabel, QPushButton, QMessageBox, QSlider, QCheckBox
 from PyQt6.QtCore import Qt, pyqtSignal, QObject
 from .warningbar import WarningBar, Indicator
-from onvif_gui.enums import MediaSource
 from loguru import logger
 
 class Target(QListWidgetItem):
@@ -33,7 +32,6 @@ class TargetDialog(QDialog):
     def __init__(self, mw):
         super().__init__(mw)
         self.mw = mw
-        self.source = MediaSource.CAMERA
 
         self.targets = {
             0: "person",
@@ -145,6 +143,7 @@ class TargetSelector(QWidget):
         lytMain.addWidget(QLabel(),              2, 3, 1, 1)
         lytMain.addWidget(self.chkShowBoxes,     3, 0, 1, 1, Qt.AlignmentFlag.AlignCenter)
         lytMain.setContentsMargins(0, 0, 0, 0)
+        lytMain.setColumnStretch(2, 10)
 
     def btnAddTargetClicked(self):
         self.dlgTarget.show()
@@ -161,14 +160,11 @@ class TargetSelector(QWidget):
 
                 if not self.mw.videoConfigure:
                     return
-                match self.mw.videoConfigure.source:
-                    case MediaSource.CAMERA:
-                        if camera := self.mw.cameraPanel.getCurrentCamera():
-                            if camera.videoModelSettings:
-                                camera.videoModelSettings.setTargets(self.lstTargets.toString())
-                    case MediaSource.FILE:
-                        if self.mw.filePanel.videoModelSettings:
-                            self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
+                
+                if camera := self.mw.cameraPanel.getCurrentCamera():
+                    if camera.videoModelSettings:
+                        camera.videoModelSettings.setTargets(self.lstTargets.toString())
+
         except Exception as ex:
             logger.error(f'Error deleting target : {ex}')
 
@@ -188,14 +184,10 @@ class TargetSelector(QWidget):
                 self.lstTargets.addItem(target)
                 if not self.mw.videoConfigure:
                     return
-                match self.mw.videoConfigure.source:
-                    case MediaSource.CAMERA:
-                        if camera := self.mw.cameraPanel.getCurrentCamera():
-                            if camera.videoModelSettings:
-                                camera.videoModelSettings.setTargets(self.lstTargets.toString())
-                    case MediaSource.FILE:
-                        if self.mw.filePanel.videoModelSettings:
-                            self.mw.filePanel.videoModelSettings.setTargets(self.lstTargets.toString())
+                if camera := self.mw.cameraPanel.getCurrentCamera():
+                    if camera.videoModelSettings:
+                        camera.videoModelSettings.setTargets(self.lstTargets.toString())
+
         except Exception as ex:
             logger.error(f'Target add itme error : {ex}')
 
@@ -235,14 +227,11 @@ class TargetSelector(QWidget):
             self.lblGain.setText(f'{value}')
             if not self.mw.videoConfigure:
                 return
-            match self.mw.videoConfigure.source:
-                case MediaSource.CAMERA:
-                    if camera := self.mw.cameraPanel.getCurrentCamera():
-                        if camera.videoModelSettings:
-                            camera.videoModelSettings.setModelOutputLimit(value)
-                case MediaSource.FILE:
-                    if self.mw.filePanel.videoModelSettings:
-                        self.mw.filePanel.videoModelSettings.setModelOutputLimit(value)
+
+            if camera := self.mw.cameraPanel.getCurrentCamera():
+                if camera.videoModelSettings:
+                    camera.videoModelSettings.setModelOutputLimit(value)
+
         except Exception as ex:
             logger.error(f'Error changing gain slider value : {ex}')
 
@@ -250,13 +239,10 @@ class TargetSelector(QWidget):
         try:
             if not self.mw.videoConfigure:
                 return
-            match self.mw.videoConfigure.source:
-                case MediaSource.CAMERA:
-                    if camera := self.mw.cameraPanel.getCurrentCamera():
-                        if camera.videoModelSettings:
-                            camera.videoModelSettings.setModelShowBoxes(bool(state))
-                case MediaSource.FILE:
-                    if self.mw.filePanel.videoModelSettings:
-                        self.mw.filePanel.videoModelSettings.setModelShowBoxes(bool(state))
+
+            if camera := self.mw.cameraPanel.getCurrentCamera():
+                if camera.videoModelSettings:
+                    camera.videoModelSettings.setModelShowBoxes(bool(state))
+
         except Exception as ex:
             logger.error(f'Error changing show boxes state : {ex}')

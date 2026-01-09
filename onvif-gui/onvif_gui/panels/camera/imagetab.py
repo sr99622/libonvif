@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/cameras/imagetab.py 
+# onvif-gui/onvif_gui/panels/cameras/imagetab.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -92,7 +92,7 @@ class ImageTab(QWidget):
             onvif_data.setSharpness(self.sldSharpness.value())
             if self.cp.mw.settingsPanel.proxy.proxyType == ProxyType.CLIENT:
                 arg = "UPDATE IMAGE\n\n" + onvif_data.toJSON() + "\r\n"
-                self.cp.mw.client.transmit(arg)
+                self.cp.mw.client.transmit(bytearray(arg, 'utf-8'))
             else:
                 onvif_data.startUpdateImage()
 

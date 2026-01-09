@@ -1,5 +1,5 @@
 #*******************************************************************************
-# libonvif/onvif-gui/run.py
+# onvif-gui/run.py
 #
 # Copyright (c) 2023 Stephen Rhodes 
 #

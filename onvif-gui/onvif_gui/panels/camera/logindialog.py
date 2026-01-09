@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/cameras/logindialog.py 
+# onvif-gui/onvif_gui/panels/cameras/logindialog.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

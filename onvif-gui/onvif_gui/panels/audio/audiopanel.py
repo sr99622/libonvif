@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/audio/audiopanel.py 
+# onvif-gui/onvif_gui/panels/audio/audiopanel.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #

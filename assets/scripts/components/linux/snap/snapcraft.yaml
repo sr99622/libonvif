@@ -12,7 +12,7 @@ description: |
   to generate alarms and recordings. The application includes built in OpenVINO compute runtime drivers so that
   computers with Intel CPU can leverage iGPU compute power to increase the number of streams that can be analyzed.
   
-version: 3.1.10
+version: 3.3.0
 
 grade: stable
 confinement: strict

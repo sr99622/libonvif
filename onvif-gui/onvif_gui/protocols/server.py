@@ -1,5 +1,5 @@
 #********************************************************************
-# libonvif/onvif-gui/onvif_gui/protocols/server.py
+# onvif-gui/onvif_gui/protocols/server.py
 #
 # Copyright (c) 2025  Stephen Rhodes
 #
@@ -18,85 +18,98 @@
 #*********************************************************************/
 
 import libonvif as onvif
+from loguru import logger
+import numpy as np
+import io
+from onvif_gui.panels.camera import Snapshot
 
 class ServerProtocols():
     def __init__(self, mw):
         self.mw = mw
+        self.snapshot = Snapshot(mw)
 
     def callback(self, msg):
-        #print("server protocol callback", msg)
-
+        buffer = io.BytesIO()
         args = msg.split("\n\n")
 
-        if args[0] == "GET CAMERAS":
-            lstCamera = self.mw.cameraPanel.lstCamera
-            cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
-            result = "GET CAMERAS\n\n"
-            for c_idx, camera in enumerate(cameras):
-                for p_idx, profile in enumerate(camera.profiles):
-                    result += profile.toJSON()
-                    if c_idx < len(cameras) - 1 :
-                        result += "\n"
-                    else:
-                        if p_idx < len(camera.profiles) - 1:
-                            result += "\n"
-                if c_idx < len(cameras) - 1:
-                    result += "\n"
+        match args[0]:
+            case "GET CAMERAS":
+                lstCamera = self.mw.cameraPanel.lstCamera
+                cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
+                buffer.write(bytearray("GET CAMERAS\n\n", 'utf-8'))
+                for c_idx, camera in enumerate(cameras):
+                    for p_idx, profile in enumerate(camera.profiles):
+                        buffer.write(bytearray(profile.toJSON(), 'utf-8'))
+                        if c_idx < len(cameras) - 1 :
+                            buffer.write(bytearray("\n", 'utf-8'))
+                        else:
+                            if p_idx < len(camera.profiles) - 1:
+                                buffer.write(bytearray("\n", 'utf-8'))
+                    if c_idx < len(cameras) - 1:
+                        buffer.write(bytearray("\n", 'utf-8'))
+                buffer.write(bytearray("\r\n", 'utf-8'))
 
-        if args[0] == "UPDATE VIDEO":
-            data = onvif.Data(args[1])
-            data.updateVideo()
-            result = self.resolve(data)
+            case "UPDATE VIDEO":
+                data = onvif.Data(args[1])
+                data.updateVideo()
+                buffer.write(self.resolve(data))
 
-        if args[0] == "UPDATE AUDIO":
-            data = onvif.Data(args[1])
-            data.updateAudio()
-            result = self.resolve(data)
+            case "UPDATE AUDIO":
+                data = onvif.Data(args[1])
+                data.updateAudio()
+                buffer.write(self.resolve(data))
 
-        if args[0] == "UPDATE IMAGE":
-            data = onvif.Data(args[1])
-            data.updateImage()
-            result = self.resolve(data)
+            case "UPDATE IMAGE":
+                data = onvif.Data(args[1])
+                data.updateImage()
+                buffer.write(self.resolve(data))
 
-        if args[0] == "MOVE":
-            data = onvif.Data(args[1])
-            data.move()
-            result = "PTZ"
+            case "MOVE":
+                data = onvif.Data(args[1])
+                data.move()
+                buffer.write(bytearray("PTZ\r\n", 'utf-8'))
 
-        if args[0] == "STOP":
-            data = onvif.Data(args[1])
-            data.stop()
-            result = "PTZ"
+            case "STOP":
+                data = onvif.Data(args[1])
+                data.stop()
+                buffer.write(bytearray("PTZ\r\n", 'utf-8'))
 
-        if args[0] == "GOTO PRESET":
-            data = onvif.Data(args[1])
-            data.set()
-            result = "GOTO PRESET"
+            case "GOTO PRESET":
+                data = onvif.Data(args[1])
+                data.set()
+                buffer.write(bytearray("GOTO PRESET\r\n", 'utf-8'))
 
-        if args[0] == "SET PRESET":
-            data = onvif.Data(args[1])
-            data.setGotoPreset()
-            result = "SET PRESET"
+            case "SET PRESET":
+                data = onvif.Data(args[1])
+                data.setGotoPreset()
+                buffer.write(bytearray("SET PRESET\r\n", 'utf-8'))
 
-        if args[0] == "REBOOT":
-            data = onvif.Data(args[1])
-            data.reboot()
-            result = "REBOOT"
+            case "REBOOT":
+                data = onvif.Data(args[1])
+                data.reboot()
+                buffer.write(bytearray("REBOOT\r\n", 'utf-8'))
 
-        if args[0] == "SYNC TIME":
-            data = onvif.Data(args[1])
-            if camera := self.mw.cameraPanel.getCameraBySerialNumber(data.serial_number()):
-                camera.onvif_data.updateTime()
-            result = "SYNC TIME"
+            case "SYNC TIME":
+                data = onvif.Data(args[1])
+                if camera := self.mw.cameraPanel.getCameraBySerialNumber(data.serial_number()):
+                    camera.onvif_data.updateTime()
+                buffer.write(bytearray("SYNC TIME\r\n", 'utf-8'))
 
-        #print("length", len(result))
-        return result
+            case "SNAPSHOT":
+                profile = onvif.Data(args[1])
+                remote = self.mw.settingsPanel.proxy.lblServer.text().split()[0].strip()
+                key = f'{remote}{profile.serial_number()}/{profile.profile()}'
+                if camera := self.mw.cameraPanel.getCamera(key):
+                    buffer.write(bytearray("SNAPSHOT\n\n", 'utf-8'))
+                    buffer.write(bytearray(profile.user_data() + "\r\n", 'utf-8'))
+                    self.snapshot.getBufferedSnapshot(profile, buffer, camera)
+
+        return np.frombuffer(buffer.getvalue(), dtype=np.uint8)
     
     def resolve(self, data):
         if camera := self.mw.cameraPanel.getCameraBySerialNumber(data.serial_number()):
             camera.syncData(data)
-        return "UPDATE\n\n" + data.toJSON()
-
+        return bytearray("UPDATE\n\n" + data.toJSON() + "\r\n", 'utf-8')
 
     def error(self, msg):
-        print("server protocol error", msg)
+        logger.error(f"server protocol error: {msg}")

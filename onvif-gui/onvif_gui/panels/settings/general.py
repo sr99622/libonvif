@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/settings/general.py 
+# onvif-gui/onvif_gui/panels/settings/general.py 
 #
 # Copyright (c) 2024  Stephen Rhodes
 #
@@ -26,16 +26,16 @@ from PyQt6.QtWidgets import QMessageBox, QLineEdit, QSpinBox, \
 from PyQt6.QtCore import QFile, QRect, Qt, QSettings
 from PyQt6.QtGui import QTextCursor, QTextOption
 from loguru import logger
-import avio
 import webbrowser
 import platform
-import requests
 from onvif_gui.player import Player
-from onvif_gui.enums import Style, ProxyType, PkgType
-import threading
-import time
-
-from onvif_gui.components import DiskManager
+from onvif_gui.enums import Style, ProxyType, SnapshotAuth
+from onvif_gui.panels.camera import Snapshot
+import onvif_gui
+from pathlib import Path
+import subprocess
+import avio
+from time import sleep
 
 class LogText(QTextEdit):
     def __init__(self, parent):
@@ -302,6 +302,7 @@ class GeneralOptions(QWidget):
         super().__init__()
         self.mw = mw
         self.process = None
+        self.thread = None
 
         self.usernameKey = "settings/username"
         self.passwordKey = "settings/password"
@@ -313,23 +314,16 @@ class GeneralOptions(QWidget):
         self.alarmSoundFileKey = "settings/alarmSoundFile"
         self.alarmSoundVolumeKey = "settings/alarmSoundVolume"
         self.displayRefreshKey = "settings/displayRefresh"
-        self.cacheMaxSizeKey = "settings/cacheMaxSize"
         self.audioDriverIndexKey = "settings/audioDriverIndex"
         self.appearanceKey = "settings/appearance"
         self.displaySizeKey = "settings/displaySize"
-
-        decoders = ["NONE"]
-        if sys.platform == "win32":
-            decoders += ["CUDA", "DXVA2", "D3D11VA"]
-        if sys.platform == "linux":
-            decoders += ["CUDA", "VAAPI", "VDPAU"]
-
-        self.isUpdatable = True
-        if sys.platform == "linux" and self.mw.pkg_type != PkgType.NATIVE:
-            self.isUpdatable = False
+        self.stressTestKey = "settings/stressTest"
+        self.snapshotDlgKey = "settings/snapshotDlg"
 
         p = Player("", self)
         audioDrivers = p.getAudioDrivers()
+
+        decoders = ["none"] + p.getHardwareDecoders()
 
         self.mediamtx_process = None
 
@@ -348,7 +342,7 @@ class GeneralOptions(QWidget):
         
         self.cmbDecoder = QComboBox()
         self.cmbDecoder.addItems(decoders)
-        self.cmbDecoder.setCurrentText(mw.settings.value(self.decoderKey, "NONE"))
+        self.cmbDecoder.setCurrentText(mw.settings.value(self.decoderKey, "none"))
         self.cmbDecoder.currentTextChanged.connect(self.cmbDecoderChanged)
         lblDecoders = QLabel("Hardware Decoder")
 
@@ -372,10 +366,20 @@ class GeneralOptions(QWidget):
         self.chkAutoTimeSync.setChecked(bool(int(mw.settings.value(self.autoTimeSyncKey, 0))))
         self.chkAutoTimeSync.stateChanged.connect(self.autoTimeSyncChecked)
 
+        self.chkStressTest = QCheckBox("Stress Test Cycle")
+        self.chkStressTest.setChecked(False)
+        self.chkStressTest.stateChanged.connect(self.stressTestChecked)
+
+        self.chkSnapshotDlg = QCheckBox("Snapshot File Dlg")
+        self.chkSnapshotDlg.setChecked(bool(int(mw.settings.value(self.snapshotDlgKey, 1))))
+        self.chkSnapshotDlg.stateChanged.connect(self.snapshotDlgChecked)
+
         pnlChecks = QWidget()
         lytChecks = QGridLayout(pnlChecks)
         lytChecks.addWidget(self.chkStartFullScreen,  0, 0, 1, 1)
         lytChecks.addWidget(self.chkAutoTimeSync,     0, 1, 1, 1)
+        #lytChecks.addWidget(self.chkStressTest,       1, 0, 1, 1)
+        lytChecks.addWidget(self.chkSnapshotDlg,      1, 1, 1, 1)
 
         self.spnDisplayRefresh = QSpinBox()
         self.spnDisplayRefresh.setMinimum(1)
@@ -388,14 +392,6 @@ class GeneralOptions(QWidget):
         self.spnDisplayRefresh.valueChanged.connect(self.spnDisplayRefreshChanged)
         lblDisplayRefresh = QLabel("Display Refresh Interval (ms)")
 
-        self.spnCacheMax = QSpinBox()
-        self.spnCacheMax.setMaximum(200)
-        self.spnCacheMax.setValue(100)
-        self.spnCacheMax.setMaximumWidth(80)
-        self.spnCacheMax.setValue(int(self.mw.settings.value(self.cacheMaxSizeKey, 100)))
-        self.spnCacheMax.valueChanged.connect(self.spnCacheMaxChanged)
-        lblCacheMax = QLabel("Maximum Input Stream Cache Size")
-
         self.btnCloseAll = QPushButton("Start All")
         self.btnCloseAll.clicked.connect(self.btnCloseAllClicked)
 
@@ -405,11 +401,11 @@ class GeneralOptions(QWidget):
         self.btnHideDisplay = QPushButton("Hide Display")
         self.btnHideDisplay.clicked.connect(self.btnHideDisplayClicked)
 
+        self.btnClearSettings = QPushButton("Clear")
+        self.btnClearSettings.clicked.connect(self.btnClearSettingsClicked)
+
         self.btnHelp = QPushButton("Help")
         self.btnHelp.clicked.connect(self.btnHelpClicked)
-
-        self.btnUpdate = QPushButton("Update")
-        self.btnUpdate.clicked.connect(self.btnUpdateClicked)
 
         self.btnTest = QPushButton("Test")
         self.btnTest.clicked.connect(self.btnTestClicked)
@@ -439,22 +435,16 @@ class GeneralOptions(QWidget):
         lytBuffer = QGridLayout(pnlBuffer)
         lytBuffer.addWidget(lblDisplayRefresh,      4, 0, 1, 3)
         lytBuffer.addWidget(self.spnDisplayRefresh, 4, 3, 1, 1)
-        lytBuffer.addWidget(lblCacheMax,            5, 0, 1, 3)
-        lytBuffer.addWidget(self.spnCacheMax,       5, 3, 1, 1)
         lytBuffer.setContentsMargins(0, 0, 0, 0)
 
         pnlButtons = QWidget()
         lytButtons = QGridLayout(pnlButtons)
-        lytButtons.addWidget(self.btnCloseAll,    0, 0, 1, 1)
-        lytButtons.addWidget(self.btnShowLogs,    0, 1, 1, 1)
-        lytButtons.addWidget(self.btnHelp,        0, 2, 1, 1)
-        lytButtons.addWidget(self.btnHideDisplay, 1, 0, 1, 1)
-        
-        # Abandon the update button for now
-        
-        #if self.isUpdatable:
-        #    lytButtons.addWidget(self.btnUpdate,  1, 2, 1, 1)
-        lytButtons.addWidget(self.btnTest,   1, 1, 1, 1)
+        lytButtons.addWidget(self.btnHideDisplay,   0, 0, 1, 1)
+        lytButtons.addWidget(self.btnShowLogs,      0, 1, 1, 1)
+        lytButtons.addWidget(self.btnHelp,          0, 2, 1, 1)
+        #lytButtons.addWidget(self.btnCloseAll,      0, 0, 1, 1)
+        #lytButtons.addWidget(self.btnClearSettings, 1, 2, 1, 1)
+        #lytButtons.addWidget(self.btnTest,   1, 1, 1, 1)
 
         self.lblMemory = QLabel()
 
@@ -487,8 +477,7 @@ class GeneralOptions(QWidget):
 
     def cmbAudioDriverChanged(self, index):
         self.mw.settings.setValue(self.audioDriverIndexKey, index)
-        if self.mw.audioStatus != avio.AudioStatus.UNINITIALIZED:
-            QMessageBox.warning(self.mw, "Application Restart Required", "It is necessary to re-start Onvif GUI in order to enable this change")
+        QMessageBox.warning(self.mw, "Application Restart Required", "It is necessary to re-start Onvif GUI in order to enable this change")
 
     def cmbAppearanceChanged(self, text):
         self.mw.settings.setValue(self.appearanceKey, text)
@@ -520,29 +509,18 @@ class GeneralOptions(QWidget):
         if state:
             self.mw.cameraPanel.timeSync()
 
+    def stressTestChecked(self, state):
+        ...
+
+    def snapshotDlgChecked(self, state):
+        self.mw.settings.setValue(self.snapshotDlgKey, state)
+
     def spnDisplayRefreshChanged(self, i):
         self.mw.settings.setValue(self.displayRefreshKey, i)
         self.mw.glWidget.timer.setInterval(i)
 
-    def spnCacheMaxChanged(self, i):
-        self.mw.settings.setValue(self.cacheMaxSizeKey, i)
-
     def cmbInterfacesChanged(self, network):
         self.mw.settings.setValue(self.interfaceKey, network)
-
-    def getDecoder(self):
-        result = avio.AV_HWDEVICE_TYPE_NONE
-        if self.cmbDecoder.currentText() == "CUDA":
-            result = avio.AV_HWDEVICE_TYPE_CUDA
-        if self.cmbDecoder.currentText() == "VAAPI":
-            result = avio.AV_HWDEVICE_TYPE_VAAPI
-        if self.cmbDecoder.currentText() == "VDPAU":
-            result = avio.AV_HWDEVICE_TYPE_VDPAU
-        if self.cmbDecoder.currentText() == "DXVA2":
-            result = avio.AV_HWDEVICE_TYPE_DXVA2
-        if self.cmbDecoder.currentText() == "D3D11VA":
-            result = avio.AV_HWDEVICE_TYPE_D3D11VA
-        return result
      
     def btnCloseAllClicked(self):
         if self.btnCloseAll.text() == "Close All":
@@ -556,7 +534,8 @@ class GeneralOptions(QWidget):
         if not self.dlgLog:
             self.dlgLog = LogDialog(self.mw)
         self.dlgLog.readLogFile(filename)
-        self.dlgLog.exec()
+        self.dlgLog.setModal(False)
+        self.dlgLog.show()
 
     def btnHelpClicked(self):
         result = webbrowser.get().open("https://github.com/sr99622/libonvif#readme-ov-file")
@@ -584,28 +563,36 @@ class GeneralOptions(QWidget):
             self.mw.show()
             self.btnHideDisplay.setText("Hide Display")
 
+    def openFocusWindow(self):
+        if not self.mw.focus_window:
+            proxy = None
+            match self.mw.settingsPanel.proxy.proxyType:
+                case ProxyType.CLIENT:
+                    proxy = self.mw.settingsPanel.proxy.txtRemote.text()
+                case ProxyType.SERVER:
+                    proxy = self.mw.settingsPanel.proxy.lblServer.text().split()[0]
+            focus_settings = QSettings("onvif-gui", "Focus")
+            focus_settings.setValue("settings/proxyType", ProxyType.CLIENT)
+            focus_settings.setValue("settings/proxyRemote", proxy)
+            focus_settings.setValue("settings/autoDiscover", 1)
+            #focus_settings.setValue(self.collapsedKey, 1)
+            self.mw.focus_window = onvif_gui.main.MainWindow(settings_profile="Focus")
+        self.mw.focus_window.show()
+
     def btnNewViewClicked(self):
         from onvif_gui.main import MainWindow
         if self.cmbViewerProfile.currentText() == "Focus":
             if self.mw.settingsPanel.proxy.proxyType == ProxyType.STAND_ALONE:
                 QMessageBox.warning(self.mw, "Feature Unavailable", "Focus Window is not available in Stand Alone Configuration, please use Proxy Server mode to enable this feature", QMessageBox.StandardButton.Ok)
                 return
-            if not self.mw.focus_window:
-                #self.mw.focus_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
-                #self.mw.focus_window.audioStatus = self.mw.audioStatus
-                self.mw.initializeFocusWindowSettings()
-            else:
-                self.mw.focus_window.show()
+            self.mw.openFocusWindow()
         elif self.cmbViewerProfile.currentText() == "Reader":
-            if not self.mw.reader_window:
-                reader_settings = QSettings("onvif-gui", "Reader")
-                reader_settings.setValue("filePanel/hideCameraPanel", 1)
-                self.mw.reader_window = MainWindow(settings_profile = self.cmbViewerProfile.currentText(), parent_window=self.mw)
-                self.mw.reader_window.audioStatus = self.mw.audioStatus
-            self.mw.reader_window.show()
+            reader_settings = QSettings("onvif-gui", "Reader")
+            reader_settings.setValue("filePanel/hideCameraPanel", 1)
+            main_file = Path(__file__).parent.parent.parent / "main.py"
+            subprocess.Popen(["python", str(main_file), "--profile", "reader"], env=os.environ.copy(), start_new_session=True, shell=True)
         else:
             window = MainWindow(settings_profile = self.cmbViewerProfile.currentText())
-            window.audioStatus = self.mw.audioStatus
             window.parent_window = self.mw
             self.mw.external_windows.append(window)
             window.show()
@@ -615,84 +602,20 @@ class GeneralOptions(QWidget):
             self.dlgProfiles = ProfileDialog(self.mw)
         self.dlgProfiles.exec()
 
-    def parse_version(self, v):
-        return [int(part) for part in v.split(".")]
-
-    def compare_versions(self, v1, v2):
-        parts1 = self.parse_version(v1)
-        parts2 = self.parse_version(v2)
-
-        length = max(len(parts1), len(parts2))
-        parts1 += [0] * (length - len(parts1))
-        parts2 += [0] * (length - len(parts2))
-
-        if parts1 > parts2:
-            # v1 is greater than v2
-            return True
-        return False
+    def btnClearSettingsClicked(self):
+        ret = QMessageBox.warning(self, "Clear Settings", 
+                                "This action will clear all program settings, are you sure you want to do this?",
+                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if ret == QMessageBox.StandardButton.Yes:
+            items = [self.cmbViewerProfile.itemText(i) for i in range(self.cmbViewerProfile.count())]
+            for item in items:
+                print(item)
+                QSettings("onvif-gui", item).clear()
+                QSettings("onvif-gui", "gui").clear()
+            QMessageBox.information(self, "Clear Settings",
+                                    "All settings have been cleared, please re-start the application",
+                                    QMessageBox.StandardButton.Ok)
     
-    def threadUpdate(self):
-        pip = os.path.join(os.path.dirname(sys.executable), "pip3")
-        time.sleep(2)
-        cmd = [pip, "install", "--upgrade", "onvif-gui"]
-        self.mw.win_command(cmd)
-
-    def btnUpdateClicked(self):
-        url = f"https://pypi.org/pypi/onvif-gui/json"
-        response = requests.get(url)
-        data = response.json()
-        latest_version = data["info"]["version"]
-
-        if self.compare_versions(latest_version, self.mw.version):
-            response = QMessageBox.question(self.mw, "Update Available", "There is a newer version available, would you like to upgrade")
-            if response == QMessageBox.StandardButton.Yes:
-                logger.debug(f'Upgrading Onvif GUI from version {self.mw.version} to {latest_version}')
-                if sys.platform == "linux":
-                    pip = os.path.join(os.path.dirname(sys.executable), "pip3")
-                    cmd = f'{pip} install --upgrade onvif-gui'
-                    print(self.mw.run_command(cmd))
-                    QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI has been updated, please restart the program")
-                if sys.platform == "darwin":
-                    pip = os.path.join(os.path.dirname(sys.executable), "pip3")
-                    cmd = f'{pip} install --upgrade onvif-gui'
-                    print(self.mw.run_command(cmd))
-                    QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI has been updated, please restart the program")
-                if sys.platform == "win32":
-                    QMessageBox.information(self.mw, "Onvif GUI", "The application will be closed during the update. Please re-start the application once the update completes.")
-                    thread = threading.Thread(target=self.threadUpdate)
-                    thread.start()
-                    self.mw.close()
-        else:
-            QMessageBox.information(self.mw, "Onvif GUI", "Onvif GUI is currently the latest version")
-
-    def sizeGB(self, raw):
-        return "{:.2f}".format(raw / 1000000000)
-
     def btnTestClicked(self):
-        print("test button clicked")
-        d = self.mw.settingsPanel.storage.dirArchive.text()
-        print("d", d)
-        mgr = DiskManager(self.mw)
+        print("btnTestClicked")
 
-        _, total_size = mgr.list_files(d)
-        #for file_info in file_infos:
-        #    print(file_info.path)
-
-        print("total size", self.sizeGB(total_size))
-
-        total = 0
-        lstCamera = self.mw.cameraPanel.lstCamera
-        cameras = [lstCamera.item(x) for x in range(lstCamera.count())]
-        for camera in cameras:
-            print(camera.name())
-            if profile := camera.getRecordProfile():
-                est_size = mgr.estimateFileSize(profile.uri())
-                total += est_size
-                print("est size", self.sizeGB(est_size))
-        print("total estimated size", self.sizeGB(total))
-
-        #allowed = self.mw.settingsPanel.storage.spnDiskLimit.value() * 1000000000
-        #print("allowed", self.sizeGB(allowed))
-
-        #target = allowed - total
-        #print("target", self.sizeGB(target))

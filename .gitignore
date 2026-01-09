@@ -14,6 +14,7 @@ share/
 *.snap
 *.dmg
 libonvif/libonvif/*.so.*
+libonvif/libonvif/*.so
 libonvif/libonvif/*.dll
 libonvif/libonvif/*.dylib
 assets/scripts/components/libxml2/
@@ -29,3 +30,4 @@ logs/
 repo/
 .flatpak-builder/
 *.flatpak
+env/

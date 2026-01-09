@@ -1,5 +1,5 @@
 #********************************************************************
-# libonvif/onvif-gui/onvif_gui/components/warningbar.py
+# onvif-gui/onvif_gui/components/warningbar.py
 #
 # Copyright (c) 2024  Stephen Rhodes
 #

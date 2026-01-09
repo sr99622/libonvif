@@ -1,5 +1,5 @@
 #********************************************************************
-# libonvif/onvif-gui/onvif_gui/enums.py
+# onvif-gui/onvif_gui/enums.py
 #
 # Copyright (c) 2025  Stephen Rhodes
 #
@@ -30,10 +30,6 @@ class StreamState(Enum):
     CONNECTED = 2
     INVALID = 3
 
-class MediaSource(Enum):
-    CAMERA = 0
-    FILE = 1
-    
 class Style(Enum):
     DARK = 0
     LIGHT = 1
@@ -43,7 +39,8 @@ class Occurence(Enum):
     DURING = 1
     AFTER = 2
 
-class PkgType(Enum):
-    NATIVE = 0
-    FLATPAK = 1
-    SNAP = 2
+class SnapshotAuth(Enum):
+    UNKNOWN = 0
+    NOT_WORKING = 1
+    BASIC = 2
+    DIGEST = 3

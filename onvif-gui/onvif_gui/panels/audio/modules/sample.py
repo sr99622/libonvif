@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/panels/audio/modules/sample.py 
+# onvif-gui/panels/audio/modules/sample.py 
 #
 # Copyright (c) 2023  Stephen Rhodes
 #
@@ -25,7 +25,6 @@ from PyQt6.QtWidgets import QGridLayout, QWidget, QSlider, QLabel, QWidget, QChe
 from PyQt6.QtGui import QPainter, QColorConstants, QColor
 from PyQt6.QtCore import QPointF, Qt, QRectF
 from onvif_gui.components import WarningBar, Indicator
-from onvif_gui.enums import MediaSource
 
 MODULE_NAME = "sample"
 
@@ -263,7 +262,6 @@ class AudioConfigure(QWidget):
             super().__init__()
             self.mw = mw
             self.name = MODULE_NAME
-            self.source = MediaSource.CAMERA
             self.amplitudeGain = 1.0
             self.frequencyGain = 1.0
 
@@ -365,38 +363,37 @@ class AudioConfigure(QWidget):
         self.pnlFrequency.setEnabled(bool(state))
 
     def setCamera(self, camera):
-        self.source = MediaSource.CAMERA
-        if camera:
+        if not camera: return
 
-            if not self.isModelSettings(camera.audioModelSettings):
-                camera.audioModelSettings = SampleSettings(self.mw, camera)
+        if not self.isModelSettings(camera.audioModelSettings):
+            camera.audioModelSettings = SampleSettings(self.mw, camera)
 
-            self.mw.audioPanel.lblCamera.setText(f'Camera - {camera.name()}')
-            self.chkAmplitude.setChecked(camera.audioModelSettings.amplitudeEnabled)
-            self.sldAmplitudeGain.setValue(camera.audioModelSettings.amplitudeGain)
-            self.chkFrequency.setChecked(camera.audioModelSettings.frequencyEnabled)
-            self.sldFrequencyGain.setValue(camera.audioModelSettings.frequencyGain)
-            self.dspFrequency.setPctHighPass(camera.audioModelSettings.frequencyPctHighPass)
-            self.dspFrequency.setPctLowPass(camera.audioModelSettings.frequencyPctLowPass)
-            self.barAmplitude.setLevel(0)
-            self.indAmplitude.setState(0)
-            self.barFrequency.setLevel(0)
-            self.indFrequency.setState(0)
+        self.mw.audioPanel.lblCamera.setText(f'Camera - {camera.name()}')
+        self.chkAmplitude.setChecked(camera.audioModelSettings.amplitudeEnabled)
+        self.sldAmplitudeGain.setValue(camera.audioModelSettings.amplitudeGain)
+        self.chkFrequency.setChecked(camera.audioModelSettings.frequencyEnabled)
+        self.sldFrequencyGain.setValue(camera.audioModelSettings.frequencyGain)
+        self.dspFrequency.setPctHighPass(camera.audioModelSettings.frequencyPctHighPass)
+        self.dspFrequency.setPctLowPass(camera.audioModelSettings.frequencyPctLowPass)
+        self.barAmplitude.setLevel(0)
+        self.indAmplitude.setState(0)
+        self.barFrequency.setLevel(0)
+        self.indFrequency.setState(0)
 
-            if not camera.hasAudio():
-                self.chkAmplitude.setChecked(False)
-                self.chkFrequency.setChecked(False)
+        if not camera.hasAudio():
+            self.chkAmplitude.setChecked(False)
+            self.chkFrequency.setChecked(False)
 
-            enable = True
-            profile = self.mw.cameraPanel.getProfile(camera.uri())
-            if profile:
-                if profile.getDisableAudio() or not profile.getAnalyzeAudio():
-                    enable = False
-            if not camera.hasAudio():
+        enable = True
+        profile = self.mw.cameraPanel.getProfile(camera.uri())
+        if profile:
+            if profile.getDisableAudio() or not profile.getAnalyzeAudio():
                 enable = False
-            self.enableControls(enable)
+        if not camera.hasAudio():
+            enable = False
+        self.enableControls(enable)
 
-            self.update()
+        self.update()
 
     def isModelSettings(self, arg):
         return type(arg) == SampleSettings
@@ -411,6 +408,9 @@ class AudioWorker:
 
     def __call__(self, F, player):
         try:
+            if not self.mw.audioConfigure:
+                return
+
             if not F or not player:
                 self.mw.audioConfigure.dspAmplitude.setData(None)
                 self.mw.audioConfigure.dspFrequency.setData(None)

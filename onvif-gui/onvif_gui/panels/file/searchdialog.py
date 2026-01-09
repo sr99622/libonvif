@@ -1,5 +1,5 @@
 #/********************************************************************
-# libonvif/onvif-gui/onvif_gui/panels/file/filesearchdialog.py 
+# onvif-gui/onvif_gui/panels/file/filesearchdialog.py 
 #
 # Copyright (c) 2025  Stephen Rhodes
 #
@@ -80,9 +80,6 @@ class FileSearchDialog(QDialog):
             else:
                 minutes.append(str(i))
         self.minute.addItems(minutes)
-        # no good solutions for size problem found
-        #self.minute.setStyleSheet(" QComboBox { combobox-popup: 0 } ")
-        #self.minute.setStyleSheet(" QComboBox QListView { max-height: 100px;}")
         self.minute.setCurrentText(datetime.now().strftime("%M"))
 
         self.AM_PM = QComboBox()

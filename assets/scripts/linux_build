@@ -1,10 +1,10 @@
 #!/bin/bash
 
-sudo apt install -y git
+#sudo apt install -y git
 
 cd $HOME/libonvif/assets/scripts/components/linux
 
-versions=("3.10" "3.11" "3.12" "3.13")
+versions=("3.10" "3.11" "3.12" "3.13" "3.14")
 for version in "${versions[@]}"; do
     ./install_python $version
 done
@@ -16,30 +16,44 @@ source ./env_variables
 
 cd $HOME/libonvif
 first_pass=1
-venvs=("py310" "py311" "py312" "py313")
+venvs=("py310" "py311" "py312" "py313" "py314")
 for venv in "${venvs[@]}"; do
-    echo "venv: $venv"
-    source "$HOME/$venv/bin/activate"
-    python --version
-    if [ $first_pass == 1 ]; then
-        assets/scripts/compile
-        pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
-        pydir=$HOME/$venv/lib/$pyname/site-packages
-        modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
-        export executable=$modname
-        export sourcedir=$HOME/libonvif/libonvif/libonvif
-        assets/scripts/components/linux/copy_libs
-        modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
-        export executable=$modname
-        export sourcedir=$HOME/libonvif/libavio/avio
-        assets/scripts/components/linux/copy_libs
-        pip uninstall -y libonvif
-        pip uninstall -y avio
-        pip uninstall -y kankakee
-        pip uninstall -y onvif-gui
-        rm -rf dist
-    fi
-    first_pass=0
-    assets/scripts/linux_pkgs
+  echo "venv: $venv"
+  if [ ! -d "$HOME/$venv" ]; then
+    echo "did not find venv $venv"
+    version="${venv:2}"
+    version="${version:0:1}.${version:1}"
+    echo "version $version"
+    python${version} -m venv $HOME/$venv
+    . $HOME/$venv/bin/activate
+    pip install --upgrade pip
     deactivate
+  else
+    echo "FOUND VENV $venv"
+  fi
+  source "$HOME/$venv/bin/activate"
+  python --version
+  if [ $first_pass == 1 ]; then
+    echo "first pass"
+    assets/scripts/compile
+    pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
+    pydir=$HOME/$venv/lib/$pyname/site-packages
+    modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
+    export executable=$modname
+    export sourcedir=$HOME/libonvif/libonvif/libonvif
+    assets/scripts/components/linux/copy_libs
+    modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
+    export executable=$modname
+    export sourcedir=$HOME/libonvif/libavio/avio
+    assets/scripts/components/linux/copy_libs
+    pip uninstall -y libonvif
+    pip uninstall -y avio
+    pip uninstall -y kankakee
+    pip uninstall -y onvif-gui
+    rm -rf dist
+  fi
+  first_pass=0
+  #assets/scripts/compile
+  assets/scripts/linux_pkgs
+  deactivate
 done

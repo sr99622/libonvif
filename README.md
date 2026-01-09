@@ -2909,7 +2909,7 @@ git commit -a
 
 ```
 
-Now delete the `local` .git directory and replace with the `remote` .git directory. The local repository is now the base configuration for the remote.  Add the submodules back into the repository. If any new files were added into any of the repositories, it will be necessary to git add them. Finally, commit and push.
+Now delete the `local` .git directory and replace with the `remote` .git directory. The local repository is now the base configuration for the remote.  Add the submodules back into the repository. The pybind11 submodule needs to be checked out to a specific version. If any new files were added into any of the repositories, it will be necessary to git add them. Finally, commit and push.
 
 ```
 cd migrate/local
@@ -2918,6 +2918,9 @@ cd kankakee
 sudo rm -R .git
 cp -R ../../remote/kankakee/.git .
 git submodule add https://github.com/pybind/pybind11
+cd pybind11
+git checkout a2e59f0
+cd ..
 git add --all
 git commit -a
 git push
@@ -2926,6 +2929,9 @@ cd ../libavio
 sudo rm -R .git
 cp -R ../../remote/libavio/.git .
 git submodule add https://github.com/pybind/pybind11
+cd pybind11
+git checkout a2e59f0
+cd ..
 git add --all
 git commit -a
 git push
@@ -2935,7 +2941,9 @@ sudo rm -R .git
 cp -R ../../remote/libonvif/.git .
 cd libonvif
 git submodule add https://github.com/pybind/pybind11
-cd ..
+cd pybind11
+git checkout a2e59f0
+cd ../..
 git submodule add https://github.com/sr99622/kankakee
 git submodule add https://github.com/sr99622/libavio
 git add --all

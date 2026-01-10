@@ -132,10 +132,10 @@ flatpak uninstall io.github.sr99622.OnvifGUI
 
 &nbsp;
 
-Download the [snap installer](https://github.com/sr99622/libonvif/releases/download/v3.1.9/onvif-gui_3.1.9_amd64.snap), then open a terminal and navigate to the Downloads folder. Use the following command to install.
+Download the [snap installer](https://github.com/sr99622/libonvif/releases/download/v3.3.4/onvif-gui_3.3.4_amd64.snap), then open a terminal and navigate to the Downloads folder. Use the following command to install.
 
 ```
-sudo snap install onvif-gui_3.1.9_amd64.snap --dangerous
+sudo snap install onvif-gui_3.3.4_amd64.snap --dangerous
 ```
 
 The program can then be launched from the Applications menu. In order to get audio, you need to connect the pulseaudio driver.
@@ -171,6 +171,8 @@ sudo snap remove onvif-gui
 <summary>General Purpose Script Installation</summary> 
 
 &nbsp;
+
+In some situations, the standard installation may be difficult or impractical. This may be the case for older systems with system Python verisons earlier than 3.10, or those without snap or flatpak support. If the system GPU is NVIDIA this may also be the case. In these situations it may be possible to install Onvif GUI using other techniques which have been encapsulated in the installation script, that can be used following the instructions below.
 
 To install Onvif GUI, copy the following command, paste it into a terminal window and press the Enter key. The command will download a script and install the program. You will be asked to enter a sudo password. If you are installing on an Intel platform, the script will ask if you want to install the compute drivers, which are necessary for YOLO analysis on Intel iGPU. For detailed information on what the script does, please consult the Notes - Operations section of this document. The end result of the script is an icon in the system Applications that can be used to launch the program. 
 
@@ -698,6 +700,27 @@ In order to build from source on Windows, development tools and python are requi
   ```
   python onvif-gui\run.py
   ```
+* ### Step 9. Create Icon Launcher
+
+  ```
+  pip install winshell
+  onvif-gui-env\Scripts\onvif-gui --icon
+  ```
+
+* ### Step 10. Install Drivers for GPU
+
+  * Intel iGPU
+
+  If the system is equipped with Intel iGPU, the GPU drivers are usually included in the default Windows installation. If NPU operation is desired, the drivers can be found at [Intel](https://www.intel.com/content/www/us/en/download/794734/intel-npu-driver-windows.html). Once the drivers have been installed, run the following commands from inside the Python virtual environment
+
+  ```
+  pip install openvino
+  pip install torch torchvision
+  ```
+
+  * NVIDIA GPU
+
+  If the system is equipped with NVIDIA GPU, install the drivers if necessary, the consult the [torch instructions](https://pytorch.org/get-started/locally/) for your CUDA version. You will also need to `pip install openvino`. 
 
 </details>
 

@@ -1226,19 +1226,6 @@ If the application was not able to find the exact match, a pop up box will ask i
 
 The files listed in the panel my not be updated automatically. Use the refresh icon to get a current listing of the files available for view.
 
-
-### Event Browser
-
-  If the Save Picture for Alarms checkbox on the Settings -> Alarm panel is selected (yes by default), the system will save a picture each time an alarm is triggered. Clicking the Events button on the file panel will pop up the Event Browser dialog which can be used to view the pictures.
-
-  &nbsp;
-
-  <image src="assets/images/event_browser.png" width="640">
-
-  &nbsp;
-
-  The pictures are shown as the current selection on the list changes. Double clicking, typing the Enter key or clicking the View button will start the video associated with the event at the time point of the occurrence of the event.
-
 ---
 
 &nbsp;
@@ -4260,5 +4247,6 @@ external contributions to this project including patches, pull requests, etc.
 
 
 </details>
+
 
 

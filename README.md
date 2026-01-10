@@ -117,7 +117,7 @@ Download the [Flatpak installer](https://github.com/sr99622/libonvif/releases/do
 flatpak install OnvifGUI-3.3.4.flatpak
 ```
 
-In some cases, it may be necessary to re-boot the computer in order to see the icon int he Applications menu.
+In some cases, it may be necessary to re-boot the computer in order to see the icon in the Applications menu.
 
 The program can then be launched from the Applications menu. To uninstall use the command.
 

@@ -15,6 +15,10 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 
 &nbsp;
 
+<b>Onvif GUI is moving and has been re-branded as [Cayenue](https://github.com/sr99622/Cayenue). Further development is continuing over there.</b>
+
+&nbsp;
+
 ## Introduction
 
 <details>
@@ -4272,6 +4276,7 @@ external contributions to this project including patches, pull requests, etc.
 
 
 </details>
+
 
 
 

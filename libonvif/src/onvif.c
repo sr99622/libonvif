@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
@@ -2448,7 +2449,6 @@ xmlXPathObjectPtr getNodeSet (xmlDocPtr doc, xmlChar *xpath) {
 
 xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     int sock = 0, valread, flags;
-    const int buffer_size = 4096;
     struct sockaddr_in serv_addr;
     char buffer[4096] = {0};
 
@@ -2458,8 +2458,10 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     int tmp_len = strlen(xaddrs);
     int j;
     for (j=0; j<tmp_len-start; j++) {
-        if (j < 128)
-            tmp[j] = xaddrs[j+start];
+        if (j >= sizeof(tmp)-1) {
+            break;
+        }
+        tmp[j] = xaddrs[j+start];
     }
     tmp[j] = '\0';
 
@@ -2467,6 +2469,9 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     int end = mark-tmp;
     char tmp2[128] = {0};
     for (j=0; j<end; j++) {
+        if (j >= sizeof(tmp2)-1) {
+            break;
+        }
         tmp2[j] = tmp[j];
     }
     tmp2[j] = '\0';
@@ -2480,11 +2485,17 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     } else {
         start = mark-tmp2;
         for (j=0; j<start; j++) {
+            if (j >= sizeof(host)-1) {
+                break;
+            }
             host[j] = tmp2[j];
         }
         host[j] = '\0';
         tmp_len = strlen(tmp2);
         for (j=start+1; j<tmp_len; j++) {
+            if ((j-(start+1)) >= (sizeof(port_buf)-1)) {
+                break;
+            }
             port_buf[j-(start+1)] = tmp2[j];
         }
         port_buf[j-(start+1)] = '\0';
@@ -2501,6 +2512,16 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
         return NULL;
     }
 
+#ifdef _WIN32
+    DWORD timeout = 2000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+#else
+    struct timeval tv;
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const void*)&tv, sizeof(tv));
+#endif
+
     memset(&serv_addr, '0', sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
@@ -2513,11 +2534,27 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
         root_node = xmlNewNode(NULL, BAD_CAST "root");
         xmlDocSetRootElement(doc, root_node);
         xmlNewChild(root_node, NULL, BAD_CAST "error", BAD_CAST "Network error, unable to connect");
+
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+
         return doc;
     }
 
     if (send(sock , cmd , strlen(cmd) , 0 ) < 0) {
         printf("SEND ERROR %s\n", xaddrs);
+
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+
         return NULL;
     }
 
@@ -2532,7 +2569,7 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     valread = 0;
 
     while (loop-- > 0) {
-        int nvalread = recv( sock , buffer + valread, 4096 - 1 - valread, 0);
+        int nvalread = recv( sock , buffer + valread, sizeof(buffer) - 1 - valread, 0);
         if (nvalread <= 0) {
             break;
         }
@@ -2545,26 +2582,73 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
     }
 
     char * substr = strstr(buffer, http_terminate);
-    if (substr == NULL)
+    if (substr == NULL) {
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+        //printf("error: terminate not found\n");
         return NULL;
+    }
 
     int i;
     int xml_start = substr - buffer + 4;
-    if (xml_start > 1024)
-        return NULL;
-    char http_header[1024];
-    for (i=0; i<xml_start; i++) {
-        http_header[i] = buffer[i];
-    }
-    http_header[xml_start] = '\0';
 
-    substr = strstr(http_header, "Content-Length: ");
-    if (substr == NULL)
+    char http_header[1024];
+    if (xml_start >= sizeof(http_header)) {
+
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+        //printf("error: xml_start >= sizeof(http_header)\n");
         return NULL;
+    }
+
+    char http_header_lower[sizeof(http_header)];
+    int n=0;
+    for (i=0; i<xml_start; i++) {
+        if (i >= sizeof(http_header)-1) {
+            break;
+        }
+        http_header[i] = buffer[i];
+        http_header_lower[i] = tolower(buffer[i]);
+        n++;
+    }
+    http_header[n] = '\0';
+    http_header_lower[n] = '\0';
+
+    substr = strstr(http_header_lower, "content-length: ");
+    if (substr == NULL) {
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+        // printf("error: substr == NULL\n");
+        return NULL;
+    }
+
+    substr = http_header + (substr - http_header_lower);
 
     int length_start = substr - http_header + 16;
-    if ((xml_start - length_start) > 1024)
+    if ((xml_start - length_start) >= sizeof(http_header)) {
+
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+        //printf("error: (xml_start - length_start) >= sizeof(http_header)\n");
         return NULL;
+    }
+
     char str_xml_length[1024];
     for (i=length_start; i<xml_start; i++) {
         if (http_header[i] == '\r' && http_header[i+1] == '\n') {
@@ -2575,9 +2659,20 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
         }
     }
     int xml_length = (int) strtol(str_xml_length, (char **)NULL, 10);
-    if (xml_length > 65536)
+
+
+    char xml_reply[65537];
+    if (xml_length >= sizeof(xml_reply)-1) {
+
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+        //printf("error: (xml_length > xml_reply\n");
         return NULL;
-    char xml_reply[65536];
+    }
 
     for (i=0; i<valread-xml_start; i++) {
         xml_reply[i] = buffer[i+xml_start];
@@ -2585,7 +2680,10 @@ xmlDocPtr sendCommandToCamera(char *cmd, char *xaddrs) {
 
     int cumulative_read = valread - xml_start;
     while (cumulative_read < xml_length) {
-        valread = recv(sock, buffer, buffer_size, 0);
+        valread = recv(sock, buffer, sizeof(buffer), 0);
+        if (valread <= 0) {
+            break; 
+        }        
         for (i=0; i<valread; i++) {
             xml_reply[i+cumulative_read] = buffer[i];
         }

@@ -219,7 +219,7 @@ PYBIND11_MODULE(libonvif, m)
         .def_readwrite("cancelled", &Data::cancelled)
         .def_readwrite("failedLogin", &Data::failedLogin);
 
-    m.attr("__version__") = "3.2.8";
+    m.attr("__version__") = "3.2.9";
 }
 
 

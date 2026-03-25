@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd $HOME/libonvif/assets/scripts/components/linux
+#cd $HOME/libonvif/assets/scripts/components/linux
+cd $HOME/libonvif/scripts/linux
 
 versions=("3.10" "3.11" "3.12" "3.13" "3.14")
 for version in "${versions[@]}"; do
@@ -8,9 +9,9 @@ for version in "${versions[@]}"; do
 done
 
 source ./env_variables
-../make_build_dirs
+./make_build_dirs
 ./prerequisites
-../build_libxml2
+./build_libxml2
 
 cd $HOME/libonvif
 first_pass=1
@@ -41,7 +42,7 @@ for venv in "${venvs[@]}"; do
     export executable=$modname
     export sourcedir=$HOME/libonvif/libonvif/libonvif
     cd $HOME/libonvif
-    assets/scripts/components/linux/copy_libs
+    scripts/linux/copy_libs
     pip uninstall -y libonvif
     rm -rf dist
   fi

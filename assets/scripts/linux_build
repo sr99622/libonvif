@@ -1,18 +1,16 @@
 #!/bin/bash
 
-#sudo apt install -y git
-
 cd $HOME/libonvif/assets/scripts/components/linux
 
 versions=("3.10" "3.11" "3.12" "3.13" "3.14")
 for version in "${versions[@]}"; do
-    ./install_python $version
+  ./install_python $version
 done
 
 source ./env_variables
 ../make_build_dirs
 ./prerequisites
-./build_libs
+../build_libxml2
 
 cd $HOME/libonvif
 first_pass=1
@@ -26,34 +24,35 @@ for venv in "${venvs[@]}"; do
     echo "version $version"
     python${version} -m venv $HOME/$venv
     . $HOME/$venv/bin/activate
-    pip install --upgrade pip
+    pip install --upgrade
     deactivate
   else
-    echo "FOUND VENV $venv"
+    echo "FOUND VENV $v"
   fi
   source "$HOME/$venv/bin/activate"
   python --version
   if [ $first_pass == 1 ]; then
     echo "first pass"
-    assets/scripts/compile
+    cd $HOME/libonvif/libonvif
+    pip install -v .
     pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
     pydir=$HOME/$venv/lib/$pyname/site-packages
     modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
     export executable=$modname
     export sourcedir=$HOME/libonvif/libonvif/libonvif
-    assets/scripts/components/linux/copy_libs
-    modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
-    export executable=$modname
-    export sourcedir=$HOME/libonvif/libavio/avio
+    cd $HOME/libonvif
     assets/scripts/components/linux/copy_libs
     pip uninstall -y libonvif
-    pip uninstall -y avio
-    pip uninstall -y kankakee
-    pip uninstall -y onvif-gui
     rm -rf dist
   fi
   first_pass=0
+
+  pip install build auditwheel
+  cd $HOME/libonvif/libonvif
+  python -m build
+  auditwheel repair dist/*.whl --plat manylinux_2_34_x86_64
+
   #assets/scripts/compile
-  assets/scripts/linux_pkgs
+  #:wassets/scripts/linux_pkgs
   deactivate
 done

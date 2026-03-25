@@ -1507,8 +1507,10 @@ int continuousMove(float x, float y, float z, struct OnvifData *onvif_data) {
     xmlNodePtr continuousMove = xmlNewTextChild(body, ns_ptz, BAD_CAST "ContinuousMove", NULL);
     xmlNewTextChild(continuousMove, ns_ptz, BAD_CAST "ProfileToken", BAD_CAST onvif_data->profileToken);
     xmlNodePtr velocity = xmlNewTextChild(continuousMove, ns_ptz, BAD_CAST "Velocity", BAD_CAST NULL);
-    xmlNewTextChild(velocity, ns_tt, BAD_CAST pan_tilt_string, NULL);
-    xmlNewTextChild(velocity, ns_tt, BAD_CAST zoom_string, NULL);
+    if (z == 0)
+        xmlNewTextChild(velocity, ns_tt, BAD_CAST pan_tilt_string, NULL);
+    else
+        xmlNewTextChild(velocity, ns_tt, BAD_CAST zoom_string, NULL);
     char cmd[4096] = {0};
     addHttpHeader(doc, root, onvif_data->xaddrs, onvif_data->ptz_service, cmd, 4096);
     xmlDocPtr reply = sendCommandToCamera(cmd, onvif_data->xaddrs);

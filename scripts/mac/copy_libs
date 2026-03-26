@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo $executable
+for name in $(otool -l $executable | grep -A5 LC_LOAD_DYLIB | grep name | awk '{print $2}'); do
+    dir_name=$(dirname $name)
+    file_name=$(basename $name)
+    if [ $dir_name != "/usr/lib" ]; then
+        for sub_name in $(otool -l $name | grep -A5 LC_LOAD_DYLIB | grep name | awk '{print $2}'); do
+            if [[ -e $sub_name ]]; then
+                sub_dir_name=$(dirname "$sub_name")
+                sub_file_name=$(basename "$sub_name")
+                echo "2ND LVL - sub_dir_name: $sub_dir_name  sub_file_name: $sub_file_name"
+                install_name_tool -id @loader_path/$sub_file_name $sub_name
+                cp -f $sub_dir_name/$sub_file_name $sourcedir
+            fi
+        done
+        
+        install_name_tool -id @loader_path/$file_name $name
+        cp -f $name $sourcedir
+    fi
+done

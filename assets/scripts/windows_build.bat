@@ -1,3 +1,5 @@
+echo "Delete system python from host machine before compiling, otherwise linking will not work"
+
 @echo off
 
 if not exist "%ALLUSERSPROFILE%\chocolatey\bin\" (
@@ -17,8 +19,6 @@ cd %HOMEPATH%
 if not exist onvif-gui-win-libs\ (
     git clone https://github.com/sr99622/onvif-gui-win-libs
 )
-cd %HOMEPATH%\onvif-gui-win-libs
-git pull
 
 cd %HOMEPATH%\libonvif
 
@@ -37,9 +37,6 @@ for %%v in %list% do (
     call py%%v\Scripts\activate
     python.exe -m pip install --upgrade pip
     pip uninstall -y libonvif
-    pip uninstall -y avio
-    pip uninstall -y kankakee
-    pip uninstall -y onvif-gui
     cd libonvif
     call assets\scripts\build_pkgs
     call deactivate

@@ -13,6 +13,7 @@ pip install -v .
 cd ../libavio
 if exist build\ (
     rmdir /s /q build
+    
 )
 if exist avio.egg-info\ (
     rmdir /s /q avio.egg-info

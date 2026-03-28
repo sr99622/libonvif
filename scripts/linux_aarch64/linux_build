@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#cd $HOME/libonvif/assets/scripts/components/linux
+cd $HOME/libonvif/scripts/linux
+
+#versions=("3.10" "3.11" "3.12" "3.13" "3.14")
+#for version in "${versions[@]}"; do
+#  ./install_python $version
+#done
+
+source ./env_variables
+./make_build_dirs
+#./prerequisites
+./build_libxml2
+
+cd $HOME/libonvif
+first_pass=1
+venvs=("py310" "py311" "py312" "py313" "py314")
+for venv in "${venvs[@]}"; do
+  echo "venv: $venv"
+  if [ ! -d "$HOME/$venv" ]; then
+    echo "did not find venv $venv"
+    version="${venv:2}"
+    version="${version:0:1}.${version:1}"
+    echo "version $version"
+    python${version} -m venv $HOME/$venv
+    . $HOME/$venv/bin/activate
+    #pip install --upgrade
+    deactivate
+  else
+    echo "FOUND VENV $v"
+  fi
+  source "$HOME/$venv/bin/activate"
+  python --version
+  if [ $first_pass == 1 ]; then
+    echo "first pass"
+    cd $HOME/libonvif/libonvif
+    pip install -v .
+    pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
+    pydir=$HOME/$venv/lib/$pyname/site-packages
+    modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
+    export executable=$modname
+    export sourcedir=$HOME/libonvif/libonvif/libonvif
+    cd $HOME/libonvif
+    scripts/linux_aarch64/copy_libs
+    pip uninstall -y libonvif
+    rm -rf dist
+  fi
+  first_pass=0
+
+  pip install build auditwheel
+  cd $HOME/libonvif/libonvif
+  python -m build
+  auditwheel repair dist/*.whl --plat manylinux_2_26_aarch64
+
+  #assets/scripts/compile
+  #:wassets/scripts/linux_pkgs
+  deactivate
+done

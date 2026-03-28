@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Onvif GUI
+Comment=IP Camera Application
+Exec=onvif-gui
+Terminal=false
+Icon=io.github.sr99622.OnvifGUI
+StartupWMClass=python3
+Type=Application
+Categories=Utility

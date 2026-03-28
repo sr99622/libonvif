@@ -1,0 +1,8 @@
+cd $HOME && \
+curl -OL https://github.com/openssl/openssl/releases/download/openssl-3.5.0/openssl-3.5.0.tar.gz && \
+tar xzvf openssl-3.5.0.tar.gz && \
+cd openssl-3.5.0 && \
+./config --prefix=$HOME/bin/ssl --openssldir=$HOME/bin/ssl -Wl,-rpath,$HOME/bin/ssl/lib64 -Wl,--enable-new-dtags && \
+make -j$(nproc) && \
+make install_sw && \
+ln -s $HOME/bin/ssl/lib64 $HOME/bin/ssl/lib

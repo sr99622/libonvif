@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=Onvif GUI
-Exec=onvif-gui
-Icon=${SNAP}/meta/gui/onvif-gui.png
-Type=Application
-Terminal=false

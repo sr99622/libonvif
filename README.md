@@ -3228,7 +3228,7 @@ C6D9F2       NORMAL
 26 x 26 pixels
 ```
 ---
-
+ls 
 &nbsp;
 
 </details>
@@ -3245,15 +3245,15 @@ Build a virtual machine using the vm_* commands
 * `vm_download` - retrieves the iso file for Linux Mint 21
 * `vm_create` - creates the vm, build out the machine and update
 * `vm_start` - starts the vm from the command line, use sudo. Note that it is necessary to start the machine with this command in order to be able to transfer files between vm and host
-* `vm_mount_host` - from within, the vm, use this command to mount the host filesystem as `vm/shared`
+* `vm_mount_host` - from within, the vm, use this command to mount the host filesystem as `vm/shared`, use sudo.
 * `vm_delete` - remove the vm if you choose
 
-Once the vm has been created, run these from a terminal in the vm.
+Once the vm has been created, run these from a terminal in the vm in the $HOME directory.
 
 ```
 sudo apt install -y git
 git clone --recursive https://github.com/sr99622/libonvif
-cd libonvif/libonvif/scripts
+cd libonvif/libonvif/scripts/linux
 ./linux_build
 ```
 

@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+
+virsh destroy libonvif-vm
+virsh undefine libonvif-vm --remove-all-storage

@@ -30,4 +30,5 @@ logs/
 repo/
 .flatpak-builder/
 *.flatpak
+vm/
 env/

@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+
+mkdir -p vm/shared
+sudo mount -t virtiofs host vm/shared

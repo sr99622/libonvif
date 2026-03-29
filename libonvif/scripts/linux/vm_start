@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+
+mkdir -p vm/shared
+
+virtiofsd="/usr/libexec/virtiofsd"
+if [ -f /usr/lib/virtiofsd ]; then
+  virtiofsd=/usr/lib/virtiofsd
+fi
+
+sudo $virtiofsd --socket-path=/tmp/vhostqemu --shared-dir=vm/shared --cache=always --sandbox=none & \
+sudo qemu-system-x86_64 \
+  -enable-kvm \
+  -machine type=pc,accel=kvm \
+  -m 4G \
+  -smp 2 \
+  -cpu host \
+  -object memory-backend-memfd,id=mem,size=4G,share=on \
+  -numa node,memdev=mem \
+  -chardev socket,id=char0,path=/tmp/vhostqemu \
+  -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=host \
+  -hda vm/hda/libonvif.qcow2 \
+  -boot order=d \
+  -name "Linux Mint 21" \
+  -vga virtio \
+  -display sdl,gl=on \
+  -device virtio-net-pci,netdev=net0 \
+  -netdev user,id=net0 &

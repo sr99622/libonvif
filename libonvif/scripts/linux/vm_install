@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+source scripts/linux/detect_distro
+detect_distro
+
+if [ "$DISTRO" = "unknown" ]; then
+    echo "Unsupported distribution"
+    exit 1
+fi
+
+echo "Detected distro family: $DISTRO"
+
+case "$DISTRO" in
+    debian)
+        sudo apt install qemu-kvm libvirt-daemon-system virtinst libvirt-clients bridge-utils virt-manager virt-viewer virtiofsd
+        sudo setfacl -m u:libvirt-qemu:--x /home
+        sudo setfacl -m u:libvirt-qemu:--x $HOME
+        ;;
+    rhel)
+        sudo dnf install @virtualization qemu-kvm libvirt-client libvirt-daemon-kvm virt-manager
+        ;;
+    arch)
+        sudo pacman -S --needed virt-manager virt-viewer virtiofsd qemu-desktop libvirt edk2-ovmf dnsmasq iptables-nft
+        ;;
+esac
+
+sudo systemctl start libvirtd
+sudo systemctl enable libvirtd
+sudo systemctl status libvirtd
+sudo usermod -aG libvirt $USER
+sudo usermod -aG kvm $USER
+
+case "$DISTRO" in 
+    debian|arch)
+        sudo virsh net-start default
+        sudo virsh net-autostart default
+        ;;
+esac
+
+mkdir -p vm/iso vm/hda vm/shared

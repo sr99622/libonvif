@@ -12,7 +12,7 @@ done
 source ./env_variables
 ./make_build_dirs
 ./prerequisites
-./build_automake
+#./build_automake
 ./build_libxml2
 
 cd $HOME/libonvif

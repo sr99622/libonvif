@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #cd $HOME/libonvif/assets/scripts/components/linux
-cd $HOME/libonvif/linux/scripts
+cd $HOME/libonvif/libonvif/scripts/linux
 
 versions=("3.10" "3.11" "3.12" "3.13" "3.14")
 for version in "${versions[@]}"; do

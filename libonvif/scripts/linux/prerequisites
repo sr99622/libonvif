@@ -24,4 +24,5 @@ sudo apt install -y \
   libxkbcommon-dev \
   wayland-protocols \
   libdbus-1-dev \
-  libnuma-dev
+  libnuma-dev \
+  cmake

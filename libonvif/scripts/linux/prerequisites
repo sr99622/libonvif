@@ -25,4 +25,8 @@ sudo apt install -y \
   wayland-protocols \
   libdbus-1-dev \
   libnuma-dev \
-  cmake
+  cmake \
+  autoconf \
+  make \
+  wget \ 
+  g++

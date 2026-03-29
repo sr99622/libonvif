@@ -42,7 +42,7 @@ for venv in "${venvs[@]}"; do
     export executable=$modname
     export sourcedir=$HOME/libonvif/libonvif/libonvif
     cd $HOME/libonvif
-    scripts/linux/copy_libs
+    libonvif/scripts/linux/copy_libs
     pip uninstall -y libonvif
     rm -rf dist
   fi

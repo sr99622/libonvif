@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#sudo apt install -y git
-
 cd $HOME/libonvif/libonvif/scripts/linux
 
 versions=("3.10" "3.11" "3.12" "3.13" "3.14")
@@ -10,9 +8,8 @@ for version in "${versions[@]}"; do
 done
 
 source ./env_variables
-./make_build_dirs
+mkdir -p $HOME/libxml2_sources
 ./prerequisites
-#./build_automake
 ./build_libxml2
 
 cd $HOME/libonvif

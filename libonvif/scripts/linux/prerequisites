@@ -25,4 +25,5 @@ sudo apt install -y \
   wayland-protocols \
   libdbus-1-dev \
   libnuma-dev \
-  patchelf
+  patchelf \
+  cmake

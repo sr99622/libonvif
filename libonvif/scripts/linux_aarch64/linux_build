@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #cd $HOME/libonvif/assets/scripts/components/linux
-cd $HOME/libonvif/scripts/linux
+cd $HOME/libonvif/libonvif/scripts/linux
 
 #versions=("3.10" "3.11" "3.12" "3.13" "3.14")
 #for version in "${versions[@]}"; do
@@ -41,7 +41,7 @@ for venv in "${venvs[@]}"; do
     modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
     export executable=$modname
     export sourcedir=$HOME/libonvif/libonvif/libonvif
-    cd $HOME/libonvif
+    cd $HOME/libonvif/libonvif
     scripts/linux_aarch64/copy_libs
     pip uninstall -y libonvif
     rm -rf dist

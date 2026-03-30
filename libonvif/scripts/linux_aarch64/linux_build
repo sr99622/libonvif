@@ -1,16 +1,9 @@
 #!/bin/bash
 
-#cd $HOME/libonvif/assets/scripts/components/linux
 cd $HOME/libonvif/libonvif/scripts/linux
-
-#versions=("3.10" "3.11" "3.12" "3.13" "3.14")
-#for version in "${versions[@]}"; do
-#  ./install_python $version
-#done
 
 source ./env_variables
 ./make_build_dirs
-#./prerequisites
 ./build_libxml2
 
 cd $HOME/libonvif
@@ -52,8 +45,5 @@ for venv in "${venvs[@]}"; do
   cd $HOME/libonvif/libonvif
   python -m build
   auditwheel repair dist/*.whl --plat manylinux_2_26_aarch64
-
-  #assets/scripts/compile
-  #:wassets/scripts/linux_pkgs
   deactivate
 done

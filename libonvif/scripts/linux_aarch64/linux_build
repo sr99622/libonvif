@@ -25,7 +25,7 @@ for venv in "${venvs[@]}"; do
     echo "version $version"
     python${version} -m venv $HOME/$venv
     . $HOME/$venv/bin/activate
-    #pip install --upgrade
+    pip install --upgrade pip
     deactivate
   else
     echo "FOUND VENV $v"

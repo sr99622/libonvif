@@ -30,7 +30,7 @@ for venv in "${venvs[@]}"; do
   python --version
   if [ $first_pass == 1 ]; then
     echo "first pass"
-    $HOME/libonvif/libonvif/scripts/compile
+    $HOME/libonvif/libonvif/scripts/linux_aarch64/compile
     pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
     pydir=$HOME/$venv/lib/$pyname/site-packages
     modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')

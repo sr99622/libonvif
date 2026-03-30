@@ -2,6 +2,9 @@
 
 cd $HOME/libonivif/libonvif
 
+echo "FUCKME"
+echo $PWD
+
 FILE=build
 if [ -d "$FILE" ]; then
     rm -R build

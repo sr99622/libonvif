@@ -4,17 +4,17 @@
 echo >> $HOME/.zprofile
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
-brew install wget automake nasm libtool pkgconfig cmake
+brew install wget automake nasm libtool pkgconfig
 
-cd $HOME/libonvif/scripts/mac
+cd $HOME/libonvif/libonvif/scripts/mac
 
-versions=("3.10.10" "3.11.9" "3.12.10" "3.13.12" "3.14.3")
+versions=("3.10.11" "3.11.9" "3.12.9" "3.13.2" "3.14.2")
 for version in "${versions[@]}"; do
     ./install_python $version
 done
 
 source ./env_variables
-./build_libxml2
+./build_libs
 
 cd $HOME/libonvif
 first_pass=1
@@ -23,21 +23,26 @@ for venv in "${venvs[@]}"; do
     source $HOME/$venv/bin/activate
     python --version
     if [ $first_pass == 1 ]; then
-        cd $HOME/libonvif/libonvif
-        pip install -v .
-        cd $HOME/libonvif
+        libonvif/scripts/mac/compile
         pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
         pydir=$HOME/$venv/lib/$pyname/site-packages
         modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
         export executable=$modname
         export sourcedir=libonvif/libonvif
-        scripts/mac/copy_libs
-        scripts/mac/install_name
+        libonvif/scripts/mac/copy_libs
+        libonvif/scripts/mac/install_name
+        #modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
+        #export executable=$modname
+        #export sourcedir=libavio/avio
+        #assets/scripts/components/mac/copy_libs
+        #assets/scripts/components/mac/install_name
+        rm -rf dist
     fi
     first_pass=0
     pip uninstall -y libonvif
-    cd $HOME/libonvif/libonvif
-    pip install build
-    python -m build
+    #pip uninstall -y avio
+    #pip uninstall -y kankakee
+    #pip uninstall -y onvif-gui
+    libonvif/scripts/mac/mac_pkgs
     deactivate
 done

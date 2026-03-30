@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+detect_distro() {
+    if [ ! -f /etc/os-release ]; then
+        DISTRO="unknown"
+        return 1
+    fi
+
+    . /etc/os-release
+
+    ALL_IDS="$(echo "$ID $ID_LIKE" | tr '[:upper:]' '[:lower:]')"
+
+    if echo "$ALL_IDS" | grep -qwE 'ubuntu|debian'; then
+        DISTRO="debian"
+        return 0
+    fi
+
+    if echo "$ALL_IDS" | grep -qwE 'rhel|fedora|centos'; then
+        DISTRO="rhel"
+        return 0
+    fi
+
+    if echo "$ALL_IDS" | grep -qw 'arch'; then
+        DISTRO="arch"
+        return 0
+    fi
+
+    # last ditch effort to find oddball distros that have /etc/os-release
+    while IFS= read -r line; do
+        set $line
+    done < /etc/os-release
+
+    if [[ "$ID" = "cachyos" ]]; then
+        DISTRO="arch"
+        return 0
+    fi    
+
+    DISTRO="unknown"
+    return 1
+}

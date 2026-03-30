@@ -6,21 +6,9 @@ cd $HOME/libonvif/libonvif/scripts/linux_aarch64
 
 source ./env_variables
 
-#export LD_RUN_PATH='$ORIGIN'
-#export ACLOCAL_PATH=/usr/share/aclocal
-#export LIBXML2_INCLUDE_DIRS=$HOME/libxml2_build/include/libxml2
-#export LIBXML2_LIBRARIES=$HOME/libxml2_build/lib/libxml2.so
-
-#./make_build_dirs
-
-rm -rf $HOME/libxml2_build
 mkdir -p $HOME/libxml2_sources
-
-#./build_libs
-
 ./build_libxml2
 
-cd $HOME/libonvif
 first_pass=1
 #venvs=("py310" "py311" "py312" "py313" "py314")
 venvs=("py313")
@@ -43,16 +31,19 @@ for venv in "${venvs[@]}"; do
   if [ $first_pass == 1 ]; then
     echo "first pass"
     #$HOME/libonvif/libonvif/scripts/linux_aarch64/compile
+
     cd $HOME/libonvif/libonvif
+
     FILE=build
     if [ -d "$FILE" ]; then
-      rm -R build
+        rm -R build
     fi
     FILE=libonvif.egg-info
     if [ -d "$FILE" ]; then
-      rm -R libonvif.egg-info
+        rm -R libonvif.egg-info
     fi
     pip install -v .
+
     pyname=$(ls $HOME/$venv/lib | awk '{print $1}')
     pydir=$HOME/$venv/lib/$pyname/site-packages
     modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
@@ -63,15 +54,6 @@ for venv in "${venvs[@]}"; do
     rm -rf dist
   fi
   first_pass=0
-  #$HOME/libonvif/libonvif/scripts/linux_aarch64/linux_pkgs
-  cd $HOME/libonvif
-  mkdir -p dist
-  pip install build auditwheel patchelf
-  cd $HOME/libonvif/libonvif
-  rm -R dist
-  python -m build
-  auditwheel repair dist/*.whl --plat manylinux_2_26_aarch64
-  mv wheelhouse/* ../dist
-  mv dist/* ../dist
+  $HOME/libonvif/libonvif/scripts/linux_aarch64/linux_pkgs
   deactivate
 done

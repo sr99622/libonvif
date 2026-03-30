@@ -5,7 +5,6 @@ echo "executable: ${executable}"
 echo "sourcedir: ${sourcedir}"
 for name in $(ldd $executable | awk '{if ($2 == "=>") print $(NF-1)}'); do
     dir_name=$(dirname "$name")
-    echo $dir_name
     if [ "$dir_name" != /lib64 ]; then
         echo "name: $name"
         cp $name $sourcedir

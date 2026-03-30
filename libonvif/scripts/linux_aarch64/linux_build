@@ -4,9 +4,21 @@
 cd $HOME/libonvif/libonvif/scripts/linux_aarch64
 
 
-source ./env_variables
-./make_build_dirs
-./build_libs
+#source ./env_variables
+
+export LD_RUN_PATH='$ORIGIN'
+export ACLOCAL_PATH=/usr/share/aclocal
+export LIBXML2_INCLUDE_DIRS=$HOME/libxml2_build/include/libxml2
+export LIBXML2_LIBRARIES=$HOME/libxml2_build/lib/libxml2.so
+
+#./make_build_dirs
+
+rm -rf $HOME/libxml2_build
+mkdir -p $HOME/libxml2_sources
+
+#./build_libs
+
+./build_libxml2
 
 cd $HOME/libonvif
 first_pass=1

@@ -10,8 +10,7 @@ mkdir -p $HOME/libxml2_sources
 ./build_libxml2
 
 first_pass=1
-#venvs=("py310" "py311" "py312" "py313" "py314")
-venvs=("py313")
+venvs=("py310" "py311" "py312" "py313" "py314")
 for venv in "${venvs[@]}"; do
   echo "venv: $venv"
   if [ ! -d "$HOME/$venv" ]; then
@@ -30,10 +29,8 @@ for venv in "${venvs[@]}"; do
   python --version
   if [ $first_pass == 1 ]; then
     echo "first pass"
-    #$HOME/libonvif/libonvif/scripts/linux_aarch64/compile
-
+    
     cd $HOME/libonvif/libonvif
-
     FILE=build
     if [ -d "$FILE" ]; then
         rm -R build
@@ -54,7 +51,6 @@ for venv in "${venvs[@]}"; do
     rm -rf dist
   fi
   first_pass=0
-  #$HOME/libonvif/libonvif/scripts/linux_aarch64/linux_pkgs
 
   cd $HOME/libonvif
   mkdir -p dist

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cd $HOME/ffmpeg_sources && \
+#wget -O x265.tar.bz2 https://bitbucket.org/multicoreware/x265_git/get/master.tar.bz2 && \
+#tar xjvf x265.tar.bz2 && \
+#cd multicoreware*/build/linux && \
+#cd multicoreware-x265_git-ef83e1285847/build/linux
+if [ ! -d "x265_4.1" ]; then
+    wget http://ftp.videolan.org/pub/videolan/x265/x265_4.1.tar.gz && \
+    tar xzvf x265_4.1.tar.gz
+fi && \
+cd x265_4.1/source && \
+sed -i \
+  -e 's/cmake_policy(SET CMP0025 OLD)/cmake_policy(SET CMP0025 NEW)/' \
+  -e '/if(POLICY CMP0054)/,/endif()/ s/^/#/' \
+  -e 's/cmake_minimum_required *(VERSION 2\.8\.8)/cmake_minimum_required (VERSION 3.5)/' \
+  CMakeLists.txt && \
+cd ../build/linux && \
+PATH="$HOME/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=on ../../source && \
+PATH="$HOME/bin:$PATH" make  -j$(nproc) && \
+make install

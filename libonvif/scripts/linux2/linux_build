@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+clear
+
+exe_filename="$PWD/$0"
+dir_name=$(dirname "$exe_filename")
+echo "DIR NAME: $dir_name" >&2
+
+export DIR_NAME=$(dirname "$PWD/$0")
+export LD_RUN_PATH='$ORIGIN'
+export ACLOCAL_PATH=/usr/share/aclocal
+export LIBXML2_INCLUDE_DIRS=$HOME/libxml2_build/include/libxml2
+export LIBXML2_LIBRARIES=$HOME/libxml2_build/lib/libxml2.so
+export PKG_CONFIG_PATH=$HOME/ffmpeg_build/lib/pkgconfig
+export SDL2_DIR=$HOME/ffmpeg_build
+
+$DIR_NAME/build_libs
+
+first_pass=1
+#venvs=("py310" "py311" "py312" "py313" "py314")
+venvs=("py313")
+for venv in "${venvs[@]}"; do
+  echo "venv: $venv"
+  if [ ! -d "$PWD/$venv" ]; then
+    echo "did not find venv $venv"
+    version="${venv:2}"
+    version="${version:0:1}.${version:1}"
+    echo "version $version"
+    python${version} -m venv $PWD/$venv
+    . $PWD/$venv/bin/activate
+    pip install --upgrade pip
+    deactivate
+  else
+    echo "FOUND VENV $venv"
+  fi
+  source "$PWD/$venv/bin/activate"
+  python --version
+  if [ $first_pass == 1 ]; then
+    echo "first pass"
+
+    cd $HOME/libonvif/libavio
+    FILE=build
+    if [ -d "$FILE" ]; then
+        rm -R build
+    fi
+    FILE=avio.egg-info
+    if [ -d "$FILE" ]; then
+        rm -R avio.egg-info
+    fi
+    pip install -v .
+
+    pyname=$(ls $PWD/$venv/lib | awk '{print $1}')
+    pydir=$PWD/$venv/lib/$pyname/site-packages
+    modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
+    export executable=$modname
+    export sourcedir=$HOME/libonvif/libavio/avio
+    $DIR_NAME/copy_libs
+
+    pip uninstall -y avio
+  fi
+  first_pass=0
+
+  pip install build auditwheel patchelf
+  cd $HOME/libonvif/libavio
+  python -m build
+  auditwheel repair dist/*.whl --plat manylinux_2_28_x86_64
+
+  deactivate
+done

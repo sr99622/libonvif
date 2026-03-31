@@ -15,8 +15,7 @@ fi
 
 cd $HOME/libonvif
 first_pass=1
-#venvs=("py310" "py311" "py312" "py313" "py314")
-venvs=("py313")
+venvs=("py310" "py311" "py312" "py313" "py314")
 for venv in "${venvs[@]}"; do
   echo "venv: $venv"
   if [ ! -d "$HOME/$venv" ]; then

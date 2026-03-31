@@ -2,6 +2,8 @@
 
 clear
 
+dnf install wget nasm
+
 exe_filename="$PWD/$0"
 dir_name=$(dirname "$exe_filename")
 echo "DIR NAME: $dir_name" >&2

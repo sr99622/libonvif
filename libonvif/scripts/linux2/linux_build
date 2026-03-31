@@ -8,13 +8,17 @@ exe_filename="$PWD/$0"
 dir_name=$(dirname "$exe_filename")
 echo "DIR NAME: $dir_name" >&2
 
+export SOURCE=$PWD/source
+export BUILD=$PWD/build
+export BIN=$PWD/bin
+
 export DIR_NAME=$(dirname "$PWD/$0")
 export LD_RUN_PATH='$ORIGIN'
 export ACLOCAL_PATH=/usr/share/aclocal
 export LIBXML2_INCLUDE_DIRS=$HOME/libxml2_build/include/libxml2
 export LIBXML2_LIBRARIES=$HOME/libxml2_build/lib/libxml2.so
-export PKG_CONFIG_PATH=$HOME/ffmpeg_build/lib/pkgconfig
-export SDL2_DIR=$HOME/ffmpeg_build
+export PKG_CONFIG_PATH=$BUILD/lib/pkgconfig
+export SDL2_DIR=$BUILD
 
 $DIR_NAME/build_libs
 

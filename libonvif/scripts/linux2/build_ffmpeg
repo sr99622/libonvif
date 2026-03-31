@@ -1,18 +1,18 @@
 #!/bin/bash
 
-cd $HOME/ffmpeg_sources && \
+cd $SOURCE && \
 if [[ ! -d "ffmpeg" ]]; then
   wget -O ffmpeg-snapshot.tar.bz2 https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 && \
   tar xjvf ffmpeg-snapshot.tar.bz2
 fi
 cd ffmpeg && \
-PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
-  --prefix="$HOME/ffmpeg_build" \
-  --extra-cflags="-I$HOME/ffmpeg_build/include" \
-  --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+PATH="$BIN:$PATH" PKG_CONFIG_PATH="$BUILD/lib/pkgconfig" ./configure \
+  --prefix="$BUILD" \
+  --extra-cflags="-I$BUILD/include" \
+  --extra-ldflags="-L$BUILD/lib" \
   --extra-libs="-lpthread -lm" \
   --ld="g++" \
-  --bindir="$HOME/bin" \
+  --bindir="$BIN" \
   --enable-shared \
   --enable-pic \
   --disable-static \
@@ -21,6 +21,6 @@ PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./conf
   --enable-libx264 \
   --enable-libx265 \
   --enable-nonfree && \
-PATH="$HOME/bin:$PATH" make -j$(nproc) && \
+PATH="$BIN:$PATH" make -j$(nproc) && \
 make install && \
 hash -r

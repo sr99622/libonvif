@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd $HOME/ffmpeg_sources && \
+cd $SOURCE && \
 #wget -O x265.tar.bz2 https://bitbucket.org/multicoreware/x265_git/get/master.tar.bz2 && \
 #tar xjvf x265.tar.bz2 && \
 #cd multicoreware*/build/linux && \
@@ -16,6 +16,6 @@ sed -i \
   -e 's/cmake_minimum_required *(VERSION 2\.8\.8)/cmake_minimum_required (VERSION 3.5)/' \
   CMakeLists.txt && \
 cd ../build/linux && \
-PATH="$HOME/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=on ../../source && \
-PATH="$HOME/bin:$PATH" make  -j$(nproc) && \
+PATH="$BIN:$PATH" cmake -G "Unix Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX="$BUILD" -DENABLE_SHARED=on ../../source && \
+PATH="$BIN:$PATH" make  -j$(nproc) && \
 make install

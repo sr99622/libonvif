@@ -2,7 +2,7 @@
 
 clear
 
-dnf install wget nasm
+dnf install -y wget nasm
 
 exe_filename="$PWD/$0"
 dir_name=$(dirname "$exe_filename")

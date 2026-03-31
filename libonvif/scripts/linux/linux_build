@@ -2,19 +2,21 @@
 
 cd $HOME/libonvif/libonvif/scripts/linux
 
-versions=("3.10" "3.11" "3.12" "3.13" "3.14")
-for version in "${versions[@]}"; do
-    ./install_python $version
-done
-
 source ./env_variables
-mkdir -p $HOME/libxml2_sources
-./prerequisites
-./build_libxml2
+LIBXML2_SOURCE_DIR="$HOME/libxml2_sources"
+if [ ! -d "$LIBXML2_SOURCE_DIR" ]; then
+  mkdir -p $HOME/libxml2_sources
+fi
+
+LIBXML2_LIB="$HOME/libxml2_build/lib/libxml2.so"
+if [ ! -f "$LIBXML2_LIB" ]; then 
+  ./build_libxml2
+fi
 
 cd $HOME/libonvif
 first_pass=1
-venvs=("py310" "py311" "py312" "py313" "py314")
+#venvs=("py310" "py311" "py312" "py313" "py314")
+venvs=("py313")
 for venv in "${venvs[@]}"; do
   echo "venv: $venv"
   if [ ! -d "$HOME/$venv" ]; then

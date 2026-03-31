@@ -5,7 +5,7 @@ pip install build auditwheel patchelf
 cd libonvif
 rm -R dist
 python -m build
-auditwheel repair dist/*.whl --plat manylinux_2_34_x86_64
+auditwheel repair dist/*.whl --plat manylinux_2_27_x86_64
 mv wheelhouse/* ../dist
 mv dist/* ../dist
 cd ..

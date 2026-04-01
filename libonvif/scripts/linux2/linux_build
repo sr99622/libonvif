@@ -18,7 +18,9 @@ echo "Project Directory: $PROJECT_DIR" >&2
 
 #dnf install -y wget nasm
 
-BASE=$PWD
+if [ "$PWD" ne "/" ]; then
+  BASE=$PWD
+fi
 
 export SOURCE=$PWD/source
 export BUILD=$PWD/build

@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 
-if [[ $# -ne 1 ]]; then
+if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <project directory>"
+  exit 1
+fi
+if [ ! -d "$1" ]; then
+  echo "Project directory $1 does not exist, please enter a valid directory"
+  exit 1
+fi
+if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then 
+  echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $1"
   exit 1
 fi
 

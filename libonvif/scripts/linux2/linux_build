@@ -78,3 +78,5 @@ for venv in "${venvs[@]}"; do
   cd $PROJECT_DIR
   python -m build
   auditwheel repair dist/*.whl --plat manylinux_2_27_x86_64
+  deactivate
+done

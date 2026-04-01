@@ -8,7 +8,7 @@ if [ ! -d "$1" ]; then
   echo "Project directory $1 does not exist, please enter a valid directory" >&2
   exit 1
 fi
-if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then 
+if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then
   echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $1" >&2
   exit 1
 fi
@@ -54,30 +54,27 @@ for venv in "${venvs[@]}"; do
     echo "first pass" >&2
 
     cd $PROJECT_DIR
-    rm $PROJECT_DIR/avio/*so*
+    rm $PROJECT_DIR/libonvif/*so*
     if [ -d "build" ]; then
         rm -R build
     fi
-    if [ -d "avio.egg-info" ]; then
-        rm -R avio.egg-info
+    if [ -d "libonvif.egg-info" ]; then
+        rm -R libonvif.egg-info
     fi
     pip install -v .
 
     pyname=$(ls $BASE/$venv/lib | awk '{print $1}')
     pydir=$BASE/$venv/lib/$pyname/site-packages
-    modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
+    modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
     export executable=$modname
-    export sourcedir=$PROJECT_DIR/avio
+    export sourcedir=$PROJECT_DIR/libonvif
     $DIR_NAME/copy_libs
 
-    pip uninstall -y avio
+    pip uninstall -y libonvif
   fi
   first_pass=0
 
   pip install build auditwheel patchelf
   cd $PROJECT_DIR
   python -m build
-  auditwheel repair dist/*.whl --plat manylinux_2_28_x86_64
-
-  deactivate
-done
+  auditwheel repair dist/*.whl --plat manylinux_2_27_x86_64

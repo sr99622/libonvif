@@ -13,10 +13,12 @@ if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then
   exit 1
 fi
 
-if [ "$PWD" ne "/" ]; then
-  BASE=$PWD
+if [ "$PWD" eq "/" ]; then
+  echo "This script cannot be run from the top level directory '/', please move or create a new directory to run this script" >&2
+  exit 1
 fi
 
+BASE=$PWD
 echo "BASE: $BASE  --- PWD: $PWD"
 
 PROJECT_DIR="$BASE/$1"

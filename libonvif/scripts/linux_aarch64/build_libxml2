@@ -1,9 +1,0 @@
-#!/bin/bash
-
-mkdir -p $HOME/libxml2_sources && \
-cd $HOME/libxml2_sources && \
-git -C libxml2 pull 2> /dev/null || git clone --depth 1 https://github.com/GNOME/libxml2.git && \
-cd libxml2 && \
-./autogen.sh  --prefix=$HOME/libxml2_build --without-python && \
-make -j$(nproc) && \
-make install

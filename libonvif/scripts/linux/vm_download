@@ -1,4 +1,0 @@
-#!/usr/bin/bash
-
-mkdir -p vm/iso
-curl https://pub.linuxmint.io/stable/21/linuxmint-21-cinnamon-64bit.iso --output vm/iso/linuxmint-21-cinnamon-64bit.iso

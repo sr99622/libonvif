@@ -1,8 +1,0 @@
-#!/bin/bash
-
-export LD_RUN_PATH='$ORIGIN'
-export ACLOCAL_PATH=/usr/share/aclocal
-export LIBXML2_INCLUDE_DIRS=$HOME/libxml2_build/include/libxml2
-export LIBXML2_LIBRARIES=$HOME/libxml2_build/lib/libxml2.so
-export PKG_CONFIG_PATH=$HOME/ffmpeg_build/lib/pkgconfig
-export SDL2_DIR=$HOME/ffmpeg_build

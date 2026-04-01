@@ -13,7 +13,7 @@ if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then
   exit 1
 fi
 
-PROJECT_DIR="$1"
+PROJECT_DIR="$PWD/$1"
 echo "Project Directory: $PROJECT_DIR" >&2
 
 dnf install -y wget nasm

@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <project directory>"
+  echo "Usage: $0 <project directory>" >&2
   exit 1
 fi
 if [ ! -d "$1" ]; then
-  echo "Project directory $1 does not exist, please enter a valid directory"
+  echo "Project directory $1 does not exist, please enter a valid directory" >&2
   exit 1
 fi
 if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then 
-  echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $1"
+  echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $1" >&2
   exit 1
 fi
 
 PROJECT_DIR="$1"
-echo "Project Directory: $PROJECT_DIR"
+echo "Project Directory: $PROJECT_DIR" >&2
 
 dnf install -y wget nasm
 
@@ -38,9 +38,8 @@ first_pass=1
 #venvs=("py310" "py311" "py312" "py313" "py314")
 venvs=("py313")
 for venv in "${venvs[@]}"; do
-  echo "venv: $venv"
+  echo "Python venv: $venv" >&2
   if [ ! -d "$BASE/$venv" ]; then
-    echo "did not find venv $venv"
     version="${venv:2}"
     version="${version:0:1}.${version:1}"
     echo "version $version"
@@ -48,13 +47,11 @@ for venv in "${venvs[@]}"; do
     . $BASE/$venv/bin/activate
     pip install --upgrade pip
     deactivate
-  else
-    echo "FOUND VENV $venv"
   fi
   source "$BASE/$venv/bin/activate"
   python --version
   if [ $first_pass == 1 ]; then
-    echo "first pass"
+    echo "first pass" >&2
 
     cd $PROJECT_DIR
     rm $PROJECT_DIR/avio/*so*

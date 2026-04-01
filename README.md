@@ -3240,34 +3240,19 @@ ls
 
 <h3>Linux</h3>
 
-Build a virtual machine using the vm_* commands
-
-* `vm_install` - installs virt and associated onto your machine
-* `vm_download` - retrieves the iso file for Linux Mint 21
-* `vm_create` - creates the vm, build out the machine and update
-* `vm_start` - starts the vm from the command line, use sudo. Note that it is necessary to start the machine with this command in order to be able to transfer files between vm and host
-* `vm_mount_host` - from within, the vm, use this command to mount the host filesystem as `vm/shared`, use sudo.
-* `vm_delete` - remove the vm if you choose
-
-Once the vm has been created, run these from a terminal in the vm in the $HOME directory.
+Use for both x86_64 and aarch64. Start the docker container and cd to $HOME, it won't work from /. The command line requires the location of the project directory.
 
 ```
-sudo apt install -y git
+sudo snap install docker
+sudo groupadd docker
+sudo usermod -aG docker $USER
+sudo reboot now
+docker pull quay.io/pypa/manylinux_2_28_aarch64
+docker image ls
+docker run -it quay.io/pypa/manylinux_2_28_aarch64 /bin/bash
+cd
 git clone --recursive https://github.com/sr99622/libonvif
-cd libonvif/libonvif/scripts/linux
-./linux_build
-```
-
-You can find the package installers in the $HOME/libonvif/dist directory. A quick test can be done to check the files
-
-```
-. $HOME/py313/bin/activate
-pip list
-pip install $HOME/libonvif/dist/libonvif*313*many*whl
-python
-import libonvif
-libonvif.__version__
-libonvif.Session()
+libonvif/libonvif/scripts/linux/linux_build libonvif/libonvif
 ```
 
 ---
@@ -3302,7 +3287,7 @@ libonvif.Session()
 
 <h3>Windows</h3>
 
-Windows does not require a virtual machine, it's too hard to build anyway. You will need to un-install any system python versions however, as this will mess up the linker and the python binaries will not work. You could do this from a virtual machine and avoid that issue, but you'll get no help from me on that front. You will need to have git already installed on your machine
+Windows does not require a virtual machine, it's too much work to build anyway. You will need to un-install any system python versions however, as this will mess up the linker and the python binaries will not work. You could do this from a virtual machine and avoid that issue, but you'll get no help from me on that front. You will need to have git already installed on your machine.
 
 ```
 git clone --recursive https://github.com/sr99622/libonvif
@@ -3324,25 +3309,6 @@ libonvif.Session()
 
 ---
 
-<h3>Linux aarch64</h3>
-
-Use a pi device built up with Ubuntu 24.04. This one uses docker. 
-
-```
-sudo snap install docker
-sudo groupadd docker
-sudo usermod -aG docker $USER
-sudo reboot now
-docker pull quay.io/pypa/manylinux_2_28_aarch64
-docker image ls
-docker run -it quay.io/pypa/manylinux_2_28_aarch64 /bin/bash
-cd $HOME
-git clone --recursive https://github.com/sr99622/libonvif
-cd libonvif/libonvif/scripts/linux__arch64
-./linux_build
-```
-
----
 
 &nbsp;
 

@@ -4,9 +4,11 @@ clear
 
 dnf install -y wget nasm
 
-exe_filename="$PWD/$0"
-dir_name=$(dirname "$exe_filename")
-echo "DIR NAME: $dir_name" >&2
+#exe_filename="$PWD/$0"
+#dir_name=$(dirname "$exe_filename")
+#echo "DIR NAME: $dir_name" >&2
+
+BASE=$PWD
 
 export SOURCE=$PWD/source
 export BUILD=$PWD/build
@@ -27,36 +29,34 @@ first_pass=1
 venvs=("py313")
 for venv in "${venvs[@]}"; do
   echo "venv: $venv"
-  if [ ! -d "$PWD/$venv" ]; then
+  if [ ! -d "$BASE/$venv" ]; then
     echo "did not find venv $venv"
     version="${venv:2}"
     version="${version:0:1}.${version:1}"
     echo "version $version"
-    python${version} -m venv $PWD/$venv
-    . $PWD/$venv/bin/activate
+    python${version} -m venv $BASE/$venv
+    . $BASE/$venv/bin/activate
     pip install --upgrade pip
     deactivate
   else
     echo "FOUND VENV $venv"
   fi
-  source "$PWD/$venv/bin/activate"
+  source "$BASE/$venv/bin/activate"
   python --version
   if [ $first_pass == 1 ]; then
     echo "first pass"
 
     cd $HOME/libonvif/libavio
-    FILE=build
-    if [ -d "$FILE" ]; then
+    if [ -d "build" ]; then
         rm -R build
     fi
-    FILE=avio.egg-info
-    if [ -d "$FILE" ]; then
+    if [ -d "avio.egg-info" ]; then
         rm -R avio.egg-info
     fi
     pip install -v .
 
-    pyname=$(ls $PWD/$venv/lib | awk '{print $1}')
-    pydir=$PWD/$venv/lib/$pyname/site-packages
+    pyname=$(ls $BASE/$venv/lib | awk '{print $1}')
+    pydir=$BASE/$venv/lib/$pyname/site-packages
     modname=$(ls $pydir/avio/avio*.so | awk '{print $1}')
     export executable=$modname
     export sourcedir=$HOME/libonvif/libavio/avio

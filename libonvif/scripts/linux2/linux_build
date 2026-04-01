@@ -27,10 +27,10 @@ export BIN=$PWD/bin
 export DIR_NAME=$(dirname "$PWD/$0")
 export LD_RUN_PATH='$ORIGIN'
 export ACLOCAL_PATH=/usr/share/aclocal
-export LIBXML2_INCLUDE_DIRS=$HOME/libxml2_build/include/libxml2
-export LIBXML2_LIBRARIES=$HOME/libxml2_build/lib/libxml2.so
-export PKG_CONFIG_PATH=$BUILD/lib/pkgconfig
-export SDL2_DIR=$BUILD
+export LIBXML2_INCLUDE_DIRS=$BUILD/include/libxml2
+export LIBXML2_LIBRARIES=$BUILD/lib/libxml2.so
+#export PKG_CONFIG_PATH=$BUILD/lib/pkgconfig
+#export SDL2_DIR=$BUILD
 
 $DIR_NAME/build_libs
 

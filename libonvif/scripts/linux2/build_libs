@@ -4,15 +4,15 @@ cd $DIR_NAME
 echo "HELLO FROM build libs: $DIR_NAME"
 
 
-if [ ! -d "$HOME/libxml2_sources" ]; then
-  mkdir -p "$HOME/libxml2_sources"
-fi
+#if [ ! -d "$HOME/libxml2_sources" ]; then
+#  mkdir -p "$HOME/libxml2_sources"
+#fi
 if [ ! -d "$SOURCE" ]; then
   mkdir -p "$SOURCE"
 fi
 
 echo "Starting LIBXML2 build" >&2
-if [ ! -f "$HOME/libxml2_build/lib/libxml2.so" ]; then
+if [ ! -f "$BUILD/lib/libxml2.so" ]; then
   $DIR_NAME/build_libxml2
 else
   echo "Found existing xml2" >&2

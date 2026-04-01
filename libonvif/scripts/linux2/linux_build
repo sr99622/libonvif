@@ -38,8 +38,9 @@ first_pass=1
 #venvs=("py310" "py311" "py312" "py313" "py314")
 venvs=("py313")
 for venv in "${venvs[@]}"; do
-  echo "Python venv: $venv" >&2
+  echo "venv: $venv"
   if [ ! -d "$BASE/$venv" ]; then
+    echo "did not find venv $venv"
     version="${venv:2}"
     version="${version:0:1}.${version:1}"
     echo "version $version"
@@ -47,7 +48,9 @@ for venv in "${venvs[@]}"; do
     . $BASE/$venv/bin/activate
     pip install --upgrade pip
     deactivate
-
+  else
+    echo "FOUND VENV $venv"
+  fi
   source "$BASE/$venv/bin/activate"
   python --version
   if [ $first_pass == 1 ]; then

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-clear
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 <project directory>"
+  exit 1
+fi
+
+PROJECT_DIR="$1"
+echo "Project Directory: $PROJECT_DIR"
 
 dnf install -y wget nasm
-
-#exe_filename="$PWD/$0"
-#dir_name=$(dirname "$exe_filename")
-#echo "DIR NAME: $dir_name" >&2
 
 BASE=$PWD
 

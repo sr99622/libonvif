@@ -18,39 +18,4 @@ else
   echo "Found existing xml2" >&2
 fi
 
-echo "Starting LIB_X264 build" >&2
-if [ ! -f "$BUILD/lib/libx264.so" ]; then
-  $DIR_NAME/build_h264
-else
-  echo "Found existing x264" >&2
-fi
-
-echo "Starting LIB_X265 build" >&2
-if [ ! -f "$BUILD/lib/libx265.so" ]; then
-  $DIR_NAME/build_h265
-else
-  echo "Found existing x265" >&2
-fi
-
-echo "Starting FDK_AAC build" >&2
-if [ ! -f "$BUILD/lib/libfdk-aac.so" ]; then
-  $DIR_NAME/build_aac
-else
-  echo "Found existing AAC" >&2
-fi
-
-echo "Starting LIB_SDL2 build" >&2
-if [ ! -f "$BUILD/lib/libSDL2.so" ]; then
-  $DIR_NAME/build_sdl2
-else
-  echo "Found existing SDL2" >&2
-fi
-
-echo "Starting FFMPEG build" >&2
-if [ ! -f "$BUILD/lib/libavcodec.so" ]; then
-  $DIR_NAME/build_ffmpeg
-else
-  echo "Found existing FFMPEG" >&2
-fi
-
 

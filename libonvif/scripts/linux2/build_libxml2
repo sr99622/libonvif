@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#mkdir -p $HOME/libxml2_sources && \
 cd $SOURCE && \
 git -C libxml2 pull 2> /dev/null || git clone --depth 1 https://github.com/GNOME/libxml2.git && \
 cd libxml2 && \

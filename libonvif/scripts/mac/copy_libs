@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "copy libs to source directory"
 echo $executable
 for name in $(otool -l $executable | grep -A5 LC_LOAD_DYLIB | grep name | awk '{print $2}'); do
     dir_name=$(dirname $name)

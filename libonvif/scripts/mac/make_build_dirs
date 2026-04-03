@@ -1,8 +1,0 @@
-#!/bin/bash
-
-rm -rf $HOME/ffmpeg_build
-mkdir -p $HOME/ffmpeg_sources 
-mkdir -p $HOME/bin
-mkdir -p $HOME/sources
-rm -rf $HOME/libxml2_build
-mkdir -p $HOME/libxml2_sources

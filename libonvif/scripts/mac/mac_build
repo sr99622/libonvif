@@ -24,7 +24,7 @@ if [ ! -f  "/opt/homebrew/bin/brew" ]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 #brew install wget automake nasm libtool pkgconfig cmake
-brew install wget automake libtool cmake
+brew install wget automake libtool pkgconfig cmake
 
 cd $PROJECT_DIR/scripts/mac
 cd python
@@ -36,6 +36,7 @@ for version in "${versions[@]}"; do
 done
 cd ..
 
+export MACOSX_DEPLOYMENT_TARGET=15.0
 export SOURCE=$BASE/source
 export BUILD=$BASE/build
 export LIBXML2_INCLUDE_DIRS=$BUILD/include/libxml2

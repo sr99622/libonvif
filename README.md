@@ -3268,9 +3268,12 @@ git
 This will start the XCode tools installation. Once complete:
 
 ```
+cd $HOME
 git clone --recursive https://github.com/sr99622/libonvif
-cd libonvif/libonvif/scripts/mac
-./mac_build
+cd libonvif
+git switch dev
+cd ..
+libonvif/libonvif/scripts/mac/mac_build libonvif/libonvif
 ```
 You can find the package installers in the $HOME/libonvif/dist directory. Here the packages are left installed in the build envs. To quick test:
 

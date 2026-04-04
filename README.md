@@ -3280,6 +3280,7 @@ You can find the package installers in the $HOME/libonvif/dist directory. Here t
 ```
 . $HOME/py313/bin/activate
 pip list
+pip install $HOME/libonvif/dist/*313*
 python
 import libonvif
 libonvif.__version__

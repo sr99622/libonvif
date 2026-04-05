@@ -30,11 +30,11 @@
 		</screenshot>
 	</screenshots>
 	<releases>
-		<release version="3.3.2" date="2025-08-03">
+		<release version="3.3.7" date="2026-04-05">
 			<description>
 				<p>Wilton</p>
 			</description>
-			<url>https://github.com/sr99622/libonvif/releases/tag/v3.1.10</url>
+			<url>https://github.com/sr99622/libonvif/releases/tag/v3.3.7</url>
 		</release>
 	</releases>
 	<categories>

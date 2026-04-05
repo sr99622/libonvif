@@ -3240,19 +3240,30 @@ ls
 
 <h3>Linux</h3>
 
-Use for both x86_64 and aarch64. Start the docker container and cd to $HOME, it won't work from /. The command line requires the location of the project directory.
+Use for both x86_64 and aarch64. Start the docker container and cd to $HOME, it won't work from /. The command line requires the location of the project directory. These instructions work for both x86_64 or aarch64, substitute the arch tag.
 
 ```
 sudo snap install docker
 sudo groupadd docker
 sudo usermod -aG docker $USER
 sudo reboot now
-docker pull quay.io/pypa/manylinux_2_28_aarch64
+docker pull quay.io/pypa/manylinux_2_28_<arch>
 docker image ls
-docker run -it quay.io/pypa/manylinux_2_28_aarch64 /bin/bash
-cd
+docker run -it quay.io/pypa/manylinux_2_28_<arch> /bin/bash
+cd $HOME
 git clone --recursive https://github.com/sr99622/libonvif
 libonvif/libonvif/scripts/linux/linux_build libonvif/libonvif
+```
+
+The package installers will be found in the libonvif/libonvif/dist directory. For a quick test:
+
+```
+. $HOME/py313/bin/activate
+pip install $HOME/libonvif/libonvif/dist/*313*
+python
+>> import libonvif
+>> libonvif.__version__
+>> libonvif.Session() 
 ```
 
 ---

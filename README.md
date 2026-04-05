@@ -3265,11 +3265,11 @@ git clone --recursive https://github.com/sr99622/libonvif
 libonvif/libonvif/scripts/linux/linux_build libonvif/libonvif
 ```
 
-The package installers will be found in the libonvif/libonvif/dist directory. For a quick test:
+The package installers will be found in the libonvif/libonvif/wheelhouse directory. For a quick test:
 
 ```
 . $HOME/py313/bin/activate
-pip install $HOME/libonvif/libonvif/dist/*313*
+pip install $HOME/libonvif/libonvif/wheelhouse/*313*
 python
 >> import libonvif
 >> libonvif.__version__

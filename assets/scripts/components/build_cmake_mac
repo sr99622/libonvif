@@ -1,0 +1,16 @@
+#!/bin/bash
+
+FILE="/usr/local/bin/cmake"
+if [ ! -f "$FILE" ]; then
+    cd $HOME/sources && \
+    if [ ! -d "cmake-3.20.0" ]; then
+        wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz && \
+        tar -zxvf cmake-3.20.0.tar.gz
+    fi && \
+    cd cmake-3.20.0 && \
+    ./bootstrap && \
+    make && \
+    sudo make install && \
+    cmake --version
+fi
+/usr/local/bin/cmake --version

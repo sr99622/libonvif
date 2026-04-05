@@ -1,0 +1,28 @@
+#!/bin/bash
+
+
+found=0
+location=$(command -v cmake)
+if [ "$location" == "/usr/local/bin/cmake" ]; then
+    cmake_version=$(cmake --version | head -n 1 | awk '{print $3}')
+    echo "$cmake_version"
+    if [ "$cmake_version" == "3.20.0" ]; then
+        found=1
+    fi
+fi
+
+if [ "$found" == 1 ]; then
+    echo "FOUND EXISTING CMAKE VERSION 3.20.0"
+else
+    sudo apt install -y libssl-dev ninja-build && \
+    cd $HOME/sources && \
+    if [ ! -d "cmake-3.20.0" ]; then
+        wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz && \
+        tar -zxvf cmake-3.20.0.tar.gz
+    fi && \
+    cd cmake-3.20.0 && \
+    ./bootstrap && \
+    make -j$(nproc) && \
+    sudo make install && \
+    cmake --version
+fi

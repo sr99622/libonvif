@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ $# -ne 2 ]]; then
+    echo "Usage: $0 /path/to/binary /path/to/target-dir"
+    exit 1
+fi
+
+binary="$1"
+target_dir="$2"
+
+command -v readelf >/dev/null || { echo "readelf not found"; exit 1; }
+command -v patchelf >/dev/null || { echo "patchelf not found"; exit 1; }
+
+mkdir -p "$target_dir"
+declare -A seen
+declare -A copied
+
+# Get system library paths
+readarray -t search_paths < <(ldconfig -XNv 2>/dev/null | grep -oP '^\/.*(?=:)' || true)
+
+# Add common fallbacks
+search_paths+=(
+    /lib
+    /lib64
+    /usr/lib
+    /usr/lib64
+    /lib/x86_64-linux-gnu
+    /usr/lib/x86_64-linux-gnu
+    /usr/local/lib
+    /usr/lib/x86_64-linux-gnu/samba
+    /usr/lib/x86_64-linux-gnu/pulseaudio
+    /home/stephen/ffmpeg_build/lib
+)
+
+# Resolve a library name to full path
+resolve_so() {
+    local lib="$1"
+    for dir in "${search_paths[@]}"; do
+        [[ -e "$dir/$lib" ]] && echo "$dir/$lib" && return 0
+    done
+    return 1
+}
+
+# Copy and patch a binary/lib into target directory
+copy_and_patch() {
+    local src="$1"
+    local base
+    base=$(basename "$src")
+
+    [[ -n "${copied[$base]:-}" ]] && return 0
+    copied["$base"]=1
+
+    local dest="$target_dir/$base"
+    cp "$src" "$dest"
+    chmod +w "$dest"
+    patchelf --set-rpath '$ORIGIN' "$dest"
+    echo "Copied and patched: $base"
+}
+
+# Recursive processing
+process_binary() {
+    local file="$1"
+    [[ -n "${seen[$file]:-}" ]] && return
+    seen["$file"]=1
+
+    copy_and_patch "$file"
+
+    local deps
+    deps=$(readelf -d "$file" 2>/dev/null | awk '/NEEDED/ {gsub(/\[|\]/, "", $5); print $5}')
+    for dep in $deps; do
+        local resolved
+        if resolved=$(resolve_so "$dep"); then
+            process_binary "$resolved"
+        else
+            echo "Warning: Could not resolve $dep" >&2
+        fi
+    done
+}
+
+# Start
+process_binary "$binary"
+
+echo
+echo "✅ Portable FFmpeg built in: $target_dir"
+
+
+if [ ! -d "$target_dir" ]; then
+  echo "Error: Directory '$target_dir' not found."
+  exit 1
+fi
+
+# Loop through each file in the specified directory
+for file in "$target_dir"/*; do
+  # Check if it's a regular file (not a directory)
+  if [ -f "$file" ]; then
+    # Extract the filename only (without the path)
+    filename=$(basename "$file")
+    # Echo the prepended string and the filename
+    echo "        libonvif/$filename"
+  fi
+done

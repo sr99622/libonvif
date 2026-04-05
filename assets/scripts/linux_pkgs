@@ -1,0 +1,26 @@
+#!/bin/bash
+
+mkdir -p dist
+pip install build auditwheel patchelf
+cd libonvif
+rm -R dist
+python -m build
+auditwheel repair dist/*.whl --plat manylinux_2_34_x86_64
+mv wheelhouse/* ../dist
+mv dist/* ../dist
+cd ../libavio
+rm -R dist
+python -m build
+auditwheel repair dist/*.whl --plat manylinux_2_35_x86_64
+mv wheelhouse/* ../dist
+mv dist/* ../dist
+cd ../kankakee
+rm -R dist
+python -m build
+auditwheel repair dist/*.whl --plat manylinux_2_34_x86_64
+mv wheelhouse/* ../dist
+mv dist/* ../dist
+cd ../onvif-gui
+python -m build
+mv dist/* ../dist
+cd ..

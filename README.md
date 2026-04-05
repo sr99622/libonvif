@@ -7,11 +7,11 @@ A client side implementation of the ONVIF specification for Linux, Mac and Windo
 
 <!---
 <table>
-  <tr><td><image src="onvif-gui/onvif_gui/resources/onvif-gui.png"></td><td><h2>Onvif GUI</h2><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="assets/images/logo.png"  width="200"></a></td></tr>
+  <tr><td><image src="onvif-gui/onvif_gui/resources/onvif-gui.png"></td><td><h2>Onvif GUI</h2><br>Featuring<br><a href="https://github.com/Megvii-BaseDetection/YOLOX"><image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/logo.png"  width="200"></a></td></tr>
 <table>
 --->
 
-<image src="assets/images/header.png">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/header.png">
 
 &nbsp;
 
@@ -47,19 +47,19 @@ Here is the application running 12 cameras on an Intel NUC with an i7 1360P acti
 
 &nbsp;
 
-<image src="assets/images/screenshot.png">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/screenshot.png">
 
 &nbsp;
 
 The equivalent configuration on the base model Mac Mini M4
 
-<image src="assets/images/screenshot_mac.png">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/screenshot_mac.png">
 
 &nbsp;
 
 And the same for Windows on an Intel Core Ultra 9 185H
 
-<image src="assets/images/screenshot_win.png">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/screenshot_win.png">
 
 &nbsp;
 
@@ -78,7 +78,7 @@ For maximum performance, the client-server configuration is recommended. In this
 
 &nbsp;
 
-<image src="assets/images/net_config.png" width="640">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/net_config.png" width="640">
 
 &nbsp;
 
@@ -949,7 +949,7 @@ Remove the currently selected camera from the list. This will remove the camera 
 
 &nbsp;
 
-<image src="assets/images/media_tab.png" width="400"/>
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/media_tab.png" width="400"/>
 
 &nbsp;
 
@@ -1015,7 +1015,7 @@ Remove the currently selected camera from the list. This will remove the camera 
 
 &nbsp;
 
-<image src="assets/images/image_tab.png" width="400"/>
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/image_tab.png" width="400"/>
 
 &nbsp;
 
@@ -1028,7 +1028,7 @@ The sliders control various parameters of the video quality.  The Apply button m
 
 &nbsp;
 
-<image src="assets/images/network_tab.png" width="400"/>
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/network_tab.png" width="400"/>
 
 &nbsp;
 
@@ -1047,7 +1047,7 @@ The Apply button must be clicked to enact any of these changes on the camera.
 
 &nbsp;
 
-<image src="assets/images/ptz_tab.png" width="400"/>
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/ptz_tab.png" width="400"/>
 
 &nbsp;
 
@@ -1062,7 +1062,7 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
 &nbsp;
 
-<image src="assets/images/system_tab.png" width="400"/>
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/system_tab.png" width="400"/>
 
 &nbsp;
 
@@ -1108,7 +1108,7 @@ Settings pertain to preset selections or current camera position. The arrow butt
 
     &nbsp;
 
-    <image src="assets/images/sync_time.png" width="640">
+    <image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/sync_time.png" width="640">
 
     &nbsp;
 
@@ -1157,11 +1157,11 @@ Inside the camera folders are the individual picture or video files recorded by 
 
 &nbsp;
 
-<image src="assets/images/picture_panel.png" width="500">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/picture_panel.png" width="500">
 
 &nbsp;
 
-<image src="assets/images/file_panel.png" width="500">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/file_panel.png" width="500">
 
 &nbsp;
 
@@ -1243,7 +1243,7 @@ The application has the ability to search the files by camera for a particular m
 
 &nbsp;
 
-<image src="assets/images/file_search.png">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/file_search.png">
 
 &nbsp;
 
@@ -1271,7 +1271,7 @@ The files listed in the panel my not be updated automatically. Use the refresh i
 
 &nbsp;
 
-<image src="assets/images/general.png" width="400">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/general.png" width="400">
 
 &nbsp;
 
@@ -1311,7 +1311,7 @@ Additional profiles can be added using the three dot button to the right of the 
 
 &nbsp;
 
-<image src="assets/images/profile.png" width="360">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/profile.png" width="360">
 
 &nbsp;
 
@@ -1336,7 +1336,7 @@ If running Onvif GUI in server configuration, it may be desirable to run in head
 
 &nbsp;
 
-<image src="assets/images/discover.png" width="400">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/discover.png" width="400">
 
 &nbsp;
 
@@ -1366,7 +1366,7 @@ When selected in combination with the Auto Discovery check box, cameras shown in
 
 &nbsp;
 
-<image src="assets/images/storage.png" width="400">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/storage.png" width="400">
 
 &nbsp;
 
@@ -1406,7 +1406,7 @@ The application has the ability to manage the disk space used by the recorded me
 
 &nbsp;
 
-<image src="assets/images/proxy.png" width="400">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/proxy.png" width="400">
 
 &nbsp;
 
@@ -1442,7 +1442,7 @@ The application has the ability to manage the disk space used by the recorded me
 
 &nbsp;
 
-<image src="assets/images/alarm.png" width="400">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/alarm.png" width="400">
 
 &nbsp;
 
@@ -1496,7 +1496,7 @@ If the analysis produces an alarm, record and alarm sound actions are taken base
 
 &nbsp;
 
-<image src="assets/images/motion.png" width="640">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/motion.png" width="640">
 
 &nbsp;
 
@@ -1519,7 +1519,7 @@ Motion detection systems are prone to false alarms due to the indiscriminate nat
 
 &nbsp;
 
-<image src="assets/images/yolox.png" width="640">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/yolox.png" width="640">
 
 &nbsp;
 
@@ -1615,7 +1615,7 @@ If the analysis produces an alarm, record and alarm sound actions are taken base
 
 &nbsp;
 
-<image src="assets/images/audio_panel.png" width="400">
+<image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/audio_panel.png" width="400">
 
 &nbsp;
 
@@ -3960,7 +3960,7 @@ Without the guidance of [Dr. Sun Jian](http://www.jiansun.org/), YOLOX would not
 The passing away of Dr. Sun Jian is a great loss to the Computer Vision field. We have added this section here to express our remembrance and condolences to our captain Dr. Sun.
 It is hoped that every AI practitioner in the world will stick to the concept of "continuous innovation to expand cognitive boundaries, and extraordinary technology to achieve product value" and move forward all the way.
 
-<div align="center"><image src="assets/images/sunjian.png" width="200"></div>
+<div align="center"><image src="https://raw.githubusercontent.com/sr99622/libonvif/master/assets/images/sunjian.png" width="200"></div>
 没有孙剑博士的指导，YOLOX也不会问世并开源给社区使用。
 孙剑博士的离去是CV领域的一大损失，我们在此特别添加了这个部分来表达对我们的“船长”孙老师的纪念和哀思。
 希望世界上的每个AI从业者秉持着“持续创新拓展认知边界，非凡科技成就产品价值”的观念，一路向前。

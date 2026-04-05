@@ -19,7 +19,7 @@
 
 [project]
 name = "onvif-gui" 
-version = "3.3.5"
+version = "3.3.6"
 dynamic = ["gui-scripts"]
 description = "A client gui for Onvif"
 readme = "README.md"

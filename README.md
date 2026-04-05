@@ -138,10 +138,10 @@ flatpak uninstall io.github.sr99622.OnvifGUI
 
 &nbsp;
 
-Download the [snap installer](https://github.com/sr99622/libonvif/releases/download/v3.3.4/onvif-gui_3.3.4_amd64.snap), then open a terminal and navigate to the Downloads folder. Use the following command to install.
+Download the [snap installer](https://github.com/sr99622/libonvif/releases/download/v3.3.7/onvif-gui_3.3.7_amd64.snap), then open a terminal and navigate to the Downloads folder. Use the following command to install.
 
 ```
-sudo snap install onvif-gui_3.3.4_amd64.snap --dangerous
+sudo snap install onvif-gui_3.3.7_amd64.snap --dangerous
 ```
 
 The program can then be launched from the Applications menu. In order to get audio, you need to connect the pulseaudio driver.

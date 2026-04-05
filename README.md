@@ -115,10 +115,10 @@ Windows computers will work well, but do require more computing power to achieve
 
 &nbsp;
 
-Download the [Flatpak installer](https://github.com/sr99622/libonvif/releases/download/v3.3.4/OnvifGUI-3.3.4.flatpak), then open a terminal and navigate to the Downloads folder. Use the following command to install.
+Download the [Flatpak installer](https://github.com/sr99622/libonvif/releases/download/v3.3.7/OnvifGUI-3.3.7.flatpak), then open a terminal and navigate to the Downloads folder. Use the following command to install.
 
 ```
-flatpak install OnvifGUI-3.3.4.flatpak
+flatpak install OnvifGUI-3.3.7.flatpak
 ```
 
 In some cases, it may be necessary to re-boot the computer in order to see the icon in the Applications menu.
@@ -229,7 +229,7 @@ For other Mac OS versions, please build from source.
 
 An installer is available for Windows.
 
-Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.3.4/OnvifGUI-installer-3.3.4.exe) and double click on it. You will receive a warning message from the Operating System. Follow the prompts on the screen to install the program. It can be launched from the icon found in the Applications menu. To uninstall the program, go to Settings -> Apps -> Installed Apps and find the icon, then use the three dot button on the right to select action.
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.3.7/OnvifGUI-installer-3.3.7.exe) and double click on it. You will receive a warning message from the Operating System. Follow the prompts on the screen to install the program. It can be launched from the icon found in the Applications menu. To uninstall the program, go to Settings -> Apps -> Installed Apps and find the icon, then use the three dot button on the right to select action.
 
 ---
 

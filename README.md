@@ -205,6 +205,7 @@ python3 install-onvif-gui.py -u
 
 &nbsp;
 
+
 ---
 
 An installer is available for Apple Silicon running Mac OS version Sequoia (15).

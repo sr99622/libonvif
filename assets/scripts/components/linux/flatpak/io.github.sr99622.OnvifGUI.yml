@@ -57,14 +57,14 @@ modules:
       #- type: file
       #  path: onvif_gui-3.3.4-py3-none-any.whl
       - type: file
-        url: https://files.pythonhosted.org/packages/8b/25/48bd0fe8f4e2ae32ce70a3cc7f0bb1466c70d98d9eb05c1086daa42a404d/onvif_gui-3.3.4-py3-none-any.whl
-        sha256: cbab16a79d5e7368caf8c5087f405b69622fbed8330f2a4df53ef7bf0e13d16e
+        url: https://files.pythonhosted.org/packages/d8/cb/3db68088c718bf1450c29347e8d1020d037bf7e1d568a98c126e415b7a8a/onvif_gui-3.3.7-py3-none-any.whl
+        sha256: 810a1941c9f33fc1a108a8bfcd6b8f37ac8155f2f869d8f7c0804a82b234afcc
         x-checker-data:
           type: pypi
           name: onvif-gui
       - type: file
-        url: https://files.pythonhosted.org/packages/ed/59/524cd2aecab33c018a29d84ff448b0125142186f34a34eaa5f4a7e7d9dec/avio-3.2.7-cp312-cp312-manylinux_2_35_x86_64.whl
-        sha256: 79a94dae7c272a77968ce79de6e9e6e00c5cfb0af61622a618c652e949566ccd
+        url: https://files.pythonhosted.org/packages/63/96/ff51c2c10a15ad0e9ee1290346966a1031dc45747eba6e987f6120f798d2/avio-3.2.8-cp312-cp312-manylinux_2_35_x86_64.whl
+        sha256: 508e28323eaa2e888581f2c821fac56bca2a630bfaba8974717300632e884588
         x-checker-data:
           type: pypi
           name: avio
@@ -75,8 +75,8 @@ modules:
           type: pypi
           name: kankakee
       - type: file
-        url: https://files.pythonhosted.org/packages/83/0b/cbed8a52dc20f6653460574f7fdb083dc0c5bd2ad16486c4bbd49c5b209b/libonvif-3.2.8-cp312-cp312-manylinux_2_34_x86_64.whl
-        sha256: 68a3a818d42db5017ffad40a2885bf285e793292274b078201d71eff90e92c96
+        url: https://files.pythonhosted.org/packages/27/fb/4915cb8949bd3ec3960fdd2cc0e56452ab0114cca38f32c00a8c9cc29935/libonvif-3.2.9-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+        sha256: 85e9f0f4c1f6eeb55ec258a19bfc0a3a666040534949d7f9c495c9ef47f3e0ae
         x-checker-data:
           type: pypi
           name: libonvif

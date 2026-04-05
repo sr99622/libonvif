@@ -1,0 +1,20 @@
+#!/bin/bash
+
+echo "Installing Python version: $1"
+arg="$1"
+tag="${arg%.*}"
+
+if [ ! -d "$HOME/py${tag/.}" ]; then
+    cp changes_in "changes$tag.plist"
+    sed -i "" "s/_VERSION_/$tag/g" "changes$tag.plist"
+    curl -o "python$tag-installer.pkg" "https://www.python.org/ftp/python/$1/python-$1-macos11.pkg"
+    sudo installer -pkg "./python$tag-installer.pkg" -applyChoiceChangesXML "./changes$tag.plist" -target /
+    "/Library/Frameworks/Python.framework/Versions/$tag/bin/python$tag" -m venv "$HOME/py${tag/.}"
+    source "$HOME/py${tag/.}/bin/activate"
+    python -m pip install --upgrade pip
+    deactivate
+    rm "python$tag-installer.pkg"
+    echo "Python version $tag installed"
+else
+    echo "Python version $tag was previously installed"
+fi

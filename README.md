@@ -3240,7 +3240,7 @@ ls
 
 <h3>Linux</h3>
 
-Use for both x86_64 and aarch64. Start the docker container and cd to $HOME, it won't work from /. The command line requires the location of the project directory. These instructions work for both x86_64 or aarch64, substitute the arch tag.
+Use for both x86_64 and aarch64. Start the docker container and cd to $HOME, it won't work from /. The command line requires the location of the project directory. Substitute the <arch> tag for your platform.
 
 ```
 sudo snap install docker

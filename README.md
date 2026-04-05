@@ -3259,7 +3259,7 @@ libonvif/libonvif/scripts/linux/linux_build libonvif/libonvif
 
 <h3>Mac</h3>
 
-Build a virtual machine using [UTM](https://mac.getutm.app/) and fill it out. From the $HOME directory in the vm do
+Build a virtual machine using [UTM](https://mac.getutm.app/). From the terminal in the vm do
 
 ```
 git
@@ -3275,7 +3275,7 @@ git switch dev
 cd ..
 libonvif/libonvif/scripts/mac/mac_build libonvif/libonvif
 ```
-You can find the package installers in the $HOME/libonvif/dist directory. Here the packages are left installed in the build envs. To quick test:
+You can find the package installers in the $HOME/libonvif/dist directory. To quick test:
 
 ```
 . $HOME/py313/bin/activate

@@ -3242,14 +3242,24 @@ ls
 
 Use for both x86_64 and aarch64. Start the docker container and cd to $HOME, it won't work from /. The command line requires the location of the project directory. Substitute the `<arch>` tag for your platform.
 
+Docker configuration
+
 ```
 sudo snap install docker
 sudo groupadd docker
 sudo usermod -aG docker $USER
 sudo reboot now
-docker pull quay.io/pypa/manylinux_2_28_<arch>
-docker image ls
+```
+
+Start the container. Substitute your architecture for `<arch>`, either `x86_64` or `aarch64`
+
+```
 docker run -it quay.io/pypa/manylinux_2_28_<arch> /bin/bash
+```
+
+From inside the container, run the build
+
+```
 cd $HOME
 git clone --recursive https://github.com/sr99622/libonvif
 libonvif/libonvif/scripts/linux/linux_build libonvif/libonvif

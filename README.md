@@ -3272,9 +3272,9 @@ The package installers will be found in the libonvif/libonvif/wheelhouse directo
 . $HOME/py313/bin/activate
 pip install $HOME/libonvif/libonvif/wheelhouse/*313*
 python
->> import libonvif
->> libonvif.__version__
->> libonvif.Session() 
+>>> import libonvif
+>>> libonvif.__version__
+>>> libonvif.Session() 
 ```
 
 ---
@@ -3304,9 +3304,9 @@ You can find the package installers in the $HOME/libonvif/dist directory. To qui
 pip list
 pip install $HOME/libonvif/dist/*313*
 python
-import libonvif
-libonvif.__version__
-libonvif.Session()
+>>> import libonvif
+>>> libonvif.__version__
+>>> libonvif.Session()
 ```
 
 ---
@@ -3328,9 +3328,9 @@ You can find the package installers in the $HOME/libonvif/dist directory. To qui
 pip list
 pip install %HOMEPATH%/libonvif/dist/libonvif*313*many*whl
 python
-import libonvif
-libonvif.__version__
-libonvif.Session()
+>>> import libonvif
+>>> libonvif.__version__
+>>> libonvif.Session()
 ```
 
 ---

@@ -210,7 +210,7 @@ python3 install-onvif-gui.py -u
 
 An installer is available for Apple Silicon running Mac OS version Sequoia (15).
 
-Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.3.4/OnvifGUI-3.3.4.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. Once the installation is complete, the program can then be started from the Launchpad. To uninstall the program, use Finder to go to the Applications directory, then right click over the icon and select Move to Trash.
+Download the [installer](https://github.com/sr99622/libonvif/releases/download/v3.3.7/OnvifGUI-3.3.7.dmg) and open it. Drag the OnvifGUI icon into the Applications folder. Once the installation is complete, the program can then be started from the Launchpad. To uninstall the program, use Finder to go to the Applications directory, then right click over the icon and select Move to Trash.
 
 For other Mac OS versions, please build from source.
 

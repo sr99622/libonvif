@@ -22,15 +22,11 @@ echo "Project Directory: $PROJECT_DIR" >&2
 export SOURCE="$BASE/source"
 export BUILD="$BASE/build"
 export BIN="$BASE/bin"
-
-#export DIR_NAME="$(dirname "$BASE/$0")"
 export SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export LD_RUN_PATH='$ORIGIN'
 export ACLOCAL_PATH=/usr/share/aclocal
 export LIBXML2_INCLUDE_DIRS="$BUILD/include/libxml2"
 export LIBXML2_LIBRARIES="$BUILD/lib/libxml2.so"
-
-#"$SCRIPT_DIR/build_libs"
 
 if [ ! -d "$SOURCE" ]; then
   mkdir -p "$SOURCE"
@@ -38,13 +34,12 @@ fi
 
 echo "Starting LIBXML2 build" >&2
 if [ ! -f "$BUILD/lib/libxml2.so" ]; then
-  $SCRIPT_DIR/build_libxml2
+  "$SCRIPT_DIR/build_libxml2"
 else
   echo "Found existing xml2" >&2
 fi
 
 
-#first_pass=1
 venvs=("py310" "py311" "py312" "py313" "py314")
 for venv in "${venvs[@]}"; do
   echo "Python venv: $venv" >&2
@@ -59,48 +54,27 @@ for venv in "${venvs[@]}"; do
   fi
   source "$BASE/$venv/bin/activate"
   python --version
-  #if [ $first_pass == 1 ]; then
-  #  echo "first pass" >&2
-  #
-  #  cd $PROJECT_DIR
-  #  rm $PROJECT_DIR/libonvif/*so*
-  #  if [ -d "build" ]; then
-  #      rm -R build
-  #  fi
-  #  if [ -d "libonvif.egg-info" ]; then
-  #      rm -R libonvif.egg-info
-  #  fi
-  #  pip install -v .
-  #
-  #  pyname=$(ls $BASE/$venv/lib | awk '{print $1}')
-  #  pydir=$BASE/$venv/lib/$pyname/site-packages
-  #  modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
-  #  export executable=$modname
-  #  export sourcedir=$PROJECT_DIR/libonvif
-  #  $DIR_NAME/copy_libs
-  #
-  #  pip uninstall -y libonvif
-  #fi
-  #first_pass=0
 
   pip install build auditwheel patchelf
   cd "$PROJECT_DIR"
   python -m build
 
-case "$(uname -m)" in
-  x86_64|amd64|i386|i686)
-    echo "processor architecture is x86_64"
-    auditwheel repair dist/*.whl --plat manylinux_2_28_x86_64
-    ;;
-  aarch64|arm64|arm*)
-    echo "processor architecture is aarch64"
-    auditwheel repair dist/*.whl --plat manylinux_2_28_aarch64
-    ;;
-  *)
-    echo "ERROR: UNABLE TO BUILD WHEEL - Unknown architecture: $(uname -m)"
-    exit 1
-    ;;
-esac
+  wheel=$(ls -1 dist/*${venv:2}*)
+  echo $wheel
+  case "$(uname -m)" in
+    x86_64|amd64|i386|i686)
+      echo "processor architecture is x86_64"
+      auditwheel repair $wheel --plat manylinux_2_28_x86_64
+      ;;
+    aarch64|arm64|arm*)
+      echo "processor architecture is aarch64"
+      auditwheel repair $wheel --plat manylinux_2_28_aarch64
+      ;;
+    *)
+      echo "ERROR: UNABLE TO BUILD WHEEL - Unknown architecture: $(uname -m)"
+      exit 1
+      ;;
+  esac
 
   deactivate
 done

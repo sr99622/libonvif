@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-cd $DIR_NAME
-echo "HELLO FROM build libs: $DIR_NAME"
+cd $SCRIPT_DIR
+echo "HELLO FROM build libs: $SCRIPT_DIR"
 
 if [ ! -d "$SOURCE" ]; then
   mkdir -p "$SOURCE"
@@ -9,7 +9,7 @@ fi
 
 echo "Starting LIBXML2 build" >&2
 if [ ! -f "$BUILD/lib/libxml2.so" ]; then
-  $DIR_NAME/build_libxml2
+  $SCRIPT_DIR/build_libxml2
 else
   echo "Found existing xml2" >&2
 fi

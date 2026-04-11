@@ -13,23 +13,24 @@ if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then
   exit 1
 fi
 
-BASE=$PWD
-PROJECT_DIR="$BASE/$1"
+BASE="$PWD"
+PROJECT_DIR="$(cd "$1" && pwd)"
 echo "Project Directory: $PROJECT_DIR" >&2
 
-export SOURCE=$BASE/source
-export BUILD=$BASE/build
-export BIN=$BASE/bin
+export SOURCE="$BASE/source"
+export BUILD="$BASE/build"
+export BIN="$BASE/bin"
 
-export DIR_NAME=$(dirname "$BASE/$0")
+#export DIR_NAME="$(dirname "$BASE/$0")"
+export SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export LD_RUN_PATH='$ORIGIN'
 export ACLOCAL_PATH=/usr/share/aclocal
-export LIBXML2_INCLUDE_DIRS=$BUILD/include/libxml2
-export LIBXML2_LIBRARIES=$BUILD/lib/libxml2.so
+export LIBXML2_INCLUDE_DIRS="$BUILD/include/libxml2"
+export LIBXML2_LIBRARIES="$BUILD/lib/libxml2.so"
 
-$DIR_NAME/build_libs
+"$SCRIPT_DIR/build_libs"
 
-first_pass=1
+#first_pass=1
 venvs=("py310" "py311" "py312" "py313" "py314")
 for venv in "${venvs[@]}"; do
   echo "Python venv: $venv" >&2
@@ -37,51 +38,55 @@ for venv in "${venvs[@]}"; do
     version="${venv:2}"
     version="${version:0:1}.${version:1}"
     echo "version $version"
-    python${version} -m venv $BASE/$venv
-    . $BASE/$venv/bin/activate
+    python${version} -m venv "$BASE/$venv"
+    source "$BASE/$venv/bin/activate"
     pip install --upgrade pip
     deactivate
   fi
   source "$BASE/$venv/bin/activate"
   python --version
-  if [ $first_pass == 1 ]; then
-    echo "first pass" >&2
-
-    cd $PROJECT_DIR
-    rm $PROJECT_DIR/libonvif/*so*
-    if [ -d "build" ]; then
-        rm -R build
-    fi
-    if [ -d "libonvif.egg-info" ]; then
-        rm -R libonvif.egg-info
-    fi
-    pip install -v .
-
-    pyname=$(ls $BASE/$venv/lib | awk '{print $1}')
-    pydir=$BASE/$venv/lib/$pyname/site-packages
-    modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
-    export executable=$modname
-    export sourcedir=$PROJECT_DIR/libonvif
-    $DIR_NAME/copy_libs
-
-    pip uninstall -y libonvif
-  fi
-  first_pass=0
+  #if [ $first_pass == 1 ]; then
+  #  echo "first pass" >&2
+  #
+  #  cd $PROJECT_DIR
+  #  rm $PROJECT_DIR/libonvif/*so*
+  #  if [ -d "build" ]; then
+  #      rm -R build
+  #  fi
+  #  if [ -d "libonvif.egg-info" ]; then
+  #      rm -R libonvif.egg-info
+  #  fi
+  #  pip install -v .
+  #
+  #  pyname=$(ls $BASE/$venv/lib | awk '{print $1}')
+  #  pydir=$BASE/$venv/lib/$pyname/site-packages
+  #  modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
+  #  export executable=$modname
+  #  export sourcedir=$PROJECT_DIR/libonvif
+  #  $DIR_NAME/copy_libs
+  #
+  #  pip uninstall -y libonvif
+  #fi
+  #first_pass=0
 
   pip install build auditwheel patchelf
-  cd $PROJECT_DIR
+  cd "$PROJECT_DIR"
   python -m build
 
-  ARCH=$(uname -m)
-  if [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "amd64" ]] || [[ "$ARCH" == "i386" ]] || [[ "$ARCH" == "i686" ]]; then
-    echo "processor architecture is x86"
+case "$(uname -m)" in
+  x86_64|amd64|i386|i686)
+    echo "processor architecture is x86_64"
     auditwheel repair dist/*.whl --plat manylinux_2_28_x86_64
-  elif [[ "$ARCH" == "aarch64" ]] || [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "arm"* ]]; then
-    echo "aarch64"
+    ;;
+  aarch64|arm64|arm*)
+    echo "processor architecture is aarch64"
     auditwheel repair dist/*.whl --plat manylinux_2_28_aarch64
-  else
-    echo "ERROR: UNABLE TO BUILD WHEEL - Unknown architecture: $ARCH"
-  fi
+    ;;
+  *)
+    echo "ERROR: UNABLE TO BUILD WHEEL - Unknown architecture: $(uname -m)"
+    exit 1
+    ;;
+esac
 
   deactivate
 done

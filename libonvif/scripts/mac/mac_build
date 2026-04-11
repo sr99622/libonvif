@@ -14,7 +14,7 @@ if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then
 fi
 
 BASE=$PWD
-PROJECT_DIR="$BASE/$1"
+PROJECT_DIR="$(cd "$1" && pwd)"
 echo "Project Directory: $PROJECT_DIR" >&2
 
 if [ ! -f  "/opt/homebrew/bin/brew" ]; then
@@ -22,26 +22,18 @@ if [ ! -f  "/opt/homebrew/bin/brew" ]; then
     echo >> $HOME/.zprofile
     echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
     eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew install wget automake libtool pkgconfig cmake
 fi
-#brew install wget automake nasm libtool pkgconfig cmake
-brew install wget automake libtool pkgconfig cmake
-
-cd $PROJECT_DIR/scripts/mac
-cd python
-versions=("3.10.11" "3.11.9" "3.12.9" "3.13.2" "3.14.2")
-for version in "${versions[@]}"; do
-    #if [[ ! -d "/Library/Frameworks/Python.framework/Versions${version%.*}" ]]; then
-    ./install_python $version
-    #fi
-done
-cd ..
 
 export MACOSX_DEPLOYMENT_TARGET=15.0
+export _PYTHON_HOST_PLATFORM="macosx-15.0-arm64"
+export ARCHFLAGS="-arch arm64"
 export SOURCE=$BASE/source
 export BUILD=$BASE/build
 export LIBXML2_INCLUDE_DIRS=$BUILD/include/libxml2
 export LIBXML2_LIBRARIES=$BUILD/lib/libxml2.dylib
 
+mkdir -p "$SOURCE"
 echo "Starting LIBXML2 build" >&2
 if [ ! -f "$BUILD/lib/libxml2.dylib" ]; then
     ./build_libxml2
@@ -49,34 +41,22 @@ else
     echo "Found existing xml2" >&2
 fi
 
+cd $PROJECT_DIR/scripts/mac/python
+versions=("3.10.11" "3.11.9" "3.12.9" "3.13.2" "3.14.2")
+for version in "${versions[@]}"; do
+    ./install_python $version
+done
+
 cd $PROJECT_DIR
-first_pass=1
-venvs=("py310" "py311" "py312" "py313" "py314")
-#venvs=("py313")
+#venvs=("py310" "py311" "py312" "py313" "py314")
+venvs=("py313")
 for venv in "${venvs[@]}"; do
     source $BASE/$venv/bin/activate
     python --version
-    if [ $first_pass == 1 ]; then
-        if [ -d "build" ]; then
-            rm -R build
-        fi
-        if [ -d "libonvif.egg-info" ]; then
-            rm -R libonvif.egg-info
-        fi
-        pip install -v .
-
-        pyname=$(ls $BASE/$venv/lib | awk '{print $1}')
-        pydir=$BASE/$venv/lib/$pyname/site-packages
-        modname=$(ls $pydir/libonvif/libonvif*.so | awk '{print $1}')
-        export executable=$modname
-        export sourcedir=$PROJECT_DIR/libonvif
-        $PROJECT_DIR/scripts/mac/copy_libs
-        $PROJECT_DIR/scripts/mac/install_name
-    fi
-    first_pass=0
-    pip uninstall -y libonvif
-    cd $PROJECT_DIR
-    pip install build
+    pip install build delocate
     python -m build
+    wheel=$(ls -1 dist/*${venv:2}*)
+    echo $wheel
+    delocate-wheel -w fixed_wheels --require-archs=arm64 -v $wheel
     deactivate
 done

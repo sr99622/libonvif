@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "ERROR: build failed in ${BASH_SOURCE[0]} at line ${LINENO}" >&2' ERR
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <project directory>" >&2
@@ -28,7 +30,19 @@ export ACLOCAL_PATH=/usr/share/aclocal
 export LIBXML2_INCLUDE_DIRS="$BUILD/include/libxml2"
 export LIBXML2_LIBRARIES="$BUILD/lib/libxml2.so"
 
-"$SCRIPT_DIR/build_libs"
+#"$SCRIPT_DIR/build_libs"
+
+if [ ! -d "$SOURCE" ]; then
+  mkdir -p "$SOURCE"
+fi
+
+echo "Starting LIBXML2 build" >&2
+if [ ! -f "$BUILD/lib/libxml2.so" ]; then
+  $SCRIPT_DIR/build_libxml2
+else
+  echo "Found existing xml2" >&2
+fi
+
 
 #first_pass=1
 venvs=("py310" "py311" "py312" "py313" "py314")

@@ -2,22 +2,25 @@
 set -euo pipefail
 trap 'echo "ERROR: build failed in ${BASH_SOURCE[0]} at line ${LINENO}" >&2' ERR
 
-if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <project directory>" >&2
-  exit 1
-fi
-if [ ! -d "$1" ]; then
-  echo "Project directory $1 does not exist, please enter a valid directory" >&2
-  exit 1
-fi
-if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then
-  echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $1" >&2
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export SCRIPT_DIR
+
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+if [[ ! -d "$PROJECT_DIR" ]]; then
+  echo "Project directory $PROJECT_DIR does not exist" >&2
   exit 1
 fi
 
-BASE="$PWD"
-PROJECT_DIR="$(cd "$1" && pwd)"
+if [[ ! -f "$PROJECT_DIR/pyproject.toml" && ! -f "$PROJECT_DIR/setup.py" ]]; then
+  echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $PROJECT_DIR" >&2
+  exit 1
+fi
+
 echo "Project Directory: $PROJECT_DIR" >&2
+
+BASE="$PWD"
 
 export SOURCE="$BASE/source"
 export BUILD="$BASE/build"

@@ -1,62 +1,64 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "ERROR: build failed in ${BASH_SOURCE[0]} at line ${LINENO}" >&2' ERR
 
-if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <project directory>" >&2
-  exit 1
-fi
-if [ ! -d "$1" ]; then
-  echo "Project directory $1 does not exist, please enter a valid directory" >&2
-  exit 1
-fi
-if [[ ! -f "$1/pyproject.toml" && ! -f "$1/setup.py" ]]; then
-  echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $1" >&2
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export SCRIPT_DIR
+
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+if [[ ! -d "$PROJECT_DIR" ]]; then
+  echo "Project directory $PROJECT_DIR does not exist" >&2
   exit 1
 fi
 
-BASE=$PWD
-PROJECT_DIR="$(cd "$1" && pwd)"
+if [[ ! -f "$PROJECT_DIR/pyproject.toml" && ! -f "$PROJECT_DIR/setup.py" ]]; then
+  echo "Invalid Python project directory, did not find either pyproject.toml or setup.py in $PROJECT_DIR" >&2
+  exit 1
+fi
+
 echo "Project Directory: $PROJECT_DIR" >&2
-
+BASE="$PWD"
 if [ ! -f  "/opt/homebrew/bin/brew" ]; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     echo >> $HOME/.zprofile
     echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
     eval "$(/opt/homebrew/bin/brew shellenv)"
-    brew install wget automake libtool pkgconfig cmake
 fi
+brew install wget automake libtool pkgconfig cmake
 
 export MACOSX_DEPLOYMENT_TARGET=15.0
 export _PYTHON_HOST_PLATFORM="macosx-15.0-arm64"
 export ARCHFLAGS="-arch arm64"
-export SOURCE=$BASE/source
-export BUILD=$BASE/build
-export LIBXML2_INCLUDE_DIRS=$BUILD/include/libxml2
-export LIBXML2_LIBRARIES=$BUILD/lib/libxml2.dylib
+export SOURCE="$BASE/source"
+export BUILD="$BASE/build"
+export LIBXML2_INCLUDE_DIRS="$BUILD/include/libxml2"
+export LIBXML2_LIBRARIES="$BUILD/lib/libxml2.dylib"
 
 mkdir -p "$SOURCE"
 echo "Starting LIBXML2 build" >&2
 if [ ! -f "$BUILD/lib/libxml2.dylib" ]; then
-    ./build_libxml2
+    "$SCRIPT_DIR/build_libxml2"
 else
     echo "Found existing xml2" >&2
 fi
 
-cd $PROJECT_DIR/scripts/mac/python
+cd "$PROJECT_DIR/scripts/mac/python"
 versions=("3.10.11" "3.11.9" "3.12.9" "3.13.2" "3.14.2")
 for version in "${versions[@]}"; do
     ./install_python $version
 done
 
-cd $PROJECT_DIR
-#venvs=("py310" "py311" "py312" "py313" "py314")
-venvs=("py313")
+cd "$PROJECT_DIR"
+venvs=("py310" "py311" "py312" "py313" "py314")
+#venvs=("py313")
 for venv in "${venvs[@]}"; do
-    source $BASE/$venv/bin/activate
+    source "$BASE/$venv/bin/activate"
     python --version
     pip install build delocate
-    python -m build
-    wheel=$(ls -1 dist/*${venv:2}*)
+    python -m build --sdist --wheel
+    wheel="$(ls -1 dist/*${venv:2}*)"
     echo $wheel
-    delocate-wheel -w fixed_wheels --require-archs=arm64 -v $wheel
+    delocate-wheel -w fixed_wheels --require-archs=arm64 -v "$wheel"
     deactivate
 done

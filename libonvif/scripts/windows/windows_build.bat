@@ -66,8 +66,8 @@ for %%v in %list% do (
     cd %PROJECT_DIR%
     pip install build delvewheel
     python -m build --outdir %BASE%\dist
-    delvewheel repair %BASE%\dist\*cp%%v-cp%%v-*.whl --add-path %BASE%\onvif-gui-win-libs\libxml2\bin --wheel-dir %BASE%\wheelhouse
-    for %%F in (%BASE%\wheelhouse\*cp%%v-cp%%v-*.whl) do (
+    delvewheel repair %BASE%\dist\libonvif*cp%%v-cp%%v-*.whl --add-path %BASE%\onvif-gui-win-libs\libxml2\bin --wheel-dir %BASE%\wheelhouse
+    for %%F in (%BASE%\wheelhouse\libonvif*cp%%v-cp%%v-*.whl) do (
         pip install --force-reinstall "%%F"
     )
     call deactivate

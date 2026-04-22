@@ -30,6 +30,7 @@ export LD_RUN_PATH='$ORIGIN'
 export ACLOCAL_PATH=/usr/share/aclocal
 export LIBXML2_INCLUDE_DIRS="$BUILD/include/libxml2"
 export LIBXML2_LIBRARIES="$BUILD/lib/libxml2.so"
+export LD_LIBRARY_PATH="$BUILD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 if [ ! -d "$SOURCE" ]; then
   mkdir -p "$SOURCE"

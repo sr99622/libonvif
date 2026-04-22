@@ -33,3 +33,4 @@ repo/
 *.flatpak
 vm/
 env/
+wheelhouse/

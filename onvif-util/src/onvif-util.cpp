@@ -944,6 +944,8 @@ int main(int argc, char **argv)
 				std::cout << "  Are you sure you want to reboot?  Type yes to confirm\n" << std::endl;
 				std::string reply;
 				std::getline(std::cin, reply);
+				reply.erase(std::remove_if(reply.begin(), reply.end(), ::isspace), reply.end());
+
 
 				if (reply == "yes") {
 					if (rebootCamera(onvif_data)) throw std::runtime_error(cat("reboot camera - ", onvif_data->last_error));

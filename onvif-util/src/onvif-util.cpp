@@ -27,6 +27,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
 #include "onvif.h"
 #ifdef _WIN32
 #include "getopt-win.h"

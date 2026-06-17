@@ -1782,7 +1782,7 @@ virsh net-autostart host-bridge
 
 You should now be able to select the network host-bridge for your VMs to have them coexist on the same network as the host. Use the blue i dot to access the hardware and set the NIC to host-bridge network.
 
-It was observed over time that the secondary usb network adapter was no longer necessary and the QEMU seemed to be sharing the single network adapter with the host, which is the desired result. It is possible that re-booting implements this functionality, or it is also possible that seemingly unrelated installations occured which may have been the cause. Unknown at this time.
+It was observed over time that the secondary usb network adapter was no longer necessary and the QEMU seemed to be sharing the single network adapter with the host, which is the desired result. It is possible that re-booting implements this functionality, or it is also possible that seemingly unrelated installations occurred which may have been the cause. Unknown at this time.
 
 The instructions do not include the installation of the virt network manager. I believe it is common knowledge, with out tricky setup. I did first install the QuickGUI version of QEMU, which is not recommended.
 

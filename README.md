@@ -1,8 +1,8 @@
 <h2>libonvif</h2>
 
-libonvif is a pure python library implementing the ONVIF client protocol used for controlling IP cameras. The repository includes a Terminal User Interface program, onvif-tui, that can be used to query and edit camera variables, receive camera events, control PTZ motions and relay switching.
+libonvif is a pure python library implementing the ONVIF client protocol used for controlling IP cameras. The repository includes a Terminal User Interface program, onvif-tui, that demonstrates libonvif programming and can be used to query and control cameras.
 
-The library and applications were built using [uv](https://docs.astral.sh/uv/getting-started/installation/) for python requirements, which is recommended for operation and development.
+The library and applications were built using [uv](https://docs.astral.sh/uv/getting-started/installation/) for python requirements, and is recommended for development.
 
 <h3>Legacy Version</h3>
 
@@ -14,9 +14,17 @@ libonvif was originally built in C. That code can be found in the legacy folder 
 
 &nbsp;
 
-This is a Terminal User Interface application that demonstrates libonvif abilities and can be used to evaluate and control camera settings. 
+onvif-tui is a Terminal User Interface application with many features.
 
-onvif-tui can be installed using pipx
+* Automatically find cameras
+* Control video and audio settings
+* Pan Tilt Zoom motion
+* Receive or Pull camera events
+* Toggle relays 
+
+&nbsp;
+
+onvif-tui can be installed using [pipx](https://pipx.pypa.io/stable/how-to/install-pipx/)
 
 ```
 pipx install onvif-tui

@@ -4,12 +4,6 @@ libonvif is a pure python library implementing the ONVIF client protocol used fo
 
 The library and applications were built using [uv](https://docs.astral.sh/uv/getting-started/installation/) for python requirements, which is recommended for operation and development.
 
-XML processing is handled with [lxml](https://lxml.de/)
-
-HTTP client uses [niquests](https://niquests.readthedocs.io/en/latest/)
-
-The onvif-tui application is built using [textual](https://textual.textualize.io/)
-
 <h3>Legacy Version</h3>
 
 libonvif was originally built in C. That code can be found in the legacy folder of the repository. Onvif GUI was a Graphical User Interface application that has been replaced with [Cayenue](https://github.com/sr99622/Cayenue).
@@ -27,9 +21,17 @@ This is a Terminal User Interface application that demonstrates libonvif abiliti
 -i host local ip address for binding discovery broadcast 
 ```
 
-<h3>Examples</h3>
+onvif-tui can be installed using pip
 
-Simple Camera Query
+```
+pip install onvif-tui
+```
+
+The application will run without any command line arguments. The username and password will be required for camera authentication. The -i argument is optional for situations where there are multiple network interfaces on the host computer. The -m argument is used to connect with a camera without using discovery.
+
+<h3>libonvif Programming Examples</h3>
+
+* Simple Camera Query
 
 The following program shows a simple camera query using libonvif. You will need to supply the camera ip address, user name and password, the output is a full printout of the camera data.
 
@@ -51,7 +53,7 @@ except Exception as ex:
 
 ```
 
-Receive Camera Events
+* Receive Camera Events
 
 This program will receive event notifications from the camera. At a minimum, you will need to supply the camera ip address, user name and password. If the -e flag is not used, all events from the camera will be recieved. Received events are processed by a callback function, in this case `on_camera_events`. Event filters can be added to show only flagged events. Multiple events can be entered using comma delimiter. Available event filters are printed out by the program at launch.
 
@@ -114,7 +116,7 @@ finally:
         event_server.stop()
 ```
 
-Discovery
+* Discovery
 
 Cameras can be found using the discovery program below. The program will prompt for a user name and password for each camera. If you would like to find all cameras using the same password, adjust get_camera_credentials to fixed values and change the use_threads flag of the discover function call to True. The -i flag can be used to set the network interface through which discovery is performed.
 
@@ -155,6 +157,14 @@ if __name__ == "__main__":
 
     print(f"Found {len(cameras)} {"camera" if len(cameras) == 1 else "cameras"}")
 ```
+
+<h3>Dependencies</h3>
+
+XML processing is handled with [lxml](https://lxml.de/)
+
+HTTP client uses [niquests](https://niquests.readthedocs.io/en/latest/)
+
+The onvif-tui application is built using [textual](https://textual.textualize.io/)
 
 <h3>License</h3>
 

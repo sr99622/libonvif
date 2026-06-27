@@ -1,0 +1,10 @@
+[tool.uv.workspace]
+members = [
+  "packages/libonvif",
+  "packages/onvif-tui",
+]
+
+[dependency-groups]
+dev = [
+    "textual-dev>=1.8.0",
+]

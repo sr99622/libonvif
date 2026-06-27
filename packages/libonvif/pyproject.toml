@@ -1,0 +1,23 @@
+[project]
+name = "libonvif"
+version = "4.0.1"
+requires-python = ">=3.10"
+dependencies = [
+    "lxml",
+    "niquests",
+    "psutil",
+    "textual",
+]
+authors = [
+  { name = "Stephen Rhodes", email = "sr99622@gmail.com" },
+]
+license = "Apache-2.0"
+readme = "README.md"
+
+[project.urls]
+Homepage = "https://github.com/sr99622/libonvif"
+"Bug Tracker" = "https://github.com/sr99622/libonvif/issues"
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9.0"]
+build-backend = "uv_build"

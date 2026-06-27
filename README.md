@@ -29,6 +29,12 @@ pip install onvif-tui
 
 The application will run without any command line arguments. The username and password will be required for camera authentication. The -i argument is optional for situations where there are multiple network interfaces on the host computer. The -m argument is used to connect with a camera without using discovery.
 
+The following command will work in most cases
+
+```
+onvif-tui -u <username> -p <password>
+```
+
 <h3>libonvif Programming Examples</h3>
 
 * Simple Camera Query

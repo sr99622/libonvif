@@ -8,18 +8,13 @@ The library and applications were built using [uv](https://docs.astral.sh/uv/get
 
 libonvif was originally built in C. That code can be found in the legacy folder of the repository. Onvif GUI was a Graphical User Interface application that has been replaced with [Cayenue](https://github.com/sr99622/Cayenue).
 
-<h3>onvif-tui</h3>
+<h2>onvif-tui</h2>
 
 <image src=assets/onvif-tui.gif>
 
-This is a Terminal User Interface application that demonstrates libonvif abilities and can be used to evaluate and control camera settings. The application is launched using the command line arguments:
+&nbsp;
 
-```
--u username for camera authentication
--p passwword for camera authentication
--m camera ip address for manual camera discovery
--i host local ip address for binding discovery broadcast 
-```
+This is a Terminal User Interface application that demonstrates libonvif abilities and can be used to evaluate and control camera settings. 
 
 onvif-tui can be installed using pipx
 
@@ -29,7 +24,14 @@ pipx install onvif-tui
 
 The application will run without any command line arguments. The username and password will be required for camera authentication. The -i argument is optional for situations where there are multiple network interfaces on the host computer. The -m argument is used to connect with a camera without using discovery.
 
-The following command will work in most cases where the cameras reside on the same subnet as the host computer and there are no firewall issues. If firewall issues cannot be overcome, use -m option to address the camera directly by IP address, and events can be pulled using polling as shown in the event_pull.py example program.
+```
+-u username for camera authentication
+-p passwword for camera authentication
+-m camera ip address for manual camera discovery
+-i host local ip address for binding discovery broadcast 
+```
+
+The following command will work in most cases where the cameras reside on the same subnet as the host computer and there are no firewall issues. If the cameras are remote to the host, or firewall issues cannot be overcome, use -m option to address the camera directly by IP address.
 
 ```
 onvif-tui -u <username> -p <password>
@@ -40,20 +42,24 @@ onvif-tui -u <username> -p <password>
 &nbsp;
 
 ```
-Required Ports:
+Requested Ports:
 
 port 3702/UDP is for WS-Discovery (Web Services Dynamic Discovery) protocols.
 
 port 8856/TCP is for HTTP server used to receive camera events
 ```
 
+<i>Events can be pulled by the host if unable to receive events.</i>
+
 &nbsp;
 
 </details>
 
-<h3>libonvif Programming Examples</h3>
+&nbsp;
 
-* Simple Camera Query
+<h2>libonvif Programming Examples</h2>
+
+* <h3>Simple Camera Query</h3>
 
 The following program shows a simple camera query using libonvif. You will need to supply the camera ip address, user name and password, the output is a full printout of the camera data.
 
@@ -75,9 +81,11 @@ except Exception as ex:
 
 ```
 
-* Receive Camera Events
+&nbsp;
 
-This program will receive event notifications from the camera. At a minimum, you will need to supply the camera ip address, user name and password. If the -e flag is not used, all events from the camera will be recieved. Received events are processed by a callback function, in this case `on_camera_events`. Event filters can be added to show only flagged events. Multiple events can be entered using comma delimiter. Available event filters are printed out by the program at launch.
+* <h3>Receive Camera Events</h3>
+
+This program will receive event notifications from the camera. At a minimum, you will need to supply the camera ip address, user name and password. If the -e flag is not used, all events from the camera will be recieved. Received events are processed by a callback function, in this case `on_camera_events`. Event filters can be added to show only flagged events. Multiple events can be entered using comma delimiter. Available event filters are printed out by the program at launch. Please refer to the pull_events.py example program for an alternate event mechanism if the host is unable to receive traffic on tcp port.
 
 ```
 from libonvif.devices.camera import get_camera_by_ip
@@ -138,7 +146,9 @@ finally:
         event_server.stop()
 ```
 
-* Discovery
+&nbsp;
+
+* <h3>Discovery</h3>
 
 Cameras can be found using the discovery program below. The program will prompt for a user name and password for each camera. If you would like to find all cameras using the same password, adjust get_camera_credentials to fixed values and change the use_threads flag of the discover function call to True. The -i flag can be used to set the network interface through which discovery is performed.
 
@@ -180,7 +190,9 @@ if __name__ == "__main__":
     print(f"Found {len(cameras)} {"camera" if len(cameras) == 1 else "cameras"}")
 ```
 
-<h3>Dependencies</h3>
+&nbsp;
+
+<h2>Dependencies</h2>
 
 XML processing is handled with [lxml](https://lxml.de/)
 
@@ -188,7 +200,9 @@ HTTP client uses [niquests](https://niquests.readthedocs.io/en/latest/)
 
 The onvif-tui application is built using [textual](https://textual.textualize.io/)
 
-<h3>License</h3>
+&nbsp;
+
+<h2>License</h2>
 
 Copyright (c) 2026  Stephen Rhodes
 

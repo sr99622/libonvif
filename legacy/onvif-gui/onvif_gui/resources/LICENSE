@@ -1,0 +1,85 @@
+/*******************************************************************************
+*
+* The files in this directory are copyright protected by the following license
+*
+* apply_hi.png
+* apply_lo.png
+* apply.png
+* audio_hi.png
+* audio_lo.png
+* audio.png
+* branch_closed_hi.png
+* branch_closed_lo.png
+* branch_closed.png
+* branch_open_hi.png
+* branch_open_lo.png
+* branch_open.png
+* checked_hi.png
+* checked_lo.png
+* checked.png
+* darkstyle.qss
+* discover_hi.png
+* discover_lo.png
+* discover.png
+* fast-forward_hi.png
+* fast-forward_lo.png
+* fast-forward.png
+* mute_hi.png
+* mute_lo.png
+* mute.png
+* next_hi.png
+* next_lo.png
+* next.png
+* onvif-gui.png
+* pause_hi.png
+* pause_lo.png
+* pause.png
+* play_hi.png
+* play_lo.png
+* play.png
+* previous_hi.png
+* previous_lo.png
+* previous.png
+* radio-off_hi.png
+* radio-off_lo.png
+* radio-off.png
+* radio-on_hi.png
+* radio-on_lo.png
+* radio-on.png
+* record_hi.png
+* recording_hi.png
+* recording_lo.png
+* recording.png
+* record_lo.png
+* record.png
+* rewind_hi.png
+* rewind_lo.png
+* rewind.png
+* small_arrow_left_hi.png
+* small_arrow_left_lo.png
+* small_arrow_left.png
+* small_arrow_up_hi.png
+* small_arrow_up_lo.png
+* small_arrow_up.png
+* stop_hi.png
+* stop_lo.png
+* stop.png
+* unchecked_hi.png
+* unchecked_lo.png
+* unchecked.png
+*
+* Copyright (c) 2022, 2023 Stephen Rhodes
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*******************************************************************************/

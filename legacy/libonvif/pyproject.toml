@@ -1,0 +1,32 @@
+[build-system]
+requires = [
+  "scikit-build-core>=0.10",
+  "pybind11>=2.11",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "libonvif"
+version = "3.2.9"
+authors = [
+  { name = "Stephen Rhodes", email = "sr99622@gmail.com" },
+]
+description = "A python module for communicating with onvif cameras"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "LGPL-2.1"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: C++",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/sr99622/libonvif"
+"Bug Tracker" = "https://github.com/sr99622/libonvif/issues"
+
+[tool.scikit-build]
+wheel.packages = ["libonvif"]
+cmake.build-type = "Release"
+build-dir = "build/{wheel_tag}"
+minimum-version = "build-system.requires"

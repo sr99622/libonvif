@@ -1,0 +1,658 @@
+/********************************************************************
+* onvif-gui/onvif_gui/resources/darkstyle.qss
+*
+* Copyright (c) 2023  Stephen Rhodes
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*********************************************************************/
+
+QWidget {
+    background-color : background_dark;
+    color : foreground_light;
+}
+
+QMenuBar::item:selected {
+    background-color : background_medium;
+    color : selection_medium;
+}
+
+QMenu::item {
+    padding : 2px 16px;
+}
+
+QMenu::item::disabled {
+    color : selection_dark
+}
+
+QMenu::item:selected {
+    background-color : background_medium;
+    color : selection_medium;
+    border : 1px solid foreground_dark;
+}
+
+QMainWindow { 
+    background-color : background_dark; 
+}
+
+QTreeView {
+    border : 1px solid foreground_dark;
+}
+
+QTreeView::item {
+    color : foreground_light;
+}
+
+QTreeView::item:hover {
+    background-color : background_medium;
+    color : selection_medium;
+}
+
+QTreeView::item:first:hover {
+    background-color : background_medium;
+    color : selection_medium;
+    border : 1px solid foreground_dark;
+    border-right : 0;
+}
+
+QTreeView::item:middle:hover {
+    background-color : background_medium;
+    color : selection_medium;
+    border-top : 1px solid foreground_dark;
+    border-bottom : 1px solid foreground_dark;
+}
+
+QTreeView::item:last:hover {
+    background-color : background_medium;
+    color : selection_medium;
+    border : 1px solid foreground_dark;
+    border-left : 0;
+}
+
+QTreeView::item:selected {
+    background-color : background_light;
+    color : selection_light;
+}
+
+QTreeView::item:selected:!active {
+    color : foreground_light;
+    background-color : background_light;
+}
+
+QTreeView::item QLineEdit {
+    padding : 0 px;
+    margin : 0 px;
+    border : 0 px;
+    color : black;
+    selection-color : selection_medium;
+    color : selection_medium;
+    selection-background-color : selection_dark;
+}
+
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+    image : url(image:branch_closed.png);
+}
+
+QTreeView::branch:has-children:!has-siblings:closed:hover,
+QTreeView::branch:closed:has-children:has-siblings:hover {
+    image : url(image:branch_closed_hi.png);
+}
+
+QTreeView::branch:has-children:!has-siblings:open,
+QTreeView::branch:open:has-children:has-siblings {
+    image : url(image:branch_open.png);
+}
+
+QTreeView::branch:has-children:!has-siblings:open:hover,
+QTreeView::branch:open:has-children:has-siblings:hover {
+    image : url(image:branch_open_hi.png);
+}
+
+QHeaderView::section {
+    border : 1px solid foreground_dark;
+    border-top : 0;
+    border-right : 0;
+    padding-left : 6px;
+    background-color : background_medium;
+    color : foreground_light;
+}
+
+QHeaderView::section:first {
+    border-left : 0;
+}
+
+QTableWidget {
+    border : 1px solid foreground_dark;
+}
+
+QTableWidget::item {
+    selection-background-color : background_dark;
+    color : foreground_light;
+}
+
+QPushButton { 
+    border : 1px solid foreground_dark;
+    padding : 1px 5px 1px 5px;
+    background-color : background_medium;
+    color : foreground_light;
+}
+
+QPushButton:disabled {
+    background-color : background_medium;
+    color : foreground_dark;
+}
+
+QPushButton:hover {
+    color : selection_light;
+    border : 1px solid foreground_medium;
+    background-color : background_light;
+}
+
+QPushButton:pressed {
+    background-color : background_medium;
+}
+
+QRadioButton::indicator {
+    background-color : background_dark;
+}
+
+QRadioButton:disabled {
+    color : foreground_dark;
+}
+
+QRadioButton:hover {
+    color : selection_medium;
+}
+
+QRadioButton::indicator:unchecked {
+    image : url(image:radio-off.png);
+}
+
+QRadioButton::indicator:unchecked:disabled {
+    image : url(image:radio-off_lo.png);
+}
+
+QRadioButton::indicator:unchecked:hover {
+    image : url(image:radio-off_hi.png);
+}
+
+QRadioButton::indicator:checked {
+    image : url(image:radio-on.png);
+}
+
+QRadioButton::indicator:checked:disabled {
+    image : url(image:radio-on_lo.png);
+}
+
+QRadioButton::indicator:checked:hover {
+    image : url(image:radio-on_hi.png);
+}
+
+QCheckBox:disabled {
+    color : foreground_dark;
+}
+
+QCheckBox:hover {
+    color : selection_medium;
+}
+
+QCheckBox::indicator {
+    background-color : background_dark;
+}
+
+QCheckBox::indicator:unchecked {
+    image : url(image:unchecked.png);
+}
+
+QCheckBox::indicator:unchecked:disabled {
+    image : url(image:unchecked_lo.png);
+}
+
+QCheckBox::indicator:unchecked:hover {
+    image : url(image:unchecked_hi.png);
+}
+
+QCheckBox::indicator:checked {
+    image : url(image:checked.png);
+}
+
+QCheckBox::indicator:checked:disabled {
+    image : url(image:checked_lo.png);
+}
+
+QCheckBox::indicator:checked:hover {
+    image : url(image:checked_hi.png);
+}
+
+QSpinBox {
+    border : 1px solid foreground_dark;
+    padding-right : 15px;
+}
+
+QSpinBox:disabled {
+    color : foreground_dark;
+}
+
+QSpinBox::up-button {
+    subcontrol-origin : border;
+    subcontrol-position : top right;
+    background-color : background_medium;
+    border : 1px solid foreground_dark;
+    border-bottom : 0;
+    image : url(image:small_arrow_up.png);
+    width : 15px;
+}
+
+QSpinBox::up-button:disabled {
+    image : url(image:small_arrow_up_lo.png);
+}
+
+QSpinBox::up-button:hover {
+    image : url(image:small_arrow_up_hi.png);
+}
+
+QSpinBox::up-button:pressed {
+    image : url(image:small_arrow_up.png);
+}
+
+QSpinBox::down-button {
+    subcontrol-origin : border;
+    subcontrol-position : bottom right;
+    background-color : background_medium;
+    border : 1px solid foreground_dark;
+    border-top : 0;
+    image : url(image:branch_open.png);
+    width : 15px;
+}
+
+QSpinBox::down-button:disabled {
+    image : url(image:branch_open_lo.png);
+}
+
+QSpinBox::down-button:hover {
+    image : url(image:branch_open_hi.png);
+}
+
+QSpinBox::down-button:pressed {
+    image : url(image:branch_open.png);
+}
+
+QListWidget {
+    border : 1px solid foreground_dark;
+    color : foreground_light;
+    show-decoration-selected: 0;
+}
+
+QListWidget::item:hover {
+    background-color : background_medium;
+    color : selection_medium;
+}
+
+QListWidget::item:selected {
+    border : 1px solid foreground_dark;
+    /*background-color : #323232;*/
+    background-color : selection_item;
+    color : foreground_light;
+}
+
+QListWidget::item:disabled {
+    color : foreground_dark;
+}
+
+QComboBox {
+    border : 1px solid foreground_dark;
+}
+
+QComboBox:disabled {
+    color : foreground_dark;
+}
+
+QComboBox::drop-down {
+    background-color : background_medium;
+    border-left : 1px solid foreground_dark;
+}
+
+QComboBox::down-arrow {
+    image : url(image:branch_open.png);
+}
+
+QComboBox::down-arrow:disabled {
+    image : url(image:branch_open_lo.png);
+}
+
+QComboBox::down-arrow:hover {
+    image : url(image:branch_open_hi.png);
+}
+
+QComboBox::down-arrow:on {
+    top : 1px;
+    left : 1px;
+    image : url(image:small_arrow_up.png);
+}
+
+QComboBox::item:hover {
+    border : 1px solid foreground_dark;
+    background-color : background_medium;
+    color : selection_medium;
+}
+
+QComboBox::item:selected {
+    background-color : background_light;
+    color : selection_medium;
+}
+
+QScrollBar:vertical {
+    border : 1px solid foreground_dark;
+    border-right : 0;
+    width : 18px;
+    margin : 19px 0 19px 0;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background-color: background_light;
+}
+
+QScrollBar::handle:vertical {
+    background-color : background_dark;
+    padding-left : 1px;
+    padding-right : 1px;
+}
+
+QScrollBar::sub-line:vertical:hover {
+    image : url(image:small_arrow_up_hi.png);
+}
+
+QScrollBar::sub-line:vertical:pressed {
+    top : 1px;
+    left : 1px;
+    image : url(image:small_arrow_up.png);
+}
+
+QScrollBar::add-line:vertical:hover {
+    image : url(image:branch_open_hi.png);
+}
+
+QScrollBar::add-line:vertical:pressed {
+    top : 1px;
+    left : 1px;
+    image : url(image:branch_open.png);
+}
+
+QScrollBar::add-line:vertical {
+    background-color : background_dark;
+    border : 0;
+    border-left : 1px solid foreground_dark;
+    height : 19px;
+    image : url(image:branch_open.png);
+    subcontrol-position : bottom;
+    subcontrol-origin : margin;
+}
+
+QScrollBar::sub-line:vertical {
+    background-color : background_dark;
+    border : 0;
+    border-left : 1px solid foreground_dark;
+    height : 19px;
+    image : url(image:small_arrow_up.png);
+    subcontrol-position : top;
+    subcontrol-origin : margin;
+}
+
+QScrollBar:horizontal {
+    border : 1px solid foreground_dark;
+    border-bottom : 0;
+    height: 18px;
+    margin: 0 19px 0 19px;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background-color: background_light;
+}
+
+QScrollBar::handle:horizontal {
+    background-color : background_dark;
+    padding-left : 1px;
+    padding-right : 1px;
+}
+
+QScrollBar::sub-line:horizontal:hover {
+    image : url(image:small_arrow_left_hi.png);
+}
+
+QScrollBar::sub-line:horizontal:pressed {
+    top : 1px;
+    left : 1px;
+    image : url(image:small_arrow_left.png);
+}
+
+QScrollBar::add-line:horizontal:hover {
+    image : url(image:branch_closed_hi.png);
+}
+
+QScrollBar::add-line:horizontal:pressed {
+    top : 1px;
+    left : 1px;
+    image : url(image:branch_closed.png);
+}
+
+QScrollBar::add-line:horizontal {
+    background-color : background_dark;
+    border : 0;
+    border-top : 1px solid foreground_dark;
+    width : 19px;
+    image : url(image:branch_closed.png);
+    subcontrol-position : right;
+    subcontrol-origin : margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    background-color : background_dark;
+    border : 0;
+    border-top : 1px solid foreground_dark;
+    width : 19px;
+    image : url(image:small_arrow_left.png);
+    subcontrol-position : left;
+    subcontrol-origin : margin;
+}
+
+QSplitter {
+    padding : 2px;
+}
+
+QTabWidget::pane {
+    border : 1px solid foreground_dark;
+}
+
+QTabWidget::pane {
+    position : absolute;
+    top : -1px;
+}
+
+QTabBar::tab:top:hover {
+    color : selection_light;
+    background : background_light;
+}
+
+QTabBar::tab:top {
+    background-color : background_medium;
+    border : 1px solid foreground_dark;
+    border-left : 0px;
+    border-top-right-radius : 4px;
+    border-top-left-radius : 4px;
+    padding-top : 4px;
+    padding-bottom : 4px;
+    padding-left : 10px;
+    padding-right : 10px;
+}
+
+QTabBar::tab:first {
+    border-left : 1px solid foreground_dark;
+}
+
+QTabBar::tab:only-one {
+    border-left : 1px solid foreground_dark;
+}
+
+QTabBar::tab:top:selected {
+    background-color : background_dark;
+    color : selection_medium;
+    border-bottom : 0px;
+}
+
+QLabel:disabled {
+    color : foreground_dark;
+}
+
+QLineEdit {
+    border : 1px solid foreground_dark;
+    selection-background-color : selection_dark;
+}
+
+QLineEdit:disabled {
+    color : foreground_dark;
+}
+
+QLineEdit:hover:enabled {
+    color : selection_medium;
+}
+
+QLineEdit:focus {
+    color : selection_light;
+    border : 1px solid foreground_medium;
+}
+
+QTextEdit {
+    border : 1px solid foreground_dark;
+}
+
+QTextEdit:focus {
+    border : 1px solid foreground_medium;
+}
+
+QGroupBox {
+    border : 1px solid foreground_dark;
+    margin-top : 3ex;
+}
+
+QGroupBox::title {
+    subcontrol-origin : margin;
+    left : 8px;
+}
+
+QGroupBox::title:disabled {
+    color : foreground_dark;
+}
+
+QGroupBox::indicator:disabled {
+    color : foreground_dark;
+}
+
+QGroupBox::title:hover {
+    color : selection_medium;
+}
+
+QGroupBox::indicator {
+    background-color : background_dark;
+}
+
+QGroupBox::indicator:unchecked {
+    image : url(image:unchecked.png);
+}
+
+QGroupBox::indicator:unchecked:disabled {
+    image : url(image:unchecked_lo.png);
+}
+
+QGroupBox::indicator:unchecked:hover {
+    image : url(image:unchecked_hi.png);
+}
+
+QGroupBox::indicator:checked {
+    image : url(image:checked.png);
+}
+
+QGroupBox::indicator:checked:disabled {
+    image : url(image:checked_lo.png);
+}
+
+QGroupBox::indicator:checked:hover {
+    image : url(image:checked_hi.png);
+}
+
+QSlider::groove:horizontal {
+    height : 4px;
+    background : foreground_medium;
+    border-radius : 2px;
+}
+
+QSlider::handle:horizontal {
+  background : background_light;
+  border : 1px solid background_medium;
+  width : 8px;
+  height : 4px;
+  margin : -8px 0px;
+  border-radius : 4px;
+}
+
+QSlider::add-page:horizontal:disabled {
+  background : background_medium;
+}
+
+QSlider::sub-page:horizontal:disabled {
+  background : background_light;
+}
+
+QSlider::add-page:horizontal {
+    background: foreground_dark
+}
+
+QSlider::sub-page:horizontal {
+    background: foreground_medium;
+}
+
+QSlider::groove:vertical {
+    width : 4px;
+    background : foreground_medium;
+    border-radius : 2px;
+}
+
+QSlider::handle:vertical {
+  background : background_light;
+  border : 1px solid background_medium;
+  width : 4px;
+  height : 8px;
+  margin : 0px -8px;
+  border-radius : 4px;
+}
+
+QSlider::add-page:vertical:disabled {
+  background : background_light;
+}
+
+QSlider::sub-page:vertical:disabled {
+  background : background_medium;
+}
+
+QSlider::add-page:vertical {
+    background: foreground_medium
+}
+
+QSlider::sub-page:vertical {
+    background: foreground_dark;
+}
+
+QToolTip {
+    color : red;
+    background : darkolivegreen;
+}

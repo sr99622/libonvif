@@ -21,10 +21,10 @@ This is a Terminal User Interface application that demonstrates libonvif abiliti
 -i host local ip address for binding discovery broadcast 
 ```
 
-onvif-tui can be installed using pip
+onvif-tui can be installed using pipx
 
 ```
-pip install onvif-tui
+pipx install onvif-tui
 ```
 
 The application will run without any command line arguments. The username and password will be required for camera authentication. The -i argument is optional for situations where there are multiple network interfaces on the host computer. The -m argument is used to connect with a camera without using discovery.

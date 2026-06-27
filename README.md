@@ -29,11 +29,27 @@ pipx install onvif-tui
 
 The application will run without any command line arguments. The username and password will be required for camera authentication. The -i argument is optional for situations where there are multiple network interfaces on the host computer. The -m argument is used to connect with a camera without using discovery.
 
-The following command will work in most cases
+The following command will work in most cases where the cameras reside on the same subnet as the host computer and there are no firewall issues. If firewall issues cannot be overcome, use -m option to address the camera directly by IP address, and events can be pulled using polling as shown in the event_pull.py example program.
 
 ```
 onvif-tui -u <username> -p <password>
 ```
+
+<details><summary>Firewall Issues</summary>
+
+&nbsp;
+
+```
+Required Ports:
+
+port 3702/UDP is for WS-Discovery (Web Services Dynamic Discovery) protocols.
+
+port 8856/TCP is for HTTP server used to receive camera events
+```
+
+&nbsp;
+
+</details>
 
 <h3>libonvif Programming Examples</h3>
 

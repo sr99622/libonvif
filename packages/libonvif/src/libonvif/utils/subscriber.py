@@ -33,7 +33,7 @@ class SubscriptionManager:
                     try:
                         network = ipaddress.IPv4Interface(f"{addr.address}/{addr.netmask}").network
                         if target in network:
-                            print(f"Match found! {remote_target_ip} is on the same subnet as interface '{interface}' ({addr.address})")
+                            #print(f"Match found! {remote_target_ip} is on the same subnet as interface '{interface}' ({addr.address})")
                             return addr.address
                         local_addresses.append(addr.address)
                     except ValueError:
@@ -44,10 +44,16 @@ class SubscriptionManager:
             return local_addresses[0]
 
     def unsubscribe_events(self, camera: Camera):
-        for reference in camera.subscription_references:
-            if reference.resubscribe_timer: reference.resubscribe_timer.cancel()
-            unsubscribe(camera, reference.xaddr)
-        camera.subscription_references.clear()
+        try:
+            for reference in camera.subscription_references:
+                if reference.resubscribe_timer: reference.resubscribe_timer.cancel()
+                unsubscribe(camera, reference.xaddr)
+            camera.subscription_references.clear()
+        except Exception as ex:
+            if camera.on_error:
+                camera.on_error(f"unsubscribe events error: {ex}")
+            else:
+                print(traceback.format_exc(), flush=True)
 
     def schedule_resubscribe_event(self, camera: Camera, server_ip_address: str, port: int, delay: float, event: str | None) -> Timer:
         timer = Timer(
@@ -84,8 +90,10 @@ class SubscriptionManager:
                 camera.subscription_references.append(reference)
 
         except Exception as ex:
-            print(f"resubscribe event error: {ex}")
-            print(traceback.format_exc(), flush=True)
+            if camera.on_error: 
+                camera.on_error(f"resubscribe event error: {ex}")
+            else:
+                print(traceback.format_exc(), flush=True)
 
     def schedule_resubscribe_events(self, camera: Camera, server_ip_address: str, port: int, delay: float, events: list[str]) -> Timer:
         timer = Timer(
@@ -122,8 +130,10 @@ class SubscriptionManager:
                 camera.subscription_references.append(reference)
 
         except Exception as ex:
-            print(f"resubscribe event error: {ex}")
-            print(traceback.format_exc(), flush=True)
+            if camera.on_error:
+                camera.on_error(f"resubscribe event error: {ex}")
+            else:
+                print(traceback.format_exc(), flush=True)
 
     def subscribe_pull_event(self, camera: Camera, event: str | None = None) -> None:
         try:
@@ -137,8 +147,10 @@ class SubscriptionManager:
             )
             camera.subscription_references.append(reference)
         except Exception as ex:
-            print(f"subscribe pull event error: {ex}")
-            print(traceback.format_exc(), flush=True)
+            if camera.on_error:
+                camera.on_error(f"subscribe pull event error: {ex}")
+            else:
+                print(traceback.format_exc(), flush=True)
     
     def subscribe_pull_events(self, camera: Camera, events: list[str]) -> None:
         try:
@@ -152,5 +164,7 @@ class SubscriptionManager:
             )
             camera.subscription_references.append(reference)
         except Exception as ex:
-            print(f"subscribe pull events error: {ex}")
-            print(traceback.format_exc(), flush=True)
+            if camera.on_error:
+                camera.on_error(f"subscribe pull events error: {ex}")
+            else:
+                print(traceback.format_exc(), flush=True)

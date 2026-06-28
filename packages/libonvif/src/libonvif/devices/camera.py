@@ -18,6 +18,7 @@ import struct
 from typing import Any
 from io import StringIO
 import os
+import traceback
 
 from libonvif.datastructures.capabilities import Capabilities, parse_capabilities_response
 from libonvif.datastructures.profiles import Profile, VideoEncoderConfiguration, \
@@ -100,49 +101,55 @@ class Camera:
 def safe_run(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        camera = None
+        for arg in args:
+            if isinstance(arg, Camera):
+                camera = arg
+                break 
+        if not camera:
+            print("camera is None")
+            return
+        
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-
-            camera = None
-            for arg in args:
-                if isinstance(arg, Camera):
-                    camera = arg
-                    break 
-            if camera:
-                msg = f"** Error\n\n{datetime.now():%Y-%m-%d %H:%M:%S}\n\n{ex}\n"
-                if not camera.errors:
-                    camera.errors = msg
-                else:
-                    camera.errors += f"\n{msg}"
-                if camera.on_error:
-                    camera.on_error(camera.xaddr, ex)                
-
-            #print(traceback.format_exc())
+            msg = f"** Error\n\n{datetime.now():%Y-%m-%d %H:%M:%S}\n\n{ex}\n"
+            if not camera.errors:
+                camera.errors = msg
+            else:
+                camera.errors += f"\n{msg}"
+            if camera.on_error:
+                camera.on_error(camera.xaddr, ex)                
+            else:
+                print(traceback.format_exc())
             return None
     return wrapper
 
 def get_camera_name(xml_data: str) -> str:
-    scopes = get_xml_value(xml_data, "//s:Body//d:ProbeMatches//d:ProbeMatch//d:Scopes")
-    name_id = "onvif://www.onvif.org/name/"
-    hdwr_id = "onvif://www.onvif.org/hardware/"
-    name = ""
-    hdwr = ""
-    for field in scopes.split():
-        if name_id in field:
-            name = unquote_plus(field[len(name_id):])
-        if hdwr_id in field:
-            hdwr = unquote_plus(field[len(hdwr_id):])
-    if name and hdwr:
-        if hdwr not in name:
-            return f"{name} {hdwr}"
-        return name
+    try:
+        scopes = get_xml_value(xml_data, "//s:Body//d:ProbeMatches//d:ProbeMatch//d:Scopes")
+        name_id = "onvif://www.onvif.org/name/"
+        hdwr_id = "onvif://www.onvif.org/hardware/"
+        name = ""
+        hdwr = ""
+        for field in scopes.split():
+            if name_id in field:
+                name = unquote_plus(field[len(name_id):])
+            if hdwr_id in field:
+                hdwr = unquote_plus(field[len(hdwr_id):])
+        if name and hdwr:
+            if hdwr not in name:
+                return f"{name} {hdwr}"
+            return name
+    except Exception as ex:
+        pass
     return "UNKNOWN CAMERA"
 
 # DATE AND TIME FUNCTIONS
 #
 # this camera query does not require authorization, so it has a different design pattern
 # it also returns the SystemDateTime object directly rather than setting it on the camera 
+# the calling code is expected to handle the exception
 def get_system_date_and_time(url: str) -> SystemDateAndTime:
     soap = """<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:tds="http://www.onvif.org/ver10/device/wsdl"><SOAP-ENV:Body><tds:GetSystemDateAndTime/></SOAP-ENV:Body></SOAP-ENV:Envelope>"""
     response = requests.post(url, data=soap, timeout=POST_TIMEOUT)
@@ -527,7 +534,7 @@ def modify_preset_tour(camera: Camera, profile_token: str, preset_tour: PresetTo
     auto_start = "true" if preset_tour.auto_start else "false"
     spots = []
     for spot in preset_tour.spots:
-        print(f"detail: {spot.preset_token} stay_time: {spot.stay_time}")
+        #print(f"detail: {spot.preset_token} stay_time: {spot.stay_time}")
         spot_xml = f"""
         <tt:TourSpot>
             <tt:PresetDetail>
@@ -874,7 +881,7 @@ def pull_messages(camera: Camera, subscription_reference_xaddr: str) -> str:
 
 @safe_run
 def subscribe_event(camera: Camera, ip_address: str, port: int, event: str | None = None) -> str:
-    print(f"Subscribing to port {port}: {event}")
+    #print(f"Subscribing to port {port}: {event}")
     callback_url = f"http://{ip_address}:{port}/onvif/events"
     initial_termination_time = "PT10M"
 

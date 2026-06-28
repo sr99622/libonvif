@@ -51,9 +51,6 @@ class ObjectBrowser(App):
         self.event_server = None
         self.subscription_manager = SubscriptionManager(self.ip_address)
 
-        if self.manual:
-            print(f"FOUND MANUAL ADDRESS: {self.manual}")
-
     BINDINGS = [
         ("q", "quit", "Quit"),
         Binding("f2", "edit_selected", "Edit"),

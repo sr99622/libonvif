@@ -37,6 +37,7 @@ def text(elem: etree._Element, path: str) -> Optional[str]:
         return str(found).strip()
     except Exception as ex:
         print(f"text parsing exception: {ex}")
+    return ""
 
 def text_list(elem: etree._Element, path: str) -> list[str]:
     values: list[str] = []

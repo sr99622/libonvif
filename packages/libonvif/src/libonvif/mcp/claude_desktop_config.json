@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "camera": {
+      "command": "C:\\Users\\sr996\\AppData\\Local\\Microsoft\\WinGet\\Packages\\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe\\uv.exe",
+      "args": [
+        "--directory",
+        "C:\\Users\\sr996\\Projects\\libonvif\\packages\\libonvif\\src\\libonvif\\mcp",
+        "run",
+        "camera.py"
+      ],
+      "env": {
+        "CAMERA_USERNAME": "admin",
+        "CAMERA_PASSWORD": "admin123"
+      }
+    }
+  }
+}

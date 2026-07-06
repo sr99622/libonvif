@@ -200,6 +200,38 @@ if __name__ == "__main__":
 
 &nbsp;
 
+<h2>Model Context Protocol</h2>
+
+Early development has begun on making the libonvif package compatible with MCP. The current focus is on building out functionality with Claude Desktop on Windows.
+
+The mcp[cli] python package is added to the project as a development dependency, so it will be installed if you git clone the repository and run `uv sync` from the project root directory.
+
+For this iteration, the server is run locally. This entails editing the claude_desktop_config.json file to reflect the installation locations of the various components of the server system. These locations can vary depending on the methods used for installing `uv` and the repository itself.
+
+The json config file can be located from Claude by selecting the File->Settings->Developer menu and clicking the `Edit Config` button. This will highlight the json file, to which you should add the contents of the sample file in the repository `packages\libonvif\src\libonvif\mcp\claude_desktop_config.json` file, which will need to be customized for your configuration.
+
+Anthropic recommends that the full path to the `uv` executable is used in the config file and this will depend on how the package was installed. Your best bet for finding this location is to use the Powershell command
+
+```
+Get-Command uv | Select-Object Source
+```
+
+and paste the result into the config file using double backslashes to avoid windowitis. Also add the full path location of the repository `packages\libonvif\src\libonvif\mcp\camera.py` source file to the args section again using the double backslashes.  The camera username and password are entered into this file as environment variables, and the system assumes that all cameras have the same username and password.
+
+Once the server is configured, Claude Desktop can be started. Note that Claude Desktop will have to be quit completely before it will load the server properly. This can be done using the command
+
+```
+Stop-Process -Name "claude" -Force
+```
+
+You will need to do this any time the server is modified as well.
+
+Once running you can check if Claude has loaded the server by looking at the menu File->Settings->Developer and it should show `cameras` with your configuration as an MCP server. If all has gone well, you can prompt the system to look for cameras using something like `find cameras on local network` which should produce a list of cameras with their IP addresses. You can get detailed info on a camera using something like `get camera 10.1.1.78` or get a snapshot with `get snapshot for 10.1.1.78` which will open a browser tab with the snapshot. Note that 10.1.1.78 is an exmaple IP address that you should replace with your target IP from the camera list. 
+
+
+
+&nbsp;
+
 <h2>Dependencies</h2>
 
 XML processing is handled with [lxml](https://lxml.de/)

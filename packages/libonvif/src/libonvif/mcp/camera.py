@@ -9,10 +9,8 @@ import webbrowser
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Initialize FastMCP server
 mcp = FastMCP("camera")
 
-# Constants
 USER_AGENT = "camera-app/1.0"
 
 def get_camera_credentials(camera: Camera) -> None:
@@ -24,22 +22,6 @@ def on_error(xaddr: str, ex: Exception) -> None:
 
 def camera_filled(camera: Camera) -> None:
     logger.debug(f"Camera Filled: {camera.name} : {camera.device_information.serial_number}")
-
-
-
-"""
-Minimal MCP server that opens a URL in the default Windows browser.
-
-Setup (on your Windows machine):
-    pip install mcp
-
-Run manually to test:
-    python open_url_server.py
-
-This server communicates over stdio, which is how Claude Desktop (and most
-MCP clients) talk to local servers.
-"""
-
 
 @mcp.tool()
 async def get_snapshot(url: str) -> str:
@@ -91,14 +73,6 @@ async def get_cameras() -> str:
         names.append(f"{camera.name} : {camera.xaddr} : {camera.device_information.serial_number}")
     
     return "\n--\n".join(names)
-
-    '''
-    output = "{"
-    for camera in cameras:
-        output += f"  \"{camera.name}\": \"{camera.xaddr}\",\n"
-    output += "}"
-    '''
-
 
 def main():
     logger.debug("Server starting...")

@@ -226,7 +226,7 @@ Stop-Process -Name "claude" -Force
 
 You will need to do this any time the server is modified as well.
 
-Once running you can check if Claude has loaded the server by looking at the menu File->Settings->Developer and it should show `cameras` with your configuration as an MCP server. If all has gone well, you can prompt the system to look for cameras using something like `find cameras on local network` which should produce a list of cameras with their IP addresses. You can get detailed info on a camera using something like `get camera 10.1.1.78` or get a snapshot with `get snapshot for 10.1.1.78` which will open a browser tab with the snapshot. Note that 10.1.1.78 is an exmaple IP address that you should replace with your target IP from the camera list. 
+Once running you can check if Claude has loaded the server by looking at the menu File->Settings->Developer and it should show `camera` with your configuration as an MCP server. If all has gone well, you can prompt the system to look for cameras using something like `find cameras on local network` which should produce a list of cameras with their IP addresses. You can get detailed info on a camera using something like `get camera 10.1.1.78` or get a snapshot with `get snapshot for 10.1.1.78` which will open a browser tab with the snapshot. Note that 10.1.1.78 is an example IP address that you should replace with your target IP from the camera list. 
 
 
 

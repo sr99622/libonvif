@@ -98,7 +98,7 @@ class Camera:
             return
         output.write(f"{indent}{name}: {obj}\n")    
 
-# use for functions that are called with a Camera object as the first argument *ONLY* 
+# use for functions that are called with a Camera object as the first argument *ONLY*.
 def safe_run(func):
     @wraps(func)
     def wrapper(*args, **kwargs):

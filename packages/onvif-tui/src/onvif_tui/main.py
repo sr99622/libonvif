@@ -371,8 +371,8 @@ utc date time: {u.date.year}-{u.date.month:02}-{u.date.day:02} {u.time.hour:02}:
                         presets = parse_get_presets_response(xml)
                         for preset in presets:
                             if token == preset.token:
-                                camera.capabilities.ptz.presets.append(preset)
-                                length = len(camera.capabilities.ptz.presets)
+                                camera.ptz.presets.append(preset)
+                                length = len(camera.ptz.presets)
                                 self.camera_tree._add_value(node, f"[{length-1}]", preset, camera)
                                 node.set_label(f"presets: [{length}]")
                                 self.camera_tree.refresh()
@@ -392,7 +392,14 @@ utc date time: {u.date.year}-{u.date.month:02}-{u.date.day:02} {u.time.hour:02}:
                         if node := self.camera_tree.cursor_node:
                             parent = node.parent
                             self.camera_tree.move_cursor(parent)
+                            print(camera.ptz.presets)
                             node.remove()
+                            print(camera.ptz.presets)
+                            camera.ptz.presets.pop(index)
+                            for idx, preset in enumerate(camera.ptz.presets):
+                                preset.token = idx
+                            for idx, child in enumerate(parent.children):
+                                child.set_label(f"[{idx}]")
                             new_count = len(camera.ptz.presets)
                             parent.set_label(f"presets: [{new_count}]")
                             self.camera_tree.refresh()

@@ -1354,7 +1354,7 @@ wheels = [
 
 [[package]]
 name = "onvif-tui"
-version = "1.0.2"
+version = "1.0.5"
 source = { editable = "packages/onvif-tui" }
 dependencies = [
     { name = "libonvif" },

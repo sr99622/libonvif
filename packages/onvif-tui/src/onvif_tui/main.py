@@ -32,6 +32,12 @@ from threading import RLock
 from datetime import datetime, timezone
 import sys
 
+
+
+from libonvif.datastructures.datetime import Date, DateTime, SystemDateAndTime,  NTPInformation, Time, TimeZone, \
+        parse_system_date_and_time_response, parse_ntp_response
+import time
+
 PORT = 8856
 
 class ObjectBrowser(App):
@@ -159,7 +165,26 @@ utc date time: {u.date.year}-{u.date.month:02}-{u.date.day:02} {u.time.hour:02}:
                 # system_date_and_time_management
                 match event.key:
                     case 'u':
-                        set_system_date_and_time(camera, get_local_date_and_time_as_utc())
+                        self.debug_log.write("synchronizing camera time to computer time as UTC ...")
+                        # some kind of bug fouls this call when installed from pypi so it is done manually below
+                        # set_system_date_and_time(camera, get_local_date_and_time_as_utc())
+
+                        local_time = time.localtime()
+                        sdt = SystemDateAndTime(
+                            date_time_type="Manual",
+                            daylight_savings=False,
+                            time_zone=TimeZone("UTC0"),
+                            local_date_time=DateTime(
+                                date=Date(year=local_time.tm_year, month=local_time.tm_mon, day=local_time.tm_mday),
+                                time=Time(hour=local_time.tm_hour, minute=local_time.tm_min, second=local_time.tm_sec)
+                            ),
+                            utc_date_time=DateTime(
+                                date=Date(year=local_time.tm_year, month=local_time.tm_mon, day=local_time.tm_mday),
+                                time=Time(hour=local_time.tm_hour, minute=local_time.tm_min, second=local_time.tm_sec)
+                            )
+                        )
+                        set_system_date_and_time(camera, sdt)
+
                         get_time_offset(camera)
                         self.show_system_date_and_time(camera)
                         self.update_tree_time(camera, node)
@@ -169,7 +194,33 @@ utc date time: {u.date.year}-{u.date.month:02}-{u.date.day:02} {u.time.hour:02}:
                         self.update_tree_time(camera, node)
                     case 's':
                         self.debug_log.write("synchronizing camera time to computer time ...")
-                        set_system_date_and_time(camera, get_local_date_and_time())
+                        # some kind of bug fouls this call when installed from pypi so it is done manually below
+                        # sdt = get_local_date_and_time()
+
+                        ignore_dst = False
+                        local_time = time.localtime()
+                        utc_time = time.gmtime()
+                        is_dst = False if ignore_dst else local_time.tm_isdst > 0
+                        offset = -local_time.tm_gmtoff if ignore_dst else time.timezone
+                        offset_hours = offset // 3600
+                        offset_minutes = (offset % 3600) // 60
+                        timezone = f"UTC{offset_hours:+03d}:{offset_minutes:02d}"
+
+                        sdt = SystemDateAndTime(
+                            date_time_type="Manual",
+                            daylight_savings=is_dst,
+                            time_zone=TimeZone(timezone),
+                            local_date_time=DateTime(
+                                date=Date(year=local_time.tm_year, month=local_time.tm_mon, day=local_time.tm_mday),
+                                time=Time(hour=local_time.tm_hour, minute=local_time.tm_min, second=local_time.tm_sec)
+                            ),
+                            utc_date_time=DateTime(
+                                date=Date(year=utc_time.tm_year, month=utc_time.tm_mon, day=utc_time.tm_mday),
+                                time=Time(hour=utc_time.tm_hour, minute=utc_time.tm_min, second=utc_time.tm_sec)
+                            )
+                        )
+
+                        set_system_date_and_time(camera, sdt)
                         get_time_offset(camera)
                         self.show_system_date_and_time(camera)
                         self.update_tree_time(camera, node)

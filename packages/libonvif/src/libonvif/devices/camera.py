@@ -98,6 +98,7 @@ class Camera:
             return
         output.write(f"{indent}{name}: {obj}\n")    
 
+# use for functions that are called with a Camera object as the first argument *ONLY* 
 def safe_run(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -170,7 +171,6 @@ def get_time_offset(camera: Camera) -> None:
 
 # this will work as the argument for set_system_date_and_time for most cameras, but some may not implement DST properly, 
 # so the safest option is to ignore DST. It was observed that Hikvision cameras may need a reboot for updating time protocol
-@safe_run
 def get_local_date_and_time(ignore_dst: bool = True) -> SystemDateAndTime:
     local_time = time.localtime()
     utc_time = time.gmtime()
@@ -194,7 +194,6 @@ def get_local_date_and_time(ignore_dst: bool = True) -> SystemDateAndTime:
         )
     )
 
-@safe_run
 def get_local_date_and_time_as_utc() -> SystemDateAndTime:
     local_time = time.localtime()
     return SystemDateAndTime(

@@ -1,6 +1,6 @@
 [project]
 name = "onvif-tui"
-version = "1.0.7"
+version = "1.0.8"
 requires-python = ">=3.10"
 dependencies = [
     "libonvif",

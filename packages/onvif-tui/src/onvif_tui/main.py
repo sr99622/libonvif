@@ -197,7 +197,7 @@ utc date time: {u.date.year}-{u.date.month:02}-{u.date.day:02} {u.time.hour:02}:
                         # some kind of bug fouls this call when installed from pypi so it is done manually below
                         # sdt = get_local_date_and_time()
 
-                        ignore_dst = False
+                        ignore_dst = True
                         local_time = time.localtime()
                         utc_time = time.gmtime()
                         is_dst = False if ignore_dst else local_time.tm_isdst > 0

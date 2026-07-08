@@ -232,9 +232,10 @@ You can pull a live stream from the camera as well. You will need to have the [C
 
 ```
 pipx install cayenue
+cayenue
 ```
 
-Start the server, then go to the Settings->Proxy tab and select the Server radio button. The program will download MediaMTX server and configure it for use. Select the Enable HTTP server checkbox. Go to the main Camera Tabs and click the Discover button to find your cameras. You should be able to open a browser window and get a camera listing page at `127.0.0.1:8800`. If this is working, you can edit the claude_desktop_config.json file to enter your STREAM_SERVER_IP so the MCP can find the server, once all this is set up, just say `get live stream for camera 10.1.1.78`. Cameras can also be addressed by name if you prefer.
+Start Cayenue, then go to the Settings->Proxy tab and select the Server radio button. The program will download [MediaMTX](https://github.com/bluenviron/mediamtx) server and configure it for use. Select the Enable HTTP server checkbox. Go to the main Camera Tabs and click the Discover button to find your cameras. You should be able to open a browser window and get a camera listing page at `127.0.0.1:8800`. If this is working, you can edit the claude_desktop_config.json file to enter your STREAM_SERVER_IP so the MCP can find the server, once all this is set up, just say `get live stream for camera 10.1.1.78`.
 
 
 

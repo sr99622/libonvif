@@ -23,10 +23,25 @@ def on_error(xaddr: str, ex: Exception) -> None:
 def camera_filled(camera: Camera) -> None:
     logger.debug(f"Camera Filled: {camera.name} : {camera.device_information.serial_number}")
 
-#@mcp.tool()
-#async def stream_camera(camera: Camera) -> str:
-#    #http://10.1.1.76:8889/AMC014641NE6L35AT8/MediaProfile000
-#    url = f"http://10.1.1.76:8889/{camera.device_information.serial_number}/"
+@mcp.tool()
+async def stream_camera(camera_device_information_serial_number: str, camera_media_profile_token: str) -> str:
+    """
+    Open a camera live stream in the user's default web browser.
+
+    Args:
+        camera_device_information_serial_number: The camera serial number found in the ONVIF data of the camera
+                                                 that is stored in the device_information topic group.
+
+        camera_media_profile_token: The media profile token found the ONVIF data topic profiles. The default choice
+                                    should be the first profile.
+    """
+    #http://10.1.1.76:8889/AMC014641NE6L35AT8/MediaProfile000
+    url = f"http://10.1.1.13:8889/{camera_device_information_serial_number}/{camera_media_profile_token}"
+    opened = webbrowser.open(url)
+    if opened:
+        return f"Opened {url} in default browser."
+    else:
+        return f"Failed to open {url}."
 
 @mcp.tool()
 async def get_snapshot(url: str) -> str:

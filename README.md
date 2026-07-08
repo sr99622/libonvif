@@ -228,7 +228,7 @@ You will need to do this any time the server is modified as well.
 
 Once running you can check if Claude has loaded the server by looking at the menu File->Settings->Developer and it should show `camera` with your configuration as an MCP server. If all has gone well, you can prompt the system to look for cameras using something like `find cameras on local network` which should produce a list of cameras with their IP addresses. You can get detailed info on a camera using something like `get camera 10.1.1.78` or get a snapshot with `get snapshot for 10.1.1.78` which will open a browser tab with the snapshot. Note that 10.1.1.78 is an example IP address that you should replace with your target IP from the camera list.
 
-You can pull a live stream from the camera as well. You will need to have the [Cayenue](https://github.com/sr99622/Cayenue) application installed to support the WebRTC server for the cameras. This can be done using [pipx]. If you are installing on Windows, please do not use the Quick Installer, make sure to use scoop to install pipx.
+You can pull a live stream from the camera as well. You will need to have the [Cayenue](https://github.com/sr99622/Cayenue) application installed to support the WebRTC server for the cameras. This can be done using [pipx](https://pipx.pypa.io/stable/how-to/install-pipx/). If you are installing on Windows, please do not use the Quick Installer, make sure to use scoop to install pipx.
 
 ```
 pipx install cayenue

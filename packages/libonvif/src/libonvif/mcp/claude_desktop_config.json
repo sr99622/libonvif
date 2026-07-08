@@ -10,7 +10,8 @@
       ],
       "env": {
         "CAMERA_USERNAME": "admin",
-        "CAMERA_PASSWORD": "admin123"
+        "CAMERA_PASSWORD": "admin123",
+        "STREAM_SERVER_IP": "10.1.1.13"
       }
     }
   }

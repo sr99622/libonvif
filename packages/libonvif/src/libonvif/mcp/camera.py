@@ -36,7 +36,7 @@ async def stream_camera(camera_device_information_serial_number: str, camera_med
                                     should be the first profile.
     """
     #http://10.1.1.76:8889/AMC014641NE6L35AT8/MediaProfile000
-    url = f"http://10.1.1.13:8889/{camera_device_information_serial_number}/{camera_media_profile_token}"
+    url = f"http://{os.environ.get("STREAM_SERVER_IP")}:8889/{camera_device_information_serial_number}/{camera_media_profile_token}"
     opened = webbrowser.open(url)
     if opened:
         return f"Opened {url} in default browser."

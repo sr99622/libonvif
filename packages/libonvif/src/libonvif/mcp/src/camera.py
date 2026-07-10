@@ -24,6 +24,27 @@ def camera_filled(camera: Camera) -> None:
     logger.debug(f"Camera Filled: {camera.name} : {camera.device_information.serial_number}")
 
 @mcp.tool()
+async def check_environment() -> str:
+    """
+    Collect information about the environment under which camera server is running
+    
+    Args:
+        None
+
+    Returns:
+        A delimited string containing environment variable settings
+
+    """
+
+    output = []
+    output.append(os.environ.get("CAMERA_USERNAME", "Empty $env:CAMERA_USERNAME"))
+    output.append(os.environ.get("CAMERA_PASSWORD", "Empty $env:CAMERA_PASSWORD"))
+    output.append(os.environ.get("STREAM_SERVER_IP", "Empty $env:STREAM_SERVER_IP"))
+    output.append(os.environ.get("PATH", "Empty $env:PATH"))
+
+    return "\n--\n".join(output)
+
+@mcp.tool()
 async def stream_camera(camera_device_information_serial_number: str, camera_media_profile_token: str) -> str:
     """
     Open a camera live stream in the user's default web browser.
@@ -34,6 +55,9 @@ async def stream_camera(camera_device_information_serial_number: str, camera_med
 
         camera_media_profile_token: The media profile token found the ONVIF data topic profiles. The default choice
                                     should be the first profile.
+
+    Returns:
+        A message indicating success or failure
     """
     #http://10.1.1.76:8889/AMC014641NE6L35AT8/MediaProfile000
     url = f"http://{os.environ.get("STREAM_SERVER_IP")}:8889/{camera_device_information_serial_number}/{camera_media_profile_token}"

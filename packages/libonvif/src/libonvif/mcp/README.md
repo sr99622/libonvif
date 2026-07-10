@@ -5,7 +5,6 @@ This example uses the UV runtime
 Please note that the installer will only work partially, you have to edit the json file manually as before.
 
 ```
-{
   "mcpServers": {
     "camera": {
       "command": "uv",

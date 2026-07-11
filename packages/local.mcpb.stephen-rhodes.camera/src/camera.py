@@ -2,7 +2,8 @@ import base64
 import logging
 from pathlib import Path
 from libonvif.utils.adapters import find_adapters
-from libonvif.devices.camera import Camera, discover, get_camera_by_ip, set_hostname
+from libonvif.devices.camera import Camera, discover, get_camera_by_ip, set_hostname, \
+        set_video_encoder_configuration
 from mcp.server.fastmcp import FastMCP
 import os
 import sys
@@ -46,6 +47,38 @@ async def get_camera_mcp_version() -> str:
                 return version
 
     return None 
+
+@mcp.tool()
+async def set_camera_profile_resolution(ip_address: str, profile_token: str, width: int, height: int) -> str:
+    """
+    Set the video encoder configuration for a camera. Please note that the width and height must be supported 
+    by the camera's media profile. If the requested resolution is not supported, the camera may return an error.
+
+    Args:
+        ip_address: The IP address of the camera to configure.
+        profile_token: The media profile token to configure.
+        width: The desired width of the video resolution.
+        height: The desired height of the video resolution.
+
+    Returns:
+        A message indicating success or failure
+    """
+    camera = get_camera_by_ip(ip_address, os.environ.get("CAMERA_USERNAME", ""), os.environ.get("CAMERA_PASSWORD", ""))
+    if not camera:
+        return f"Camera with IP {ip_address} not found."
+
+    try:
+        resolution = f"{width} x {height}"
+        
+        for profile in camera.profiles:
+            if profile.token == profile_token:
+                profile.video_encoder.resolution = resolution
+                set_video_encoder_configuration(camera, profile.video_encoder)
+                return f"Successfully set video encoder configuration for camera at {ip_address} to {resolution}."
+
+    except Exception as e:
+        logger.error(f"Failed to set video encoder configuration for camera at {ip_address}: {e}")
+        return f"Failed to set video encoder configuration for camera at {ip_address}: {e}"
 
 @mcp.tool()
 async def change_camera_hostname(ip_address: str, new_hostname: str) -> str:

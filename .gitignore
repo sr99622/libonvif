@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+*mcpb
 
 # Virtual environments
 .venv

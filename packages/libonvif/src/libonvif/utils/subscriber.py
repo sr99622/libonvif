@@ -51,7 +51,7 @@ class SubscriptionManager:
             camera.subscription_references.clear()
         except Exception as ex:
             if camera.on_error:
-                camera.on_error(f"unsubscribe events error: {ex}")
+                camera.on_error(camera.xaddr, Exception(f"unsubscribe events error: {ex}"))
             else:
                 print(traceback.format_exc(), flush=True)
 
@@ -91,7 +91,7 @@ class SubscriptionManager:
 
         except Exception as ex:
             if camera.on_error: 
-                camera.on_error(f"resubscribe event error: {ex}")
+                camera.on_error(camera.xaddr, Exception(f"resubscribe event error: {ex}"))
             else:
                 print(traceback.format_exc(), flush=True)
 
@@ -131,7 +131,7 @@ class SubscriptionManager:
 
         except Exception as ex:
             if camera.on_error:
-                camera.on_error(f"resubscribe event error: {ex}")
+                camera.on_error(camera.xaddr, Exception(f"resubscribe event error: {ex}"))
             else:
                 print(traceback.format_exc(), flush=True)
 
@@ -148,7 +148,7 @@ class SubscriptionManager:
             camera.subscription_references.append(reference)
         except Exception as ex:
             if camera.on_error:
-                camera.on_error(f"subscribe pull event error: {ex}")
+                camera.on_error(camera.xaddr, Exception(f"subscribe pull event error: {ex}"))
             else:
                 print(traceback.format_exc(), flush=True)
     
@@ -165,6 +165,6 @@ class SubscriptionManager:
             camera.subscription_references.append(reference)
         except Exception as ex:
             if camera.on_error:
-                camera.on_error(f"subscribe pull events error: {ex}")
+                camera.on_error(camera.xaddr, Exception(f"subscribe pull events error: {ex}"))
             else:
                 print(traceback.format_exc(), flush=True)

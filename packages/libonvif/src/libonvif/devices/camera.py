@@ -1,10 +1,12 @@
 import niquests as requests
 import time
+import json
 from datetime import datetime, timezone
 from dataclasses import dataclass, is_dataclass, field, fields
 from typing import Optional, List
 from libonvif.utils.xml import get_xml_value
 from libonvif.utils.soap import onvif_post, parse_soap_fault, POST_TIMEOUT
+from libonvif.utils.serialization import to_dict, from_dict
 from functools import wraps
 from lxml import etree
 from libonvif.utils.xml import text, NS
@@ -53,7 +55,7 @@ class Camera:
     xaddr: Optional[str] = None
     name: Optional[str] = None
     errors: Optional[str] = None
-    on_error: Optional[Callable[[str, Exception], None]] = None
+    on_error: Optional[Callable[[str, Exception], None]] = field(default=None, metadata={"transient": True})
     system_date_and_time: Optional[SystemDateAndTime] = field(default_factory=SystemDateAndTime)
     ntp: Optional[NTPInformation] =field(default_factory=NTPInformation)
     time_offset: Optional[int] = 0
@@ -76,6 +78,17 @@ class Camera:
         output = StringIO()
         self._tree(self, output, name="Camera")
         return output.getvalue()
+
+    def to_json(self) -> str:
+        """
+        Serialize this Camera to a JSON string.
+
+        Fields tagged as transient in the dataclass definition (e.g.
+        on_error, and resubscribe_timer inside any SubscriptionReference)
+        hold live, non-serializable runtime objects and are always
+        omitted - see libonvif.utils.serialization for details.
+        """
+        return json.dumps(to_dict(self), indent=4)
 
     @staticmethod
     def _tree(obj: Any, output: StringIO, indent: str = "", name: str = "root") -> None:
@@ -1000,6 +1013,20 @@ def get_camera_by_ip(ip_address: str, username: str, password: str) -> Camera:
         else:
             camera.audio_out = None
     return camera
+
+def camera_from_json(json_string: str) -> Camera:
+    """
+    Reconstruct a Camera from a JSON string previously produced by
+    Camera.to_json().
+
+    Transient fields (on_error, and resubscribe_timer inside any
+    SubscriptionReference) are not present in the JSON and are left at
+    their declared default (None) - a live callback or timer cannot be
+    meaningfully reconstructed from a JSON payload. Callers that need
+    error reporting on a deserialized camera should set camera.on_error
+    explicitly after calling this function.
+    """
+    return from_dict(Camera, json.loads(json_string))
 
 def get_camera(xaddr: str, name: str, get_camera_credentials: Callable[[Camera], None], on_error: Callable[[str, Exception], None] = None) -> Camera:
     camera = Camera(xaddr=xaddr, name=name, on_error=on_error)

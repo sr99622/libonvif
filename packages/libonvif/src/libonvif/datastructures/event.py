@@ -59,7 +59,7 @@ class SubscriptionReference:
     event: Optional[str] = None
     subscription_type: Optional[SubscriptionType] = None
     termination_time: Optional[str] = None
-    resubscribe_timer: Optional[Timer] = None
+    resubscribe_timer: Optional[Timer] = field(default=None, metadata={"transient": True})
 
 @dataclass
 class EventProperties:

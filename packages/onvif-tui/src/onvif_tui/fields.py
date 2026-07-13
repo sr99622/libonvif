@@ -66,6 +66,8 @@ UNUSED_FIELDS = [
     "relay_outputs",
     "ptz",
     "audio_out",
+    "ptz.status.position.pan_tilt.space",
+    "ptz.status.position.zoom.space",
 ]
 
 HIDDEN_FIELDS = [

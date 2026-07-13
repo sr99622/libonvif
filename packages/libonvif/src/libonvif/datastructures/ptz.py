@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Optional
-from libonvif.utils.xml import attr, bool_text, float_text, text, NS
+from libonvif.utils.xml import attr, bool_text, float_text, text, NS, get_xml_value
 from lxml import etree
 
 @dataclass
@@ -61,7 +61,14 @@ class PTZPreset:
     ptz_position: Optional[PTZPosition] = None
 
 @dataclass
+class PTZStatus:
+    position: Optional[PTZPosition] = None
+    pan_tilt_status: Optional[str] = None
+    zoom_status: Optional[str] = None
+
+@dataclass
 class PTZ:
+    status: Optional[PTZStatus] = None
     presets: list[PTZPreset] = field(default_factory=list)
     tours: list[PresetTour] = field(default_factory=list)
     tour_options: Optional[PresetTourOptions] = field(default_factory=PresetTourOptions)
@@ -86,6 +93,27 @@ def parse_ptz_position(elem: Optional[etree._Element]) -> Optional[PTZPosition]:
         ) if zoom is not None else None,
     )
 
+def parse_get_status_response(xml: str) -> PTZStatus:
+    if not xml: return
+
+    pan_x = get_xml_value(xml, ".//tptz:GetStatusResponse/tptz:PTZStatus/tt:Position/tt:PanTilt/@x")
+    pan_y = get_xml_value(xml, ".//tptz:GetStatusResponse/tptz:PTZStatus/tt:Position/tt:PanTilt/@y")
+    zoom_x = get_xml_value(xml, ".//tptz:GetStatusResponse/tptz:PTZStatus/tt:Position/tt:Zoom/@x")
+
+    root = etree.fromstring(xml.encode('utf-8'))
+    status_elem = root.find(".//tptz:GetStatusResponse/tptz:PTZStatus", NS)
+    if status_elem is None:
+        return PTZStatus()
+    
+    position = Vector2D(x=pan_x, y=pan_y) if pan_x is not None and pan_y is not None else None
+    zoom = Vector1D(x=zoom_x) if zoom_x is not None else None
+
+    return PTZStatus(
+        position=PTZPosition(pan_tilt=position, zoom=zoom),
+        pan_tilt_status = get_xml_value(xml, ".//tptz:GetStatusResponse/tptz:PTZStatus/tt:MoveStatus/tt:PanTilt"),
+        zoom_status = get_xml_value(xml, ".//tptz:GetStatusResponse/tptz:PTZStatus/tt:MoveStatus/tt:Zoom")
+    )
+
 def parse_preset_element(elem: etree._Element) -> PTZPreset:
     return PTZPreset(
         token=attr(elem, "token"),
@@ -95,6 +123,7 @@ def parse_preset_element(elem: etree._Element) -> PTZPreset:
 
 def parse_get_presets_response(xml: str) -> list[PTZPreset]:
     if not xml: return
+        
     root = etree.fromstring(xml.encode('utf-8'))
     preset_elems = root.findall(".//tptz:GetPresetsResponse/tptz:Preset", NS)
     return [parse_preset_element(preset) for preset in preset_elems]

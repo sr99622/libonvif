@@ -38,7 +38,7 @@ from libonvif.datastructures.datetime import Date, DateTime, SystemDateAndTime, 
 from libonvif.datastructures.event import SubscriptionReference, EventProperties, \
         parse_event_service_capabilities_response, parse_event_properties_response
 from libonvif.datastructures.ptz import PTZPreset, PresetTour, PTZ, parse_get_presets_response, \
-        parse_get_preset_tours_response, parse_get_preset_tour_options_response
+        parse_get_preset_tours_response, parse_get_preset_tour_options_response, parse_get_status_response
 from libonvif.datastructures.device_io import parse_deviceio_service_capabilities_response, \
         parse_get_relay_outputs_response, RelayOutput, parse_get_relay_output_options_response
 
@@ -502,6 +502,15 @@ def set_preset(camera: Camera, profile_token: str, preset: PTZPreset=None) -> st
 </tptz:SetPreset>""".strip()
 
     return onvif_post(camera.capabilities.ptz.xaddr, body, camera.username, camera.password, camera.time_offset)
+
+@safe_run
+def get_ptz_status(camera: Camera, profile_token: str) -> None:
+    body = f"""
+<tptz:GetStatus>
+    <tptz:ProfileToken>{profile_token}</tptz:ProfileToken>
+</tptz:GetStatus>""".strip()
+    xml = onvif_post(camera.capabilities.ptz.xaddr, body, camera.username, camera.password, camera.time_offset)
+    setattr(camera.ptz, "status", parse_get_status_response(xml))
 
 @safe_run
 def get_preset_tours(camera:Camera, profile_token: str) -> None:
@@ -982,6 +991,7 @@ def get_camera_by_ip(ip_address: str, username: str, password: str) -> Camera:
         token = camera.profiles[0].token
         get_presets(camera, token)
         if camera.ptz.presets:
+            get_ptz_status(camera, token)
             get_preset_tours(camera, token)
             get_preset_tour_options(camera, token)
         else:
@@ -1082,6 +1092,7 @@ def get_camera(xaddr: str, name: str, get_camera_credentials: Callable[[Camera],
             token = camera.profiles[0].token
             get_presets(camera, token)
             if camera.ptz.presets:
+                get_ptz_status(camera, token)
                 get_preset_tours(camera, token)
                 get_preset_tour_options(camera, token)
             else:

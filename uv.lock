@@ -826,7 +826,7 @@ wheels = [
 
 [[package]]
 name = "libonvif"
-version = "4.0.4"
+version = "4.0.7"
 source = { editable = "packages/libonvif" }
 dependencies = [
     { name = "lxml" },
@@ -1363,6 +1363,11 @@ dependencies = [
     { name = "textual" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "textual-dev" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "libonvif", editable = "packages/libonvif" },
@@ -1370,6 +1375,9 @@ requires-dist = [
     { name = "psutil" },
     { name = "textual" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "textual-dev", specifier = ">=1.8.0" }]
 
 [[package]]
 name = "platformdirs"

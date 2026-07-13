@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
 <h2>Model Context Protocol</h2>
 
-Early development has begun on making the libonvif package compatible with MCP. The current focus is on building out functionality with Claude Desktop on Windows.
+Early development has begun on making the libonvif package compatible with MCP. The current focus is on building out functionality with Claude Desktop on Windows. The relevant files are connected as a submodule to the main code base, when cloning, use `git clone --recursive https://github.com/sr99622/libonvif`. If you have already cloned and source files are missing, you can get them using `git submodule update --init --recursive`
 
 The mcp[cli] python package is added to the project as a development dependency, so it will be installed if you git clone the repository and run `uv sync` from the project root directory.
 

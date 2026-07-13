@@ -64,7 +64,7 @@ class Camera:
     password: Optional[str] = None
     capabilities: Optional[Capabilities] = field(default_factory=Capabilities)
     profiles: list[Profile] = field(default_factory=list)
-    network_interfaces: list[NetworkInterface] = field(default_factory=NetworkInterface)
+    network_interfaces: list[NetworkInterface] = field(default_factory=list)
     network_gateway: Optional[str] = None
     dns: Optional[DNSInformation] = field(default_factory=DNSInformation)
     hostname: Optional[HostnameInformation] = field(default_factory=HostnameInformation)
@@ -173,7 +173,6 @@ def get_system_date_and_time(url: str) -> SystemDateAndTime:
     response.raise_for_status()
     return parse_system_date_and_time_response(response.text)
 
-@safe_run
 def get_time_offset(camera: Camera) -> None:
     sdt = get_system_date_and_time(camera.xaddr)
     setattr(camera, "system_date_and_time", sdt)
@@ -1013,6 +1012,42 @@ def get_camera_by_ip(ip_address: str, username: str, password: str) -> Camera:
         else:
             camera.audio_out = None
     return camera
+
+def refresh_camera(camera: Camera) -> Camera:
+    """
+    Re-query a camera fresh, using its own xaddr and credentials.
+
+    This is a thin wrapper around get_camera_by_ip: it extracts the IP
+    address from camera.xaddr and reuses camera.username/camera.password,
+    then runs the full population sequence exactly as get_camera_by_ip
+    does for a brand new query. Useful for refreshing a Camera obtained
+    via camera_from_json() after editing username/password in its JSON
+    representation - the edited credentials are what get used for the
+    fresh query, not the original ones.
+
+    xaddr is not something to edit here: it is the camera's own
+    self-reported device service address, discovered without
+    authorization, and functions as the camera's network identity rather
+    than a configurable setting. Changing it points this function at a
+    different device entirely rather than re-querying the same one, so it
+    should be left as-is unless you specifically intend to query a
+    different camera.
+
+    get_camera_by_ip has no access to a camera's WS-Discovery-derived name
+    (that only happens during discover()), so it falls back to using the
+    xaddr itself as a placeholder name. If the incoming camera already has
+    a real name (i.e. one that differs from its own xaddr, meaning it was
+    likely set during an earlier discover() call), that name is preserved
+    on the freshly-queried result instead of being overwritten by the
+    xaddr placeholder - otherwise a camera's display name would
+    confusingly change to a raw URL every time it gets refreshed.
+    """
+    ip_address = urlparse(camera.xaddr).hostname
+    name = camera.name
+    refreshed = get_camera_by_ip(ip_address, camera.username, camera.password)
+    if name and name != camera.xaddr:
+        refreshed.name = name
+    return refreshed
 
 def camera_from_json(json_string: str) -> Camera:
     """

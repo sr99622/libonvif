@@ -208,15 +208,29 @@ The mcp[cli] python package is added to the project as a development dependency,
 
 For this iteration, the server is run locally. This entails editing the claude_desktop_config.json file to reflect the installation locations of the various components of the server system. These locations can vary depending on the methods used for installing `uv` and the repository itself.
 
-The json config file can be located from Claude by selecting the File->Settings->Developer menu and clicking the `Edit Config` button. This will highlight the json file, to which you should add the contents of the sample file in the repository `packages\libonvif\src\libonvif\mcp\claude_desktop_config.json` file, which will need to be customized for your configuration.
-
-Anthropic recommends that the full path to the `uv` executable is used in the config file and this will depend on how the package was installed. Your best bet for finding this location is to use the Powershell command
+The json config file can be located from Claude by selecting the File->Settings->Developer menu and clicking the `Edit Config` button. This will highlight the json file, to which you should add the contents below, which will need to be customized for your configuration.
 
 ```
-Get-Command uv | Select-Object Source
+  "mcpServers": {
+    "camera": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:\\Users\\sr996\\Projects\\local.mcpb.stephen-rhodes.camera\\src",
+        "run",
+        "camera.py"
+      ],
+      "env": {
+        "CAMERA_USERNAME": "admin",
+        "CAMERA_PASSWORD": "admin123",
+        "STREAM_SERVER_IP": "10.1.1.13"
+      }
+    }
+  },
+
 ```
 
-and paste the result into the config file using double backslashes to avoid windowitis. Also add the full path location of the repository `packages\libonvif\src\libonvif\mcp\camera.py` source file to the args section again using the double backslashes.  The camera username and password are entered into this file as environment variables, and the system assumes that all cameras have the same username and password.
+The camera username and password are entered into this file as environment variables, and the system assumes that all cameras have the same username and password.
 
 Once the server is configured, Claude Desktop can be started. Note that Claude Desktop will have to be quit completely before it will load the server properly. This can be done using the command
 

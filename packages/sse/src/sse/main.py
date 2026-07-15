@@ -8,9 +8,11 @@ from starlette.requests import Request
 from starlette.responses import StreamingResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP, Context
+from mcp.server.elicitation import AcceptedElicitation, DeclinedElicitation, CancelledElicitation
 from mcp.server.transport_security import TransportSecuritySettings
 from libonvif.devices.camera import get_camera_by_ip
+from pydantic import BaseModel
 
 # DNS-rebinding protection stays enabled, but we explicitly allow the
 # llama.cpp web UI's origin (10.1.1.87) alongside the usual localhost
@@ -31,10 +33,33 @@ mcp = FastMCP(
     ),
 )
 
+class TripTypeResponse(BaseModel):
+    value: str
+
 @mcp.tool()
 async def add(a: int, b: int) -> int:
     """Add two numbers together."""
     return a + b
+
+@mcp.tool()
+async def example_elicit_tool(context: Context) -> str:
+    """
+    Example tool that asks the user a question via MCP elicitation, to
+    test whether a given client (e.g. llama.cpp's web UI) implements the
+    client side of the elicitation flow - Claude Desktop returned
+    "Method not found" when this was tried there.
+    """
+    result = await context.elicit(
+        message="What type of trip are you planning? Options: business, leisure, family, adventure",
+        schema=TripTypeResponse,
+    )
+    if isinstance(result, AcceptedElicitation):
+        return result.data.value
+    elif isinstance(result, DeclinedElicitation):
+        return "DECLINED"
+    elif isinstance(result, CancelledElicitation):
+        return "CANCELLED"
+    return "INVALID RESPONSE"
 
 @mcp.tool()
 async def get_camera(ip_address: str) -> str:

@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.4",
+  "name": "camera",
+  "display_name": "ONVIF Camera (UV Runtime)",
+  "version": "1.0.0",
+  "description": "Simple MCP server using UV runtime",
+  "author": {
+    "name": "Stephen Rhodes"
+  },
+  "icon": "icon.png",
+  "server": {
+    "type": "uv",
+    "entry_point": "src/camera.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "src/camera.py"],
+      "env": {
+        "CAMERA_USERNAME": "${user_config.camera_username}",
+        "CAMERA_PASSWORD": "${user_config.camera_password}",
+        "STREAM_SERVER_IP": "${user_config.stream_server_ip}"
+      }    
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  },
+  "keywords": ["camera", "libonvif", "uv"],
+  "license": "Apache",
+  "user_config": {
+    "camera_username": {
+      "type": "string",
+      "title": "Camera Username",
+      "description": "Username for authenticating with ONVIF cameras",
+      "required": true
+    },
+    "camera_password": {
+      "type": "string",
+      "title": "Camera Password",
+      "description": "Password for authenticating with ONVIF cameras",
+      "sensitive": true,
+      "required": true
+    },
+    "stream_server_ip": {
+      "type": "string",
+      "title": "Stream Server IP",
+      "description": "IP address of the local streaming relay server",
+      "required": false
+    }
+  }
+}

@@ -1,9 +1,12 @@
+import os
+
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
+from libonvif.devices.camera import get_camera_by_ip
 
 # DNS-rebinding protection stays enabled, but we explicitly allow the
 # llama.cpp web UI's origin (10.1.1.87) alongside the usual localhost
@@ -28,6 +31,26 @@ mcp = FastMCP(
 async def add(a: int, b: int) -> int:
     """Add two numbers together."""
     return a + b
+
+@mcp.tool()
+async def get_camera(ip_address: str) -> str:
+    """
+    Query a camera by IP address and return its full state as a JSON
+    string. Credentials come from the CAMERA_USERNAME/CAMERA_PASSWORD
+    environment variables - the same pattern used by the camera MCP
+    server. Added here as a test of whether real camera data (a large,
+    deeply nested JSON payload) flows correctly through the
+    streamable-http transport and this server's CORS/session setup, not
+    just the trivial add() tool above.
+
+    Args:
+        ip_address: The IP address of the camera to query.
+
+    Returns:
+        The camera's JSON representation, as produced by Camera.to_json().
+    """
+    camera = get_camera_by_ip(ip_address, os.environ.get("CAMERA_USERNAME", ""), os.environ.get("CAMERA_PASSWORD", ""))
+    return camera.to_json()
 
 
 class PrivateNetworkAccessMiddleware:

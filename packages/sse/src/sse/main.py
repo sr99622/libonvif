@@ -1,7 +1,11 @@
+import asyncio
 import os
+from datetime import datetime
 
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import StreamingResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from mcp.server.fastmcp import FastMCP
@@ -80,8 +84,31 @@ class PrivateNetworkAccessMiddleware:
         await self.app(scope, receive, send_wrapper)
 
 
+async def event_stream(request: Request) -> StreamingResponse:
+    """
+    Plain Server-Sent Events endpoint, independent of the MCP protocol -
+    just a raw text/event-stream that emits one tick every 5 seconds.
+    Built to test/observe the SSE mechanism itself directly (e.g. via
+    curl -N http://127.0.0.1:8000/events, or a browser EventSource),
+    separate from anything MCP-specific like tool calls or sessions.
+    """
+
+    async def generator():
+        count = 0
+        try:
+            while True:
+                await asyncio.sleep(5)
+                count += 1
+                yield f"data: tick {count} at {datetime.now().isoformat()}\n\n"
+        except asyncio.CancelledError:
+            pass
+
+    return StreamingResponse(generator(), media_type="text/event-stream")
+
+
 def main():
     app = mcp.streamable_http_app()
+    app.add_route("/events", event_stream, methods=["GET"])
     app.add_middleware(PrivateNetworkAccessMiddleware)
     app.add_middleware(
         CORSMiddleware,

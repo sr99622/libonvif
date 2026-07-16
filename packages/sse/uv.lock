@@ -501,7 +501,7 @@ wheels = [
 
 [[package]]
 name = "libonvif"
-version = "4.0.8"
+version = "4.0.13"
 source = { directory = "../libonvif" }
 dependencies = [
     { name = "lxml" },

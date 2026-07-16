@@ -1,6 +1,6 @@
 [project]
 name = "sse"
-version = "0.0.3"
+version = "0.0.4"
 description = "Minimal example MCP server using the streamable-http transport"
 requires-python = ">=3.10"
 dependencies = [
@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 sse = "sse.main:main"
+motion-watcher = "sse.motion_watcher:main"
 
 [build-system]
 requires = ["uv_build>=0.8.0,<0.9.0"]

@@ -254,17 +254,21 @@ def simple_items(elem: etree._Element | None) -> dict[str, str]:
     }
 
 def parse_notify(ip_address: str, xml: str) -> list[dict[str, Any]]:
-    root = etree.fromstring(xml.encode("utf-8"))
     output = []
-    for msg in root.findall(".//wsnt:NotificationMessage", NS):
-        topic = text(msg, "wsnt:Topic")
-        topic = strip_topic_prefix(topic) if topic else None
-        alarm = {"ip_address": ip_address, "topic": topic}
-        message = msg.find("wsnt:Message/tt:Message", NS)
-        if message is not None:
-            alarm["utc_time"] = message.attrib.get("UtcTime")
-            alarm["operation"] = message.attrib.get("PropertyOperation")
-            alarm["source"] = simple_items(message.find("tt:Source", NS))
-            alarm["data"] = simple_items(message.find("tt:Data", NS)) 
-            output.append(alarm)
+    try:
+        root = etree.fromstring(xml.encode("utf-8"))
+        for msg in root.findall(".//wsnt:NotificationMessage", NS):
+            topic = text(msg, "wsnt:Topic")
+            topic = strip_topic_prefix(topic) if topic else None
+            alarm = {"ip_address": ip_address, "topic": topic}
+            message = msg.find("wsnt:Message/tt:Message", NS)
+            if message is not None:
+                alarm["utc_time"] = message.attrib.get("UtcTime")
+                alarm["operation"] = message.attrib.get("PropertyOperation")
+                alarm["source"] = simple_items(message.find("tt:Source", NS))
+                alarm["data"] = simple_items(message.find("tt:Data", NS)) 
+                output.append(alarm)
+    except Exception as e:
+        pass
+
     return output

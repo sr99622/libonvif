@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
 <h2>Model Context Protocol</h2>
 
-Early development has begun on making the libonvif package compatible with MCP. The current focus is on building out functionality with Claude Desktop on Windows. The relevant files are found in the packages\mcp folder
+Early development has begun on making the libonvif package compatible with MCP. The current focus is on building out functionality with Claude Desktop on Windows. To get the code, use `git clone https://github.com/sr99622/local.mcpb.stephen-rhodes.camera`.
 
 The mcp[cli] python package is added to the project as a development dependency, so it will be installed if you git clone the repository and run `uv sync` from the project root directory.
 
@@ -216,7 +216,7 @@ The json config file can be located from Claude by selecting the File->Settings-
       "command": "uv",
       "args": [
         "--directory",
-        "C:\\Users\\sr996\\Projects\\libonvif\\packages\\mcp\\src",
+        "C:\\Users\\sr996\\Projects\\local.mcpb.stephen-rhodes.camera\\src",
         "run",
         "camera.py"
       ],

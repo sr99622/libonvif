@@ -9,3 +9,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Runtime output, not source
+packages/sse/src/sse/snapshots/

@@ -1355,11 +1355,12 @@ wheels = [
 
 [[package]]
 name = "sse"
-version = "0.0.3"
+version = "0.0.4"
 source = { editable = "." }
 dependencies = [
     { name = "libonvif" },
     { name = "mcp" },
+    { name = "niquests" },
     { name = "pydantic" },
     { name = "starlette" },
     { name = "uvicorn" },
@@ -1369,6 +1370,7 @@ dependencies = [
 requires-dist = [
     { name = "libonvif", directory = "../libonvif" },
     { name = "mcp", specifier = ">=1.0.0" },
+    { name = "niquests" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "starlette", specifier = ">=0.27.0" },
     { name = "uvicorn", specifier = ">=0.23.0" },

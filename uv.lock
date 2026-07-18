@@ -826,7 +826,7 @@ wheels = [
 
 [[package]]
 name = "libonvif"
-version = "4.0.8"
+version = "4.0.13"
 source = { editable = "packages/libonvif" }
 dependencies = [
     { name = "lxml" },

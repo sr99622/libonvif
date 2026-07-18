@@ -1,4 +1,3 @@
-import base64
 import os
 import time
 from pathlib import Path
@@ -18,7 +17,8 @@ CAMERA_USERNAME = os.environ.get("CAMERA_USERNAME", "")
 CAMERA_PASSWORD = os.environ.get("CAMERA_PASSWORD", "")
 EVENT_SERVER_PORT = int(os.environ.get("EVENT_SERVER_PORT", "8856"))
 SNAPSHOT_DIR = Path(__file__).parent / "snapshots"
-LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "http://10.1.1.87:8080")
+OPENCLAW_HOOK_URL = os.environ.get("OPENCLAW_HOOK_URL", "http://127.0.0.1:18789/hooks/agent")
+OPENCLAW_HOOK_TOKEN = os.environ.get("OPENCLAW_HOOK_TOKEN", "")
 
 _camera = None  # set in main(), used by on_camera_events to fetch a snapshot
 
@@ -51,60 +51,57 @@ def fetch_snapshot() -> Path | None:
     return filename
 
 
-def describe_image(image_path: Path) -> str | None:
+def notify_openclaw(alarm_summary: str) -> None:
     """
-    Send a JPEG image to the local vision-capable model (llama.cpp's
-    OpenAI-compatible chat completions endpoint) and return its
-    description. Returns None on failure.
-
-    llama.cpp is not running in router mode here (a single model was
-    loaded directly), so the "model" field below is effectively ignored -
-    it's required by the API shape but there's nothing to route between.
+    POST to OpenClaw's /hooks/agent endpoint, telling the agent a camera
+    event occurred. Deliberately does NOT send image data itself - the
+    OpenClaw agent already has this same camera MCP server configured
+    (see mcp.servers.camera in openclaw.json), so it can fetch and view
+    a fresh snapshot directly via its own tools rather than us pushing
+    image bytes through a webhook's plain-text message field.
     """
-    image_bytes = image_path.read_bytes()
-    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-
     payload = {
-        "model": "local-model",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "Describe what you see in this security camera snapshot."},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}},
-                ],
-            }
-        ],
+        "message": (
+            f"Motion event received from the camera at {CAMERA_IP}. "
+            f"({alarm_summary}) "
+            "Please use the camera tools to fetch a current snapshot and "
+            "briefly describe what you see."
+        ),
+        "name": "Camera Motion",
+        "wakeMode": "now",
     }
-
     try:
-        response = niquests.post(f"{LLM_BASE_URL}/v1/chat/completions", json=payload, timeout=60)
+        response = niquests.post(
+            OPENCLAW_HOOK_URL,
+            json=payload,
+            headers={"Authorization": f"Bearer {OPENCLAW_HOOK_TOKEN}"},
+            timeout=10,
+        )
         response.raise_for_status()
+        print(f"Notified OpenClaw: {response.json()}")
     except Exception as e:
-        print(f"Failed to get description from model: {e}")
-        return None
-
-    data = response.json()
-    return data["choices"][0]["message"]["content"]
+        print(f"Failed to notify OpenClaw: {e}")
 
 
 def on_camera_events(alarms: list[dict]) -> None:
     """
-    Phase 2: on any event (unfiltered - the subscription-confirmation
-    event that fires immediately on subscribe is being used as our
-    trigger for now, ahead of adding real topic filtering), fetch and
-    save a snapshot as a JPEG file. Sending it to the model comes next.
+    Phase 3: on any event (unfiltered - the subscription-confirmation
+    event that fires immediately on subscribe is still being used as our
+    trigger for now), save a local snapshot for our own record, then
+    notify OpenClaw via its /hooks/agent webhook so its own agent (which
+    has vision + camera MCP tools + real delivery channels) picks up
+    from there.
     """
+    summary_parts = []
     for alarm in alarms:
         print("-" * 40)
         for key, value in alarm.items():
             print(f"{key}: {value}")
+        summary_parts.append(str(alarm.get("topic", "unknown topic")))
     print()
 
-    if filename := fetch_snapshot():
-        description = describe_image(filename)
-        if description:
-            print(f"Description: {description}\n")
+    fetch_snapshot()  # kept for our own local audit trail
+    notify_openclaw(", ".join(summary_parts) or "event received")
 
 
 def main():

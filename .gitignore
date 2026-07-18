@@ -12,3 +12,5 @@ wheels/
 
 # Runtime output, not source
 packages/sse/src/sse/snapshots/
+
+sessions/

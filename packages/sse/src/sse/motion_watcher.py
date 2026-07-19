@@ -106,6 +106,7 @@ def notify_openclaw(filename: str) -> None:
     front skips that trial and error on every single motion event.
     """
     file_path = f"$WORKSPACE_DIR/{OPENCLAW_SNAPSHOT_SUBDIR}/{filename}"
+    description_path = f"$WORKSPACE_DIR/{OPENCLAW_SNAPSHOT_SUBDIR}/{Path(filename).stem}.txt"
     payload = {
         "message": (
             f"Motion detected on the camera at {CAMERA_IP}. Do the following:\n"
@@ -113,7 +114,9 @@ def notify_openclaw(filename: str) -> None:
             f"camera's snapshot_uri (from camera__get_camera) and file_path "
             f"set to exactly \"{file_path}\".\n"
             f"2. Call read on that same path to view the image.\n"
-            f"3. Briefly describe what you see.\n"
+            f"3. Write a brief description of what you see using the write "
+            f"tool, saving it to exactly \"{description_path}\" as plain "
+            f"text (just the description itself, no extra formatting).\n"
             "Do not use get_snapshot_image_base64_encoded or the browser tool "
             "for this - go directly to download_snapshot_to_file, then read."
         ),

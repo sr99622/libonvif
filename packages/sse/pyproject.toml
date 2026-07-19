@@ -1,6 +1,6 @@
 [project]
 name = "sse"
-version = "0.0.7"
+version = "0.0.8"
 description = "Minimal example MCP server using the streamable-http transport"
 requires-python = ">=3.10"
 dependencies = [

@@ -1,4 +1,3 @@
-# Python-generated files
 __pycache__/
 *.py[oc]
 build/
@@ -6,11 +5,7 @@ dist/
 wheels/
 *.egg-info
 *mcpb
-
-# Virtual environments
 .venv
-
-# Runtime output, not source
 packages/sse/src/sse/snapshots/
-
 sessions/
+.DS_Store

@@ -65,6 +65,12 @@ port 8856/TCP is for HTTP server used to receive camera events
 
 &nbsp;
 
+<h2>Model Context Protocol</h2>
+
+[onvif-mcp](https://github.com/sr99622/onvif-mcp) showcases a secure camera network built on top of libonvif with agent driven camera access and control. Enterprise grade security OAuth authentication and an isolated camera network over HTTPS prevent unauthorized access, snooping and phoning home. Agents can control camera parameters and PTZ and have direct access to camera images for advanced analysis. All network traffic to and from the cameras is proxied from a secure server. The server is configured by the agent itself, so you don't have to be a network security expert to set it up. Remote clients are authenticated with short-lived JWT tokens and authorized IP address.
+
+&nbsp;
+
 <h2>libonvif Programming Examples</h2>
 
 * <h3>Simple Camera Query</h3>
@@ -197,61 +203,6 @@ if __name__ == "__main__":
 
     print(f"Found {len(cameras)} {"camera" if len(cameras) == 1 else "cameras"}")
 ```
-
-&nbsp;
-
-<h2>Model Context Protocol</h2>
-
-Early development has begun on making the libonvif package compatible with MCP. The current focus is on building out functionality with Claude Desktop on Windows. To get the code, use `git clone https://github.com/sr99622/local.mcpb.stephen-rhodes.camera`.
-
-The mcp[cli] python package is added to the project as a development dependency, so it will be installed if you git clone the repository and run `uv sync` from the project root directory.
-
-For this iteration, the server is run locally. This entails editing the claude_desktop_config.json file to reflect the installation locations of the various components of the server system. These locations can vary depending on the methods used for installing `uv` and the repository itself.
-
-The json config file can be located from Claude by selecting the File->Settings->Developer menu and clicking the `Edit Config` button. This will highlight the json file, to which you should add the contents below, which will need to be customized for your configuration.
-
-```
-  "mcpServers": {
-    "camera": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:\\Users\\sr996\\Projects\\local.mcpb.stephen-rhodes.camera\\src",
-        "run",
-        "camera.py"
-      ],
-      "env": {
-        "CAMERA_USERNAME": "admin",
-        "CAMERA_PASSWORD": "admin123",
-        "STREAM_SERVER_IP": "10.1.1.13"
-      }
-    }
-  },
-
-```
-
-The camera username and password are entered into this file as environment variables, and the system assumes that all cameras have the same username and password.
-
-Once the server is configured, Claude Desktop can be started. Note that Claude Desktop will have to be quit completely before it will load the server properly. This can be done using the command
-
-```
-Stop-Process -Name "claude" -Force
-```
-
-You will need to do this any time the server is modified as well.
-
-Once running you can check if Claude has loaded the server by looking at the menu File->Settings->Developer and it should show `camera` with your configuration as an MCP server. If all has gone well, you can prompt the system to look for cameras using something like `find cameras on local network` which should produce a list of cameras with their IP addresses. You can get detailed info on a camera using something like `get camera 10.1.1.78` or get a snapshot with `get snapshot for 10.1.1.78` which will open a browser tab with the snapshot. Note that 10.1.1.78 is an example IP address that you should replace with your target IP from the camera list.
-
-You can pull a live stream from the camera as well. You will need to have the [Cayenue](https://github.com/sr99622/Cayenue) application installed to support the WebRTC server for the cameras. This can be done using [pipx](https://pipx.pypa.io/stable/how-to/install-pipx/). If you are installing on Windows, please do not use the Quick Installer, make sure to use scoop to install pipx.
-
-```
-pipx install cayenue
-cayenue
-```
-
-Start Cayenue, then go to the Settings->Proxy tab and select the Server radio button. The program will download [MediaMTX](https://github.com/bluenviron/mediamtx) server and configure it for use. Select the Enable HTTP server checkbox. Go to the main Camera Tabs and click the Discover button to find your cameras. You should be able to open a browser window and get a camera listing page at `127.0.0.1:8800`. If this is working, you can edit the claude_desktop_config.json file to enter your STREAM_SERVER_IP so the MCP can find the server, once all this is set up, just say `get live stream for camera 10.1.1.78`.
-
-
 
 &nbsp;
 

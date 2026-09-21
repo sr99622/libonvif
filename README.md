@@ -24,10 +24,10 @@ onvif-tui is a Terminal User Interface application with many features.
 
 &nbsp;
 
-onvif-tui can be installed using [pipx](https://pipx.pypa.io/stable/how-to/install-pipx/)
+onvif-tui can be installed using [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ```
-pipx install onvif-tui
+uv tool install onvif-tui
 ```
 
 The application will run without any command line arguments. The username and password will be required for camera authentication. The -i argument is optional for situations where there are multiple network interfaces on the host computer. The -m argument is used to connect with a camera without using discovery.

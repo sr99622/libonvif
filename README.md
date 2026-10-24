@@ -69,6 +69,8 @@ port 8856/TCP is for HTTP server used to receive camera events
 
 [onvif-mcp](https://github.com/sr99622/onvif-mcp) showcases a secure camera network built on top of libonvif with agent driven camera access and control. Enterprise grade security OAuth authentication and an isolated camera network over HTTPS prevent unauthorized access, snooping and phoning home. Agents can control camera parameters and PTZ and have direct access to camera images for advanced analysis. All network traffic to and from the cameras is proxied from a secure server. The server is configured by the agent itself, so you don't have to be a network security expert to set it up. Remote clients are authenticated with short-lived JWT tokens and authorized IP address.
 
+Testers are needed for onvif-mcp. Paid sponsorship is available for qualified applicants, please see the repository for details.
+
 &nbsp;
 
 <h2>libonvif Programming Examples</h2>
